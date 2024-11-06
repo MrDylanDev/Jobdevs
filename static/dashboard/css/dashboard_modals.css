@@ -548,3 +548,53 @@
 .jdm-hito-pill {
   flex: 0 0 auto;
   padding: 8px 12px;
+  background: #050a07;
+  border: 1px solid #14221a;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jdm-advances-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jdm-advance-card {
+  background: #030604;
+  border: 1px solid #14221a;
+  border-left: 3px solid #00e676;
+  padding: 14px 16px;
+  border-radius: 4px;
+}
+
+.jdm-advance-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.jdm-advance-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.jdm-advance-desc {
+  font-size: 12.5px;
+  color: #c0d0c6;
+  line-height: 1.55;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+
+.jdm-advance-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
