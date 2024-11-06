@@ -198,3 +198,103 @@
 .jdp-badge.is-inactivo { opacity: 0.7; }
 
 .jdp-desc {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #b9cec2;
+  white-space: pre-line;
+}
+
+.jdp-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.jdp-meta-item {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid rgba(0, 230, 118, 0.45);
+  background: rgba(255, 255, 255, 0.025);
+}
+.jdp-meta-label {
+  display: block;
+  margin-bottom: 3px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #729183;
+}
+.jdp-meta-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #e6f4ec;
+  overflow-wrap: anywhere;
+}
+
+.jdp-section { margin-bottom: 22px; }
+.jdp-section:last-child { margin-bottom: 0; }
+
+.jdp-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9fb8ab;
+}
+.jdp-section-title i { color: #00e676; margin-right: 6px; }
+.jdp-section-count {
+  color: #00e676;
+  font-size: 10px;
+}
+
+.jdp-progress-bar {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.jdp-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00e676, #69f0ae);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.45);
+  transition: width 0.4s ease;
+}
+
+.jdp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jdp-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 12.5px;
+  color: #cfe3d8;
+}
+.jdp-list-item i { margin-top: 2px; color: #729183; }
+.jdp-list-item.is-completado { opacity: 0.62; }
+.jdp-list-item.is-completado i { color: #00e676; }
+.jdp-list-item.is-en_revision i { color: #ffc107; }
+.jdp-list-main { min-width: 0; flex: 1 1 auto; }
+.jdp-list-title {
+  display: block;
+  font-weight: 600;
+  color: #e6f4ec;
+  overflow-wrap: anywhere;
+}
