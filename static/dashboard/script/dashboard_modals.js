@@ -647,3 +647,62 @@
           var postRes = await fetch(data.url_calificar, {
             method: 'POST',
             headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCsrfToken()
+            },
+            body: formData,
+            credentials: 'same-origin'
+          });
+
+          var resJson = await postRes.json();
+          if (resJson.ok) {
+            mostrarToast(resJson.mensaje || '¡Calificación enviada!');
+            cerrarModal();
+            if (triggerBtn) {
+              triggerBtn.classList.remove('btn-primary');
+              triggerBtn.classList.add('btn-secondary');
+              triggerBtn.innerHTML = '<i class="fa fa-star" style="color:#00e676;"></i> Calificada (' + puntuacionVal + '/5)';
+              triggerBtn.disabled = true;
+            }
+          } else {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.mensaje || 'No se pudo registrar la calificación.') + '</span>';
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="fa-solid fa-star"></i> Enviar Calificación';
+          }
+        } catch (e) {
+          errBox.style.display = 'flex';
+          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de conexión al enviar la calificación.</span>';
+          btnEnviar.disabled = false;
+          btnEnviar.innerHTML = '<i class="fa-solid fa-star"></i> Enviar Calificación';
+        }
+      });
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. DETALLE EMPRESA
+  // ─────────────────────────────────────────────────────────────
+  async function cargarDetalleEmpresa(url) {
+    abrirModal('');
+    setHeader('PERFIL // INSTITUCIONAL', 'Cargando perfil de empresa…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.empresa) throw new Error(data.error || 'No se pudo obtener el perfil de la empresa');
+
+      var e = data.empresa;
+      setHeader('EMPRESA // FICHA INSTITUCIONAL', e.nombre, e.sector + ' · ' + e.ciudad);
+
+      var badgeHtml = e.es_verificada
+        ? '<span class="jdm-badge jdm-badge-success"><i class="fa-solid fa-circle-check"></i> ' + escapeHtml(e.badge_label || 'Verificada') + '</span>'
+        : '<span class="jdm-badge jdm-badge-gray"><i class="fa-solid fa-shield"></i> ' + escapeHtml(e.badge_label || 'Sin verificar') + '</span>';
+
