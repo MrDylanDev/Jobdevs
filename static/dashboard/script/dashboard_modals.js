@@ -1001,3 +1001,62 @@
         data.categorias.forEach(function (c) {
           catOptions += '<option value="' + c.codigo + '">' + escapeHtml(c.label) + '</option>';
         });
+      }
+
+      var html =
+        '<form id="jdmFormNuevaDisputa" novalidate>' +
+          '<div id="jdmDisputaError" class="jdm-error" style="display:none;"></div>' +
+
+          '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);padding:12px 14px;border-radius:4px;margin-bottom:16px;font-size:12.5px;color:#fca5a5;">' +
+            '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;color:#ef4444;"></i>' +
+            '<strong>Importante:</strong> Abrir una disputa <strong>congela de inmediato</strong> el proyecto y su contratación hasta resolución arbitral. Solo procede ante faltas graves.' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmCatDisputa">Causal de la disputa <span class="req">*</span></label>' +
+            '<select id="jdmCatDisputa" name="categoria" class="jdm-select" required>' + catOptions + '</select>' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmMotivoDisputa">Motivo y hechos detallados <span class="req">*</span></label>' +
+            '<textarea id="jdmMotivoDisputa" name="motivo" class="jdm-textarea" placeholder="Relata objetivamente los incumplimientos o incidentes ocurridos…" required></textarea>' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmEvidenciaDisputa">Enlace a pruebas o evidencias (opcional)</label>' +
+            '<input type="url" id="jdmEvidenciaDisputa" name="evidencia_url" class="jdm-input" placeholder="https://drive.google.com/... o captura">' +
+          '</div>' +
+
+          '<div style="margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#c0d0c6;">' +
+            '<input type="checkbox" id="jdmAceptaSanciones" name="acepta_sanciones" style="margin-top:3px;" required>' +
+            '<label for="jdmAceptaSanciones">Comprendo que el proyecto quedará congelado y que realizar denuncias infundadas conlleva sanciones disciplinarias en la plataforma.</label>' +
+          '</div>' +
+        '</form>';
+
+      setContent(html);
+      setFooter(
+        '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
+        '<button type="button" class="jdm-btn jdm-btn-danger" id="jdmBtnConfirmarDisputa"><i class="fa-solid fa-gavel"></i> Abrir Disputa Formal</button>'
+      );
+
+      var btnConf = document.getElementById('jdmBtnConfirmarDisputa');
+      var formD = document.getElementById('jdmFormNuevaDisputa');
+
+      if (btnConf && formD) {
+        btnConf.addEventListener('click', async function () {
+          var cat = formD.querySelector('[name="categoria"]').value;
+          var mot = formD.querySelector('[name="motivo"]').value.trim();
+          var check = formD.querySelector('[name="acepta_sanciones"]').checked;
+          var errBox = document.getElementById('jdmDisputaError');
+
+          if (!cat) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar una causal.</span>';
+            return;
+          }
+          if (!mot) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes relatar el motivo de la disputa.</span>';
+            return;
+          }
+          if (!check) {
