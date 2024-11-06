@@ -7,32 +7,44 @@
   <title>JobDevs | Panel Administrador</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
 </head>
 <body>
+
+<!-- Texturas Cyber Tech (Estilo Landing Page) -->
+<div class="grain" id="grain"></div>
+<div class="scan-line"></div>
+<div class="tech-bg"></div>
+
 <div class="app-layout">
 
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
-      <div>
-        <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Panel Maestro</div>
+      <div class="brand-tech-wrap">
+        <div class="brand-square blink"></div>
+        <div>
+          <div class="sidebar-brand-text">JobDevs<span class="brand-dot"></span></div>
+          <div class="sidebar-brand-sub">[ PANEL MAESTRO ]</div>
+        </div>
       </div>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Visión General</div>
       <button class="nav-item active" onclick="showSection('statsSection', this)">
-        <i class="fa fa-chart-pie"></i>
+        <i data-lucide="pie-chart" class="fa fa-chart-pie"></i>
         <span>Estadísticas</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="showSection('chatSection', this)">
-        <i class="fa fa-comments"></i>
+        <i data-lucide="message-square" class="fa fa-comments"></i>
         <span>Chat Central</span>
         {% if mensajes_no_leidos_admin > 0 %}
           <span class="nav-badge">{{ mensajes_no_leidos_admin }}</span>
@@ -43,45 +55,49 @@
     <div class="sidebar-group">
       <div class="sidebar-group-label">Gestión</div>
       <button class="nav-item" onclick="showSection('usersSection', this)">
-        <i class="fa fa-users"></i>
+        <i data-lucide="users" class="fa fa-users"></i>
         <span>Usuarios</span>
       </button>
       <button class="nav-item" onclick="showSection('projectsSection', this)">
-        <i class="fa fa-diagram-project"></i>
+        <i data-lucide="folder-kanban" class="fa fa-diagram-project"></i>
         <span>Proyectos</span>
       </button>
+      <button class="nav-item" onclick="showSection('explorarSection', this)">
+        <i data-lucide="compass" class="fa fa-compass"></i>
+        <span>Explorar Catálogo</span>
+      </button>
       <button class="nav-item" onclick="showSection('categoriesSection', this)">
-        <i class="fa fa-tags"></i>
+        <i data-lucide="tags" class="fa fa-tags"></i>
         <span>Categorías</span>
       </button>
       <button class="nav-item" onclick="showSection('disputasSection', this)">
-        <i class="fa fa-gavel"></i>
+        <i data-lucide="scale" class="fa fa-gavel"></i>
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
-        <i class="fa fa-building-circle-check"></i>
+        <i data-lucide="building" class="fa fa-building-circle-check"></i>
         <span>Verificación Empresas</span>
         {% if total_empresas_en_revision %}<span class="badge bg-danger ms-auto">{{ total_empresas_en_revision }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('verificacionDevsSection', this)">
-        <i class="fa fa-user-check"></i>
+        <i data-lucide="user-check" class="fa fa-user-check"></i>
         <span>Verificación Talento SENA</span>
         {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('fichasSenaSection', this)">
-        <i class="fa fa-id-card"></i>
+        <i data-lucide="id-card" class="fa fa-id-card"></i>
         <span>Lista Blanca SENA</span>
         {% if total_fichas_sena %}<span class="badge bg-secondary ms-auto">{{ total_fichas_sena }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
-        <i class="fa fa-file-shield"></i>
+        <i data-lucide="shield" class="fa fa-file-shield"></i>
         <span>Auditoría</span>
       </button>
-      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i class="fa fa-shield-halved"></i><span>Auditoría de Chats</span></button>
-      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i class="fa fa-terminal"></i><span>Logs Técnicos</span></button>
+      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i data-lucide="shield-alert" class="fa fa-shield-halved"></i><span>Auditoría de Chats</span></button>
+      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i data-lucide="terminal" class="fa fa-terminal"></i><span>Logs Técnicos</span></button>
       <button class="nav-item" onclick="showSection('reportsSection', this)">
-        <i class="fa fa-file-export"></i>
+        <i data-lucide="file-bar-chart" class="fa fa-file-export"></i>
         <span>Reportes</span>
       </button>
     </div>
@@ -89,7 +105,7 @@
     <hr class="sidebar-sep" style="margin-top:auto;">
     <div style="padding:12px;">
       <a class="nav-item danger" href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
+        <i data-lucide="log-out" class="fa fa-right-from-bracket"></i>
         <span>Cerrar Sesión</span>
       </a>
     </div>
@@ -103,6 +119,7 @@
       <div class="top-header-title">
         Panel Administrador
         <span>/ JobDevs Platform</span>
+        <span class="top-sys-pill"><span class="top-sys-dot"></span> ROOT // ONLINE</span>
       </div>
       <button class="notif-btn" title="Notificaciones">
         <i class="fa fa-bell"></i>
@@ -295,7 +312,9 @@
                       <td>{{ dev.0 }}</td>
                       <td style="color:var(--danger);font-weight:600;">★ {{ dev.2 }}</td>
                       <td style="text-align:right;">
-                        <a href="{% url 'sala_chat' dev.3 0 %}" class="btn btn-danger btn-sm">Intervenir</a>
+                        <button type="button" class="btn btn-danger btn-sm"
+                                data-chat-open data-receptor="{{ dev.3 }}" data-proyecto="0"
+                                data-nombre="{{ dev.0 }}">Intervenir</button>
                       </td>
                     </tr>
                   {% empty %}
@@ -320,7 +339,9 @@
                       <td>{{ emp.1|default:emp.0 }}</td>
                       <td style="text-align:right;color:#3b82f6;font-weight:600;">★ {{ emp.2 }}</td>
                       <td style="text-align:right;">
-                        <a href="{% url 'sala_chat' emp.4 0 %}" class="btn btn-secondary btn-sm"><i class="fa fa-message"></i></a>
+                        <button type="button" class="btn btn-secondary btn-sm"
+                                data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                data-nombre="{{ emp.1|default:emp.0 }}"><i class="fa fa-message"></i></button>
                       </td>
                     </tr>
                   {% empty %}
@@ -338,7 +359,9 @@
                       <td>{{ emp.1|default:emp.0 }}</td>
                       <td style="color:#f59e0b;font-weight:600;">★ {{ emp.2 }}</td>
                       <td style="text-align:right;">
-                        <a href="{% url 'sala_chat' emp.4 0 %}" class="btn btn-secondary btn-sm" style="color:#f59e0b;">Mediar</a>
+                        <button type="button" class="btn btn-secondary btn-sm" style="color:#f59e0b;"
+                                data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                data-nombre="{{ emp.1|default:emp.0 }}">Mediar</button>
                       </td>
                     </tr>
                   {% empty %}
@@ -443,10 +466,12 @@
                   </td>
                   <td>
                     <div style="display:flex;gap:6px;">
-                      <a href="{% url 'sala_chat' p.empresa.id 0 %}" class="btn btn-secondary btn-sm">
+                      <button type="button" class="btn btn-secondary btn-sm"
+                              data-chat-open data-receptor="{{ p.empresa.id }}" data-proyecto="0"
+                              data-nombre="{{ p.empresa.nombre|default:p.empresa.username }}">
                         <i class="fa fa-comments"></i>
-                      </a>
-                      <a href="{% url 'ver_avances' p.id %}" class="btn btn-secondary btn-sm">
+                      </button>
+                      <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="btn btn-secondary btn-sm">
                         <i class="fa fa-eye"></i>
                       </a>
                     </div>
@@ -483,7 +508,9 @@
                       <td>{{ alerta.2 }}</td>
                       <td style="color:var(--danger);font-weight:700;">{{ alerta.3 }} días</td>
                       <td>
-                        <a href="{% url 'sala_chat' admin_id 0 %}" class="btn btn-danger btn-sm">Intervenir</a>
+                        <button type="button" class="btn btn-danger btn-sm"
+                                data-chat-open data-receptor="{{ alerta.4 }}" data-proyecto="0"
+                                data-nombre="{{ alerta.1 }}">Intervenir</button>
                       </td>
                     </tr>
                   {% endfor %}
@@ -494,7 +521,172 @@
         {% endif %}
       </section>
 
-      <!-- Chat Central -->
+      <!-- Explorar Catálogo (Sección Integrada para Administrador) -->
+      <section id="explorarSection" class="section-v">
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="compass" style="color:var(--accent); width:24px; height:24px;"></i>
+              Explorar Catálogo de Proyectos
+            </div>
+            <div class="page-subtitle">Inspección directa de proyectos y ofertas publicadas en la plataforma</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge badge-info" id="adminExploreCountBadge" style="font-family:var(--font-mono); font-size:11px;">
+              {{ proyectos_catalogo|length }} PROYECTOS
+            </span>
+          </div>
+        </div>
+
+        <!-- Barra de Filtros Cyber Dark para Admin -->
+        <div class="filters-bar" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:24px; background:var(--card-bg); padding:16px; border:1px solid var(--border); border-radius:var(--radius);">
+          <div class="filter-group" style="flex:1; min-width:220px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Buscar por palabra clave o empresa
+            </label>
+            <div style="position:relative;">
+              <input type="text" id="adminExploreSearch" class="form-control" placeholder="Buscar por título, empresa o descripción..." style="width:100%; padding-left:34px; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px;">
+              <i data-lucide="search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); width:15px; height:15px;"></i>
+            </div>
+          </div>
+
+          <div class="filter-group" style="min-width:180px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Tipo de Solución
+            </label>
+            <select id="adminExploreCategory" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todas las categorías</option>
+              {% for c in categorias_solucion %}
+                <option value="{{ c.slug }}">{{ c.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="filter-group" style="min-width:140px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Estado
+            </label>
+            <select id="adminExploreEstado" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todos los estados</option>
+              <option value="publicado">Publicado</option>
+              <option value="en_desarrollo">En Desarrollo</option>
+              <option value="en_revision">En Revisión</option>
+              <option value="finalizado">Finalizado</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary" id="adminExploreResetBtn" style="height:40px; padding:0 16px; font-size:12.5px;" onclick="resetAdminExploreFilters()">
+              <i data-lucide="rotate-ccw" style="width:14px; height:14px; margin-right:4px;"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid de Proyectos para Admin -->
+        <div class="cards-grid" id="adminExploreGrid">
+          {% for p in proyectos_catalogo %}
+            <div class="project-card admin-explore-card"
+                 data-id="{{ p.id }}"
+                 data-titulo="{{ p.titulo|lower }}"
+                 data-desc="{{ p.descripcion|lower }}"
+                 data-tipo="{{ p.tipo_solucion|lower }}"
+                 data-prioridad="{{ p.prioridad|lower }}"
+                 data-estado="{{ p.estado|lower }}"
+                 data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}"
+                 style="display:flex; flex-direction:column; justify-content:space-between;">
+              
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:8px;">
+                  <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
+                  <span class="badge badge-{% if p.estado == 'publicado' %}info{% elif p.estado == 'en_desarrollo' %}warning{% elif p.estado == 'finalizado' %}success{% else %}gray{% endif %}" style="font-family:var(--font-mono); font-size:10.5px;">
+                    {{ p.get_estado_display|upper }}
+                  </span>
+                </div>
+
+                <h3 class="project-card-title" style="font-size:16px; font-weight:700; margin-bottom:8px; line-height:1.3;">
+                  {{ p.titulo }}
+                </h3>
+
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; align-items:center;">
+                  <span class="badge badge-{% if p.prioridad == 'alta' %}danger{% elif p.prioridad == 'media' %}warning{% else %}info{% endif %}" style="font-family:var(--font-mono); font-size:10.5px;">
+                    {{ p.prioridad|upper }}
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="users" style="width:11px; height:11px;"></i> {{ p.num_postulaciones }} postulantes
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="door-open" style="width:11px; height:11px;"></i> {{ p.vacantes_disponibles }} de {{ p.vacantes }} libres
+                  </span>
+                </div>
+
+                <p class="project-desc" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                  {{ p.descripcion }}
+                </p>
+              </div>
+
+              <!-- Footer de la Card para Admin -->
+              <div class="card-footer" style="padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <div class="user-avatar" style="width:34px; height:34px; font-size:12px; border-radius:6px; flex-shrink:0;">
+                    {% if p.empresa.perfil_empresa.logo %}
+                      <img src="{{ p.empresa.perfil_empresa.logo.url }}" alt="{{ p.empresa.nombre }}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                    {% else %}
+                      {{ p.empresa.nombre|default:p.empresa.username|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="font-size:12.5px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      {{ p.empresa.nombre|default:p.empresa.username }}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-top:2px;">
+                      {% if p.empresa_reputacion > 0 %}
+                        <i data-lucide="star" style="width:11px; height:11px; color:#f59e0b; fill:#f59e0b;"></i>
+                        <span style="color:#f59e0b; font-weight:600;">{{ p.empresa_reputacion|floatformat:1 }}</span>
+                      {% else %}
+                        <span>Empresa nueva</span>
+                      {% endif %}
+                      {% if p.empresa.perfil_empresa.es_verificada %}
+                        <span style="color:var(--accent); display:inline-flex; align-items:center;" title="Verificada">
+                          <i data-lucide="check-circle" style="width:11px; height:11px; margin-left:3px;"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:inline-flex; gap:6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" title="Chat con empresa"
+                          data-chat-open data-receptor="{{ p.empresa.id }}" data-proyecto="0"
+                          data-nombre="{{ p.empresa.nombre|default:p.empresa.username }}">
+                    <i data-lucide="message-square" style="width:13px; height:13px;"></i>
+                  </button>
+                  <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="btn btn-primary btn-sm" title="Ver avances y gestión">
+                    <i data-lucide="eye" style="width:13px; height:13px; margin-right:4px;"></i> Ver
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          {% empty %}
+            <div class="empty-state" style="grid-column:1 / -1;">
+              <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+              <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No hay proyectos registrados en el catálogo</p>
+            </div>
+          {% endfor %}
+
+          <!-- Elemento Empty de Filtro JS para Admin -->
+          <div id="adminExploreNoMatches" class="empty-state" style="grid-column:1 / -1; display:none;">
+            <i data-lucide="search-x" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+            <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No se encontraron proyectos con los filtros actuales</p>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Prueba ajustando los términos de búsqueda o limpiando los filtros.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="resetAdminExploreFilters()">
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chat Central (panel tipo WhatsApp: lista a la izquierda, conversación a la derecha) -->
       <section id="chatSection" class="section-v">
         <div class="page-header">
           <div>
@@ -502,26 +694,76 @@
             <div class="page-subtitle">Conversaciones activas con todos los perfiles del sistema</div>
           </div>
         </div>
-        <div class="cards-grid">
-          {% for conv in conversaciones %}
-            <div class="project-card" style="display:flex;align-items:center;justify-content:space-between;{% if conv.pendiente %}border-left:3px solid #111;{% endif %}">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div class="user-avatar" style="width:40px;height:40px;background:#374151;">
-                  {{ conv.usuario.username|slice:":1"|upper }}
-                </div>
-                <div>
-                  <div class="project-card-title">
-                    {{ conv.usuario.username }}
-                    {% if conv.pendiente %}<span style="color:var(--success);font-size:10px;margin-left:5px;">● Nuevo</span>{% endif %}
-                  </div>
-                  <div class="project-card-sub">{{ conv.ultimo_mensaje.fecha_envio|date:"d/m H:i" }}</div>
-                </div>
-              </div>
-              <a href="{% url 'sala_chat' conv.usuario.id 0 %}" class="btn btn-primary btn-sm">Responder</a>
+
+        <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <span>Conversaciones</span>
+              <span class="jd-chat-count">{{ conversaciones|length }}</span>
             </div>
-          {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-comments"></i><p>No hay conversaciones registradas</p></div>
-          {% endfor %}
+            <div class="jd-chat-items" data-chat-list>
+              {% for conv in conversaciones %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' conv.usuario.id %}"
+                      data-receptor="{{ conv.usuario.id }}" data-proyecto="0">
+                <span class="jd-chat-avatar">{{ conv.usuario.username|slice:":1"|upper }}</span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ conv.usuario.username }}</span>
+                    <span class="jd-chat-time">{{ conv.ultimo_mensaje.fecha_envio|date:"H:i" }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ conv.ultimo_mensaje.contenido|truncatechars:46 }}</span>
+                </span>
+                {% if conv.pendiente %}<span class="jd-chat-dot" title="Mensaje sin leer"></span>{% endif %}
+              </button>
+              {% empty %}
+              <div class="jd-chat-list-empty">
+                <i class="fa fa-comments"></i>
+                No hay conversaciones registradas
+              </div>
+              {% endfor %}
+            </div>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i class="fa fa-comments"></i>
+              <p>Selecciona una conversación</p>
+              <span>Elige un contacto de la lista</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="Volver">
+                  <i class="fa fa-arrow-left"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name" data-chat-name>—</div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
+                </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="Escribe un mensaje…" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="Enviar">
+                  <i class="fa fa-paper-plane"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i class="fa fa-lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -878,9 +1120,9 @@
             </div>
             <div class="page-subtitle">Disputas activas pendientes de mediación</div>
           </div>
-          <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-primary">
+          <span class="btn btn-primary" style="cursor:default;">
             <i class="fa fa-gavel"></i> Centro de Mediación
-          </a>
+          </span>
         </div>
         <div class="card">
           {% if disputas_activas %}
@@ -896,7 +1138,7 @@
                 <td>{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
                 <td>{{ d.get_estado_display }}</td>
                 <td>{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}Sin asignar{% endif %}</td>
-                <td><a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary">Ingresar a Sala</a></td>
+                <td><a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary">Ingresar a Sala</a></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -1401,7 +1643,9 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script src="{% static 'administrador/script/administrador.js' %}"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=2"></script>
 <script>
   (function () {
     const CATEGORY_API = {
@@ -1584,5 +1828,6 @@
   })();
 </script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
 </body>
 </html>
