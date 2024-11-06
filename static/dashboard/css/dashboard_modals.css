@@ -298,3 +298,53 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.jdm-btn-primary {
+  background: #00e676;
+  color: #000000;
+  border-color: #00e676;
+  font-weight: 700;
+}
+
+.jdm-btn-primary:hover {
+  background: #69f0ae;
+  border-color: #69f0ae;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.4);
+}
+
+.jdm-btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: #e6f4ec;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.jdm-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #00e676;
+  color: #00e676;
+}
+
+.jdm-btn-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.jdm-btn-danger:hover {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+}
+
+.jdm-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Forms */
+.jdm-form-group {
+  margin-bottom: 16px;
+}
