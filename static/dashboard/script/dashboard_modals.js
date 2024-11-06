@@ -824,3 +824,62 @@
       html +=
         '<div class="jdm-form-label"><i class="fa-solid fa-comments"></i> Mensajes y Argumentos de Mediación</div>' +
         '<div class="jdm-disputa-chat" id="jdmDisputaChat">';
+
+      if (data.mensajes && data.mensajes.length) {
+        data.mensajes.forEach(function (m) {
+          var bubbleType = m.rol === 'administrador' ? 'jdm-bubble-admin' : (m.es_propio ? 'jdm-bubble-own' : 'jdm-bubble-other');
+          html +=
+            '<div class="jdm-chat-bubble ' + bubbleType + '">' +
+              '<div class="jdm-bubble-header">' +
+                '<span>' + escapeHtml(m.emisor) + ' (' + escapeHtml(m.rol) + ')</span>' +
+                '<span>' + escapeHtml(m.fecha) + '</span>' +
+              '</div>' +
+              '<div>' + escapeHtml(m.contenido) + '</div>' +
+            '</div>';
+        });
+      } else {
+        html += '<div class="jdm-empty" style="padding:20px;"><i class="fa-solid fa-comment-dots"></i>Aún no hay mensajes en esta sala.</div>';
+      }
+
+      html += '</div>';
+
+      if (d.puede_escribir) {
+        html +=
+          '<form id="jdmFormDisputaMsg" class="jdm-disputa-composer" novalidate>' +
+            '<input type="text" id="jdmMsgContenido" name="contenido" class="jdm-input" placeholder="Escribe un mensaje para los participantes y el mediador…" autocomplete="off" required>' +
+            '<button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarMsg"><i class="fa-solid fa-paper-plane"></i></button>' +
+          '</form>';
+      }
+
+      // Panel de resolución si es Admin y la disputa no está resuelta
+      if (d.es_admin && d.resolver_url && d.estado !== 'resuelta' && d.estado !== 'cancelada') {
+        html +=
+          '<div class="jdm-admin-resolution-box">' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#f87171;margin-bottom:8px;"><i class="fa-solid fa-gavel"></i> PANEL DE RESOLUCIÓN ARBITRAL (ADMIN)</div>' +
+            '<form id="jdmFormResolverDisputa" novalidate>' +
+              '<div class="jdm-form-group">' +
+                '<label class="jdm-form-label">Dictamen de Fallo <span class="req">*</span></label>' +
+                '<select name="resolucion" class="jdm-select" required>' +
+                  '<option value="">-- Selecciona el sentido de la resolución --</option>' +
+                  '<option value="favor_empresa">Fallo a favor de la Empresa (libera fondos / cancela contratación)</option>' +
+                  '<option value="favor_desarrollador">Fallo a favor del Desarrollador (libera pago al aprendiz)</option>' +
+                  '<option value="acuerdo_mutuo">Acuerdo mutuo de partes (cierre sin penalizaciones)</option>' +
+                  '<option value="cancelacion_sin_sancion">Cancelación administrativa sin sanción</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="jdm-form-group">' +
+                '<label class="jdm-form-label">Fundamentos / Notas de la resolución <span class="req">*</span></label>' +
+                '<textarea name="dictamen" class="jdm-textarea" placeholder="Indica detalladamente los argumentos técnicos y evidencias consideradas para este dictamen…" required></textarea>' +
+              '</div>' +
+              '<button type="submit" class="jdm-btn jdm-btn-danger" id="jdmBtnResolver"><i class="fa-solid fa-gavel"></i> Emitir Resolución Final</button>' +
+            '</form>' +
+          '</div>';
+      }
+
+      setContent(html);
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar Expediente</button>');
+
+      var chatBox = document.getElementById('jdmDisputaChat');
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Listener enviar mensaje
