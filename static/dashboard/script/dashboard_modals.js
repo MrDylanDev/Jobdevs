@@ -706,3 +706,62 @@
         ? '<span class="jdm-badge jdm-badge-success"><i class="fa-solid fa-circle-check"></i> ' + escapeHtml(e.badge_label || 'Verificada') + '</span>'
         : '<span class="jdm-badge jdm-badge-gray"><i class="fa-solid fa-shield"></i> ' + escapeHtml(e.badge_label || 'Sin verificar') + '</span>';
 
+      var initial = (e.nombre || 'E').slice(0, 1).toUpperCase();
+
+      var html =
+        '<div class="jdm-empresa-header">' +
+          '<div class="jdm-empresa-avatar">' + escapeHtml(initial) + '</div>' +
+          '<div>' +
+            '<div style="font-size:16px;font-weight:700;color:#ffffff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+              escapeHtml(e.nombre) + ' ' + badgeHtml +
+            '</div>' +
+            '<div style="font-size:12px;color:#a0a0a0;margin-top:2px;">@' + escapeHtml(e.username) + ' · ' + escapeHtml(e.sector) + ' (' + escapeHtml(e.ciudad) + ')</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-empresa-stats">' +
+          '<div class="jdm-stat-card">' +
+            '<div class="jdm-stat-value">⭐ ' + e.reputacion + '</div>' +
+            '<div class="jdm-stat-label">Reputación</div>' +
+          '</div>' +
+          '<div class="jdm-stat-card">' +
+            '<div class="jdm-stat-value">' + e.total_resenas + '</div>' +
+            '<div class="jdm-stat-label">Reseñas</div>' +
+          '</div>' +
+          '<div class="jdm-stat-card">' +
+            '<div class="jdm-stat-value">' + e.proyectos_activos + '</div>' +
+            '<div class="jdm-stat-label">Activos</div>' +
+          '</div>' +
+          '<div class="jdm-stat-card">' +
+            '<div class="jdm-stat-value">' + e.proyectos_finalizados + '</div>' +
+            '<div class="jdm-stat-label">Finalizados</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-form-label"><i class="fa-solid fa-building"></i> Acerca de la empresa</div>' +
+        '<div style="background:#030604;border:1px solid #14221a;border-radius:4px;padding:14px;font-size:13px;line-height:1.6;color:#c0d0c6;margin-bottom:18px;">' +
+          escapeHtml(e.descripcion) +
+        '</div>' +
+
+        '<div class="jdm-form-label"><i class="fa-solid fa-comments"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
+
+      if (e.resenas && e.resenas.length) {
+        html += '<div style="display:flex;flex-direction:column;gap:10px;">';
+        e.resenas.forEach(function (r) {
+          html +=
+            '<div style="background:#050a07;border:1px solid #14221a;border-radius:4px;padding:12px 14px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px;">' +
+                '<strong>' + escapeHtml(r.desarrollador) + ' <span style="font-size:11px;color:#a0a0a0;font-weight:400;">en ' + escapeHtml(r.proyecto_titulo) + '</span></strong>' +
+                '<span style="color:#00e676;font-family:\'JetBrains Mono\',monospace;font-weight:700;">⭐ ' + r.puntuacion + '/5</span>' +
+              '</div>' +
+              '<div style="font-size:12.5px;color:#c0d0c6;font-style:italic;">"' + escapeHtml(r.comentario) + '"</div>' +
+              '<div style="font-size:10px;color:#666666;font-family:\'JetBrains Mono\',monospace;margin-top:4px;">' + escapeHtml(r.fecha) + '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="jdm-empty"><i class="fa-solid fa-comment-slash"></i>Aún no registra reseñas de proyectos finalizados.</div>';
+      }
+
+      setContent(html);
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
