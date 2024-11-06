@@ -106,7 +106,6 @@ def notificaciones_stream(request):
     )
     response['Cache-Control'] = 'no-cache, no-transform'
     response['X-Accel-Buffering'] = 'no'
-    response['Connection'] = 'keep-alive'
     return response
 
 @login_required
