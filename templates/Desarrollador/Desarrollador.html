@@ -448,7 +448,208 @@
                   
                   <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
                     {% csrf_token %}
+                    <button type="submit"
+                            aria-label="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            title="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            style="background:none; border:none; padding:4px; cursor:pointer; font-size:16px; line-height:1; transition:transform 0.2s;"
+                            class="fav-toggle-btn">
+                      {% if p.id in favoritos_ids %}
+                        <i class="fa-solid fa-heart" style="color:var(--danger, #ef4444);"></i>
+                      {% else %}
+                        <i class="fa-regular fa-heart" style="color:var(--text-muted);"></i>
+                      {% endif %}
+                    </button>
+                  </form>
+                </div>
 
+                <h3 class="project-card-title" style="font-size:16px; font-weight:700; margin-bottom:8px; line-height:1.3;">
+                  {{ p.titulo }}
+                </h3>
+
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; align-items:center;">
+                  <span class="badge badge-{% if p.prioridad == 'alta' %}danger{% elif p.prioridad == 'media' %}warning{% else %}info{% endif %}" style="font-family:var(--font-mono); font-size:10.5px;">
+                    {{ p.prioridad|upper }}
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="users" style="width:11px; height:11px;"></i> {{ p.num_postulaciones }} postulantes
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="door-open" style="width:11px; height:11px;"></i> {{ p.vacantes_disponibles }} libres
+                  </span>
+                </div>
+
+                <p class="project-desc" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                  {{ p.descripcion }}
+                </p>
+              </div>
+
+              <!-- Footer de la Card -->
+              <div class="card-footer" style="padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <div class="user-avatar" style="width:34px; height:34px; font-size:12px; border-radius:6px; flex-shrink:0;">
+                    {% if p.empresa.perfil_empresa.logo %}
+                      <img src="{{ p.empresa.perfil_empresa.logo.url }}" alt="{{ p.empresa.nombre }}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                    {% else %}
+                      {{ p.empresa.nombre|default:p.empresa.username|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="font-size:12.5px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      {{ p.empresa.nombre|default:p.empresa.username }}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-top:2px;">
+                      {% if p.empresa_reputacion > 0 %}
+                        <i data-lucide="star" style="width:11px; height:11px; color:#f59e0b; fill:#f59e0b;"></i>
+                        <span style="color:#f59e0b; font-weight:600;">{{ p.empresa_reputacion|floatformat:1 }}</span>
+                      {% else %}
+                        <span>Empresa nueva</span>
+                      {% endif %}
+                      {% if p.empresa.perfil_empresa.es_verificada %}
+                        <span style="color:var(--accent); display:inline-flex; align-items:center;" title="Verificada">
+                          <i data-lucide="check-circle" style="width:11px; height:11px; margin-left:3px;"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-sm" style="flex-shrink:0;"
+                        data-abrir-postulacion
+                        data-url="{% url 'postularse_a_proyecto' p.id %}"
+                        data-titulo="{{ p.titulo|escape }}"
+                        data-empresa="{{ p.empresa.nombre|default:p.empresa.username|escape }}"
+                        data-tipo="{{ p.get_tipo_solucion_display|default:p.tipo_solucion|escape }}"
+                        data-prioridad="{{ p.prioridad|upper|escape }}"
+                        data-vacantes="{{ p.vacantes_disponibles }}"
+                        data-cierre="{{ p.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                        data-descripcion="{{ p.descripcion|striptags|escape }}">
+                  <i data-lucide="send" style="width:13px; height:13px; margin-right:4px;"></i> Postularme
+                </button>
+              </div>
+
+            </div>
+          {% empty %}
+            <div class="empty-state" style="grid-column:1 / -1;">
+              <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+              <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No hay proyectos disponibles en este momento</p>
+              <p style="color:var(--text-muted); font-size:13px;">Vuelve a consultar pronto o revisa tus proyectos activos.</p>
+            </div>
+          {% endfor %}
+
+          <!-- Elemento Empty de Filtro JS -->
+          <div id="devExploreNoMatches" class="empty-state" style="grid-column:1 / -1; display:none;">
+            <i data-lucide="search-x" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+            <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No se encontraron proyectos con los filtros actuales</p>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Prueba ajustando los términos de búsqueda o limpiando los filtros.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="resetDevExploreFilters()">
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Postulaciones -->
+      <div id="postulaciones" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Postulaciones</div>
+            <div class="page-subtitle">Seguimiento de solicitudes enviadas</div>
+          </div>
+        </div>
+        <div data-testid="postulaciones-vigentes" style="margin-bottom:24px;">
+          <div class="label-section" style="margin-bottom:10px;">
+            <i class="fa fa-file-circle-check" style="margin-right:6px;"></i>Postulaciones vigentes ({{ postulaciones_vigentes_count }})
+          </div>
+          <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Proyecto</th>
+                <th>Fecha Envío</th>
+                <th>Estado</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for post in postulaciones_vigentes %}
+                <tr>
+                  <td>
+                    <strong>{{ post.proyecto.titulo }}</strong>
+                    <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
+                  </td>
+                  <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
+                  <td>
+                    <span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span>
+                  </td>
+                  <td style="text-align:right;">
+                    <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
+                      {% if post.contrato_digital %}
+                        <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" class="btn {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                          <i class="fa fa-file-signature"></i> {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}Firmar Contrato{% else %}Ver Contrato{% endif %}
+                        </a>
+                      {% endif %}
+                      {% if post.estado in 'pendiente,en_negociacion,aceptada' %}
+                        <button type="button" class="btn btn-secondary btn-sm" title="Conversar con la empresa"
+                                data-chat-open data-receptor="{{ post.proyecto.empresa_id }}"
+                                data-proyecto="{{ post.proyecto.id }}"
+                                data-nombre="{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}">
+                          <i class="fa fa-message"></i> Chatear
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4">
+                  <div class="empty-state"><i class="fa fa-file-circle-xmark"></i><p>No tienes postulaciones vigentes</p></div>
+                </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <div data-testid="postulaciones-historial">
+          <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
+              <i class="fa fa-clock-rotate-left" style="margin-right:6px;"></i>Historial de postulaciones rechazadas ({{ postulaciones_historial_count }})
+            </summary>
+            <div class="table-wrapper" style="margin-top:14px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Proyecto</th>
+                    <th>Fecha Envío</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for post in postulaciones_historial %}
+                    <tr>
+                      <td>
+                        <strong>{{ post.proyecto.titulo }}</strong>
+                        <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
+                      </td>
+                      <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
+                      <td><span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span></td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="3">
+                      <div class="empty-state"><i class="fa fa-clock-rotate-left"></i><p>Sin postulaciones rechazadas en tu historial</p></div>
+                    </td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Trabajo Actual -->
+      <div id="activos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Proyectos en Desarrollo</div>
             <div class="page-subtitle">Registra avances y gestiona entregas</div>
           </div>
         </div>
@@ -463,7 +664,7 @@
                 </span>
               </div>
               <div class="project-card-sub" style="margin-bottom:16px;">
-                Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:inherit; text-decoration:none; font-weight:600;" title="Ver perfil institucional y reseñas">{{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i></a>
+                Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" data-abrir-empresa data-url="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:inherit; text-decoration:none; font-weight:600; cursor:pointer;" title="Ver perfil institucional y reseñas">{{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i></a>
                 {% if proyecto.empresa_badge %}
                   <span class="badge {% if proyecto.empresa_verificada %}{% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}{% elif proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">
                     <i class="fa {% if proyecto.empresa_verificada %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
@@ -488,7 +689,7 @@
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <div style="display:flex;gap:8px;">
                   {% if proyecto.hitos_pendientes > 0 %}
-                    <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
+                    <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" data-abrir-registrar-avance data-url="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
                       <i class="fa fa-pen"></i> Registrar Avance
                     </a>
                   {% else %}
@@ -496,159 +697,8 @@
                       <i class="fa fa-ban"></i> Sin hitos pendientes
                     </button>
                   {% endif %}
-                  <a href="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
-                    <i class="fa fa-eye"></i> Historial
-                  </a>
-                </div>
-                {% if proyecto.num_desarrolladores >= 2 %}
-                  <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn btn-secondary btn-full">
-                    <i class="fa fa-users"></i> Espacio de Trabajo
-                  </a>
-                {% endif %}
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-full" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
-                  <i class="fa fa-gavel"></i> Reportar Disputa
-                </a>
-              </div>
-            </div>
-          {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-rocket"></i><p>No tienes proyectos activos</p></div>
-          {% endfor %}
-        </div>
-      </div>
+                  <a href="{% url 'ver_avances' proyecto.proyecto_id %}" data-abrir-avances data-url="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
 
-      <!-- Disputas -->
-      <div id="disputas" class="seccion-v">
-        {% include 'disputas/_seccion_disputas.html' %}
-      </div>
-
-      <!-- Historial -->
-      <div id="completados" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Historial de Proyectos</div>
-            <div class="page-subtitle">Proyectos finalizados y testimonios de empresas</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          {% for contratacion in mis_proyectos_finalizados %}
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <div class="project-card-title">{{ contratacion.proyecto.titulo }}</div>
-                <div style="color:#f59e0b;font-size:16px;letter-spacing:2px;">
-                  {% if contratacion.valoracion %}
-                    {% with ''|center:contratacion.valoracion.puntuacion as range %}
-                      {% for _ in range %}★{% endfor %}
-                    {% endwith %}
-                  {% else %}
-                    <span style="font-size:12px;color:var(--text-muted);">Sin calificación</span>
-                  {% endif %}
-                </div>
-              </div>
-              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
-                Empresa: {{ contratacion.empresa.username }}
-                {% with perfil_emp=contratacion.empresa.perfil_empresa %}
-                  {% if perfil_emp %}
-                    <span class="badge {% if perfil_emp.es_verificada %}{% if perfil_emp.tipo_persona == 'natural' %}badge-info{% else %}badge-success{% endif %}{% elif perfil_emp.estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">{{ perfil_emp.badge_info.label }}</span>
-                  {% endif %}
-                {% endwith %}
-              </p>
-              {% if contratacion.valoracion %}
-                <div style="background:var(--page-bg);border-radius:var(--radius-sm);padding:14px;font-style:italic;font-size:13px;color:var(--text-secondary);border-left:3px solid #e5e7eb;">
-                  "{{ contratacion.valoracion.comentario|default:"El cliente no dejó un comentario." }}"
-                </div>
-              {% endif %}
-              <div style="display:flex;gap:8px;margin-top:14px;">
-                <a href="{% url 'sala_chat' contratacion.proyecto.empresa.id contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
-                  <i class="fa fa-comments"></i> Chat Privado
-                </a>
-                <a href="{% url 'ver_avances' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
-                  <i class="fa fa-folder-open"></i> Evidencias
-                </a>
-                <a href="{% url 'calificar_empresa' contratacion.proyecto.id %}" class="btn btn-primary btn-sm">
-                  <i class="fa fa-star"></i> Calificar Empresa
-                </a>
-                {% if contratacion.num_desarrolladores >= 2 %}
-                  <a href="{% url 'sala_chat_grupal' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
-                    <i class="fa fa-users"></i> Chat Grupal
-                  </a>
-                {% endif %}
-              </div>
-            </div>
-          {% empty %}
-            <div class="empty-state"><i class="fa fa-trophy"></i><p>Aún no has finalizado proyectos</p></div>
-          {% endfor %}
-
-          <div data-testid="contratos-historial">
-            <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
-              <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
-                <i class="fa fa-circle-xmark" style="margin-right:6px;"></i>Contratos finalizados y cancelados
-              </summary>
-              <div class="table-wrapper" style="margin-top:14px;">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Proyecto</th>
-                      <th>Empresa</th>
-                      <th>Inicio</th>
-                      <th>Estado del contrato</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for contrato in contratos_historial %}
-                      <tr>
-                        <td><strong>{{ contrato.proyecto.titulo }}</strong></td>
-                        <td style="color:var(--text-secondary)">{{ contrato.empresa.nombre|default:contrato.empresa.username }}</td>
-                        <td style="color:var(--text-secondary)">{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
-                        <td><span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span></td>
-                      </tr>
-                    {% empty %}
-                      <tr><td colspan="4">
-                        <div class="empty-state"><i class="fa fa-circle-check"></i><p>Sin contratos finalizados ni cancelados</p></div>
-                      </td></tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contratos Digitales (SCRUM-204) -->
-      <div id="contratos" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Mis Contratos Digitales</div>
-            <div class="page-subtitle">Acuerdos formales, términos económicos y firmas digitales con empresas</div>
-          </div>
-        </div>
-
-        <div class="card" style="padding:0; overflow:hidden;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Proyecto y Empresa</th>
-                <th>Términos Económicos</th>
-                <th>Forma de Pago</th>
-                <th>Estado y Firmas</th>
-                <th style="text-align:right;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for contrato in mis_contratos_digitales %}
-                <tr>
-                  <td>
-                    <strong>{{ contrato.postulacion.proyecto.titulo }}</strong>
-                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
-                      Empresa: <strong>{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}</strong>
-                      {% if contrato.postulacion.proyecto.empresa.perfil_empresa.es_verificada %}
-                        <span class="badge badge-success" style="font-size:10px; padding:2px 6px; margin-left:4px;"><i class="fa fa-circle-check"></i> Verificada</span>
-                      {% endif %}
-                    </div>
-                  </td>
-                  <td>
-                    <div style="font-size:15px; font-weight:700; color:var(--text-primary);">{{ contrato.monto_formateado }}</div>
-                    <div style="font-size:11.5px; color:var(--text-muted);">Moneda: {{ contrato.moneda }}</div>
                   </td>
                   <td>
                     <span style="font-size:13px; color:var(--text-secondary);">{{ contrato.get_forma_pago_display }}</span>
