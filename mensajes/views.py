@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,8 +8,10 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.html import format_html, format_html_join
+from django.views.decorators.http import require_POST
 from logs.models import LogAuditoria
 from .models import Mensaje
 from usuarios.models import Usuario
@@ -344,3 +348,136 @@ def admin_auditar_mensajes(request):
     return HttpResponse(format_html(
         '<table class="data-table"><tbody>{}</tbody></table>', filas
     ))
+
+
+# =============================================
+#  API JSON PARA EL CHAT EMBEBIDO (panel tipo WhatsApp)
+# =============================================
+
+def _nombre_usuario(usuario):
+    """Nombre visible de un usuario, con fallback al username."""
+    if usuario is None:
+        return 'Usuario eliminado'
+    return usuario.nombre or usuario.username
+
+
+def _serializar_mensaje(mensaje, usuario):
+    """Representación JSON mínima de un mensaje para el chat embebido."""
+    fecha_local = timezone.localtime(mensaje.fecha_envio)
+    return {
+        'id': mensaje.id,
+        'contenido': mensaje.contenido,
+        'hora': fecha_local.strftime('%H:%M'),
+        'fecha': fecha_local.strftime('%d/%m/%Y'),
+        'iso': mensaje.fecha_envio.isoformat(),
+        'es_propio': mensaje.remitente_id == usuario.id,
+        'remitente_id': mensaje.remitente_id,
+        'remitente_nombre': _nombre_usuario(mensaje.remitente),
+    }
+
+
+def _mensajes_de_conversacion(usuario, receptor, proyecto):
+    """Mensajes 1:1 entre dos usuarios, aislados por proyecto (RF 6.1.3)."""
+    qs = Mensaje.objects.filter(
+        Q(remitente=usuario, receptor=receptor)
+        | Q(remitente=receptor, receptor=usuario)
+    )
+    if proyecto is not None:
+        return qs.filter(proyecto=proyecto)
+    return qs.filter(proyecto__isnull=True)
+
+
+def _json_error(mensaje, status):
+    return JsonResponse({'error': mensaje}, status=status)
+
+
+@login_required
+def api_conversacion(request, receptor_id, proyecto_id=0):
+    """Historial de una conversación 1:1 en JSON para el panel embebido."""
+    receptor = Usuario.objects.filter(id=receptor_id).first()
+    if receptor is None:
+        return _json_error('El destinatario no existe.', 404)
+
+    proyecto = None
+    if proyecto_id:
+        proyecto = Proyecto.objects.filter(id=proyecto_id).first()
+        if proyecto is None:
+            return _json_error('El proyecto no existe.', 404)
+
+    if receptor.id == request.user.id:
+        return _json_error('No puedes abrir una conversación contigo mismo.', 400)
+
+    if not puede_comunicarse(request.user, receptor, proyecto):
+        return _json_error('No tienes autorización para esta conversación.', 403)
+
+    mensajes_qs = _mensajes_de_conversacion(
+        request.user, receptor, proyecto
+    ).select_related('remitente').order_by('fecha_envio')
+
+    # Marcar como leídos solo los mensajes de este contexto
+    mensajes_qs.filter(receptor=request.user, leido=False).update(leido=True)
+
+    return JsonResponse({
+        'yo_id': request.user.id,
+        'receptor': {
+            'id': receptor.id,
+            'nombre': _nombre_usuario(receptor),
+            'username': receptor.username,
+            'rol': receptor.get_rol_display(),
+            'inicial': _nombre_usuario(receptor)[:1].upper(),
+        },
+        'proyecto': {
+            'id': proyecto.id,
+            'titulo': proyecto.titulo,
+            'estado': proyecto.estado,
+        } if proyecto else None,
+        'puede_escribir': not (proyecto is not None and proyecto.estado == 'finalizado'),
+        'mensajes': [_serializar_mensaje(m, request.user) for m in mensajes_qs],
+    })
+
+
+@login_required
+@require_POST
+def api_enviar(request):
+    """Envía un mensaje 1:1 desde el panel embebido y devuelve el mensaje creado."""
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except (ValueError, UnicodeDecodeError):
+        return _json_error('JSON inválido.', 400)
+
+    if not isinstance(payload, dict):
+        return _json_error('JSON inválido.', 400)
+
+    receptor_id = payload.get('receptor_id')
+    proyecto_id = payload.get('proyecto_id') or 0
+    contenido = payload.get('contenido', '')
+
+    if not receptor_id:
+        return _json_error('Falta el destinatario.', 400)
+
+    receptor = Usuario.objects.filter(id=receptor_id).first()
+    if receptor is None:
+        return _json_error('El destinatario no existe.', 404)
+
+    proyecto = None
+    if proyecto_id:
+        proyecto = Proyecto.objects.filter(id=proyecto_id).first()
+        if proyecto is None:
+            return _json_error('El proyecto no existe.', 404)
+
+    try:
+        mensaje = services.enviar_mensaje(
+            remitente=request.user,
+            receptor=receptor,
+            contenido=contenido,
+            proyecto=proyecto,
+            titulo=f"Chat: {proyecto.titulo if proyecto else 'General'}",
+        )
+    except PermissionDenied as exc:
+        return _json_error(str(exc), 403)
+    except ValidationError as exc:
+        return _json_error(' '.join(exc.messages), 400)
+
+    return JsonResponse(
+        {'mensaje': _serializar_mensaje(mensaje, request.user)}, status=201
+    )
