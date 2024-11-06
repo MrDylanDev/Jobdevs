@@ -942,3 +942,62 @@
           btnR.disabled = true;
           btnR.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando resolución...';
 
+          try {
+            var rData = new FormData(formResolver);
+            rData.append('origen', 'dashboard');
+            var rRes = await fetch(d.resolver_url, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              },
+              body: rData,
+              credentials: 'same-origin'
+            });
+            var rJson = await rRes.json();
+            if (rJson.ok) {
+              mostrarToast(rJson.mensaje || 'Resolución arbitral aplicada.');
+              cerrarModal();
+              setTimeout(function () { window.location.reload(); }, 1200);
+            } else {
+              mostrarToast(rJson.mensaje || 'Error al resolver la disputa.', true);
+              btnR.disabled = false;
+              btnR.innerHTML = '<i class="fa-solid fa-gavel"></i> Emitir Resolución Final';
+            }
+          } catch (err) {
+            mostrarToast('Error de red al procesar la resolución.', true);
+            btnR.disabled = false;
+            btnR.innerHTML = '<i class="fa-solid fa-gavel"></i> Emitir Resolución Final';
+          }
+        });
+      }
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. ABRIR DISPUTA FORMULARIO
+  // ─────────────────────────────────────────────────────────────
+  async function cargarFormularioAbrirDisputa(url) {
+    abrirModal('');
+    setHeader('DISPUTAS // FORMALIZAR ARBITRAJE', 'Consultando proyecto…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudo consultar el proyecto');
+
+      var p = data.proyecto;
+      setHeader('INICIAR DISPUTA FORMAL', p.titulo, 'Empresa: ' + p.empresa);
+
+      var catOptions = '<option value="">-- Selecciona causal de disputa --</option>';
+      if (data.categorias && data.categorias.length) {
+        data.categorias.forEach(function (c) {
+          catOptions += '<option value="' + c.codigo + '">' + escapeHtml(c.label) + '</option>';
+        });
