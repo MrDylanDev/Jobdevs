@@ -339,26 +339,56 @@ def calificar_empresa(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='finalizado')
     contratacion = get_object_or_404(Contratacion, proyecto=proyecto, desarrollador=request.user)
+
+    es_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.headers.get('Accept') == 'application/json'
+        or request.POST.get('origen') == 'dashboard'
+    )
+
+    if request.method == 'GET' and es_ajax:
+        ya_califico = Valoracion.objects.filter(
+            proyecto=proyecto,
+            empresa=proyecto.empresa,
+            desarrollador=request.user,
+            rol_evaluador='desarrollador',
+        ).exists()
+        return JsonResponse({
+            'ok': True,
+            'proyecto': {
+                'id': proyecto.id,
+                'titulo': proyecto.titulo,
+                'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
+            },
+            'ya_califico': ya_califico,
+            'url_calificar': reverse('calificar_empresa', args=[proyecto.id]),
+        })
     
     if request.method == 'POST':
         try:
             puntuacion = int(request.POST.get('puntuacion'))
         except (TypeError, ValueError):
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': "Debes seleccionar una puntuación."}, status=400)
             messages.error(request, "Debes seleccionar una puntuación.")
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
         if not 1 <= puntuacion <= 5:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': "La puntuación debe estar entre 1 y 5."}, status=400)
             messages.error(request, "La puntuación debe estar entre 1 y 5.")
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
         # RF 5.2.2: puntuación + comentario cualitativo obligatorio.
         comentario = (request.POST.get('comentario') or '').strip()
         if len(comentario) < services.MIN_COMENTARIO:
-            messages.error(
-                request,
+            msg = (
                 f"El comentario es obligatorio y debe tener al menos "
                 f"{services.MIN_COMENTARIO} caracteres."
             )
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+            messages.error(request, msg)
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
         try:
@@ -369,6 +399,8 @@ def calificar_empresa(request, proyecto_id):
                     desarrollador=request.user,
                     rol_evaluador='desarrollador',
                 ).exists():
+                    if es_ajax:
+                        return JsonResponse({'ok': False, 'mensaje': "Ya has calificado a esta empresa para este proyecto."}, status=409)
                     messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
                     return redirect('dashboard_desarrollador')
 
@@ -385,9 +417,13 @@ def calificar_empresa(request, proyecto_id):
                 services.recalcular_reputacion_empresa(proyecto.empresa_id)
         except IntegrityError:
             # Dos POST simultáneos: la unicidad del modelo gana la carrera.
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': "Ya has calificado a esta empresa para este proyecto."}, status=409)
             messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
             return redirect('dashboard_desarrollador')
 
+        if es_ajax:
+            return JsonResponse({'ok': True, 'mensaje': "¡Gracias! Tu calificación ha sido registrada.", 'puntuacion': puntuacion})
         messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
         return redirect('dashboard_desarrollador')
 
@@ -905,3 +941,157 @@ def api_categoria_toggle(request, categoria_id):
             f"{'Activó' if categoria.activo else 'Desactivó'} categoría de solución {categoria.slug}",
         )
     return JsonResponse(_categoria_to_dict(categoria), status=200)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Detalle de proyecto en modal (dashboards de admin, empresa y desarrollador)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+@require_http_methods(["GET"])
+def api_detalle_proyecto(request, proyecto_id):
+    """Ficha completa de un proyecto para el modal compartido de los dashboards.
+
+    Mantiene los mismos permisos que ``avances.views.ver_avances``: admin,
+    empresa dueña y desarrollador vinculado por contrato o postulación. El
+    frontend solo pinta la respuesta; las acciones se resuelven aquí para no
+    duplicar reglas de negocio en JavaScript.
+    """
+    from django.urls import reverse
+    from django.utils.formats import date_format
+
+    proyecto = get_object_or_404(
+        Proyecto.objects.select_related('empresa__perfil_empresa', 'categoria'),
+        id=proyecto_id,
+    )
+    user = request.user
+    es_admin = user.rol == 'administrador'
+    es_empresa = user.rol == 'empresa' and proyecto.empresa_id == user.id
+    es_dev = user.rol == 'desarrollador' and (
+        Contratacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
+        or Postulacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
+    )
+    if not (es_admin or es_empresa or es_dev):
+        return JsonResponse(
+            {'ok': False, 'mensaje': 'No tienes permisos para ver este proyecto.'},
+            status=403,
+        )
+
+    hitos_qs = proyecto.entregables.order_by('fecha_creacion')
+    hitos = [
+        {
+            'id': h.id,
+            'titulo': h.titulo,
+            'descripcion': h.descripcion or '',
+            'estado': h.estado,
+            'estado_label': h.get_estado_display(),
+        }
+        for h in hitos_qs
+    ]
+    total_hitos = len(hitos)
+    completados = sum(1 for h in hitos if h['estado'] == 'completado')
+    progreso = round((completados / total_hitos) * 100) if total_hitos else 0
+
+    contrataciones_qs = proyecto.contrataciones.select_related('desarrollador').order_by('fecha_inicio')
+    contrataciones = [
+        {
+            'id': c.id,
+            'desarrollador': c.desarrollador.nombre or c.desarrollador.username,
+            'username': c.desarrollador.username,
+            'estado': c.estado,
+            'estado_label': c.get_estado_display(),
+        }
+        for c in contrataciones_qs
+    ]
+    num_desarrolladores = len(contrataciones)
+
+    perfil_empresa = getattr(proyecto.empresa, 'perfil_empresa', None)
+    badge = perfil_empresa.badge_info if perfil_empresa else None
+    empresa_nombre = (
+        (perfil_empresa.nombre_empresa if perfil_empresa else '')
+        or proyecto.empresa.nombre
+        or proyecto.empresa.username
+    )
+
+    acciones = []
+    if es_admin:
+        acciones.append({
+            'label': 'Gestionar avances', 'url': reverse('ver_avances', args=[proyecto.id]),
+            'icono': 'fa-solid fa-diagram-project', 'estilo': 'primary',
+        })
+        acciones.append({
+            'label': 'Gestionar hitos', 'url': reverse('gestionar_hitos', args=[proyecto.id]),
+            'icono': 'fa-solid fa-list-check', 'estilo': 'secondary',
+        })
+        acciones.append({
+            'label': 'Ver empresa', 'url': reverse('detalle_empresa', args=[proyecto.empresa_id]),
+            'icono': 'fa-solid fa-building', 'estilo': 'secondary',
+        })
+    elif es_empresa:
+        acciones.append({
+            'label': 'Ver avances', 'url': reverse('ver_avances', args=[proyecto.id]),
+            'icono': 'fa-solid fa-diagram-project', 'estilo': 'primary',
+        })
+        acciones.append({
+            'label': 'Gestionar hitos', 'url': reverse('gestionar_hitos', args=[proyecto.id]),
+            'icono': 'fa-solid fa-list-check', 'estilo': 'secondary',
+        })
+        if proyecto.vacantes_disponibles > 0 and proyecto.acepta_postulaciones:
+            acciones.append({
+                'label': 'Ver candidatos',
+                'url': reverse('ver_postulaciones_empresa', args=[proyecto.id]),
+                'icono': 'fa-solid fa-user-plus', 'estilo': 'secondary',
+            })
+    else:
+        acciones.append({
+            'label': 'Ver historial completo', 'url': reverse('ver_avances', args=[proyecto.id]),
+            'icono': 'fa-solid fa-timeline', 'estilo': 'primary',
+        })
+        if proyecto.estado == 'en_desarrollo':
+            acciones.append({
+                'label': 'Registrar avance', 'url': reverse('registrar_avance', args=[proyecto.id]),
+                'icono': 'fa-solid fa-pen', 'estilo': 'secondary',
+            })
+
+    if num_desarrolladores >= 2:
+        acciones.append({
+            'label': 'Chat grupal', 'url': reverse('sala_chat_grupal', args=[proyecto.id]),
+            'icono': 'fa-solid fa-users', 'estilo': 'secondary',
+        })
+
+    return JsonResponse({
+        'ok': True,
+        'proyecto': {
+            'id': proyecto.id,
+            'titulo': proyecto.titulo,
+            'descripcion': proyecto.descripcion,
+            'estado': proyecto.estado,
+            'estado_label': proyecto.get_estado_display(),
+            'tipo': proyecto.get_tipo_solucion_display(),
+            'prioridad': proyecto.prioridad,
+            'prioridad_label': proyecto.get_prioridad_display(),
+            'vacantes': proyecto.vacantes,
+            'vacantes_disponibles': proyecto.vacantes_disponibles,
+            'fecha_publicacion': date_format(proyecto.fecha_publicacion, 'd M Y'),
+            'fecha_limite': (
+                date_format(proyecto.fecha_limite, 'd M Y')
+                if proyecto.fecha_limite else 'Sin límite'
+            ),
+            'categoria': proyecto.categoria.nombre if proyecto.categoria_id else '',
+            'empresa': {
+                'id': proyecto.empresa_id,
+                'nombre': empresa_nombre,
+                'verificada': bool(perfil_empresa and perfil_empresa.es_verificada),
+                'badge': badge['label'] if badge else '',
+                'calificacion': float(perfil_empresa.calificacion_promedio or 0) if perfil_empresa else 0,
+            },
+            'hitos': hitos,
+            'hitos_completados': completados,
+            'hitos_totales': total_hitos,
+            'progreso': progreso,
+            'contrataciones': contrataciones,
+            'num_desarrolladores': num_desarrolladores,
+            'acepta_postulaciones': proyecto.acepta_postulaciones,
+        },
+        'acciones': acciones,
+    })
