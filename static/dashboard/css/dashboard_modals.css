@@ -348,3 +348,53 @@
 .jdm-form-group {
   margin-bottom: 16px;
 }
+
+.jdm-form-label {
+  display: block;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a0a0a0;
+  margin-bottom: 6px;
+}
+
+.jdm-form-label span.req {
+  color: #ef4444;
+  margin-left: 3px;
+}
+
+.jdm-input,
+.jdm-select,
+.jdm-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #030604;
+  border: 1px solid #1a2920;
+  color: #e6f4ec;
+  padding: 9px 12px;
+  border-radius: 4px;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 13px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.jdm-input:focus,
+.jdm-select:focus,
+.jdm-textarea:focus {
+  outline: none;
+  border-color: #00e676;
+  box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.15);
+}
+
+.jdm-select option {
+  background: #080d0b;
+  color: #e6f4ec;
+}
+
+.jdm-textarea {
+  min-height: 85px;
+  resize: vertical;
+  line-height: 1.5;
+}
