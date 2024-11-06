@@ -339,6 +339,23 @@ def descargar_documento_soporte_empresa(request, perfil_id):
     return FileResponse(archivo, content_type='application/pdf')
 
 
+def _respuesta_verificacion_inline(perfil, ok, mensaje='', errores=None, valores=None):
+    """Respuesta JSON para el modal de verificación embebido en el dashboard."""
+    perfil.refresh_from_db()
+    return JsonResponse(
+        {
+            'ok': ok,
+            'mensaje': mensaje,
+            'errores': errores or {},
+            'valores': valores or {},
+            'estado': perfil.estado_verificacion,
+            'badge': perfil.badge_info.get('label', ''),
+            'verificado': bool(perfil.es_verificado_sena),
+        },
+        status=200 if ok else 400,
+    )
+
+
 @login_required
 @requiere_usuario_activo
 def solicitar_verificacion_desarrollador(request):
@@ -347,17 +364,25 @@ def solicitar_verificacion_desarrollador(request):
         raise PermissionDenied
 
     perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
+    # El dashboard envía el formulario del modal; en ese caso respondemos JSON
+    # para no abandonar nunca la página del panel.
+    es_inline = request.POST.get('origen') == 'dashboard'
 
     if request.method == 'POST':
         if perfil.estado_verificacion == 'verificado':
-            messages.info(request, 'Tu perfil ya se encuentra verificado como aprendiz SENA.')
+            msg = 'Tu perfil ya se encuentra verificado como aprendiz SENA.'
+            if es_inline:
+                return _respuesta_verificacion_inline(perfil, True, msg)
+            messages.info(request, msg)
             return redirect('solicitar_verificacion_desarrollador')
         if perfil.estado_verificacion == 'en_revision':
-            messages.warning(
-                request,
+            msg = (
                 'Tu solicitud ya se encuentra en revisión administrativa. '
-                'No es posible modificarla hasta obtener una respuesta.',
+                'No es posible modificarla hasta obtener una respuesta.'
             )
+            if es_inline:
+                return _respuesta_verificacion_inline(perfil, False, msg)
+            messages.warning(request, msg)
             return redirect('solicitar_verificacion_desarrollador')
 
         metodo = request.POST.get('metodo', 'automatica').strip()
@@ -373,10 +398,16 @@ def solicitar_verificacion_desarrollador(request):
                 usuario_solicitante=request.user,
             )
             if ok:
+                if es_inline:
+                    return _respuesta_verificacion_inline(perfil, True, msg)
                 messages.success(request, msg)
                 return redirect('solicitar_verificacion_desarrollador')
             errores = {'ficha': msg}
             valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo, 'condicion_sena': condicion}
+            if es_inline:
+                return _respuesta_verificacion_inline(
+                    perfil, False, msg, errores, valores
+                )
             return render(request, 'desarrollador/verificacion.html', {
                 'perfil': perfil, 'errores': errores, 'valores': valores,
             })
@@ -391,15 +422,24 @@ def solicitar_verificacion_desarrollador(request):
                 usuario_solicitante=request.user,
                 condicion_sena=condicion,
             )
+            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo, 'condicion_sena': condicion}
             if ok:
+                if es_inline:
+                    return _respuesta_verificacion_inline(perfil, True, msg)
                 messages.success(request, msg)
                 return redirect('solicitar_verificacion_desarrollador')
-            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo, 'condicion_sena': condicion}
+            if es_inline:
+                return _respuesta_verificacion_inline(
+                    perfil, False, msg, errores, valores
+                )
             return render(request, 'desarrollador/verificacion.html', {
                 'perfil': perfil, 'errores': errores, 'valores': valores,
             })
         else:
-            messages.error(request, 'Método de verificación no válido.')
+            msg = 'Método de verificación no válido.'
+            if es_inline:
+                return _respuesta_verificacion_inline(perfil, False, msg)
+            messages.error(request, msg)
             return redirect('solicitar_verificacion_desarrollador')
 
     valores = {
