@@ -282,6 +282,8 @@
         </div>
 
         <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-session-url="{% url 'api_sesion' %}"
+             data-yo-id="{{ request.user.id }}"
              data-url-general="{% url 'api_conversacion' 987654321 %}"
              data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
           <aside class="jd-chat-list">
@@ -1281,7 +1283,7 @@
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script src="{% static 'Desarrollador/script/desarrollador.js' %}?v=4"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=2"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=4"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>

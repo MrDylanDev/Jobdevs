@@ -5,6 +5,7 @@ validaciones y control de permisos.
 """
 
 import json
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -132,6 +133,19 @@ class TestApiConversacion:
         assert response.json()['mensajes'] == []
 
 
+class _FakeChannelLayer:
+    """Captura los group_send sin depender de Redis."""
+
+    def __init__(self, fail=False):
+        self.calls = []
+        self.fail = fail
+
+    async def group_send(self, group, event):
+        if self.fail:
+            raise RuntimeError('channel layer caído')
+        self.calls.append((group, event))
+
+
 class TestApiEnviar:
 
     def test_envia_mensaje_y_notifica(
@@ -161,6 +175,60 @@ class TestApiEnviar:
         assert Notificacion.objects.filter(
             usuario=desarrollador_user, tipo='mensaje'
         ).exists()
+
+    def test_envia_mensaje_emite_broadcast(
+        self, client, empresa_user, desarrollador_user, contratacion
+    ):
+        layer = _FakeChannelLayer()
+        client.force_login(empresa_user)
+
+        with patch('mensajes.views.get_channel_layer', return_value=layer):
+            response = client.post(
+                reverse('api_enviar'),
+                data=json.dumps({
+                    'receptor_id': desarrollador_user.id,
+                    'proyecto_id': contratacion.proyecto.id,
+                    'contenido': 'Hola desde el fallback HTTP',
+                }),
+                content_type='application/json',
+            )
+
+        assert response.status_code == 201
+        assert len(layer.calls) == 1
+        grupo, event = layer.calls[0]
+        ids = sorted([empresa_user.id, desarrollador_user.id])
+        assert grupo == (
+            f'chat_directo_{ids[0]}_{ids[1]}_proy_{contratacion.proyecto.id}'
+        )
+        assert event['type'] == 'chat.message'
+        payload = event['mensaje']
+        assert payload['contenido'] == 'Hola desde el fallback HTTP'
+        assert payload['remitente_id'] == empresa_user.id
+        assert payload['receptor_id'] == desarrollador_user.id
+        assert payload['proyecto_id'] == contratacion.proyecto.id
+        assert payload['fecha_envio']
+        assert payload['fecha']
+
+    def test_fallo_del_channel_layer_no_rompe_el_envio(
+        self, client, empresa_user, desarrollador_user, contratacion
+    ):
+        layer = _FakeChannelLayer(fail=True)
+        client.force_login(empresa_user)
+
+        with patch('mensajes.views.get_channel_layer', return_value=layer):
+            response = client.post(
+                reverse('api_enviar'),
+                data=json.dumps({
+                    'receptor_id': desarrollador_user.id,
+                    'proyecto_id': contratacion.proyecto.id,
+                    'contenido': 'El mensaje debe persistir igual',
+                }),
+                content_type='application/json',
+            )
+
+        assert response.status_code == 201
+        assert Mensaje.objects.count() == 1
+        assert Mensaje.objects.get().contenido == 'El mensaje debe persistir igual'
 
     def test_rechaza_contenido_vacio(self, client, empresa_user, desarrollador_user, contratacion):
         client.force_login(empresa_user)

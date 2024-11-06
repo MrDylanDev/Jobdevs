@@ -6,17 +6,37 @@
  * sin recargar ni navegar a otra página.
  *
  * Cada elemento .jd-chat-item declara:
- *   data-url       -> endpoint JSON del historial (GET)
+ *   data-url       -> endpoint JSON del historial (GET, solo carga inicial)
  *   data-receptor  -> id del usuario con el que se conversa
  *   data-proyecto  -> id del proyecto (0 = conversación general)
  *
- * El envío se hace por POST a [data-send-url] con JSON.
+ * La conversación activa se conecta al WebSocket existente de Django Channels
+ * (/ws/chat/<receptor_id>/?proyecto_id=<id>) para recibir y enviar mensajes
+ * en tiempo real. No se hace polling HTTP. [data-send-url] se conserva solo
+ * como fallback puntual si el socket no está disponible al enviar.
  */
 (function () {
   'use strict';
 
-  var POLL_MS = 5000;
   var ID_TOKEN = '987654321';
+  var WS_RECONNECT_BASE_MS = 1000;
+  var WS_RECONNECT_MAX_MS = 30000;
+  var WS_RECONNECT_MAX_ATTEMPTS = 10;
+
+  function dosDigitos(valor) {
+    return valor < 10 ? '0' + valor : String(valor);
+  }
+
+  function fechaDeHoy() {
+    var hoy = new Date();
+    return (
+      dosDigitos(hoy.getDate()) +
+      '/' +
+      dosDigitos(hoy.getMonth() + 1) +
+      '/' +
+      hoy.getFullYear()
+    );
+  }
 
   function initChat(root) {
     var list = root.querySelector('[data-chat-list]');
@@ -34,6 +54,8 @@
     var errorEl = root.querySelector('[data-chat-error]');
     var backBtn = root.querySelector('[data-chat-back]');
     var sendUrl = root.getAttribute('data-send-url');
+    var sessionUrl = root.getAttribute('data-session-url');
+    var yoId = parseInt(root.getAttribute('data-yo-id') || '0', 10);
 
     if (!list || !conv || !messagesBox || !form) return;
 
@@ -41,8 +63,15 @@
     var csrfToken = csrfInput ? csrfInput.value : '';
     var active = null;
     var lastMessageId = 0;
-    var pollTimer = null;
     var sending = false;
+    var socket = null;
+    var socketGeneration = 0;
+    var socketOpenedForActive = false;
+    var reconnectAttempts = 0;
+    var reconnectTimer = null;
+    var historyLoading = false;
+    var incomingBuffer = [];
+    var pendingText = '';
 
     function showError(text) {
       if (!errorEl) return;
@@ -84,13 +113,14 @@
       var placeholder = messagesBox.querySelector('.jd-chat-messages-empty');
       if (placeholder) placeholder.remove();
 
+      var fecha = msg.fecha || fechaDeHoy();
       var lastDay = messagesBox.getAttribute('data-last-day');
-      if (lastDay !== msg.fecha) {
+      if (lastDay !== fecha) {
         var day = document.createElement('div');
         day.className = 'jd-msg-day';
-        day.textContent = msg.fecha;
+        day.textContent = fecha;
         messagesBox.appendChild(day);
-        messagesBox.setAttribute('data-last-day', msg.fecha);
+        messagesBox.setAttribute('data-last-day', fecha);
       }
 
       var bubble = document.createElement('div');
@@ -99,13 +129,17 @@
 
       var time = document.createElement('div');
       time.className = 'jd-msg-time';
-      time.textContent = msg.hora;
+      time.textContent = msg.hora || '';
       bubble.appendChild(time);
 
       messagesBox.appendChild(bubble);
     }
 
     function render(data) {
+      if (data.yo_id) {
+        yoId = parseInt(data.yo_id, 10) || yoId;
+      }
+
       messagesBox.innerHTML = '';
       messagesBox.removeAttribute('data-last-day');
       lastMessageId = 0;
@@ -131,7 +165,7 @@
       scrollToBottom(true);
     }
 
-    function load(item, silent) {
+    function load(item) {
       var url = item.getAttribute('data-url');
       if (!url) return Promise.resolve();
       var requested = item;
@@ -149,25 +183,239 @@
         .then(function (data) {
           // Evita pintar respuestas antiguas si el usuario cambió de chat.
           if (requested !== active) return data;
-          if (requested) {
-            var nombreItem = requested.querySelector('.jd-chat-name');
-            var avatarItem = requested.querySelector('.jd-chat-avatar');
-            if (nombreItem) nombreItem.textContent = data.receptor.nombre;
-            if (avatarItem && !avatarItem.querySelector('i')) {
-              avatarItem.textContent = data.receptor.inicial;
-            }
+          var nombreItem = requested.querySelector('.jd-chat-name');
+          var avatarItem = requested.querySelector('.jd-chat-avatar');
+          if (nombreItem) nombreItem.textContent = data.receptor.nombre;
+          if (avatarItem && !avatarItem.querySelector('i')) {
+            avatarItem.textContent = data.receptor.inicial;
           }
           render(data);
-          if (!silent) {
-            if (empty) empty.hidden = true;
-            conv.classList.add('is-open');
-          }
+          if (empty) empty.hidden = true;
+          conv.classList.add('is-open');
           return data;
         })
         .catch(function (err) {
           if (requested !== active) return;
-          if (!silent) showError(err.message || 'Error al cargar la conversación.');
+          showError(err.message || 'Error al cargar la conversación.');
         });
+    }
+
+    function wsUrl(item) {
+      var receptor = parseInt(item.getAttribute('data-receptor'), 10);
+      if (!receptor) return null;
+
+      var proyecto = parseInt(item.getAttribute('data-proyecto') || '0', 10);
+      var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      var path = '/ws/chat/' + receptor + '/';
+      if (proyecto) path += '?proyecto_id=' + proyecto;
+      return protocol + window.location.host + path;
+    }
+
+    function clearReconnectTimer() {
+      if (reconnectTimer) {
+        window.clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+    }
+
+    function refreshHistory(item) {
+      var url = item.getAttribute('data-url');
+      if (!url || item !== active) return Promise.resolve();
+
+      return fetch(url, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.error || 'No se pudo actualizar.');
+            return data;
+          });
+        })
+        .then(function (data) {
+          if (item !== active) return;
+          (data.mensajes || []).forEach(appendMessage);
+          scrollToBottom(false);
+        })
+        .catch(function () {
+          // Un fallo de historial no debe bloquear la reconexión.
+        });
+    }
+
+    function verificarSesion() {
+      if (!sessionUrl) return Promise.resolve(true);
+      return fetch(sessionUrl, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+        .then(function (res) {
+          if (res.status === 401 || res.status === 403) return false;
+          return true;
+        })
+        .catch(function () {
+          // Sin red no podemos distinguir sesión expirada de caída temporal.
+          return true;
+        });
+    }
+
+    function closeSocket() {
+      socketGeneration += 1;
+      clearReconnectTimer();
+      reconnectAttempts = 0;
+      if (socket) {
+        var old = socket;
+        socket = null;
+        old.onopen = null;
+        old.onmessage = null;
+        old.onerror = null;
+        old.onclose = null;
+        try {
+          old.close(1000, 'cambio de conversación');
+        } catch (err) {
+          // El socket ya estaba cerrado.
+        }
+      }
+    }
+
+    function scheduleReconnect(item, generation) {
+      if (item !== active || generation !== socketGeneration) return;
+      if (reconnectAttempts >= WS_RECONNECT_MAX_ATTEMPTS) {
+        showError(
+          'Se perdió la conexión en tiempo real. Recarga la página para reconectar.'
+        );
+        return;
+      }
+
+      var delay = Math.min(
+        WS_RECONNECT_MAX_MS,
+        WS_RECONNECT_BASE_MS * Math.pow(1.5, reconnectAttempts)
+      );
+      reconnectAttempts += 1;
+      clearReconnectTimer();
+      reconnectTimer = window.setTimeout(function () {
+        if (item === active && generation === socketGeneration) {
+          openSocket(item, generation);
+        }
+      }, delay);
+    }
+
+    function openSocket(item, generation) {
+      var url = wsUrl(item);
+      if (!url) {
+        showError('No se pudo construir la conexión en tiempo real.');
+        return;
+      }
+
+      var ws;
+      try {
+        ws = new WebSocket(url);
+      } catch (err) {
+        scheduleReconnect(item, generation);
+        return;
+      }
+
+      socket = ws;
+
+      ws.onopen = function () {
+        if (generation !== socketGeneration) return;
+        var wasReconnect = socketOpenedForActive;
+        socketOpenedForActive = true;
+        reconnectAttempts = 0;
+        clearReconnectTimer();
+        if (wasReconnect && !historyLoading) {
+          refreshHistory(item);
+        }
+      };
+
+      ws.onmessage = function (event) {
+        if (generation !== socketGeneration) return;
+
+        var data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (err) {
+          return;
+        }
+
+        if (data.error) {
+          if (pendingText && !input.value) input.value = pendingText;
+          pendingText = '';
+          showError(data.error);
+          return;
+        }
+
+        if (data.type === 'mensaje' && data.mensaje) {
+          handleIncoming(data.mensaje);
+        }
+      };
+
+      ws.onerror = function () {
+        // onclose se encarga de la reconexión.
+      };
+
+      ws.onclose = function (event) {
+        if (generation !== socketGeneration) return;
+        socket = null;
+
+        if (item !== active) return;
+        if (event.code === 4401) {
+          showError('Tu sesión expiró. Recarga la página para reconectar.');
+          return;
+        }
+        if (event.code === 4403) {
+          showError('No tienes permiso para esta conversación.');
+          return;
+        }
+        // Si el cierre no trae un código de aplicación (p. ej. 1006),
+        // comprobamos la sesión antes de seguir reintentando.
+        verificarSesion().then(function (sesionValida) {
+          if (generation !== socketGeneration || item !== active) return;
+          if (!sesionValida) {
+            showError('Tu sesión expiró. Recarga la página para reconectar.');
+            return;
+          }
+          scheduleReconnect(item, generation);
+        });
+      };
+    }
+
+    function connectSocket(item) {
+      closeSocket();
+      if (!item) return;
+      openSocket(item, socketGeneration);
+    }
+
+    function normalizarMensaje(msg) {
+      return {
+        id: msg.id,
+        contenido: msg.contenido,
+        hora: msg.fecha_envio || msg.hora || '',
+        fecha: msg.fecha || fechaDeHoy(),
+        es_propio: msg.remitente_id === yoId,
+      };
+    }
+
+    function processIncoming(msg) {
+      if (!active || !msg || !msg.id) return;
+      var normalizado = normalizarMensaje(msg);
+      appendMessage(normalizado);
+      scrollToBottom(false);
+      updatePreview(active, normalizado.contenido, normalizado.hora);
+      if (normalizado.es_propio) pendingText = '';
+    }
+
+    function handleIncoming(msg) {
+      if (historyLoading) {
+        incomingBuffer.push(msg);
+        return;
+      }
+      processIncoming(msg);
+    }
+
+    function flushIncomingBuffer() {
+      var pendientes = incomingBuffer;
+      incomingBuffer = [];
+      pendientes.forEach(processIncoming);
     }
 
     function selectItem(item) {
@@ -178,23 +426,17 @@
       active = item;
       root.classList.add('is-conv-open');
       showError('');
+      pendingText = '';
+      historyLoading = true;
+      incomingBuffer = [];
       messagesBox.innerHTML = '<div class="jd-chat-messages-empty">Cargando…</div>';
-      load(item, false);
-    }
-
-    function startPolling() {
-      stopPolling();
-      pollTimer = window.setInterval(function () {
-        if (!active || document.hidden || sending) return;
-        load(active, true);
-      }, POLL_MS);
-    }
-
-    function stopPolling() {
-      if (pollTimer) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-      }
+      socketOpenedForActive = false;
+      connectSocket(item);
+      load(item).then(function () {
+        if (active !== item) return;
+        historyLoading = false;
+        flushIncomingBuffer();
+      });
     }
 
     function updatePreview(item, texto, hora) {
@@ -220,7 +462,6 @@
     function bindItem(item) {
       item.addEventListener('click', function () {
         selectItem(item);
-        startPolling();
       });
     }
 
@@ -277,7 +518,6 @@
       var item = ensureItem(receptorId, proyectoId, nombre);
       if (!item) return false;
       selectItem(item);
-      startPolling();
       return true;
     }
 
@@ -288,7 +528,12 @@
     if (backBtn) {
       backBtn.addEventListener('click', function () {
         root.classList.remove('is-conv-open');
-        stopPolling();
+        active = null;
+        historyLoading = false;
+        incomingBuffer = [];
+        pendingText = '';
+        socketOpenedForActive = false;
+        closeSocket();
       });
     }
 
@@ -299,13 +544,35 @@
       var texto = (input.value || '').trim();
       if (!texto) return;
 
-      sending = true;
-      if (sendBtn) sendBtn.disabled = true;
       showError('');
 
+      // Canal principal: WebSocket de Django Channels.
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        try {
+          pendingText = texto;
+          socket.send(JSON.stringify({ contenido: texto }));
+          input.value = '';
+          input.focus();
+        } catch (err) {
+          pendingText = '';
+          showError('No se pudo enviar el mensaje por el canal en tiempo real.');
+        }
+        return;
+      }
+
+      // Fallback puntual si el socket aún no está disponible. No es polling.
+      if (!sendUrl) {
+        showError('Sin conexión en tiempo real. Reintenta en unos segundos.');
+        return;
+      }
+
+      sending = true;
+      if (sendBtn) sendBtn.disabled = true;
+
+      var requested = active;
       var payload = {
-        receptor_id: parseInt(active.getAttribute('data-receptor'), 10),
-        proyecto_id: parseInt(active.getAttribute('data-proyecto') || '0', 10),
+        receptor_id: parseInt(requested.getAttribute('data-receptor'), 10),
+        proyecto_id: parseInt(requested.getAttribute('data-proyecto') || '0', 10),
         contenido: texto,
       };
 
@@ -326,10 +593,11 @@
           });
         })
         .then(function (data) {
+          if (active !== requested) return;
           appendMessage(data.mensaje);
           input.value = '';
           scrollToBottom(true);
-          updatePreview(active, data.mensaje.contenido, data.mensaje.hora);
+          updatePreview(requested, data.mensaje.contenido, data.mensaje.hora);
         })
         .catch(function (err) {
           showError(err.message || 'Error al enviar el mensaje.');
@@ -342,7 +610,10 @@
     });
 
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden && active) load(active, true);
+      if (document.hidden || !active) return;
+      if (!socket || socket.readyState === WebSocket.CLOSED) {
+        connectSocket(active);
+      }
     });
   }
 
