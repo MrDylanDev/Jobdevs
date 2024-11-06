@@ -883,3 +883,62 @@
       if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
       // Listener enviar mensaje
+      var formMsg = document.getElementById('jdmFormDisputaMsg');
+      if (formMsg) {
+        formMsg.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var inp = document.getElementById('jdmMsgContenido');
+          var txt = inp ? inp.value.trim() : '';
+          if (!txt) return;
+
+          var btn = document.getElementById('jdmBtnEnviarMsg');
+          btn.disabled = true;
+
+          try {
+            var fData = new FormData();
+            fData.append('contenido', txt);
+            var mRes = await fetch(d.enviar_url, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              },
+              body: fData,
+              credentials: 'same-origin'
+            });
+            var mJson = await mRes.json();
+            if (mJson.ok) {
+              inp.value = '';
+              cargarSalaDisputa(url);
+            } else {
+              mostrarToast(mJson.error || 'No se pudo enviar el mensaje', true);
+            }
+          } catch (err) {
+            mostrarToast('Error al enviar mensaje.', true);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      }
+
+      // Listener resolver disputa (Admin)
+      var formResolver = document.getElementById('jdmFormResolverDisputa');
+      if (formResolver) {
+        formResolver.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var resSel = formResolver.querySelector('[name="resolucion"]').value;
+          var dictTxt = formResolver.querySelector('[name="dictamen"]').value.trim();
+
+          if (!resSel || !dictTxt) {
+            mostrarToast('Debes seleccionar el fallo y redactar el dictamen.', true);
+            return;
+          }
+
+          if (!confirm('¿Confirmas la emisión definitiva de esta resolución arbitral? Esta acción es irreversible.')) {
+            return;
+          }
+
+          var btnR = document.getElementById('jdmBtnResolver');
+          btnR.disabled = true;
+          btnR.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando resolución...';
+
