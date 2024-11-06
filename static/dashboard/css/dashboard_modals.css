@@ -648,3 +648,53 @@
   padding: 0;
 }
 
+.jdm-star-btn:hover,
+.jdm-star-btn.is-active {
+  color: #00e676;
+  transform: scale(1.15);
+}
+
+.jdm-rating-caption {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: #a0a0a0;
+  letter-spacing: 0.05em;
+}
+
+.jdm-char-counter {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: #666666;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. DETALLE EMPRESA
+   ───────────────────────────────────────────────────────────── */
+.jdm-empresa-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed #14221a;
+  margin-bottom: 18px;
+}
+
+.jdm-empresa-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 4px;
+  background: #00e676;
+  color: #000000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.jdm-empresa-stats {
+  display: grid;
