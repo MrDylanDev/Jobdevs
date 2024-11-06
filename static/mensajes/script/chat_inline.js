@@ -118,3 +118,133 @@
 
       if (nameEl) nameEl.textContent = data.receptor.nombre;
       if (avatarEl) avatarEl.textContent = data.receptor.inicial;
+      if (subEl) {
+        subEl.textContent = data.proyecto
+          ? data.receptor.rol + ' · ' + data.proyecto.titulo
+          : data.receptor.rol;
+      }
+
+      var puedeEscribir = data.puede_escribir !== false;
+      form.hidden = !puedeEscribir;
+      if (readonlyEl) readonlyEl.hidden = puedeEscribir;
+
+      scrollToBottom(true);
+    }
+
+    function load(item, silent) {
+      var url = item.getAttribute('data-url');
+      if (!url) return Promise.resolve();
+      var requested = item;
+
+      return fetch(url, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.error || 'No se pudo cargar.');
+            return data;
+          });
+        })
+        .then(function (data) {
+          // Evita pintar respuestas antiguas si el usuario cambió de chat.
+          if (requested !== active) return data;
+          if (requested) {
+            var nombreItem = requested.querySelector('.jd-chat-name');
+            var avatarItem = requested.querySelector('.jd-chat-avatar');
+            if (nombreItem) nombreItem.textContent = data.receptor.nombre;
+            if (avatarItem && !avatarItem.querySelector('i')) {
+              avatarItem.textContent = data.receptor.inicial;
+            }
+          }
+          render(data);
+          if (!silent) {
+            if (empty) empty.hidden = true;
+            conv.classList.add('is-open');
+          }
+          return data;
+        })
+        .catch(function (err) {
+          if (requested !== active) return;
+          if (!silent) showError(err.message || 'Error al cargar la conversación.');
+        });
+    }
+
+    function selectItem(item) {
+      items.forEach(function (el) {
+        el.classList.toggle('active', el === item);
+        el.setAttribute('aria-current', el === item ? 'true' : 'false');
+      });
+      active = item;
+      root.classList.add('is-conv-open');
+      showError('');
+      messagesBox.innerHTML = '<div class="jd-chat-messages-empty">Cargando…</div>';
+      load(item, false);
+    }
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = window.setInterval(function () {
+        if (!active || document.hidden || sending) return;
+        load(active, true);
+      }, POLL_MS);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function updatePreview(item, texto, hora) {
+      var preview = item.querySelector('.jd-chat-preview');
+      var time = item.querySelector('.jd-chat-time');
+      if (preview) preview.textContent = texto;
+      if (time && hora) time.textContent = hora;
+      if (list && list.firstElementChild !== item) list.prepend(item);
+    }
+
+    function convUrl(receptorId, proyectoId) {
+      var esProyecto = proyectoId && String(proyectoId) !== '0';
+      var tpl = root.getAttribute(
+        esProyecto ? 'data-url-proyecto' : 'data-url-general'
+      );
+      if (!tpl) return null;
+      if (esProyecto) {
+        return tpl.replace(ID_TOKEN, receptorId).replace(ID_TOKEN, proyectoId);
+      }
+      return tpl.replace(ID_TOKEN, receptorId);
+    }
+
+    function bindItem(item) {
+      item.addEventListener('click', function () {
+        selectItem(item);
+        startPolling();
+      });
+    }
+
+    function ensureItem(receptorId, proyectoId, nombre) {
+      var proyecto = String(proyectoId || '0');
+      var selector =
+        '.jd-chat-item[data-receptor="' + receptorId +
+        '"][data-proyecto="' + proyecto + '"]';
+      var existente = root.querySelector(selector);
+      if (existente) return existente;
+
+      var url = convUrl(receptorId, proyecto);
+      if (!url) return null;
+
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'jd-chat-item';
+      item.setAttribute('data-url', url);
+      item.setAttribute('data-receptor', receptorId);
+      item.setAttribute('data-proyecto', proyecto);
+      item.innerHTML =
+        '<span class="jd-chat-avatar"></span>' +
+        '<span class="jd-chat-item-body">' +
+        '<span class="jd-chat-item-top"><span class="jd-chat-name"></span></span>' +
+        '<span class="jd-chat-preview">Conversación abierta</span></span>';
+
+      var texto = (nombre || 'Conversación').trim();
