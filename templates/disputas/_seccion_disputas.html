@@ -91,7 +91,7 @@
             {% endif %}
           </td>
           <td style="text-align:right;">
-            <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
+            <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
               <i data-lucide="folder-open"></i> Ver Expediente
             </a>
           </td>
@@ -158,7 +158,7 @@
             {% endif %}
           </td>
           <td style="text-align:right;">
-            <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action primary">
+            <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action primary">
               <i data-lucide="message-square"></i> Ingresar a Sala
             </a>
           </td>
@@ -213,7 +213,7 @@
           <td style="color:var(--corp-slate-600); font-size:12.5px;">{{ d.notas_resolucion|default:"Sin notas adicionales."|truncatechars:70 }}</td>
           <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
           <td style="text-align:right;">
-            <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
+            <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
               <i data-lucide="eye"></i> Ver Expediente
             </a>
           </td>
@@ -265,7 +265,7 @@
       <div class="form-label-corp" style="margin-bottom:8px;">Selecciona el proyecto en controversia:</div>
       <div style="display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; padding-right:4px;">
         {% for p in proyectos_disputables %}
-          <a href="{% url 'disputas:abrir_disputa' p.id %}" class="disp-proyecto-item-corp disp-proyecto-item">
+          <a href="{% url 'disputas:abrir_disputa' p.id %}" data-abrir-formulario-disputa data-url="{% url 'disputas:abrir_disputa' p.id %}" class="disp-proyecto-item-corp disp-proyecto-item">
             <div>
               <strong>{{ p.titulo }}</strong>
               <small>{% if request.user.rol == 'empresa' %}{{ p.get_estado_display }}{% else %}Empresa: {{ p.empresa.nombre|default:p.empresa.username }}{% endif %}</small>
