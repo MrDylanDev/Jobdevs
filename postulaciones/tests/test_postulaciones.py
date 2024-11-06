@@ -632,3 +632,86 @@ class TestIniciarNegociacion:
         assert 'Verificado el' in html
 
 
+
+
+class TestPostularseAjax:
+    """El modal del dashboard envía la postulación por fetch y espera JSON."""
+
+    def _post_ajax(self, client, proyecto, **extra):
+        data = {'carta': 'Me interesa este proyecto.', 'experiencia': 'Django', 'link': '', 'origen': 'dashboard'}
+        data.update(extra)
+        return client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+
+    def test_ajax_postulacion_exitosa(self, dev_client, desarrollador_user, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Modal', descripcion='DM',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = self._post_ajax(dev_client, proyecto)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['ok'] is True
+        assert data['proyecto_id'] == proyecto.id
+        assert Postulacion.objects.filter(
+            proyecto=proyecto, desarrollador=desarrollador_user
+        ).exists()
+
+    def test_ajax_carta_obligatoria(self, dev_client, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Sin Carta', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = self._post_ajax(dev_client, proyecto, carta='   ')
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data['ok'] is False
+        assert 'carta' in data['mensaje'].lower()
+        assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+
+    def test_ajax_no_verificado_pide_verificacion(self, dev_client, desarrollador_user, empresa_user):
+        desarrollador_user.perfil_desarrollador.estado_verificacion = 'sin_verificar'
+        desarrollador_user.perfil_desarrollador.save()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Verif', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = self._post_ajax(dev_client, proyecto)
+
+        assert response.status_code == 403
+        data = response.json()
+        assert data['ok'] is False
+        assert data['requiere_verificacion'] is True
+        assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+
+    def test_ajax_duplicado_devuelve_409(self, dev_client, desarrollador_user, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Dup', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            mensaje='Primera', estado='pendiente',
+        )
+        response = self._post_ajax(dev_client, proyecto)
+
+        assert response.status_code == 409
+        data = response.json()
+        assert data['ok'] is False
+        assert Postulacion.objects.filter(proyecto=proyecto).count() == 1
+
+    def test_ajax_empresa_no_puede_postularse(self, auth_client, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Empresa', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = self._post_ajax(auth_client, proyecto)
+
+        assert response.status_code == 403
+        assert response.json()['ok'] is False
+        assert not Postulacion.objects.filter(proyecto=proyecto).exists()
