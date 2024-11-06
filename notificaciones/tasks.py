@@ -61,6 +61,31 @@ def enviar_email_transaccional_task(
             raise
 
 
+def despachar_email_transaccional(**kwargs: Any) -> bool:
+    """
+    Encola un correo transaccional sin acoplar la petición HTTP al broker.
+
+    Devuelve True si la tarea se encoló. Si el broker (Redis) no está
+    disponible, registra el fallo y devuelve False para que el flujo de
+    negocio (registro, recuperación de contraseña, postulación, etc.) no
+    termine en un error 500.
+
+    Se captura Exception de forma deliberada: cualquier fallo de
+    infraestructura del broker no debe invalidar una operación ya persistida.
+    """
+    try:
+        enviar_email_transaccional_task.delay(**kwargs)
+        return True
+    except Exception as exc:
+        logger.error(
+            "No se pudo encolar el correo '%s' a %s; broker Celery no disponible: %s",
+            kwargs.get('asunto'),
+            kwargs.get('destinatarios'),
+            exc,
+        )
+        return False
+
+
 @shared_task(name='notificaciones.purgar_notificaciones_antiguas')
 def purgar_notificaciones_antiguas_task(dias: int = 30, incluir_no_leidas: bool = False) -> int:
     """
