@@ -178,3 +178,93 @@
     html += '</div>';
 
     html += '<p class="jdp-desc">' + escapeHtml(p.descripcion || 'Sin descripción registrada.') + '</p>';
+
+    html += '<div class="jdp-meta">';
+    html += metaItem('Tipo de solución', p.tipo);
+    html += metaItem('Categoría', p.categoria || 'Sin categoría');
+    html += metaItem('Vacantes', (p.vacantes_disponibles != null ? p.vacantes_disponibles : 0) + ' de ' + (p.vacantes || 0) + ' libres');
+    html += metaItem('Cierre', p.fecha_limite || 'Sin límite');
+    html += metaItem('Publicado', p.fecha_publicacion || '—');
+    html += metaItem('Equipo', (p.num_desarrolladores || 0) + ' desarrollador' + ((p.num_desarrolladores || 0) === 1 ? '' : 'es'));
+    html += '</div>';
+
+    var total = p.hitos_totales || 0;
+    var hechos = p.hitos_completados || 0;
+    html += '<section class="jdp-section">';
+    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-bars-progress"></i>Progreso de hitos</span><span class="jdp-section-count">' + hechos + '/' + total + '</span></div>';
+    html += '<div class="jdp-progress-bar"><div class="jdp-progress-fill" style="width:' + Math.max(0, Math.min(100, Number(p.progreso) || 0)) + '%"></div></div>';
+    html += '</section>';
+
+    html += '<section class="jdp-section">';
+    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-list-check"></i>Hitos del proyecto</span><span class="jdp-section-count">' + total + '</span></div>';
+    if (p.hitos && p.hitos.length) {
+      html += '<ul class="jdp-list">';
+      p.hitos.forEach(function (h) {
+        html += '<li class="jdp-list-item ' + estadoClass(h.estado) + '">' +
+          '<i class="' + (h.estado === 'completado' ? 'fa-solid fa-circle-check' : (h.estado === 'en_revision' ? 'fa-solid fa-clock' : 'fa-regular fa-circle')) + '"></i>' +
+          '<div class="jdp-list-main"><span class="jdp-list-title">' + escapeHtml(h.titulo) + '</span>' +
+          (h.descripcion ? '<span class="jdp-list-sub">' + escapeHtml(h.descripcion) + '</span>' : '') +
+          '</div><span class="jdp-list-state">' + escapeHtml(h.estado_label || '') + '</span></li>';
+      });
+      html += '</ul>';
+    } else {
+      html += '<div class="jdp-empty">La empresa aún no ha definido hitos para este proyecto.</div>';
+    }
+    html += '</section>';
+
+    html += '<section class="jdp-section">';
+    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-users"></i>Equipo vinculado</span><span class="jdp-section-count">' + (p.num_desarrolladores || 0) + '</span></div>';
+    if (p.contrataciones && p.contrataciones.length) {
+      html += '<div class="jdp-team">';
+      p.contrataciones.forEach(function (c) {
+        html += '<span class="jdp-chip"><i class="fa-solid fa-user-gear"></i>' + escapeHtml(c.desarrollador || c.username || '') +
+          ' <span class="jdp-list-state">' + escapeHtml(c.estado_label || '') + '</span></span>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="jdp-empty">Todavía no hay desarrolladores contratados.</div>';
+    }
+    html += '</section>';
+
+    modal.querySelector('[data-jdp-body]').innerHTML = html;
+
+    var footer = modal.querySelector('[data-jdp-footer]');
+    var acciones = data.acciones || [];
+    var footerHtml = '';
+    acciones.forEach(function (a) {
+      var clase = a.estilo === 'primary' ? 'jdp-btn is-primary' : 'jdp-btn';
+      footerHtml += '<a class="' + clase + '" href="' + escapeHtml(a.url || '#') + '">' +
+        '<i class="' + safeIcon(a.icono) + '"></i>' + escapeHtml(a.label || 'Abrir') + '</a>';
+    });
+    footerHtml += '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button>';
+    footer.innerHTML = footerHtml;
+    footer.hidden = false;
+  }
+
+  function metaItem(label, value) {
+    return '<div class="jdp-meta-item"><span class="jdp-meta-label">' + escapeHtml(label) + '</span>' +
+      '<span class="jdp-meta-value">' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+  }
+
+  function cerrar() {
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (controller) {
+      controller.abort();
+      controller = null;
+    }
+    if (lastFocus && typeof lastFocus.focus === 'function') {
+      lastFocus.focus({ preventScroll: true });
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    var enlace = event.target.closest('[data-ver-proyecto]');
+    if (!enlace) return;
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    abrir(enlace);
+  });
+})();
