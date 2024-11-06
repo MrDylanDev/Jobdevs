@@ -293,3 +293,62 @@
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // 2. VER AVANCES & HISTORIAL
+  // ─────────────────────────────────────────────────────────────
+  async function cargarAvances(url) {
+    abrirModal('jdm-card-lg');
+    setHeader('PROYECTO // GESTIÓN DE AVANCES', 'Cargando avances…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudieron obtener los avances');
+
+      var p = data.proyecto;
+      setHeader('PROYECTO // HISTORIAL Y AVANCES', p.titulo, 'Empresa: ' + p.empresa + ' · Estado: ' + p.estado_label);
+
+      var html =
+        '<div class="jdm-progress-header">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;font-family:\'JetBrains Mono\',monospace;font-size:12px;">' +
+            '<span style="color:#a0a0a0;">PROGRESO GENERAL</span>' +
+            '<span style="color:#00e676;font-weight:700;">' + p.progreso + '% (' + p.hitos_completados + ' / ' + p.hitos_totales + ' hitos completados)</span>' +
+          '</div>' +
+          '<div class="jdm-progress-bar-bg">' +
+            '<div class="jdm-progress-bar-fill" style="width:' + p.progreso + '%;"></div>' +
+          '</div>' +
+        '</div>';
+
+      if (data.hitos && data.hitos.length) {
+        html += '<div class="jdm-form-label"><i class="fa-solid fa-list-check"></i> Hitos del Proyecto</div><div class="jdm-hitos-scroll">';
+        data.hitos.forEach(function (h) {
+          var icon = h.estado === 'completado' ? 'fa-circle-check" style="color:#00e676;' : (h.estado === 'en_revision' ? 'fa-clock" style="color:#fbbf24;' : 'fa-circle" style="color:#666666;');
+          html +=
+            '<div class="jdm-hito-pill">' +
+              '<i class="fa-solid ' + icon + '"></i>' +
+              '<div>' +
+                '<strong>' + escapeHtml(h.titulo) + '</strong>' +
+                '<div style="font-size:10px;color:#a0a0a0;">' + escapeHtml(h.estado_label) + '</div>' +
+              '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+      }
+
+      html += '<div class="jdm-form-label"><i class="fa-solid fa-timeline"></i> Registro de Entregas y Evidencias (' + (data.avances ? data.avances.length : 0) + ')</div>';
+
+      if (data.avances && data.avances.length) {
+        html += '<div class="jdm-advances-feed">';
+        data.avances.forEach(function (a) {
+          var badgeCls = a.estado === 'aprobado' ? 'jdm-badge-success' : (a.estado === 'rechazado' ? 'jdm-badge-danger' : 'jdm-badge-warning');
+          html +=
+            '<div class="jdm-advance-card">' +
+              '<div class="jdm-advance-head">' +
+                '<div>' +
+                  '<div class="jdm-advance-title">' + escapeHtml(a.entregable_titulo) + '</div>' +
+                  '<div style="font-size:11px;color:#a0a0a0;font-family:\'JetBrains Mono\',monospace;">Por ' + escapeHtml(a.desarrollador) + ' · ' + escapeHtml(a.fecha) + '</div>' +
+                '</div>' +
+                '<span class="jdm-badge ' + badgeCls + '">' + escapeHtml(a.estado_label) + '</span>' +
