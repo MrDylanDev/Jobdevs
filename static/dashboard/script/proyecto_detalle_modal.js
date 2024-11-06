@@ -98,3 +98,83 @@
     var titulo = modal.querySelector('#jdpTitulo');
     var sub = modal.querySelector('[data-jdp-sub]');
     body.scrollTop = 0;
+    body.innerHTML = '<div class="jdp-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Consultando la ficha del proyecto…</span></div>';
+    footer.hidden = true;
+    footer.innerHTML = '';
+    titulo.textContent = 'Cargando proyecto…';
+    sub.textContent = '';
+    setTimeout(function () {
+      var close = modal.querySelector('.jdp-close');
+      if (close) close.focus({ preventScroll: true });
+    }, 30);
+
+    if (controller) controller.abort();
+    controller = new AbortController();
+
+    fetch(enlace.getAttribute('data-url'), {
+      method: 'GET',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+      signal: controller.signal
+    })
+      .then(function (response) {
+        return response.json().catch(function () { return null; }).then(function (data) {
+          return { response: response, data: data };
+        });
+      })
+      .then(function (result) {
+        var data = result.data;
+        if (!result.response.ok || !data || !data.ok) {
+          var mensaje = (data && data.mensaje) || (result.response.status === 403
+            ? 'No tienes permisos para ver este proyecto.'
+            : 'No se pudo cargar la ficha del proyecto.');
+          mostrarError(mensaje);
+          return;
+        }
+        render(data);
+      })
+      .catch(function (error) {
+        if (error && error.name === 'AbortError') return;
+        mostrarError('Error de conexión al consultar el proyecto. Revisa tu red e inténtalo de nuevo.');
+      });
+  }
+
+  function mostrarError(mensaje) {
+    if (!modal) return;
+    modal.querySelector('#jdpTitulo').textContent = 'No se pudo abrir el proyecto';
+    modal.querySelector('[data-jdp-sub]').textContent = '';
+    var body = modal.querySelector('[data-jdp-body]');
+    body.innerHTML =
+      '<div class="jdp-error"><i class="fa-solid fa-triangle-exclamation"></i>' +
+      '<p>' + escapeHtml(mensaje) + '</p>' +
+      '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button></div>';
+    var footer = modal.querySelector('[data-jdp-footer]');
+    footer.hidden = true;
+  }
+
+  function render(data) {
+    var p = data.proyecto || {};
+    var empresa = p.empresa || {};
+    var sub = modal.querySelector('[data-jdp-sub]');
+    modal.querySelector('#jdpTitulo').textContent = p.titulo || 'Proyecto';
+
+    sub.innerHTML =
+      '<span><i class="fa-solid fa-building" style="color:#00e676;margin-right:5px;"></i>' + escapeHtml(empresa.nombre || '') + '</span>' +
+      (empresa.verificada
+        ? '<span class="jdp-verified"><i class="fa-solid fa-circle-check"></i>' + escapeHtml(empresa.badge || 'Verificada') + '</span>'
+        : '') +
+      (Number(empresa.calificacion) > 0
+        ? '<span><i class="fa-solid fa-star" style="color:#ffc107;margin-right:4px;"></i>' + Number(empresa.calificacion).toFixed(1) + '</span>'
+        : '');
+
+    var html = '';
+    html += '<div class="jdp-status-row">';
+    html += '<span class="jdp-badge ' + estadoClass(p.estado) + '">' + escapeHtml(p.estado_label || '') + '</span>';
+    html += '<span class="jdp-badge">' + escapeHtml(p.tipo || 'Proyecto') + '</span>';
+    html += '<span class="jdp-badge ' + (p.prioridad === 'alta' ? 'is-en_disputa' : (p.prioridad === 'media' ? 'is-pendiente' : '')) + '">Prioridad ' + escapeHtml(p.prioridad_label || p.prioridad || '') + '</span>';
+    if (p.acepta_postulaciones) {
+      html += '<span class="jdp-badge is-publicado"><i class="fa-solid fa-door-open"></i> Recibe postulaciones</span>';
+    }
+    html += '</div>';
+
+    html += '<p class="jdp-desc">' + escapeHtml(p.descripcion || 'Sin descripción registrada.') + '</p>';
