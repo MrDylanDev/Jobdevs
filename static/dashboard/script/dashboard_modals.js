@@ -57,3 +57,62 @@
     if (modalEl) return modalEl;
 
     modalEl = document.createElement('div');
+    modalEl.id = 'jdmModal';
+    modalEl.className = 'jdm-modal';
+    modalEl.hidden = true;
+    modalEl.innerHTML =
+      '<div class="jdm-backdrop" data-jdm-close></div>' +
+      '<div class="jdm-card" id="jdmCard" role="dialog" aria-modal="true" aria-labelledby="jdmTitulo">' +
+        '<header class="jdm-header">' +
+          '<div style="min-width:0;flex:1;">' +
+            '<div class="jdm-kicker" id="jdmKicker">// ACCIÓN</div>' +
+            '<h2 class="jdm-title" id="jdmTitulo">Cargando…</h2>' +
+            '<div class="jdm-sub" id="jdmSub"></div>' +
+          '</div>' +
+          '<button type="button" class="jdm-close" data-jdm-close aria-label="Cerrar">&times;</button>' +
+        '</header>' +
+        '<div class="jdm-body" id="jdmBody" aria-live="polite">' +
+          '<div class="jdm-loading"><i class="fa-solid fa-circle-notch"></i><span>Cargando información…</span></div>' +
+        '</div>' +
+        '<footer class="jdm-footer" id="jdmFooter" hidden></footer>' +
+      '</div>';
+
+    document.body.appendChild(modalEl);
+
+    modalEl.addEventListener('click', function (e) {
+      if (e.target.closest('[data-jdm-close]')) {
+        e.preventDefault();
+        cerrarModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!modalEl || modalEl.hidden) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cerrarModal();
+      }
+    });
+
+    return modalEl;
+  }
+
+  function abrirModal(cardClass) {
+    lastFocusEl = document.activeElement;
+    ensureModal();
+    var card = document.getElementById('jdmCard');
+    card.className = 'jdm-card' + (cardClass ? ' ' + cardClass : '');
+    modalEl.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    var body = document.getElementById('jdmBody');
+    var footer = document.getElementById('jdmFooter');
+    body.scrollTop = 0;
+    body.innerHTML = '<div class="jdm-loading"><i class="fa-solid fa-circle-notch"></i><span>Cargando información…</span></div>';
+    footer.hidden = true;
+    footer.innerHTML = '';
+  }
+
+  function cerrarModal() {
+    if (!modalEl) return;
+    modalEl.hidden = true;
