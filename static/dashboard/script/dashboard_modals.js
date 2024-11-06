@@ -470,3 +470,62 @@
             errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar un hito.</span>';
             return;
           }
+          if (!desc) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes ingresar una descripción del avance.</span>';
+            return;
+          }
+          if (!urlEv && !file) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes ingresar una URL de evidencia o adjuntar un archivo.</span>';
+            return;
+          }
+
+          errBox.style.display = 'none';
+          btnEnviar.disabled = true;
+          btnEnviar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
+
+          try {
+            var formData = new FormData(form);
+            var postRes = await fetch(data.url_registrar, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              },
+              body: formData,
+              credentials: 'same-origin'
+            });
+
+            var resJson = await postRes.json();
+            if (resJson.status === 'ok' || resJson.ok) {
+              mostrarToast(resJson.mensaje || '¡Avance registrado exitosamente!');
+              cerrarModal();
+              setTimeout(function () { window.location.reload(); }, 1200);
+            } else {
+              errBox.style.display = 'flex';
+              errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.error || resJson.mensaje || 'Error al guardar avance') + '</span>';
+              btnEnviar.disabled = false;
+              btnEnviar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance';
+            }
+          } catch (e) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de conexión al enviar el avance.</span>';
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance';
+          }
+        });
+      }
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. CALIFICAR EMPRESA
+  // ─────────────────────────────────────────────────────────────
+  async function cargarCalificarEmpresa(url, triggerBtn) {
+    abrirModal('jdm-card-sm');
+    setHeader('PROYECTO // VALORACIÓN', 'Cargando calificación…');
