@@ -1,16 +1,28 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Q, Count, Prefetch
+from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField
+from django.db.models.functions import Coalesce
+from django.urls import reverse
+from django.utils import timezone
+from ..forms import PerfilDesarrolladorForm
 from ..models import PerfilDesarrollador, Usuario
+from logs.models import LogAuditoria
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_id
-from proyectos.models import Proyecto, Valoracion, Entregable
+from proyectos.models import Proyecto, Valoracion, Entregable, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion, ContratoDigital
 from disputas.services import datos_dashboard_disputas
 from favoritos.models import Favorito
 from mensajes.models import Mensaje
 from ._helpers import get_notificaciones_context
+
+# Secciones navegables del dashboard (usadas para ?seccion= y el estado inicial).
+SECCIONES_DASHBOARD = {
+    'inicio', 'centro-chat', 'explorar', 'postulaciones', 'activos',
+    'completados', 'contratos', 'favoritos', 'disputas', 'perfil',
+}
 
 
 @login_required
@@ -158,8 +170,63 @@ def dashboard_desarrollador(request):
     admin_id = get_admin_id()
     notificaciones_recientes, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
 
+    # Proyectos para la sección integrada de Explorar (RF 3.1.1)
+    proyectos_explorar_qs = Proyecto.objects.filter(
+        (Q(estado='publicado') | Q(estado='en_desarrollo')),
+        (Q(fecha_limite__isnull=True) | Q(fecha_limite__gte=timezone.now().date()))
+    ).exclude(
+        id__in=proyectos_con_accion
+    ).select_related('empresa', 'empresa__perfil_empresa', 'categoria').annotate(
+        num_postulaciones=Count('postulaciones', distinct=True),
+        empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
+            filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
+            Value(0.0), output_field=FloatField())
+    ).order_by('-fecha_publicacion')
+
+    proyectos_explorar = [
+        p for p in proyectos_explorar_qs
+        if p.estado == 'publicado' or p.vacantes_disponibles > 0
+    ][:48]
+
+    favoritos_ids = list(Favorito.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True))
+    categorias_solucion = list(CategoriaSolucion.objects.filter(activo=True).order_by('nombre'))
+
     perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
+
+    # --- Mi Perfil integrado en el dashboard (sin abrir otra página) ---
+    perfil_form = PerfilDesarrolladorForm(instance=perfil)
+    seccion_activa = request.GET.get('seccion', 'inicio')
+    if seccion_activa not in SECCIONES_DASHBOARD:
+        seccion_activa = 'inicio'
+    if request.method == 'POST' and request.POST.get('accion') == 'perfil':
+        perfil_form = PerfilDesarrolladorForm(
+            request.POST, request.FILES, instance=perfil
+        )
+        if perfil_form.is_valid():
+            perfil_form.save()
+            LogAuditoria.objects.create(
+                usuario=request.user,
+                accion=f"Actualizó su perfil de {request.user.rol}",
+                tabla_afectada=f"perfil_{request.user.rol}",
+                registro_id=request.user.id,
+            )
+            messages.success(request, 'Perfil actualizado')
+            return redirect(
+                f"{reverse('dashboard_desarrollador')}?seccion=perfil"
+            )
+        seccion_activa = 'perfil'
+
+    valores_verificacion = {
+        'ficha': perfil.ficha or '',
+        'programa_formacion': perfil.programa_formacion or '',
+        'condicion_sena': perfil.condicion_sena or 'aprendiz',
+        'metodo': 'automatica',
+    }
+
     context = {
+        'proyectos_explorar': proyectos_explorar,
+        'categorias_solucion': categorias_solucion,
+        'favoritos_ids': favoritos_ids,
         'proyectos_activos_count': p_act,
         'proyectos_completados': p_comp,
         'calificacion_promedio': round(float(promedio), 1) if promedio else 0,
@@ -182,6 +249,11 @@ def dashboard_desarrollador(request):
         'contratos_pendientes_firma_count': contratos_pendientes_firma_count,
         'favoritos': mis_favoritos,
         'perfil': perfil,
+        'perfil_form': perfil_form,
+        'seccion_activa': seccion_activa,
+        'valores': valores_verificacion,
+        'errores': {},
+        'abrir_verificacion': request.GET.get('verificacion') == '1',
         'admin_id': admin_id
     }
     context.update(datos_dashboard_disputas(request.user, estado=request.GET.get('estado')))
