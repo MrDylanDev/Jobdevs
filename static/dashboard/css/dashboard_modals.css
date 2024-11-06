@@ -198,3 +198,53 @@
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.06em;
+}
+
+.jdm-loading i {
+  font-size: 24px;
+  color: #00e676;
+  animation: jdmSpin 1s linear infinite;
+}
+
+@keyframes jdmSpin {
+  100% { transform: rotate(360deg); }
+}
+
+.jdm-error {
+  padding: 18px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  font-size: 13px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.jdm-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666666;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.jdm-empty i {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.5;
+}
+
+/* Common UI Elements */
+.jdm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
