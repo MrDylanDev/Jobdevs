@@ -52,6 +52,23 @@ def abrir_disputa_view(request, proyecto_id):
         categorias = Disputa.CATEGORIAS_DESARROLLADOR
         categoria_default = 'retencion_fondos'
 
+    es_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.POST.get('origen') == 'dashboard'
+    )
+
+    if request.method == 'GET' and es_ajax:
+        return JsonResponse({
+            'ok': True,
+            'proyecto': {
+                'id': proyecto.id,
+                'titulo': proyecto.titulo,
+                'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
+            },
+            'categorias': [{'codigo': c[0], 'label': str(c[1])} for c in Disputa.CATEGORIAS],
+            'url_abrir': reverse('disputas:abrir_disputa', args=[proyecto.id]),
+        })
+
     context = {
         'proyecto': proyecto,
         'contratacion': contratacion,
@@ -82,6 +99,8 @@ def abrir_disputa_view(request, proyecto_id):
         })
 
         if not motivo:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': 'Debes indicar el motivo de la disputa.'}, status=400)
             messages.error(request, 'Debes indicar el motivo de la disputa.')
             return render(request, 'disputas/abrir_disputa.html', context, status=200)
 
@@ -102,8 +121,17 @@ def abrir_disputa_view(request, proyecto_id):
                 acepta_sanciones=acepta_sanciones,
             )
         except ValidationError as exc:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': ' '.join(exc.messages)}, status=400)
             messages.error(request, ' '.join(exc.messages))
             return render(request, 'disputas/abrir_disputa.html', context, status=400)
+
+        if es_ajax:
+            return JsonResponse({
+                'ok': True,
+                'mensaje': 'Disputa abierta. El proyecto fue congelado hasta su resolución.',
+                'disputa_id': disputa.id,
+            })
         messages.success(
             request, 'Disputa abierta. El proyecto fue congelado hasta su resolución.'
         )
@@ -177,6 +205,45 @@ def detalle_disputa_view(request, disputa_id):
     disputa = _get_disputa(disputa_id)
     if not _es_participante(request.user, disputa):
         raise PermissionDenied
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+        ctx = _contexto_sala(disputa)
+        mensajes_data = [
+            {
+                'id': m.id,
+                'emisor': m.emisor.nombre or m.emisor.username,
+                'rol': m.rol_emisor,
+                'contenido': m.contenido,
+                'fecha': m.fecha_envio.strftime('%d/%m/%Y %H:%M'),
+                'es_propio': m.emisor_id == request.user.id,
+            }
+            for m in ctx['mensajes']
+        ]
+        return JsonResponse({
+            'ok': True,
+            'disputa': {
+                'id': disputa.id,
+                'proyecto_id': disputa.proyecto_id,
+                'proyecto_titulo': disputa.proyecto.titulo,
+                'categoria': disputa.get_categoria_display(),
+                'motivo': disputa.motivo,
+                'evidencia_url': disputa.evidencia_url or '',
+                'estado': disputa.estado,
+                'estado_label': disputa.get_estado_display(),
+                'iniciado_por': disputa.iniciado_por.nombre or disputa.iniciado_por.username,
+                'empresa': disputa.proyecto.empresa.nombre or disputa.proyecto.empresa.username,
+                'desarrollador': disputa.contratacion.desarrollador.nombre or disputa.contratacion.desarrollador.username if disputa.contratacion else 'N/A',
+                'mediador': disputa.mediador.nombre or disputa.mediador.username if disputa.mediador else 'Pendiente de asignación',
+                'resolucion': disputa.get_resolucion_display() if disputa.resolucion else None,
+                'dictamen': disputa.notas_resolucion or '',
+                'puede_escribir': ctx['puede_escribir'],
+                'es_admin': request.user.rol == 'administrador',
+                'enviar_url': reverse('disputas:enviar_mensaje', args=[disputa.id]),
+                'resolver_url': reverse('disputas:resolver', args=[disputa.id]) if request.user.rol == 'administrador' else None,
+            },
+            'mensajes': mensajes_data,
+        })
+
     return render(request, 'disputas/sala_mediacion.html', _contexto_sala(disputa))
 
 
@@ -242,13 +309,22 @@ def resolver_disputa_view(request, disputa_id):
     resolucion = request.POST.get('resolucion', '').strip()
     dictamen = request.POST.get('dictamen', '').strip()
 
+    is_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.POST.get('origen') == 'dashboard'
+    )
+
     try:
         resolver_disputa(disputa, request.user, resolucion, dictamen)
     except ValidationError as exc:
         disputa.refresh_from_db()
+        if is_ajax:
+            return JsonResponse({'ok': False, 'mensaje': ' '.join(exc.messages)}, status=400)
         return render(
             request, 'disputas/sala_mediacion.html',
             _contexto_sala(disputa, ' '.join(exc.messages)), status=400,
         )
+    if is_ajax:
+        return JsonResponse({'ok': True, 'mensaje': 'Resolución emitida y acciones ejecutadas correctamente.'})
     messages.success(request, 'Resolución emitida y acciones ejecutadas correctamente.')
     return redirect('disputas:detalle_disputa', disputa_id=disputa_id)
