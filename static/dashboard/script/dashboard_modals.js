@@ -411,3 +411,62 @@
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         credentials: 'same-origin'
       });
+      var data = await res.json();
+      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudieron consultar los hitos');
+
+      setHeader('PROYECTO // NUEVA ENTREGA', data.proyecto.titulo, 'Completa la información de avance y adjunta tu evidencia');
+
+      var options = '<option value="">-- Selecciona el hito a reportar --</option>';
+      if (data.hitos_pendientes && data.hitos_pendientes.length) {
+        data.hitos_pendientes.forEach(function (h) {
+          options += '<option value="' + h.id + '">' + escapeHtml(h.titulo) + '</option>';
+        });
+      }
+
+      var html =
+        '<form id="jdmFormAvance" enctype="multipart/form-data" novalidate>' +
+          '<div id="jdmAvanceError" class="jdm-error" style="display:none;"></div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmHitoSelect">Hito correspondiente <span class="req">*</span></label>' +
+            '<select id="jdmHitoSelect" name="entregable_id" class="jdm-select" required>' + options + '</select>' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmDescAvance">Descripción detallada del avance realizado <span class="req">*</span></label>' +
+            '<textarea id="jdmDescAvance" name="descripcion" class="jdm-textarea" placeholder="Explica qué implementaste, pruebas realizadas y consideraciones técnicas…" required></textarea>' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmUrlAvance">URL de evidencia o repositorio (opcional si adjuntas archivo)</label>' +
+            '<input type="url" id="jdmUrlAvance" name="archivo_url" class="jdm-input" placeholder="https://github.com/... o enlace a demo">' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmArchivoAvance">Archivo adjunto (ZIP, PDF, imagen, max 10MB)</label>' +
+            '<input type="file" id="jdmArchivoAvance" name="archivo_adjunto" class="jdm-input" style="padding:6px;">' +
+          '</div>' +
+        '</form>';
+
+      setContent(html);
+      setFooter(
+        '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
+        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarAvance"><i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance</button>'
+      );
+
+      var btnEnviar = document.getElementById('jdmBtnEnviarAvance');
+      var form = document.getElementById('jdmFormAvance');
+
+      if (btnEnviar && form) {
+        btnEnviar.addEventListener('click', async function () {
+          var hito = form.querySelector('[name="entregable_id"]').value;
+          var desc = form.querySelector('[name="descripcion"]').value.trim();
+          var urlEv = form.querySelector('[name="archivo_url"]').value.trim();
+          var file = form.querySelector('[name="archivo_adjunto"]').files[0];
+          var errBox = document.getElementById('jdmAvanceError');
+
+          if (!hito) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar un hito.</span>';
+            return;
+          }
