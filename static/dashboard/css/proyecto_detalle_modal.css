@@ -98,3 +98,103 @@
   font-size: 12.5px;
   color: #9fb8ab;
 }
+
+.jdp-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid rgba(0, 230, 118, 0.35);
+  border-radius: 999px;
+  color: #00e676;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jdp-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  background: transparent;
+  color: #9fb8ab;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.jdp-close:hover,
+.jdp-close:focus-visible {
+  border-color: #00e676;
+  color: #00e676;
+  background: rgba(0, 230, 118, 0.08);
+  outline: none;
+}
+
+.jdp-body {
+  padding: 22px 28px 26px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1 1 auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 230, 118, 0.35) transparent;
+}
+.jdp-body::-webkit-scrollbar { width: 8px; }
+.jdp-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 230, 118, 0.28);
+  border-radius: 999px;
+}
+
+.jdp-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.jdp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfe3d8;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.jdp-badge.is-publicado,
+.jdp-badge.is-finalizado,
+.jdp-badge.is-completado {
+  border-color: rgba(0, 230, 118, 0.4);
+  background: rgba(0, 230, 118, 0.1);
+  color: #00e676;
+}
+.jdp-badge.is-en_desarrollo,
+.jdp-badge.is-en_revision,
+.jdp-badge.is-pendiente {
+  border-color: rgba(255, 193, 7, 0.4);
+  background: rgba(255, 193, 7, 0.08);
+  color: #ffc107;
+}
+.jdp-badge.is-rechazado,
+.jdp-badge.is-en_disputa,
+.jdp-badge.is-cancelada {
+  border-color: rgba(255, 82, 82, 0.4);
+  background: rgba(255, 82, 82, 0.08);
+  color: #ff8a8a;
+}
+.jdp-badge.is-inactivo { opacity: 0.7; }
+
+.jdp-desc {
