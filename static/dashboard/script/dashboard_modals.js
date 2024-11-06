@@ -234,3 +234,62 @@
               '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos y retribución estipulados para este proyecto.</span>' +
             '</div>' +
             '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url) + '">' +
+              '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora' +
+            '</button>' +
+          '</div>';
+      }
+
+      setContent(html);
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+
+      var btnFirmar = document.getElementById('jdmBtnFirmar');
+      if (btnFirmar) {
+        btnFirmar.addEventListener('click', async function () {
+          btnFirmar.disabled = true;
+          btnFirmar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Firmando...';
+          try {
+            var signBody = new FormData();
+            signBody.append('acepta_terminos', 'on');
+            signBody.append('origen', 'dashboard');
+            var signRes = await fetch(btnFirmar.getAttribute('data-url-firmar'), {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              },
+              body: signBody,
+              credentials: 'same-origin'
+            });
+            var signData = await signRes.json();
+            if (signData.ok) {
+              mostrarToast(signData.mensaje || '¡Contrato firmado exitosamente!');
+              var callout = document.getElementById('jdmSignCallout');
+              if (callout) callout.remove();
+              var devStatus = document.getElementById('jdmDevSignStatus');
+              if (devStatus) {
+                devStatus.innerHTML = '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado ahora</span>';
+              }
+              if (triggerBtn) {
+                triggerBtn.classList.remove('btn-primary');
+                triggerBtn.classList.add('btn-secondary');
+                triggerBtn.innerHTML = '<i class="fa fa-file-signature"></i> Ver Contrato';
+              }
+            } else {
+              mostrarToast(signData.mensaje || signData.error || 'No se pudo firmar el contrato.', true);
+              btnFirmar.disabled = false;
+              btnFirmar.innerHTML = '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora';
+            }
+          } catch (err) {
+            mostrarToast('Error de conexión al firmar.', true);
+            btnFirmar.disabled = false;
+            btnFirmar.innerHTML = '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora';
+          }
+        });
+      }
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
