@@ -330,20 +330,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }, 400);
 
   /* ============================
-     ROLE SELECTOR
-     ============================ */
-  document.querySelectorAll('.tab-tech').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.tab-tech').forEach(function(b) { b.classList.remove('active'); });
-      this.classList.add('active');
-      var rol = document.getElementById('rol_seleccionado');
-      if (rol) rol.value = this.dataset.role;
-      var modal = document.getElementById('loginModal');
-      if (modal) modal.classList.toggle('theme-dev', this.dataset.role === 'desarrollador');
-    });
-  });
-
-  /* ============================
      MOBILE MENU
      ============================ */
   var mobileMenuBtn = document.getElementById('mobileMenuBtn');

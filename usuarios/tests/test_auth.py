@@ -19,31 +19,28 @@ class TestLoginView:
         assert response.url == '/?login=1'
 
     def test_login_success_empresa(self, client, empresa_user):
-        """Valid empresa credentials redirect to dashboard_empresa."""
+        """Valid empresa credentials redirect automatically to dashboard_empresa without role selection."""
         response = client.post(reverse('login'), {
             'username': 'empresa_test',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'empresa',
         })
         assert response.status_code == 302
         assert response.url == reverse('dashboard_empresa')
 
     def test_login_success_desarrollador(self, client, desarrollador_user):
-        """Valid dev credentials redirect to dashboard_desarrollador."""
+        """Valid dev credentials redirect automatically to dashboard_desarrollador without role selection."""
         response = client.post(reverse('login'), {
             'username': 'dev_test',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'desarrollador',
         })
         assert response.status_code == 302
         assert response.url == reverse('dashboard_desarrollador')
 
     def test_login_success_admin(self, client, admin_user):
-        """Valid admin credentials redirect to dashboard_admin."""
+        """Valid admin credentials redirect automatically to dashboard_admin."""
         response = client.post(reverse('login'), {
             'username': 'admin_test',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'administrador',
         })
         assert response.status_code == 302
         assert response.url == reverse('dashboard_admin')
@@ -53,27 +50,25 @@ class TestLoginView:
         response = client.post(reverse('login'), {
             'username': 'empresa_test',
             'password': 'WrongPassword!',
-            'rol_seleccionado': 'empresa',
         })
         assert response.status_code == 302
         assert response.url == reverse('inicio')
 
-    def test_login_wrong_role(self, client, empresa_user):
-        """User is empresa but selects desarrollador role."""
+    def test_login_automatic_role_routing_ignores_extra_role_param(self, client, empresa_user):
+        """Even if legacy client sends rol_seleccionado='desarrollador', user lands on their real role dashboard."""
         response = client.post(reverse('login'), {
             'username': 'empresa_test',
             'password': 'TestPass123!',
             'rol_seleccionado': 'desarrollador',
         })
         assert response.status_code == 302
-        assert response.url == reverse('inicio')
+        assert response.url == reverse('dashboard_empresa')
 
     def test_login_suspended_user_blocked(self, client, suspended_user):
         """Suspended user cannot log in."""
         response = client.post(reverse('login'), {
             'username': 'suspended_test',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'desarrollador',
         })
         assert response.status_code == 302
         assert response.url == reverse('inicio')
@@ -91,7 +86,6 @@ class TestLoginView:
         response = client.post(reverse('login'), {
             'username': 'inactive_test',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'desarrollador',
         })
         assert response.status_code == 302
         assert response.url == reverse('inicio')
@@ -101,7 +95,6 @@ class TestLoginView:
         response = client.post(reverse('login'), {
             'username': 'no_existe',
             'password': 'TestPass123!',
-            'rol_seleccionado': 'empresa',
         })
         assert response.status_code == 302
         assert response.url == reverse('inicio')
@@ -113,7 +106,6 @@ class TestLoginView:
         client.post(reverse('login'), {
             'username': 'empresa_test',
             'password': 'WrongPassword!',
-            'rol_seleccionado': 'empresa',
         })
         empresa_user.refresh_from_db()
         assert empresa_user.intentos_fallidos == initial + 1
