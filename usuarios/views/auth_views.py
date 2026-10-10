@@ -15,7 +15,6 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        rol_seleccionado = request.POST.get('rol_seleccionado')
         
         # 1. Verificación preventiva de bloqueo y obtención del objeto usuario
         user_to_check = None
@@ -31,11 +30,6 @@ def login_view(request):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            # 3. Validación de rol: El rol real debe coincidir con el seleccionado en el frontend
-            if user.rol != rol_seleccionado:
-                messages.error(request, f"No tienes permisos de '{rol_seleccionado}' con esta cuenta.")
-                return redirect('inicio')
-
             # Login exitoso: Resetear intentos fallidos si tenía alguno
             if user.intentos_fallidos > 0:
                 user.intentos_fallidos = 0
@@ -48,11 +42,14 @@ def login_view(request):
             if next_url and user.rol == 'administrador':
                 return redirect(next_url)
 
-            if user.rol == 'administrador': return redirect('dashboard_admin')
-            if user.rol == 'empresa': return redirect('dashboard_empresa')
+            # Redirección automática según el rol del usuario autenticado
+            if user.rol == 'administrador':
+                return redirect('dashboard_admin')
+            if user.rol == 'empresa':
+                return redirect('dashboard_empresa')
             return redirect('dashboard_desarrollador')            
         
-        # 4. Manejo de intentos fallidos si el usuario existe
+        # 3. Manejo de intentos fallidos si el usuario existe
         if user_to_check:
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:

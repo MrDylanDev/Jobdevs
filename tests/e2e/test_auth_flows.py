@@ -42,10 +42,7 @@ class TestLoginE2E:
         page.locator('.nav-cta').click()
         page.wait_for_timeout(1000)
 
-        # Switch to CORP tab (force click, Bootstrap modal may intercept)
-        page.locator('button[data-role="empresa"]').click(force=True)
-
-        # Fill credentials
+        # Fill credentials (unified login automatically routes to empresa dashboard)
         page.fill('#username', 'e2e_empresa')
         page.fill('#password', 'E2ETest123!')
 
