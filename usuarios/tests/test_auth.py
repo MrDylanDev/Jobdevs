@@ -73,6 +73,34 @@ class TestLoginView:
         assert response.status_code == 302
         assert response.url == reverse('inicio')
 
+    def test_login_suspended_user_wrong_password_does_not_reveal_status(self, client, suspended_user):
+        """Entering wrong password for a suspended user must NOT reveal that the account is suspended (anti-enumeration)."""
+        response = client.post(reverse('login'), {
+            'username': 'suspended_test',
+            'password': 'WrongPassword!',
+        }, follow=True)
+        messages = [m.message for m in response.context['messages']]
+        assert not any('suspendida' in m.lower() for m in messages)
+        assert any('incorrectos' in m.lower() for m in messages)
+
+    def test_login_inactive_user_wrong_password_does_not_reveal_status(self, db, client):
+        """Entering wrong password for an inactive user must NOT reveal status (anti-enumeration)."""
+        User.objects.create_user(
+            username='inactive_enum_test',
+            email='inactive_enum@test.teir',
+            nombre='Inactive Enum',
+            rol='desarrollador',
+            estado='inactivo',
+            password='TestPass123!',
+        )
+        response = client.post(reverse('login'), {
+            'username': 'inactive_enum_test',
+            'password': 'WrongPassword!',
+        }, follow=True)
+        messages = [m.message for m in response.context['messages']]
+        assert not any('inactiva' in m.lower() for m in messages)
+        assert any('incorrectos' in m.lower() for m in messages)
+
     def test_login_inactive_user_blocked(self, db, client):
         """Inactive user cannot log in."""
         user = User.objects.create_user(

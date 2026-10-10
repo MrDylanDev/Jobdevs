@@ -16,20 +16,20 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # 1. Verificación preventiva de bloqueo y obtención del objeto usuario
-        user_to_check = None
-        try:
-            user_to_check = Usuario.objects.get(username=username)
-            if user_to_check.estado in ['suspendido', 'inactivo']:
-                messages.error(request, "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información.")
-                return redirect('inicio')
-        except Usuario.DoesNotExist:
-            pass
-
-        # 2. Autenticación normal
-        user = authenticate(username=username, password=password)
+        # 1. Autenticación normal primero (previene timing side-channels y enumeración)
+        # authenticate() corre hashing para usuarios existentes y un dummy hasher
+        # para usuarios inexistentes, igualando el tiempo de respuesta.
+        user = authenticate(request=request, username=username, password=password)
 
         if user is not None:
+            # Si el usuario proveyó credenciales válidas pero su cuenta está suspendida o inactiva
+            if user.estado in ['suspendido', 'inactivo'] or not user.is_active:
+                messages.error(
+                    request,
+                    "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información."
+                )
+                return redirect('inicio')
+
             # Login exitoso: Resetear intentos fallidos si tenía alguno
             if user.intentos_fallidos > 0:
                 user.intentos_fallidos = 0
@@ -49,8 +49,20 @@ def login_view(request):
                 return redirect('dashboard_empresa')
             return redirect('dashboard_desarrollador')            
         
-        # 3. Manejo de intentos fallidos si el usuario existe
+        # 2. Si authenticate() retornó None:
+        # Puede deberse a credenciales incorrectas, usuario inexistente, o usuario inactivo
+        # (ModelBackend retorna None cuando is_active=False).
+        user_to_check = Usuario.objects.filter(username=username).first()
         if user_to_check:
+            # Si el usuario está inactivo/suspendido y proveyó la contraseña correcta:
+            if (user_to_check.estado in ['suspendido', 'inactivo'] or not user_to_check.is_active) and user_to_check.check_password(password):
+                messages.error(
+                    request,
+                    "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información."
+                )
+                return redirect('inicio')
+
+            # Manejo de intentos fallidos por contraseña errónea
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
                 user_to_check.estado = 'suspendido'
