@@ -168,3 +168,43 @@ class TestApiBulkToggle:
         assert response.status_code == 200
         admin_user.refresh_from_db()
         assert admin_user.is_active  # Not suspended
+
+
+class TestApiRateLimit:
+    """Tests for rate limiting on admin API endpoints."""
+
+    def test_api_usuarios_rate_limit(self, admin_client):
+        """Exceeding rate limit on api_usuarios returns 429 Too Many Requests."""
+        from django.core.cache import cache
+        cache.clear()
+
+        response = admin_client.get(reverse('api_usuarios'))
+        assert response.status_code == 200
+
+        # Simulate reaching rate limit
+        user_id = admin_client.session['_auth_user_id']
+        cache_key = f"rl:api_usuarios:user_{user_id}:127.0.0.1"
+        cache.set(cache_key, 60, timeout=60)
+
+        response = admin_client.get(reverse('api_usuarios'))
+        assert response.status_code == 429
+        data = response.json()
+        assert 'Demasiadas solicitudes' in data['error']
+        assert response['Retry-After'] == '60'
+
+    def test_api_crear_usuario_rate_limit(self, admin_client):
+        """Mutation endpoints like api_crear_usuario enforce tighter rate limiting."""
+        from django.core.cache import cache
+        cache.clear()
+
+        user_id = admin_client.session['_auth_user_id']
+        cache_key = f"rl:api_crear_usuario:user_{user_id}:127.0.0.1"
+        cache.set(cache_key, 30, timeout=60)
+
+        response = admin_client.post(
+            reverse('api_crear_usuario'),
+            data='{}',
+            content_type='application/json',
+        )
+        assert response.status_code == 429
+        assert 'Demasiadas solicitudes' in response.json()['error']
