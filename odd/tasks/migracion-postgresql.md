@@ -24,10 +24,11 @@ Esta migración atiende y resuelve directamente los hallazgos críticos de segur
   - Adaptar `docker/entrypoint.sh` para verificar conectividad con PostgreSQL vía `psycopg`.
   - Evidencia: Commit `d36db44`. `docker compose config` válido y sin errores.
 
-- [ ] **Tarea 4: Desacoplar `init.sql` y crear seeding anónimo**
+- [x] **Tarea 4: Desacoplar `init.sql` y crear seeding anónimo**
   - Desacoplar `database/init.sql` del compose para evitar siembra de PII y credenciales comprometidas.
-  - Proporcionar mecanismo de inicialización limpio basado en `python manage.py migrate` y fixtures/seed anónimos si se requieren datos iniciales.
-  - Evidencia esperada: Base de datos parte de esquema limpio vía migraciones.
+  - Proporcionar mecanismo de inicialización limpio basado en `python manage.py migrate` y comando `seed_demo_data` sin PII.
+  - Adaptar `usuarios/checks.py` para ignorar triggers SQL cuando no se usa backend MySQL.
+  - Evidencia: Commit `7895eca`. Pruebas unitarias en `test_seed.py` pasando al 100%.
 
 - [ ] **Tarea 5: Verificación de migraciones y suite de pruebas**
   - Validar generación/aplicación de migraciones de Django sin errores.

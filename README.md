@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)](https://github.com/MrDylanDev/TEIR)
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://python.org)
 [![Django](https://img.shields.io/badge/django-5.0-092e20)](https://djangoproject.com)
-[![MySQL](https://img.shields.io/badge/mysql-8.0-orange)](https://mysql.com)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-16-blue)](https://postgresql.org)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ed)](https://docker.com)
 
 ---
@@ -45,8 +45,8 @@ TEIR conecta empresas con aprendices y egresados del SENA para desarrollar proye
 ┌─────────────────────────────────────────────────────────┐
 │                  INFRAESTRUCTURA                         │
 │                                                         │
-│   Nginx :80  ──▶  Gunicorn :8000  ──▶  MySQL :3306     │
-│   (estáticos)     (3 workers)          (triggers SQL)    │
+│   Nginx :80  ──▶  Gunicorn :8000  ──▶  PostgreSQL :5432 │
+│   (estáticos)     (3 workers)          (migraciones)    │
 │                                                         │
 │   Docker Compose  |  Health checks  |  Volúmenes        │
 └─────────────────────────────────────────────────────────┘
@@ -67,7 +67,7 @@ Empresa publica proyecto → Dev se postula → Empresa acepta
 | Capa | Tecnología |
 |------|-----------|
 | Backend | Django 5.0, Python 3.14 |
-| Base de datos | MySQL 8.0 (triggers de integridad y auditoría) |
+| Base de datos | PostgreSQL 16 (migraciones Django ORM) |
 | Frontend | Django Templates, Bootstrap 5, Vanilla JS |
 | Testing | pytest, pytest-django, Playwright |
 | Contenedores | Docker, docker-compose, Gunicorn, Nginx |
@@ -101,9 +101,11 @@ cd TEIR
 cp docker/.env.docker.example .env
 # Editar .env con tus claves secretas
 
-# Importante: database/init.sql contiene el schema DDL.
-# Los datos de prueba se borran en el primer deploy productivo.
+# Levantar los servicios con Docker Compose
 docker compose up -d
+
+# Para sembrar cuentas de prueba de desarrollo:
+docker compose exec web python manage.py seed_demo_data
 ```
 
 La aplicación estará disponible en `http://localhost`.
