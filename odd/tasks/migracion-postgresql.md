@@ -11,11 +11,11 @@ Esta migración atiende y resuelve directamente los hallazgos críticos de segur
   - Asegurar `.venv/`, `postgres_data/`, `staticfiles/`, `*.log` en `.gitignore`.
   - Evidencia: Commit `2389609`. Instalación limpia de psycopg 3.3.6 y psycopg-binary.
 
-- [ ] **Tarea 2: Configurar Django para PostgreSQL**
+- [x] **Tarea 2: Configurar Django para PostgreSQL**
   - Remover el monkeypatch de PyMySQL en `config/settings.py`.
   - Configurar `DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'` con puerto por defecto `5432`.
   - Ajustar `config/settings_test.py` para soportar `DB_ENGINE=postgresql` y conservar SQLite in-memory para tests rápidos.
-  - Evidencia esperada: `settings.py` y `settings_test.py` sin referencias a PyMySQL; arranque de Django sin advertencias de driver.
+  - Evidencia: Commit `5c82e5b`. `python manage.py check` pasa con 0 errores.
 
 - [ ] **Tarea 3: Actualizar infraestructura Docker y entrypoint**
   - Cambiar el servicio `db` en `docker-compose.yml` de `mysql:8.0` a `postgres:16-alpine`.

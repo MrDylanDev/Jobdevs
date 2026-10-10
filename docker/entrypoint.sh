@@ -10,34 +10,36 @@ echo "============================================"
 echo "  TEIR - Iniciando aplicacion..."
 echo "============================================"
 
-# ---- 1. Esperar a que MySQL este listo ----
+# ---- 1. Esperar a que PostgreSQL esté listo ----
 echo ""
-echo "Esperando conexion con MySQL..."
+echo "Esperando conexión con PostgreSQL..."
 
 MAX_RETRIES=30
 RETRY_COUNT=0
 
 while ! python -c "
-import pymysql
-pymysql.connect(
+import psycopg
+conn = psycopg.connect(
     host='${DB_HOST:-db}',
-    port=int('${DB_PORT:-3306}'),
+    port=int('${DB_PORT:-5432}'),
     user='${DB_USER:-teir_user}',
-    password='${DB_PASSWORD:-teir_secure_pass_2026}',
-    database='${DB_NAME:-tem_dbv2}'
+    password='${DB_PASSWORD:-teir_password}',
+    dbname='${DB_NAME:-teir_db}',
+    connect_timeout=3
 )
+conn.close()
 print('OK')
 " 2>/dev/null; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "[ERROR] No se pudo conectar a MySQL despues de $MAX_RETRIES intentos"
+        echo "[ERROR] No se pudo conectar a PostgreSQL después de $MAX_RETRIES intentos"
         exit 1
     fi
-    echo "   Intento $RETRY_COUNT/$MAX_RETRIES - MySQL no esta listo, esperando 2s..."
+    echo "   Intento $RETRY_COUNT/$MAX_RETRIES - PostgreSQL no está listo, esperando 2s..."
     sleep 2
 done
 
-echo "[OK] Conexion con MySQL establecida"
+echo "[OK] Conexión con PostgreSQL establecida"
 
 # ---- 2. Aplicar migraciones ----
 echo ""
