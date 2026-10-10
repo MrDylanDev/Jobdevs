@@ -1,24 +1,26 @@
 import os
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'True')
+os.environ.setdefault('DJANGO_SECRET_KEY', 'django-insecure-test-key-teir-postgresql-migration')
+os.environ.setdefault('DJANGO_DEBUG', 'True')
 
 from .settings import *
 
-# Env-driven DB selection: use MySQL when explicitly requested via
-# DB_ENGINE=mysql or USE_MYSQL=1 (or DB_HOST defined with engine mysql),
+# Env-driven DB selection: use PostgreSQL when explicitly requested via
+# DB_ENGINE=postgresql or USE_POSTGRES=1 (or DB_HOST defined with engine postgresql),
 # otherwise fall back to fast SQLite in-memory.
 _DB_ENGINE = os.environ.get("DB_ENGINE", "").lower()
-_USE_MYSQL = os.environ.get("USE_MYSQL", "") == "1"
+_USE_POSTGRES = os.environ.get("USE_POSTGRES", "") == "1" or os.environ.get("USE_POSTGRESQL", "") == "1"
 _DB_HOST = os.environ.get("DB_HOST")
 
-if _USE_MYSQL or _DB_ENGINE == "mysql" or (_DB_HOST is not None and _DB_ENGINE == "mysql"):
+if _USE_POSTGRES or "postgres" in _DB_ENGINE or (_DB_HOST is not None and "postgres" in _DB_ENGINE):
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('DB_NAME', 'tem_dbv2'),
-            'USER': os.environ.get('DB_USER', 'root'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'teir_db_test'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
             'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-            'PORT': os.environ.get('DB_PORT', '3306'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
 else:

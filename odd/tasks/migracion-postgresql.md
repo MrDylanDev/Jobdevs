@@ -6,10 +6,10 @@ Esta migración atiende y resuelve directamente los hallazgos críticos de segur
 
 ## Tareas
 
-- [ ] **Tarea 1: Actualizar dependencias y `.gitignore`**
+- [x] **Tarea 1: Actualizar dependencias y `.gitignore`**
   - Reemplazar `pymysql` por `psycopg[binary]>=3.2` en `requirements.txt`.
   - Asegurar `.venv/`, `postgres_data/`, `staticfiles/`, `*.log` en `.gitignore`.
-  - Evidencia esperada: `requirements.txt` y `.gitignore` actualizados; dependencias instaladas.
+  - Evidencia: Commit `2389609`. Instalación limpia de psycopg 3.3.6 y psycopg-binary.
 
 - [ ] **Tarea 2: Configurar Django para PostgreSQL**
   - Remover el monkeypatch de PyMySQL en `config/settings.py`.
