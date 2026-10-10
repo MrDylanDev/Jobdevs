@@ -21,6 +21,7 @@ wheels/
 .installed.cfg
 *.egg
 # Entorno Virtual
+.venv/
 venv/
 ENV/
 .env
@@ -28,10 +29,20 @@ ENV/
 # Database
 db.sqlite3
 *.mysql
+postgres_data/
 scratch/
 
 # Cache
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Static files
+staticfiles/
+
+# Logs
+*.log
+logs/app.log
 
 # Docker
 .env

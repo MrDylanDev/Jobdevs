@@ -1,37 +1,29 @@
 # ============================================================
 # TEIR - Docker Compose
-# Orquestación: MySQL 8.0 + Django/Gunicorn + Nginx
+# Orquestación: PostgreSQL 16 + Django/Gunicorn + Nginx
 # ============================================================
 
 services:
 
   # -------------------- Base de Datos --------------------
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     container_name: teir_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secure_pass_2026}
-      MYSQL_DATABASE: ${DB_NAME:-tem_dbv2}
-      MYSQL_USER: teir_user
-      MYSQL_PASSWORD: teir_secure_pass_2026
+      POSTGRES_DB: ${DB_NAME:-teir_db}
+      POSTGRES_USER: ${DB_USER:-teir_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-teir_password}
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "3307:3306"  # Puerto 3307 en host para no conflictar con MySQL local
+      - "127.0.0.1:5432:5432"  # Solo accesible localmente para evitar exposición en interfaces externas
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-teir_user} -d ${DB_NAME:-teir_db}"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
-    command: >
-      --default-authentication-plugin=caching_sha2_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_0900_ai_ci
-      --innodb-buffer-pool-size=256M
-      --max-connections=100
+      retries: 5
+      start_period: 10s
     networks:
       - teir_network
 
@@ -42,14 +34,16 @@ services:
       dockerfile: Dockerfile
     container_name: teir_web
     restart: unless-stopped
-    env_file:
-      - docker/.env.docker.example
     environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DB_ENGINE=django.db.backends.postgresql
       - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USER=teir_user
-      - DB_PASSWORD=teir_secure_pass_2026
-      - DB_NAME=tem_dbv2
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-teir_user}
+      - DB_PASSWORD=${DB_PASSWORD:-teir_password}
+      - DB_NAME=${DB_NAME:-teir_db}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,web}
     volumes:
       - static_files:/app/staticfiles
       - media_files:/app/media
@@ -73,7 +67,7 @@ services:
     depends_on:
       - web
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health/"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/health/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -82,9 +76,9 @@ services:
 
 # -------------------- Volúmenes Persistentes --------------------
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local
-    name: teir_mysql_data
+    name: teir_postgres_data
   static_files:
     driver: local
     name: teir_static_files

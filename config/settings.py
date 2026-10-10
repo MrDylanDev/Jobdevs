@@ -2,14 +2,10 @@
 
 import os
 from pathlib import Path
-import pymysql
 from dotenv import load_dotenv
 from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
-
-pymysql.version_info = (2, 2, 1, "final", 0)
-pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -71,14 +67,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+_db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.postgresql')
+if _db_engine in ('postgresql', 'postgres'):
+    _db_engine = 'django.db.backends.postgresql'
+elif _db_engine == 'mysql':
+    _db_engine = 'django.db.backends.mysql'
+elif _db_engine in ('sqlite', 'sqlite3'):
+    _db_engine = 'django.db.backends.sqlite3'
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'tem_dbv2'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+        'ENGINE': _db_engine,
+        'NAME': os.environ.get('DB_NAME', 'teir_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 

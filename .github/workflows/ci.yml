@@ -1,9 +1,9 @@
 name: CI
-# Required checks for branch protection on main: test-sqlite, test-mysql (both must pass)
+# Required checks for branch protection on main: test-sqlite, test-postgres (both must pass)
 
 on:
   push:
-    branches: [main, "feat/**", "ci/**"]
+    branches: [main, "feat/**", "ci/**", "feature/**"]
   pull_request:
     branches: [main]
 
@@ -37,27 +37,33 @@ jobs:
       - name: Run tests (SQLite, ignore E2E)
         run: pytest . --ignore=tests/e2e -v
 
-  test-mysql:
-    name: Test (MySQL 8.4)
+  test-postgres:
+    name: Test (PostgreSQL 16)
     runs-on: ubuntu-latest
     services:
-      mysql:
-        image: mysql:8.4
+      postgres:
+        image: postgres:16-alpine
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tem_dbv2
+          POSTGRES_DB: teir_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
-          - "3306:3306"
-        options: '--health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5'
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DJANGO_SECRET_KEY: test-secret-key-ci
       DJANGO_DEBUG: "True"
-      DB_ENGINE: mysql
+      DB_ENGINE: django.db.backends.postgresql
+      USE_POSTGRES: "1"
       DB_HOST: 127.0.0.1
-      DB_PORT: "3306"
-      DB_NAME: tem_dbv2
-      DB_USER: root
-      DB_PASSWORD: root
+      DB_PORT: "5432"
+      DB_NAME: teir_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,29 +77,29 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Wait for MySQL service
+      - name: Wait for PostgreSQL service
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot --silent 2>/dev/null; then
-              echo "MySQL is ready"
+            if pg_isready -h 127.0.0.1 -p 5432 -U postgres 2>/dev/null; then
+              echo "PostgreSQL is ready"
               exit 0
             fi
-            echo "Waiting for MySQL... ($i/30)"
+            echo "Waiting for PostgreSQL... ($i/30)"
             sleep 2
           done
-          echo "MySQL did not become ready in time"
+          echo "PostgreSQL did not become ready in time"
           exit 1
 
       - name: Run migrations
         run: python manage.py migrate --noinput
 
-      - name: Run tests with coverage (MySQL, ignore E2E)
+      - name: Run tests with coverage (PostgreSQL, ignore E2E)
         run: pytest --cov --cov-report=term-missing --cov-report=xml --junitxml=junit.xml --ignore=tests/e2e -v
 
       - name: Upload coverage and JUnit artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: test-mysql-artifacts
+          name: test-postgres-artifacts
           path: |
             coverage.xml
             junit.xml

@@ -660,11 +660,8 @@ CREATE TABLE `perfil_desarrollador` (
 -- Dumping data for table `perfil_desarrollador`
 --
 
-LOCK TABLES `perfil_desarrollador` WRITE;
-/*!40000 ALTER TABLE `perfil_desarrollador` DISABLE KEYS */;
-INSERT INTO `perfil_desarrollador` VALUES (1,3,'ADSO','21232324241','SOlo python',4.00,3,'perfiles/devs/pxfuel.jpg',NULL);
-/*!40000 ALTER TABLE `perfil_desarrollador` ENABLE KEYS */;
-UNLOCK TABLES;
+-- [SANEADO] Datos de prueba reales removidos por seguridad (SCRUM-157 / SCRUM-135).
+-- Para datos de prueba en desarrollo, usar: python manage.py seed_demo_data
 
 --
 -- Table structure for table `perfil_empresa`
@@ -695,11 +692,8 @@ CREATE TABLE `perfil_empresa` (
 -- Dumping data for table `perfil_empresa`
 --
 
-LOCK TABLES `perfil_empresa` WRITE;
-/*!40000 ALTER TABLE `perfil_empresa` DISABLE KEYS */;
-INSERT INTO `perfil_empresa` VALUES (1,2,'Pepsico','Tecnología','3233801021','La mejor empresa de tecnologia','MEdellin',1.00,NULL);
-/*!40000 ALTER TABLE `perfil_empresa` ENABLE KEYS */;
-UNLOCK TABLES;
+-- [SANEADO] Datos de prueba reales removidos por seguridad (SCRUM-157 / SCRUM-135).
+-- Para datos de prueba en desarrollo, usar: python manage.py seed_demo_data
 
 --
 -- Table structure for table `postulaciones`
@@ -873,11 +867,8 @@ CREATE TABLE `usuarios` (
 -- Dumping data for table `usuarios`
 --
 
-LOCK TABLES `usuarios` WRITE;
-/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin_master','Admin Master','4299485410','1990-01-02','admin@tem.com','pbkdf2_sha256$1200000$kJ4MmqW9gQrKXwUixhjgMJ$PHeLMLggWqeUarePItNuB4YGyqksc7/9nyQFcZ8vnhQ=','administrador','activo','869edb810fa7f54ab2089916b2597584','2026-04-01 05:27:30',0,1,1,'2026-03-29 00:52:09','2026-04-06 03:31:12'),(2,'empresa_tech','Tech Corp SAS','4032546710','1890-02-10','contacto@techcorp.com','pbkdf2_sha256$1200000$s2MSdDRGR9t4E4gfcZE2Js$3TQYfJoJ6RUDIpOzz4gQGl3VexPKKTEG+i0F8Nq35ZU=','empresa','activo',NULL,NULL,0,0,1,'2026-03-29 00:52:10','2026-04-06 04:04:54'),(3,'dev_expert','Juan Desarrollador','4621382190','1970-04-06','dev@pro.com','pbkdf2_sha256$1200000$lRdby9qIK5Nv5Abl0xLDLN$pmH5D6I7Tvux2x2E/CxSFfHcAIMh7NvcRMFnCsLA0YQ=','desarrollador','activo','t_zZsFWp2KxXh8RRtCtnjKFnFEftcacL71Sn1aWSdoc','2026-04-02 23:56:38',0,0,1,'2026-03-29 00:52:11','2026-04-06 03:42:52');
-/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
-UNLOCK TABLES;
+-- [SANEADO] Datos de usuarios reales, PII, hashes y tokens removidos (SCRUM-157 / SCRUM-135).
+-- Para datos de prueba en desarrollo, usar: python manage.py seed_demo_data
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
