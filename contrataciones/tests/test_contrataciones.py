@@ -33,6 +33,8 @@ class TestContratacionModel:
         )
         assert c.id is not None
         assert c.estado == 'activa'
+        assert c.fecha_inicio is not None
+        assert Contratacion._meta.get_field('fecha_inicio').null is False
 
     def test_contratacion_str(self, db):
         """__str__ shows proyecto title."""
