@@ -30,7 +30,14 @@ def listar_proyectos(request):
         proyectos_qs = proyectos_qs.filter(tipo_solucion=tipo)
     if prioridad:
         proyectos_qs = proyectos_qs.filter(prioridad=prioridad)
-    
+
+    favoritos_ids = []
+    if request.user.rol == 'desarrollador':
+        # Excluir a nivel SQL los proyectos donde el desarrollador ya tiene postulación
+        postulaciones_ids = Postulacion.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True)
+        proyectos_qs = proyectos_qs.exclude(id__in=postulaciones_ids)
+        favoritos_ids = list(Favorito.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True))
+
     proyectos = []
     for p in proyectos_qs.order_by('-fecha_publicacion'):
         logo = p.empresa.perfil_empresa.logo.url if (
@@ -48,18 +55,7 @@ def listar_proyectos(request):
             'empresa_reputacion': p.empresa_reputacion,
             'empresa_logo': logo,
         })
-    
-    favoritos_ids = []
-    
-    if request.user.rol == 'desarrollador':
-        # Obtener IDs de proyectos donde el usuario ya tiene una postulación
-        postulaciones_ids = Postulacion.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True)
-        
-        # Excluir esos proyectos de la lista
-        proyectos = [p for p in proyectos if p['id'] not in postulaciones_ids]
-        
-        favoritos_ids = list(Favorito.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True))
-        
+
     return render(request, 'proyectos/listar.html', {
         'proyectos': proyectos,
         'favoritos_ids': favoritos_ids

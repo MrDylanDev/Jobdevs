@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from proyectos.models import Proyecto
+from postulaciones.models import Postulacion
 
 User = get_user_model()
 
@@ -40,6 +41,26 @@ class TestListarProyectos:
         assert 'Web App' in content
         assert 'Mobile App' not in content
         assert response.status_code == 200
+
+    def test_desarrollador_excludes_already_applied_projects(self, dev_client, desarrollador_user, empresa_user):
+        """Desarrollador should not see projects they have already applied to (filtered at SQL level)."""
+        p_aplicado = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Ya Aplicado', descripcion='Desc',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        p_disponible = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Disponible', descripcion='Desc',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        Postulacion.objects.create(
+            proyecto=p_aplicado, desarrollador=desarrollador_user,
+            mensaje='Propuesta', estado='pendiente',
+        )
+        response = dev_client.get(reverse('listar_proyectos'))
+        assert response.status_code == 200
+        proyectos_ids = [p['id'] for p in response.context['proyectos']]
+        assert p_aplicado.id not in proyectos_ids
+        assert p_disponible.id in proyectos_ids
 
 
 class TestCrearProyecto:
