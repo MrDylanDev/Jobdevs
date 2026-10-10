@@ -40,7 +40,7 @@ docker compose ps
 ```
 
 Deberías ver 3 servicios `running` (o `healthy`):
-- `teir_db` → MySQL
+- `teir_db` → PostgreSQL 16
 - `teir_web` → Django + Gunicorn
 - `teir_nginx` → Nginx
 
@@ -115,18 +115,18 @@ docker compose exec web python manage.py shell
 docker compose exec web python manage.py makemigrations
 docker compose exec web python manage.py migrate
 
-# Acceder a la consola de MySQL
-docker compose exec db mysql -u teir_user -p tem_dbv2
+# Acceder a la consola de PostgreSQL
+docker compose exec db psql -U teir_user -d teir_db
 ```
 
 ### Base de Datos
 
 ```bash
 # Crear backup de la base de datos
-docker compose exec db mysqldump -u root -p tem_dbv2 > backup_$(date +%Y%m%d).sql
+docker compose exec db pg_dump -U teir_user teir_db > backup_$(date +%Y%m%d).sql
 
 # Restaurar backup
-docker compose exec -T db mysql -u root -p tem_dbv2 < backup.sql
+docker compose exec -T db psql -U teir_user -d teir_db < backup.sql
 
 # Reiniciar solo la base de datos
 docker compose restart db
@@ -139,10 +139,10 @@ docker compose restart db
 | Servicio | Puerto Host | Puerto Contenedor | Descripción |
 |----------|------------|-------------------|-------------|
 | Nginx | **80** | 80 | Punto de acceso principal |
-| MySQL | **3307** | 3306 | Acceso externo a BD (Workbench, DBeaver) |
+| PostgreSQL | **5432** (local) | 5432 | Acceso local a BD (DBeaver, pgAdmin) |
 | Gunicorn | — | 8000 | Solo accesible internamente |
 
-> MySQL usa el puerto **3307** en el host para no conflictar con una instalación local de MySQL (3306).
+> PostgreSQL está vinculado a `127.0.0.1:5432` en el host para evitar exposición externa no autorizada.
 
 ---
 
@@ -153,15 +153,15 @@ docker compose restart db
 │                   Docker Network                     │
 │                                                      │
 │  ┌──────────┐    ┌──────────────┐    ┌───────────┐  │
-│  │  Nginx   │───▶│   Gunicorn   │───▶│  MySQL    │  │
-│  │  :80     │    │   (Django)   │    │  8.0      │  │
-│  │          │    │   :8000      │    │  :3306    │  │
+│  │  Nginx   │───▶│   Gunicorn   │───▶│PostgreSQL │  │
+│  │  :80     │    │   (Django)   │    │  16       │  │
+│  │          │    │   :8000      │    │  :5432    │  │
 │  └──────────┘    └──────────────┘    └───────────┘  │
 │       │                │                    │        │
 │       ▼                ▼                    ▼        │
 │  ┌─────────┐     ┌──────────┐       ┌───────────┐  │
-│  │ static/ │     │  media/  │       │ mysql_data│  │
-│  │ volume  │     │  volume  │       │  volume   │  │
+│  │ static/ │     │  media/  │       │  postgres │  │
+│  │ volume  │     │  volume  │       │   _data   │  │
 │  └─────────┘     └──────────┘       └───────────┘  │
 └─────────────────────────────────────────────────────┘
 ```
@@ -177,15 +177,15 @@ docker compose restart db
 docker compose logs web
 
 # Causas comunes:
-# - MySQL no está listo todavía (espera ~30s)
-# - Credenciales incorrectas en .env.docker
+# - PostgreSQL no está listo todavía (espera unos segundos)
+# - Credenciales incorrectas en el archivo .env
 # - Error en migraciones de Django
 ```
 
-### MySQL no inicia
+### PostgreSQL no inicia
 
 ```bash
-# Ver logs de MySQL
+# Ver logs de PostgreSQL
 docker compose logs db
 
 # Si hay errores de permisos o datos corruptos:
@@ -193,13 +193,12 @@ docker compose down -v  # ⚠️ Esto borra la base de datos
 docker compose up --build -d
 ```
 
-### Faltan Vistas SQL o Procedimientos (Warning W001/W002)
+### Migraciones y estructura de la base de datos
 
-Si al iniciar el contenedor de Django o ejecutar comandos observas advertencias como `Falta la vista SQL requerida` o `Falta el procedimiento almacenado`, significa que `Tem_bd.sql` no se ejecutó o se borró.
+En PostgreSQL, la estructura y reglas de negocio son gestionadas directamente por el ORM y las migraciones de Django (se ejecutan automáticamente al iniciar mediante `docker/entrypoint.sh`). Si necesitás reaplicarlas manualmente:
 
 ```bash
-# Para solucionarlo, puedes recargar la estructura inicial manualmente:
-docker compose exec -T db mysql -u root -p tem_dbv2 < database/init.sql
+docker compose exec web python manage.py migrate
 ```
 
 ### Puerto 80 ya está en uso
