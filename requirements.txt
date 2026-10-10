@@ -1,5 +1,5 @@
 Django>=5.0.0
-pymysql
+psycopg[binary]>=3.2
 python-dotenv
 cryptography
 Pillow
