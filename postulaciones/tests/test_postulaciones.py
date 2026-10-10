@@ -159,3 +159,57 @@ class TestAceptarPostulacion:
         assert response.status_code == 302
         postulacion.refresh_from_db()
         assert postulacion.estado == 'pendiente'
+
+    def test_no_puede_aceptar_si_limite_de_vacantes_alcanzado(self, auth_client, empresa_user, desarrollador_user):
+        """RF 3.3.2: No se permite contratar si el proyecto ya cubrió sus vacantes."""
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Vacantes', descripcion='DV',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        post1 = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+        dev2 = User.objects.create_user(
+            username='dev2_cupos', email='dev2_cupos@test.teir',
+            nombre='Dev 2 Cupos', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        post2 = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, estado='pendiente',
+        )
+
+        # 1. Aceptar la primera postulación (ocupa la única vacante disponible)
+        res1 = auth_client.post(reverse('aceptar_postulacion', args=[post1.id]))
+        assert res1.status_code == 302
+        post1.refresh_from_db()
+        assert post1.estado == 'aceptada'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+
+        # 2. Intentar aceptar la segunda postulación debe ser rechazado
+        res2 = auth_client.post(reverse('aceptar_postulacion', args=[post2.id]), follow=True)
+        assert res2.status_code == 200
+        post2.refresh_from_db()
+        assert post2.estado == 'pendiente'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        messages = list(res2.context['messages'])
+        assert any('vacantes' in str(m).lower() for m in messages)
+
+    def test_no_puede_aceptar_si_proyecto_finalizado(self, auth_client, empresa_user, desarrollador_user):
+        """No se pueden aceptar postulaciones si el proyecto ya está finalizado."""
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Fin', descripcion='DF',
+            tipo_solucion='sitio_web', estado='finalizado', vacantes=2,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+        res = auth_client.post(reverse('aceptar_postulacion', args=[post.id]), follow=True)
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+        assert not Contratacion.objects.filter(proyecto=proyecto).exists()
+        messages = list(res.context['messages'])
+        assert any('finalizado' in str(m).lower() or 'estado' in str(m).lower() for m in messages)
+
