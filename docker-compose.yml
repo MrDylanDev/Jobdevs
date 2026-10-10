@@ -36,6 +36,7 @@ services:
     restart: unless-stopped
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DB_ENGINE=django.db.backends.postgresql
       - DB_HOST=db
       - DB_PORT=5432
