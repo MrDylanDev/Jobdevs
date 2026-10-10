@@ -67,9 +67,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+_db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.postgresql')
+if _db_engine in ('postgresql', 'postgres'):
+    _db_engine = 'django.db.backends.postgresql'
+elif _db_engine == 'mysql':
+    _db_engine = 'django.db.backends.mysql'
+elif _db_engine in ('sqlite', 'sqlite3'):
+    _db_engine = 'django.db.backends.sqlite3'
+
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+        'ENGINE': _db_engine,
         'NAME': os.environ.get('DB_NAME', 'teir_db'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),

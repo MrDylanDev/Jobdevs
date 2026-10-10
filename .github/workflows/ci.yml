@@ -57,7 +57,7 @@ jobs:
     env:
       DJANGO_SECRET_KEY: test-secret-key-ci
       DJANGO_DEBUG: "True"
-      DB_ENGINE: postgresql
+      DB_ENGINE: django.db.backends.postgresql
       USE_POSTGRES: "1"
       DB_HOST: 127.0.0.1
       DB_PORT: "5432"
