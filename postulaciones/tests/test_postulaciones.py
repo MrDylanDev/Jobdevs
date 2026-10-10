@@ -169,7 +169,14 @@ class TestAceptarPostulacion:
         assert postulacion.estado == 'pendiente'
 
     def test_no_puede_aceptar_si_limite_de_vacantes_alcanzado(self, auth_client, empresa_user, desarrollador_user):
-        """RF 3.3.2: No se permite contratar si el proyecto ya cubrió sus vacantes."""
+        """RF 3.3.2: No se permite contratar si el proyecto ya cubrió sus vacantes.
+
+        Nota sobre concurrencia (SCRUM-159):
+        Esta prueba valida la regla de negocio secuencial del límite de cupos.
+        La protección contra carreras concurrentes mediante bloqueo de fila
+        (`select_for_update`) y atomicidad se verifica en
+        `test_concurrencia_locking_proyecto_select_for_update`.
+        """
         from contrataciones.models import Contratacion
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='P Vacantes', descripcion='DV',

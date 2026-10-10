@@ -33,7 +33,7 @@ def dashboard_empresa(request):
     for p in en_desarrollo_qs:
         dev_ids = [c.desarrollador_id for c in p.contratos_activos]
         dev_nombres = ', '.join([c.desarrollador.nombre for c in p.contratos_activos])
-        vacantes_disponibles = max(0, p.vacantes - len(dev_ids))
+        vacantes_disponibles = max(0, p.vacantes - len(dev_ids)) if p.estado == 'en_desarrollo' else 0
         en_desarrollo_v.append({
             'proyecto_id': p.id,
             'titulo': p.titulo,
