@@ -30,7 +30,8 @@ Esta migración atiende y resuelve directamente los hallazgos críticos de segur
   - Adaptar `usuarios/checks.py` para ignorar triggers SQL cuando no se usa backend MySQL.
   - Evidencia: Commit `7895eca`. Pruebas unitarias en `test_seed.py` pasando al 100%.
 
-- [ ] **Tarea 5: Verificación de migraciones y suite de pruebas**
+- [x] **Tarea 5: Verificación de migraciones y suite de pruebas**
   - Validar generación/aplicación de migraciones de Django sin errores.
-  - Ejecutar la suite completa de pruebas con pytest para garantizar regresión cero.
-  - Evidencia esperada: Tests pasando y reporte limpio de ejecución.
+  - Ejecutar la suite completa de pruebas con pytest para garantizar regresión cero (113 tests unitarios/integración pasando).
+  - Actualizar documentación de arquitectura en `README.md`.
+  - Evidencia: Commit `3e9ece5`. Suite de pruebas 100% verde y migraciones consistentes.
