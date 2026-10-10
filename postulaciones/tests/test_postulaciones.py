@@ -143,6 +143,14 @@ class TestAceptarPostulacion:
         postulacion.refresh_from_db()
         assert postulacion.estado == 'aceptada'
 
+        # Verificar preservación exacta de estado_anterior en HistorialEstadoProyecto
+        from proyectos.models import HistorialEstadoProyecto
+        historial = HistorialEstadoProyecto.objects.filter(proyecto=proyecto).first()
+        assert historial is not None
+        assert historial.estado_anterior == 'publicado'
+        assert historial.estado_nuevo == 'en_desarrollo'
+        assert historial.cambiado_por == empresa_user
+
     def test_dev_no_puede_aceptar(self, dev_client, empresa_user, desarrollador_user):
         """Dev cannot accept postulaciones."""
         proyecto = Proyecto.objects.create(
@@ -212,4 +220,20 @@ class TestAceptarPostulacion:
         assert not Contratacion.objects.filter(proyecto=proyecto).exists()
         messages = list(res.context['messages'])
         assert any('finalizado' in str(m).lower() or 'estado' in str(m).lower() for m in messages)
+
+    def test_concurrencia_locking_proyecto_select_for_update(self, auth_client, empresa_user, desarrollador_user):
+        """SCRUM-159: Verificar que la transacción bloquea la fila del proyecto vía select_for_update."""
+        from unittest.mock import patch
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Lock', descripcion='DL',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+
+        with patch.object(Proyecto.objects, 'select_for_update', wraps=Proyecto.objects.select_for_update) as mock_lock:
+            res = auth_client.post(reverse('aceptar_postulacion', args=[post.id]))
+            assert res.status_code == 302
+            assert mock_lock.called, "select_for_update debe ser invocado sobre Proyecto para serializar contrataciones"
 

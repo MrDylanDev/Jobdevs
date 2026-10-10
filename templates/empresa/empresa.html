@@ -291,6 +291,9 @@
                   <div class="project-card-title">{{ proyecto.titulo }}</div>
                   <div class="project-card-sub" style="margin-top:4px;">
                     Equipo: <strong>{{ proyecto.desarrolladores }}</strong>
+                    {% if proyecto.vacantes_disponibles > 0 %}
+                      &nbsp;·&nbsp; <span style="color:var(--accent);font-weight:600;"><i class="fa fa-user-plus"></i> {{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)</span>
+                    {% endif %}
                   </div>
                 </div>
                 <span class="badge badge-info">
@@ -313,6 +316,11 @@
               {% endif %}
 
               <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% if proyecto.vacantes_disponibles > 0 %}
+                  <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}" class="btn btn-primary btn-sm" title="{{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)">
+                    <i class="fa fa-user-plus"></i> Ver Candidatos ({{ proyecto.vacantes_disponibles }})
+                  </a>
+                {% endif %}
                 <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm">
                   <i class="fa fa-list-check"></i> Gestionar Hitos
                 </a>

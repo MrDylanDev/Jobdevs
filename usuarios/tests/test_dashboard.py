@@ -19,6 +19,38 @@ class TestDashboardAccess:
         response = auth_client.get(reverse('dashboard_empresa'))
         assert response.status_code == 200
 
+    def test_empresa_dashboard_incluye_postulaciones_y_vacantes_en_desarrollo(self, auth_client, empresa_user, desarrollador_user):
+        """Dashboard de empresa debe contabilizar postulaciones de proyectos en desarrollo y reportar vacantes disponibles."""
+        from proyectos.models import Proyecto
+        from postulaciones.models import Postulacion
+        from contrataciones.models import Contratacion
+        from usuarios.models import Usuario
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy MultiVacantes', descripcion='DM',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=3,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa'
+        )
+        dev2 = Usuario.objects.create_user(
+            username='dev_cand_2', email='dev_cand_2@test.teir',
+            nombre='Dev Cand 2', rol='desarrollador', estado='activo', password='Password123*'
+        )
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, estado='pendiente'
+        )
+
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        assert response.context['total_postulaciones'] >= 1
+        proy_en_desarrollo = next((p for p in response.context['en_desarrollo_v'] if p['proyecto_id'] == proyecto.id), None)
+        assert proy_en_desarrollo is not None
+        assert proy_en_desarrollo['vacantes_disponibles'] == 2
+        assert proy_en_desarrollo['vacantes_totales'] == 3
+        content = response.content.decode()
+        assert f'href="/postulaciones/proyecto/{proyecto.id}/"' in content or 'Ver Candidatos' in content
+
     def test_empresa_dashboard_blocked_for_anon(self, client):
         """Anonymous users cannot access empresa dashboard."""
         response = client.get(reverse('dashboard_empresa'))
