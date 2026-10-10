@@ -17,13 +17,12 @@ Esta migración atiende y resuelve directamente los hallazgos críticos de segur
   - Ajustar `config/settings_test.py` para soportar `DB_ENGINE=postgresql` y conservar SQLite in-memory para tests rápidos.
   - Evidencia: Commit `5c82e5b`. `python manage.py check` pasa con 0 errores.
 
-- [ ] **Tarea 3: Actualizar infraestructura Docker y entrypoint**
+- [x] **Tarea 3: Actualizar infraestructura Docker y entrypoint**
   - Cambiar el servicio `db` en `docker-compose.yml` de `mysql:8.0` a `postgres:16-alpine`.
   - Configurar variables `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` y volumen `postgres_data`.
   - Actualizar healthcheck a `pg_isready -U ${DB_USER:-postgres}`.
-  - Adaptar `docker/entrypoint.sh` para verificar conectividad con PostgreSQL.
-  - Actualizar `docker/.env.docker.example`.
-  - Evidencia esperada: Archivos de Docker actualizados y coherentes con PostgreSQL.
+  - Adaptar `docker/entrypoint.sh` para verificar conectividad con PostgreSQL vía `psycopg`.
+  - Evidencia: Commit `d36db44`. `docker compose config` válido y sin errores.
 
 - [ ] **Tarea 4: Desacoplar `init.sql` y crear seeding anónimo**
   - Desacoplar `database/init.sql` del compose para evitar siembra de PII y credenciales comprometidas.

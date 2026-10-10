@@ -17,6 +17,11 @@ REQUIRED_TRIGGERS = [
 @register(Tags.database)
 def check_sql_dependencies(app_configs, **kwargs):
     errors = []
+    # Los triggers en SQL crudo solo aplican al backend legado MySQL.
+    # En PostgreSQL y SQLite la lógica está centralizada en el ORM de Django.
+    if connection.vendor != 'mysql':
+        return errors
+
     try:
         with connection.cursor() as cursor:
             cursor.execute("SHOW TRIGGERS")
