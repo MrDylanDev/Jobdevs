@@ -19,6 +19,56 @@ class TestDashboardAccess:
         response = auth_client.get(reverse('dashboard_empresa'))
         assert response.status_code == 200
 
+    def test_empresa_dashboard_incluye_postulaciones_y_vacantes_en_desarrollo(self, auth_client, empresa_user, desarrollador_user):
+        """Dashboard de empresa debe contabilizar postulaciones de proyectos en desarrollo y reportar vacantes disponibles."""
+        from proyectos.models import Proyecto
+        from postulaciones.models import Postulacion
+        from contrataciones.models import Contratacion
+        from usuarios.models import Usuario
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy MultiVacantes', descripcion='DM',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=3,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa'
+        )
+        dev2 = Usuario.objects.create_user(
+            username='dev_cand_2', email='dev_cand_2@test.teir',
+            nombre='Dev Cand 2', rol='desarrollador', estado='activo', password='Password123*'
+        )
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, estado='pendiente'
+        )
+
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        assert response.context['total_postulaciones'] >= 1
+        proy_en_desarrollo = next((p for p in response.context['en_desarrollo_v'] if p['proyecto_id'] == proyecto.id), None)
+        assert proy_en_desarrollo is not None
+        assert proy_en_desarrollo['vacantes_disponibles'] == 2
+        assert proy_en_desarrollo['vacantes_totales'] == 3
+        content = response.content.decode()
+        exact_url = reverse('ver_postulaciones_empresa', args=[proyecto.id])
+        assert f'href="{exact_url}"' in content
+
+    def test_empresa_dashboard_en_revision_no_expone_vacantes_disponibles(self, auth_client, empresa_user, desarrollador_user):
+        """Proyectos en estado 'en_revision' no deben reportar vacantes disponibles ni enlace de contratación."""
+        from proyectos.models import Proyecto
+
+        proyecto_rev = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy En Revision', descripcion='DR',
+            tipo_solucion='sitio_web', estado='en_revision', vacantes=3,
+        )
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        p_rev = next((p for p in response.context['en_desarrollo_v'] if p['proyecto_id'] == proyecto_rev.id), None)
+        assert p_rev is not None
+        assert p_rev['vacantes_disponibles'] == 0
+        content = response.content.decode()
+        exact_url = reverse('ver_postulaciones_empresa', args=[proyecto_rev.id])
+        assert f'href="{exact_url}"' not in content
+
     def test_empresa_dashboard_blocked_for_anon(self, client):
         """Anonymous users cannot access empresa dashboard."""
         response = client.get(reverse('dashboard_empresa'))

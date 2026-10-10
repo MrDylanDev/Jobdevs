@@ -17,7 +17,6 @@ def dashboard_empresa(request):
     
     p_pub = Proyecto.objects.filter(empresa=request.user, estado='publicado').count()
     p_act = Proyecto.objects.filter(empresa=request.user, estado='en_desarrollo').count()
-    post_pen = Postulacion.objects.filter(proyecto__empresa=request.user, estado='pendiente', proyecto__estado='publicado').count()
     dev_con = Contratacion.objects.filter(empresa=request.user, estado='activa').count()
 
     en_desarrollo_qs = Proyecto.objects.filter(
@@ -34,6 +33,7 @@ def dashboard_empresa(request):
     for p in en_desarrollo_qs:
         dev_ids = [c.desarrollador_id for c in p.contratos_activos]
         dev_nombres = ', '.join([c.desarrollador.nombre for c in p.contratos_activos])
+        vacantes_disponibles = max(0, p.vacantes - len(dev_ids)) if p.estado == 'en_desarrollo' else 0
         en_desarrollo_v.append({
             'proyecto_id': p.id,
             'titulo': p.titulo,
@@ -46,6 +46,8 @@ def dashboard_empresa(request):
             'ids': ','.join(map(str, dev_ids)),
             'primer_dev_id': dev_ids[0] if dev_ids else None,
             'num_desarrolladores': len(dev_ids),
+            'vacantes_totales': p.vacantes,
+            'vacantes_disponibles': vacantes_disponibles,
         })
     perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=request.user)
     mis_ofertas = Proyecto.objects.filter(empresa=request.user, estado='publicado').order_by('-fecha_publicacion')
@@ -53,7 +55,7 @@ def dashboard_empresa(request):
     postulaciones_pendientes_obj = Postulacion.objects.filter(
         proyecto__empresa=request.user, 
         estado='pendiente',
-        proyecto__estado='publicado'
+        proyecto__estado__in=['publicado', 'en_desarrollo']
     )
     post_pen = postulaciones_pendientes_obj.count()
     admin_id = get_admin_id()

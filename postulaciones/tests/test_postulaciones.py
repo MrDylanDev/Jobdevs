@@ -143,6 +143,14 @@ class TestAceptarPostulacion:
         postulacion.refresh_from_db()
         assert postulacion.estado == 'aceptada'
 
+        # Verificar preservación exacta de estado_anterior en HistorialEstadoProyecto
+        from proyectos.models import HistorialEstadoProyecto
+        historial = HistorialEstadoProyecto.objects.filter(proyecto=proyecto).first()
+        assert historial is not None
+        assert historial.estado_anterior == 'publicado'
+        assert historial.estado_nuevo == 'en_desarrollo'
+        assert historial.cambiado_por == empresa_user
+
     def test_dev_no_puede_aceptar(self, dev_client, empresa_user, desarrollador_user):
         """Dev cannot accept postulaciones."""
         proyecto = Proyecto.objects.create(
@@ -159,3 +167,80 @@ class TestAceptarPostulacion:
         assert response.status_code == 302
         postulacion.refresh_from_db()
         assert postulacion.estado == 'pendiente'
+
+    def test_no_puede_aceptar_si_limite_de_vacantes_alcanzado(self, auth_client, empresa_user, desarrollador_user):
+        """RF 3.3.2: No se permite contratar si el proyecto ya cubrió sus vacantes.
+
+        Nota sobre concurrencia (SCRUM-159):
+        Esta prueba valida la regla de negocio secuencial del límite de cupos.
+        La protección contra carreras concurrentes mediante bloqueo de fila
+        (`select_for_update`) y atomicidad se verifica en
+        `test_concurrencia_locking_proyecto_select_for_update`.
+        """
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Vacantes', descripcion='DV',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        post1 = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+        dev2 = User.objects.create_user(
+            username='dev2_cupos', email='dev2_cupos@test.teir',
+            nombre='Dev 2 Cupos', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        post2 = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, estado='pendiente',
+        )
+
+        # 1. Aceptar la primera postulación (ocupa la única vacante disponible)
+        res1 = auth_client.post(reverse('aceptar_postulacion', args=[post1.id]))
+        assert res1.status_code == 302
+        post1.refresh_from_db()
+        assert post1.estado == 'aceptada'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+
+        # 2. Intentar aceptar la segunda postulación debe ser rechazado
+        res2 = auth_client.post(reverse('aceptar_postulacion', args=[post2.id]), follow=True)
+        assert res2.status_code == 200
+        post2.refresh_from_db()
+        assert post2.estado == 'pendiente'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        messages = list(res2.context['messages'])
+        assert any('vacantes' in str(m).lower() for m in messages)
+
+    def test_no_puede_aceptar_si_proyecto_finalizado(self, auth_client, empresa_user, desarrollador_user):
+        """No se pueden aceptar postulaciones si el proyecto ya está finalizado."""
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Fin', descripcion='DF',
+            tipo_solucion='sitio_web', estado='finalizado', vacantes=2,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+        res = auth_client.post(reverse('aceptar_postulacion', args=[post.id]), follow=True)
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+        assert not Contratacion.objects.filter(proyecto=proyecto).exists()
+        messages = list(res.context['messages'])
+        assert any('finalizado' in str(m).lower() or 'estado' in str(m).lower() for m in messages)
+
+    def test_concurrencia_locking_proyecto_select_for_update(self, auth_client, empresa_user, desarrollador_user):
+        """SCRUM-159: Verificar que la transacción bloquea la fila del proyecto vía select_for_update."""
+        from unittest.mock import patch
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Lock', descripcion='DL',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+
+        with patch.object(Proyecto.objects, 'select_for_update', wraps=Proyecto.objects.select_for_update) as mock_lock:
+            res = auth_client.post(reverse('aceptar_postulacion', args=[post.id]))
+            assert res.status_code == 302
+            assert mock_lock.called, "select_for_update debe ser invocado sobre Proyecto para serializar contrataciones"
+
