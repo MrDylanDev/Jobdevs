@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}TEIR | Centro de Mediación y Disputas{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h3 mb-4"><i class="fa fa-gavel me-2"></i>Centro de Mediación y Resolución de Disputas</h1>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">Disputas Activas</h2>
+      <span class="badge bg-danger">{{ disputas_activas|length }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th><th>Proyecto</th><th>Iniciado por</th><th>Motivo</th>
+            <th>Estado</th><th>Mediador</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in disputas_activas %}
+          <tr>
+            <td>#{{ d.pk }}</td>
+            <td>{{ d.proyecto.titulo }}</td>
+            <td>{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
+            <td>{{ d.motivo|truncatechars:80 }}</td>
+            <td>
+              <span class="badge {% if d.estado == 'en_mediacion' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ d.get_estado_display }}</span>
+            </td>
+            <td>{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}<span class="text-muted">Pendiente</span>{% endif %}</td>
+            <td class="text-end"><a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-sm btn-primary">Ingresar a Sala</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay disputas activas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">Disputas Resueltas / Historial</h2>
+      <span class="badge bg-secondary">{{ disputas_resueltas|length }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th><th>Proyecto</th><th>Resolución</th><th>Dictamen</th>
+            <th>Fecha Resolución</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in disputas_resueltas %}
+          <tr>
+            <td>#{{ d.pk }}</td>
+            <td>{{ d.proyecto.titulo }}</td>
+            <td>{% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}</td>
+            <td>{{ d.notas_resolucion|default:"—"|truncatechars:80 }}</td>
+            <td>{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+            <td class="text-end"><a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-sm btn-outline-secondary">Ver Expediente</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Aún no hay disputas resueltas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

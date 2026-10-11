@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -15,6 +16,29 @@ from .models import Disputa, MensajeDisputa
 from .services import abrir_disputa, resolver_disputa
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
+
+
+@login_required
+def lista_disputas_view(request):
+    user = request.user
+    qs = Disputa.objects.select_related(
+        'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador',
+    )
+    if user.rol == 'administrador':
+        pass
+    elif user.rol == 'empresa':
+        qs = qs.filter(proyecto__empresa=user)
+    else:
+        qs = qs.filter(Q(contratacion__desarrollador=user) | Q(iniciado_por=user))
+
+    disputas_activas = qs.filter(estado__in=ESTADOS_MENSAJERIA).order_by('-fecha_creacion')
+    disputas_resueltas = qs.filter(
+        estado__in=('resuelta', 'cancelada')
+    ).order_by('-fecha_resolucion', '-fecha_creacion')
+    return render(request, 'disputas/lista_disputas.html', {
+        'disputas_activas': disputas_activas,
+        'disputas_resueltas': disputas_resueltas,
+    })
 
 
 @login_required
