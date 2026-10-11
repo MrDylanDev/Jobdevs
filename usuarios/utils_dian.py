@@ -1,0 +1,54 @@
+"""Utilidades DIAN: cálculo y validación del Dígito de Verificación (DV).
+
+Implementa el algoritmo oficial Módulo 11 de la DIAN para NIT y cédulas.
+"""
+
+# Factores oficiales DIAN; se aplican de derecha a izquierda sobre el número.
+PRIME_FACTORS = [71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3]
+
+_SEPARADORES = " \t\r\n.,-"
+
+
+def limpiar_documento(documento: str) -> str:
+    """Elimina espacios, puntos, comas y guiones de un documento."""
+    return "".join(c for c in str(documento) if c not in _SEPARADORES)
+
+
+def _solo_digitos(documento: str | int) -> str:
+    limpio = limpiar_documento(str(documento))
+    if not limpio:
+        raise ValueError("El documento no puede estar vacío.")
+    if not (limpio.isascii() and limpio.isdigit()):
+        raise ValueError("El documento solo puede contener dígitos.")
+    return limpio
+
+
+def calcular_dv_dian(numero_documento: str | int) -> int:
+    """Calcula el dígito de verificación DIAN (Módulo 11) de un NIT/cédula."""
+    digitos = _solo_digitos(numero_documento)
+    if len(digitos) > len(PRIME_FACTORS):
+        raise ValueError(f"El documento no puede tener más de {len(PRIME_FACTORS)} dígitos.")
+    total = sum(int(d) * f for d, f in zip(reversed(digitos), reversed(PRIME_FACTORS)))
+    resto = total % 11
+    return resto if resto < 2 else 11 - resto
+
+
+def validar_nit_con_dv(nit_con_dv: str) -> bool:
+    """Valida un NIT con DV (p. ej. ``899.999.034-1``).
+
+    El último dígito es el DV. Lanza ``ValueError`` si hay caracteres no
+    numéricos (distintos de separadores), está vacío o le falta base o DV.
+    """
+    digitos = _solo_digitos(nit_con_dv)
+    if len(digitos) < 2:
+        raise ValueError("El NIT debe incluir número base y dígito de verificación.")
+    base, dv = digitos[:-1], int(digitos[-1])
+    return calcular_dv_dian(base) == dv
+
+
+def formatear_nit(numero: str | int, dv: int | str | None = None) -> str:
+    """Formatea un NIT como ``900.123.456-7``; calcula el DV si no se da."""
+    digitos = _solo_digitos(numero)
+    if dv is None:
+        dv = calcular_dv_dian(digitos)
+    return f"{int(digitos):,}".replace(",", ".") + f"-{dv}"
