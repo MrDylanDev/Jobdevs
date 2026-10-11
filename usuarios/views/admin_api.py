@@ -5,9 +5,11 @@ from django.http import JsonResponse
 from django.db import IntegrityError
 from django.core.cache import cache
 from ..models import Usuario
+from ..decorators import api_ratelimit
 
 
 @login_required
+@api_ratelimit(max_requests=60, window_seconds=60)
 def api_usuarios(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado. Solo administradores pueden listar usuarios.'}, status=403)
@@ -16,6 +18,7 @@ def api_usuarios(request):
 
 
 @login_required
+@api_ratelimit(max_requests=60, window_seconds=60)
 def api_usuario_detalle(request, usuario_id):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado.'}, status=403)
@@ -36,6 +39,7 @@ def api_usuario_detalle(request, usuario_id):
 
 
 @login_required
+@api_ratelimit(max_requests=30, window_seconds=60)
 def api_crear_usuario(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado.'}, status=403)
@@ -70,6 +74,7 @@ def api_crear_usuario(request):
 
 
 @login_required
+@api_ratelimit(max_requests=30, window_seconds=60)
 def api_actualizar_usuario(request, usuario_id):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado.'}, status=403)
@@ -113,6 +118,7 @@ def api_actualizar_usuario(request, usuario_id):
 
 
 @login_required
+@api_ratelimit(max_requests=30, window_seconds=60)
 def api_eliminar_usuario(request, usuario_id):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado.'}, status=403)
@@ -129,6 +135,7 @@ def api_eliminar_usuario(request, usuario_id):
 
 
 @login_required
+@api_ratelimit(max_requests=30, window_seconds=60)
 def api_bulk_toggle(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado.'}, status=403)

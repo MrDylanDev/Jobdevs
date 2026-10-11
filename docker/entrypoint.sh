@@ -45,6 +45,7 @@ echo "[OK] Conexión con PostgreSQL establecida"
 echo ""
 echo "Aplicando migraciones de Django..."
 python manage.py migrate --noinput
+python manage.py createcachetable
 echo "[OK] Migraciones aplicadas correctamente"
 
 # ---- 3. Recoger archivos estaticos ----

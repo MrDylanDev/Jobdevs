@@ -11,7 +11,7 @@ class Contratacion(models.Model):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='contrataciones')
     desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='contrataciones_dev')
     empresa = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='contrataciones_emp')
-    fecha_inicio = models.DateField(auto_now_add=True, null=True)
+    fecha_inicio = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=25, choices=ESTADO, default='activa')
 
     class Meta:

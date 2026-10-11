@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 
 if not SECRET_KEY:
     if DEBUG:
@@ -89,6 +89,22 @@ DATABASES = {
 AUTHENTICATION_BACKENDS = [
     'usuarios.backends.UsuarioAuthBackend',
 ]
+
+_cache_backend = os.environ.get('DJANGO_CACHE_BACKEND', 'db' if _db_engine == 'django.db.backends.postgresql' else 'locmem')
+
+if _cache_backend == 'db':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'teir_cache_table',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'usuarios.validators.ComplexPasswordValidator'},
