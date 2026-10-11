@@ -16,20 +16,20 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # 1. Verificación preventiva de bloqueo y obtención del objeto usuario
-        user_to_check = None
-        try:
-            user_to_check = Usuario.objects.get(username=username)
-            if user_to_check.estado in ['suspendido', 'inactivo']:
-                messages.error(request, "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información.")
-                return redirect('inicio')
-        except Usuario.DoesNotExist:
-            pass
-
-        # 2. Autenticación normal
-        user = authenticate(username=username, password=password)
+        # 1. Autenticación normal primero (previene timing side-channels y enumeración)
+        # authenticate() corre hashing para usuarios existentes y un dummy hasher
+        # para usuarios inexistentes, igualando el tiempo de respuesta.
+        user = authenticate(request=request, username=username, password=password)
 
         if user is not None:
+            # Si el usuario proveyó credenciales válidas pero su cuenta está suspendida o inactiva
+            if user.estado in ['suspendido', 'inactivo'] or not user.is_active:
+                messages.error(
+                    request,
+                    "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información."
+                )
+                return redirect('inicio')
+
             # Login exitoso: Resetear intentos fallidos si tenía alguno
             if user.intentos_fallidos > 0:
                 user.intentos_fallidos = 0
@@ -49,21 +49,21 @@ def login_view(request):
                 return redirect('dashboard_empresa')
             return redirect('dashboard_desarrollador')            
         
-        # 3. Manejo de intentos fallidos si el usuario existe
+        # 2. Credenciales inválidas (usuario no existe o contraseña incorrecta).
+        # authenticate() ejecutó exactamente un ciclo criptográfico (hasher real o dummy).
+        # Si el usuario existe en DB, incrementamos intentos fallidos y bloqueamos al llegar a 5,
+        # pero NUNCA exponemos la existencia de la cuenta ni el conteo en el mensaje de error.
+        user_to_check = Usuario.objects.filter(username=username).first()
         if user_to_check:
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
                 user_to_check.estado = 'suspendido'
-                user_to_check.is_active = False  # Bloquear a nivel Django, no solo chequeo manual
+                user_to_check.is_active = False  # Bloquear a nivel Django
                 user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active'])
-                messages.error(request, "Tu cuenta ha sido suspendida por exceso de intentos fallidos. Contacta a soporte.")
             else:
                 user_to_check.save(update_fields=['intentos_fallidos'])
-                messages.error(request, f"Usuario o contraseña incorrectos. Intento {user_to_check.intentos_fallidos} de 5.")
-        else:
-            # Error genérico para usuarios que no existen
-            messages.error(request, "Usuario o contraseña incorrectos.")
-            
+
+        messages.error(request, "Usuario o contraseña incorrectos.")
         return redirect('inicio')
             
     # Si viene del admin, mostrar login estilo admin

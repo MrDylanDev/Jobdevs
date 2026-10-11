@@ -86,6 +86,10 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'usuarios.backends.UsuarioAuthBackend',
+]
+
 _cache_backend = os.environ.get('DJANGO_CACHE_BACKEND', 'db' if _db_engine == 'django.db.backends.postgresql' else 'locmem')
 
 if _cache_backend == 'db':
