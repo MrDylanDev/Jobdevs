@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
 from .models import Postulacion
 from proyectos.models import Proyecto
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, ContratoDigital
 from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
 from proyectos.models import Equipo
@@ -16,8 +18,10 @@ def ver_postulaciones_empresa(request, proyecto_id):
     
     postulaciones_orm = Postulacion.objects.filter(
         proyecto_id=proyecto_id,
-        estado='pendiente'
-    ).select_related('desarrollador__perfil_desarrollador').order_by('-fecha')
+        estado__in=['pendiente', 'en_negociacion']
+    ).select_related(
+        'desarrollador__perfil_desarrollador', 'contrato_digital'
+    ).order_by('-fecha')
 
     programa = request.GET.get('programa', '').strip()
     ficha = request.GET.get('ficha', '').strip()
@@ -39,7 +43,8 @@ def ver_postulaciones_empresa(request, proyecto_id):
                 )
 
     programas_disponibles = (
-        Postulacion.objects.filter(proyecto_id=proyecto_id, estado='pendiente')
+        Postulacion.objects.filter(
+            proyecto_id=proyecto_id, estado__in=['pendiente', 'en_negociacion'])
         .exclude(desarrollador__perfil_desarrollador__programa_formacion__isnull=True)
         .exclude(desarrollador__perfil_desarrollador__programa_formacion='')
         .values_list('desarrollador__perfil_desarrollador__programa_formacion', flat=True)
@@ -50,9 +55,14 @@ def ver_postulaciones_empresa(request, proyecto_id):
     postulaciones = []
     for p in postulaciones_orm:
         perfil = getattr(p.desarrollador, 'perfil_desarrollador', None)
+        contrato = getattr(p, 'contrato_digital', None)
         postulaciones.append({
             'id': p.id,
+            'estado': p.estado,
+            'fecha_limite_negociacion': p.fecha_limite_negociacion,
+            'contrato_id': contrato.id if contrato else None,
             'desarrollador': {
+                'id': p.desarrollador_id,
                 'nombre': p.desarrollador.nombre,
                 'foto_perfil': perfil.foto_perfil.url if perfil and perfil.foto_perfil else None,
                 'programa_formacion': perfil.programa_formacion if perfil else '',
@@ -209,3 +219,70 @@ def aceptar_postulacion(request, postulacion_id):
         messages.error(request, f"Error al procesar: {str(e)}")
 
     return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+
+
+@login_required
+@require_POST
+def iniciar_negociacion(request, postulacion_id):
+    """La empresa pasa una postulación pendiente a negociación y abre el contrato digital."""
+    if request.user.rol != 'empresa':
+        messages.error(request, "Acceso denegado.")
+        return redirect('inicio')
+
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id, proyecto__empresa=request.user)
+    proyecto_id = postulacion.proyecto_id
+
+    try:
+        with transaction.atomic():
+            # Serializar decisiones de cupo bloqueando el proyecto
+            proyecto = Proyecto.objects.select_for_update().get(id=proyecto_id, empresa=request.user)
+            postulacion = Postulacion.objects.select_for_update().get(
+                id=postulacion_id, proyecto=proyecto)
+
+            if postulacion.estado != 'pendiente':
+                messages.error(request, "Solo se puede iniciar negociación con postulaciones pendientes.")
+                return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+
+            if proyecto.estado not in ('publicado', 'en_desarrollo'):
+                messages.error(
+                    request,
+                    f"No se puede negociar en un proyecto con estado '{proyecto.get_estado_display()}'."
+                )
+                return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+
+            contrataciones_activas = Contratacion.objects.filter(
+                proyecto=proyecto, estado='activa').count()
+            postulaciones_en_negociacion = Postulacion.objects.filter(
+                proyecto=proyecto, estado='en_negociacion').count()
+            if contrataciones_activas + postulaciones_en_negociacion >= proyecto.vacantes:
+                messages.error(request, "El proyecto ya ha alcanzado el límite de vacantes disponibles.")
+                return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+
+            postulacion.estado = 'en_negociacion'
+            postulacion.fecha_limite_negociacion = timezone.now() + timedelta(days=7)
+            postulacion.save()
+
+            ContratoDigital.objects.get_or_create(postulacion=postulacion)
+
+            Notificacion.objects.create(
+                usuario=postulacion.desarrollador,
+                proyecto=proyecto,
+                tipo='postulacion',
+                mensaje=(
+                    f"{request.user.nombre} inició una negociación contigo para el proyecto "
+                    f"'{proyecto.titulo}'. Tienes 7 días para revisar y firmar el contrato digital."
+                ),
+            )
+
+            LogAuditoria.objects.create(
+                usuario=request.user,
+                accion=f"Inició negociación con {postulacion.desarrollador.nombre} en {proyecto.titulo}",
+                tabla_afectada='postulaciones',
+                registro_id=postulacion.id,
+            )
+    except (Postulacion.DoesNotExist, Proyecto.DoesNotExist):
+        messages.error(request, "La postulación o el proyecto no existe.")
+        return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+
+    messages.success(request, "Negociación iniciada. Define los términos del contrato digital.")
+    return redirect('sala_chat', receptor_id=postulacion.desarrollador_id, proyecto_id=postulacion.proyecto_id)
