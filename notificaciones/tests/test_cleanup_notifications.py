@@ -43,7 +43,8 @@ class TestCleanupNotificationsCommand:
         )
         Notificacion.objects.filter(id=n_recent_read.id).update(fecha=now - timedelta(days=10))
 
-        call_command('cleanup_notifications', days=90)
+        # Ejecutar sin parámetro days explícito para verificar que el default sea 90 días
+        call_command('cleanup_notifications')
 
         assert not Notificacion.objects.filter(id=n_old_read.id).exists()
         assert Notificacion.objects.filter(id=n_old_unread.id).exists()
@@ -87,3 +88,9 @@ class TestCleanupNotificationsCommand:
 
         call_command('cleanup_notifications', days=90, all=True)
         assert not Notificacion.objects.filter(id=n_unread.id).exists()
+
+    def test_cleanup_notifications_negative_days_raises_command_error(self):
+        """Negative --days must raise CommandError to exit with non-zero status in automation."""
+        from django.core.management.base import CommandError
+        with pytest.raises(CommandError, match="El parámetro --days debe ser un entero positivo o cero"):
+            call_command('cleanup_notifications', days=-5)

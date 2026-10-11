@@ -1,5 +1,5 @@
 from datetime import timedelta
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.db import transaction
 from notificaciones.models import Notificacion
@@ -39,8 +39,7 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
 
         if days < 0:
-            self.stderr.write(self.style.ERROR("El parámetro --days debe ser un entero positivo o cero."))
-            return
+            raise CommandError("El parámetro --days debe ser un entero positivo o cero.")
 
         cutoff = timezone.now() - timedelta(days=days)
         qs = Notificacion.objects.filter(fecha__lt=cutoff)
