@@ -57,6 +57,45 @@
     </div>
   {% endif %}
 
+  {% if user.rol == 'administrador' and puede_escribir %}
+    <div class="card border-danger shadow-sm mb-3">
+      <div class="card-header bg-danger text-white">
+        <a class="text-white text-decoration-none d-block" data-bs-toggle="collapse" href="#panelResolucion" role="button" aria-expanded="false" aria-controls="panelResolucion">
+          <i class="fa fa-scale-balanced me-2"></i>Emitir Resolución Vinculante (Administrador / Mediador SENA)
+        </a>
+      </div>
+      <div id="panelResolucion" class="collapse">
+        <div class="card-body">
+          <form method="post" action="{% url 'disputas:resolver_disputa' disputa.pk %}" novalidate
+                onsubmit="return confirm('Esta resolución es vinculante e irreversible: ejecutará cambios automáticos sobre el proyecto, la contratación y las cuentas involucradas. ¿Deseas continuar?');">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="resolucion" class="form-label">Resolución</label>
+              <select id="resolucion" name="resolucion" class="form-select" required>
+                <option value="" selected disabled>Selecciona una resolución...</option>
+                <option value="reanudar_proyecto">Reanudar proyecto (proyecto en desarrollo, contrato activo)</option>
+                <option value="cancelar_contrato">Cancelar contrato (el proyecto continúa en desarrollo)</option>
+                <option value="sancionar_empresa">Sancionar empresa (suspende la cuenta e inactiva el proyecto)</option>
+                <option value="sancionar_desarrollador">Sancionar desarrollador (suspende la cuenta y cancela el contrato)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="dictamen" class="form-label">Dictamen / fundamentos de la decisión arbitral</label>
+              <textarea id="dictamen" name="dictamen" class="form-control" rows="4" required
+                        placeholder="Explica los fundamentos de la decisión..."></textarea>
+            </div>
+            <div class="alert alert-warning small">
+              <i class="fa fa-triangle-exclamation me-1"></i>Esta acción es irreversible y notificará a la empresa y al desarrollador.
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-danger"><i class="fa fa-gavel me-1"></i>Emitir resolución</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   <div class="card shadow-sm">
     <div class="card-header"><i class="fa fa-comments me-2"></i>Conversación tripartita</div>
     <div class="card-body" style="max-height: 480px; overflow-y: auto;">

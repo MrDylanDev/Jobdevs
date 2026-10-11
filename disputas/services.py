@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from contrataciones.models import Contratacion
 from logs.models import LogAuditoria
@@ -90,6 +91,106 @@ def abrir_disputa(proyecto, usuario, motivo, contratacion=None):
                 mensaje=(
                     f"Se abrió una disputa en el proyecto '{proyecto.titulo}' "
                     f"por {usuario.nombre or usuario.username}. El proyecto quedó congelado."
+                ),
+            )
+            for uid in destinatarios
+        ])
+
+    return disputa
+
+
+RESOLUCIONES = tuple(valor for valor, _ in Disputa.RESOLUCION)
+ESTADOS_CERRADOS = ('resuelta', 'cancelada')
+
+
+def _cambiar_estado_proyecto(proyecto, nuevo_estado, usuario):
+    estado_ant = proyecto.estado
+    proyecto.estado = nuevo_estado
+    proyecto.save()
+    proyecto.registrar_cambio_estado(nuevo_estado, usuario, estado_ant)
+
+
+def resolver_disputa(disputa, admin_user, resolucion, dictamen):
+    """Emite la resolución vinculante de una disputa y ejecuta sus acciones.
+
+    Todo ocurre en una única transacción con bloqueo de filas. Lanza
+    PermissionDenied si el usuario no es administrador y ValidationError si
+    el dictamen/resolución son inválidos o la disputa ya está cerrada.
+    """
+    if getattr(admin_user, 'rol', None) != 'administrador':
+        raise PermissionDenied('Solo un administrador puede resolver disputas.')
+
+    dictamen = (dictamen or '').strip()
+    if resolucion not in RESOLUCIONES:
+        raise ValidationError('Selecciona una resolución válida.')
+    if not dictamen:
+        raise ValidationError('Debes indicar el dictamen que fundamenta la resolución.')
+
+    with transaction.atomic():
+        disputa = Disputa.objects.select_for_update().get(pk=disputa.pk)
+        if disputa.estado in ESTADOS_CERRADOS:
+            raise ValidationError('Esta disputa ya fue resuelta o cerrada y no puede resolverse de nuevo.')
+
+        proyecto = Proyecto.objects.select_for_update().get(pk=disputa.proyecto_id)
+        contratacion = None
+        if disputa.contratacion_id:
+            contratacion = Contratacion.objects.select_for_update().get(pk=disputa.contratacion_id)
+        empresa = Usuario.objects.select_for_update().get(pk=proyecto.empresa_id)
+        desarrollador = None
+        if contratacion is not None:
+            desarrollador = Usuario.objects.select_for_update().get(pk=contratacion.desarrollador_id)
+
+        if resolucion == 'reanudar_proyecto':
+            nuevo_estado_proyecto, nuevo_estado_contrato = 'en_desarrollo', 'activa'
+            efecto = 'El proyecto y la contratación se reanudan.'
+        elif resolucion == 'cancelar_contrato':
+            nuevo_estado_proyecto, nuevo_estado_contrato = 'en_desarrollo', 'cancelada'
+            efecto = 'El contrato fue cancelado y el proyecto quedó nuevamente en desarrollo.'
+        elif resolucion == 'sancionar_empresa':
+            nuevo_estado_proyecto, nuevo_estado_contrato = 'inactivo', 'cancelada'
+            efecto = 'El contrato fue cancelado, el proyecto inactivado y la empresa suspendida.'
+            empresa.estado = 'suspendido'
+            empresa.is_active = False
+            empresa.save()
+        else:  # sancionar_desarrollador
+            nuevo_estado_proyecto, nuevo_estado_contrato = 'en_desarrollo', 'cancelada'
+            efecto = 'El contrato fue cancelado y el desarrollador suspendido.'
+            if desarrollador is not None:
+                desarrollador.estado = 'suspendido'
+                desarrollador.is_active = False
+                desarrollador.save()
+
+        _cambiar_estado_proyecto(proyecto, nuevo_estado_proyecto, admin_user)
+        if contratacion is not None:
+            contratacion.estado = nuevo_estado_contrato
+            contratacion.save()
+
+        disputa.estado = 'resuelta'
+        disputa.resolucion = resolucion
+        disputa.notas_resolucion = dictamen
+        disputa.fecha_resolucion = timezone.now()
+        disputa.mediador = admin_user
+        disputa.save()
+
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion=(
+                f"Resolución de disputa #{disputa.pk} ({disputa.get_resolucion_display()}) "
+                f"del proyecto '{proyecto.titulo}'"
+            ),
+            tabla_afectada='disputas',
+            registro_id=disputa.id,
+        )
+
+        destinatarios = {empresa.pk}
+        if desarrollador is not None:
+            destinatarios.add(desarrollador.pk)
+        Notificacion.objects.bulk_create([
+            Notificacion(
+                usuario_id=uid, proyecto=proyecto, tipo='alerta',
+                mensaje=(
+                    f"La disputa #{disputa.pk} del proyecto '{proyecto.titulo}' fue resuelta: "
+                    f"{disputa.get_resolucion_display()}. {efecto}"
                 ),
             )
             for uid in destinatarios

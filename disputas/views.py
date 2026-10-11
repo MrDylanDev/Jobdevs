@@ -12,7 +12,7 @@ from proyectos.models import Proyecto
 from usuarios.models import Usuario
 
 from .models import Disputa, MensajeDisputa
-from .services import abrir_disputa
+from .services import abrir_disputa, resolver_disputa
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 
@@ -168,3 +168,25 @@ def enviar_mensaje_disputa_view(request, disputa_id):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'ok': True})
     return redirect('disputas:detalle_disputa', disputa_id=disputa.id)
+
+
+@login_required
+@require_POST
+def resolver_disputa_view(request, disputa_id):
+    if request.user.rol != 'administrador':
+        raise PermissionDenied('Solo un administrador puede resolver disputas.')
+
+    disputa = _get_disputa(disputa_id)
+    resolucion = request.POST.get('resolucion', '').strip()
+    dictamen = request.POST.get('dictamen', '').strip()
+
+    try:
+        resolver_disputa(disputa, request.user, resolucion, dictamen)
+    except ValidationError as exc:
+        disputa.refresh_from_db()
+        return render(
+            request, 'disputas/sala_mediacion.html',
+            _contexto_sala(disputa, ' '.join(exc.messages)), status=400,
+        )
+    messages.success(request, 'Resolución emitida y acciones ejecutadas correctamente.')
+    return redirect('disputas:detalle_disputa', disputa_id=disputa_id)
