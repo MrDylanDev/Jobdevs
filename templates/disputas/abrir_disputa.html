@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}TEIR | Abrir Disputa{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+      <h1 class="h5 mb-0"><i class="fa fa-gavel me-2"></i>Abrir disputa</h1>
+    </div>
+    <div class="card-body">
+      <h2 class="h6 text-muted mb-1">Proyecto</h2>
+      <p class="fw-semibold mb-3">{{ proyecto.titulo }}</p>
+
+      {% if contratacion %}
+        <h2 class="h6 text-muted mb-1">Contratación</h2>
+        <p class="mb-3">
+          Desarrollador: {{ contratacion.desarrollador.nombre|default:contratacion.desarrollador.username }}
+          &middot; Empresa: {{ contratacion.empresa.nombre|default:contratacion.empresa.username }}
+        </p>
+      {% endif %}
+
+      <div class="alert alert-warning" role="alert">
+        <i class="fa fa-triangle-exclamation me-1"></i>
+        Al abrir una disputa el proyecto y la contratación quedarán <strong>congelados</strong>
+        hasta que un administrador medie y resuelva el caso. La contraparte y los
+        administradores serán notificados.
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="motivo" class="form-label">Motivo de la disputa</label>
+          <textarea id="motivo" name="motivo" class="form-control" rows="6" required
+                    placeholder="Describe detalladamente el problema...">{{ motivo }}</textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-danger">Iniciar Mediación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

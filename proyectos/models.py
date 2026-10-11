@@ -40,6 +40,7 @@ class Proyecto(models.Model):
         ('finalizado', 'Finalizado'),
         ('rechazado', 'Rechazado'),
         ('inactivo', 'Inactivo'),
+        ('en_disputa', 'En Disputa'),
     ]
 
     empresa = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='proyectos_empresa')

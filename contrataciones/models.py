@@ -10,6 +10,7 @@ class Contratacion(models.Model):
         ('activa', 'Activa'),
         ('finalizada', 'Finalizada'),
         ('cancelada', 'Cancelada'),
+        ('en_disputa', 'En Disputa'),
     ]
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='contrataciones')
     desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='contrataciones_dev')

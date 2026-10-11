@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'notificaciones',
     'favoritos',
     'logs',
+    'disputas',
 ]
 
 MIDDLEWARE = [

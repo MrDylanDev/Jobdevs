@@ -14,6 +14,7 @@ from ..utils import get_admin_ids
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
+from disputas.models import Disputa
 from notificaciones.models import Notificacion
 from mensajes.models import Mensaje
 from logs.models import LogAuditoria
@@ -167,7 +168,15 @@ def dashboard_admin(request):
         proyectos_count=Count('proyectos')
     ).order_by('nombre')
 
+    disputas_activas = list(
+        Disputa.objects.filter(estado__in=('abierta', 'en_mediacion'))
+        .select_related('proyecto__empresa', 'iniciado_por', 'mediador')
+        .order_by('-fecha_creacion')
+    )
+
     context = {
+        'disputas_activas': disputas_activas,
+        'total_disputas_activas': len(disputas_activas),
         'categorias_solucion': categorias_solucion,
         'total_usuarios': total_usuarios, 'total_proyectos': total_proyectos,
         'total_devs': total_devs, 'total_empresas': total_empresas,

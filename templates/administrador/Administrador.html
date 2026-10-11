@@ -54,6 +54,11 @@
         <i class="fa fa-tags"></i>
         <span>Categorías</span>
       </button>
+      <button class="nav-item" onclick="showSection('disputasSection', this)">
+        <i class="fa fa-gavel"></i>
+        <span>Mediación y Disputas</span>
+        {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
+      </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i class="fa fa-file-shield"></i>
         <span>Auditoría</span>
@@ -820,6 +825,45 @@
           </div>
         </div>
       </div>
+
+      <!-- Mediación y Disputas -->
+      <section id="disputasSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">
+              Mediación y Disputas
+              <span class="badge bg-danger">{{ total_disputas_activas }}</span>
+            </div>
+            <div class="page-subtitle">Disputas activas pendientes de mediación</div>
+          </div>
+          <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-primary">
+            <i class="fa fa-gavel"></i> Centro de Mediación
+          </a>
+        </div>
+        <div class="card">
+          {% if disputas_activas %}
+          <table style="width:100%;">
+            <thead>
+              <tr><th>ID</th><th>Proyecto</th><th>Iniciado por</th><th>Estado</th><th>Mediador</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for d in disputas_activas %}
+              <tr>
+                <td>#{{ d.pk }}</td>
+                <td>{{ d.proyecto.titulo }}</td>
+                <td>{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
+                <td>{{ d.get_estado_display }}</td>
+                <td>{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}Sin asignar{% endif %}</td>
+                <td><a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary">Ingresar a Sala</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="margin:0;">No hay disputas activas.</p>
+          {% endif %}
+        </div>
+      </section>
 
       <!-- Reportes -->
       <section id="reportsSection" class="section-v">

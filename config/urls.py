@@ -15,6 +15,7 @@ urlpatterns = [
     path('notificaciones/', include('notificaciones.urls')),
     path('logs/', include('logs.urls')),
     path('favoritos/', include('favoritos.urls')),
+    path('disputas/', include('disputas.urls')),
     
     # Admin → redirige al dashboard custom
     path('admin/', RedirectView.as_view(url='/admin/dashboard/', permanent=False)),
