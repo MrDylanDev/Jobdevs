@@ -45,6 +45,17 @@ class TestLoginView:
         assert response.status_code == 302
         assert response.url == reverse('dashboard_admin')
 
+    def test_login_admin_open_redirect_prevented(self, client, admin_user):
+        """Admin login with external next URL must not redirect to untrusted domain (Open Redirect)."""
+        response = client.post(reverse('login'), {
+            'username': 'admin_test',
+            'password': 'TestPass123!',
+            'next': 'https://evil.com/phishing',
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_admin')
+        assert 'evil.com' not in response.url
+
     def test_login_wrong_password(self, client, empresa_user):
         """Wrong password redirects to inicio with error."""
         response = client.post(reverse('login'), {
@@ -317,3 +328,55 @@ class TestRestablecerView:
             {'password': 'Ab1!', 'password_confirm': 'Ab1!'}
         )
         assert response.status_code == 200
+
+    def test_restablecer_rejects_simple_passwords(self, client, user_with_token, settings):
+        """Restablecer must enforce password complexity validators (not just length >= 8)."""
+        settings.AUTH_PASSWORD_VALIDATORS = [
+            {'NAME': 'usuarios.validators.ComplexPasswordValidator'}
+        ]
+        user, token = user_with_token
+        # 'aaaaaaaa' has 8 characters, but lacks uppercase and digits
+        response = client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'aaaaaaaa', 'password_confirm': 'aaaaaaaa'}
+        )
+        assert response.status_code == 200
+        user.refresh_from_db()
+        assert not user.check_password('aaaaaaaa')
+
+    def test_restablecer_admin_suspended_user_does_not_autoreactivate(self, client, user_with_token):
+        """Admin-suspended user must not self-reactivate by resetting their password."""
+        user, token = user_with_token
+        user.estado = 'suspendido'
+        user.is_active = False
+        user.intentos_fallidos = 0  # Suspended by admin, not by failed attempts
+        user.save(update_fields=['estado', 'is_active', 'intentos_fallidos'])
+
+        response = client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'NewSecurePass123!', 'password_confirm': 'NewSecurePass123!'}
+        )
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.check_password('NewSecurePass123!')
+        assert user.estado == 'suspendido'
+        assert not user.is_active
+
+    def test_restablecer_lockout_suspended_user_does_autoreactivate(self, client, user_with_token):
+        """User locked out by 5 failed attempts is reactivated upon successful password reset."""
+        user, token = user_with_token
+        user.estado = 'suspendido'
+        user.is_active = False
+        user.intentos_fallidos = 5  # Suspended by lockout
+        user.save(update_fields=['estado', 'is_active', 'intentos_fallidos'])
+
+        response = client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'NewSecurePass123!', 'password_confirm': 'NewSecurePass123!'}
+        )
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.check_password('NewSecurePass123!')
+        assert user.estado == 'activo'
+        assert user.is_active
+        assert user.intentos_fallidos == 0
