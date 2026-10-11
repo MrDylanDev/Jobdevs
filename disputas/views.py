@@ -1,14 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import HttpResponse
+from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from contrataciones.models import Contratacion
+from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
 
-from .models import Disputa
+from .models import Disputa, MensajeDisputa
 from .services import abrir_disputa
+
+ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 
 
 @login_required
@@ -45,16 +51,120 @@ def abrir_disputa_view(request, proyecto_id):
     return render(request, 'disputas/abrir_disputa.html', context)
 
 
-@login_required
-def detalle_disputa_view(request, disputa_id):
-    """Placeholder de la sala de disputa (se implementa en tareas posteriores)."""
-    disputa = get_object_or_404(Disputa.objects.select_related('proyecto'), pk=disputa_id)
-    user = request.user
-    participa = (
+def _get_disputa(disputa_id):
+    return get_object_or_404(
+        Disputa.objects.select_related(
+            'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador',
+        ),
+        pk=disputa_id,
+    )
+
+
+def _es_participante(user, disputa):
+    return (
         user.pk in (disputa.proyecto.empresa_id, disputa.iniciado_por_id)
-        or (disputa.contratacion_id and user.pk == disputa.contratacion.desarrollador_id)
+        or (disputa.contratacion_id is not None and user.pk == disputa.contratacion.desarrollador_id)
         or user.rol == 'administrador'
     )
-    if not participa:
+
+
+def _rol_emisor(user, disputa):
+    if user.rol == 'administrador':
+        return 'admin'
+    if user.pk == disputa.proyecto.empresa_id:
+        return 'empresa'
+    return 'dev'
+
+
+def _contexto_sala(disputa, error=None):
+    mensajes = []
+    for m in disputa.mensajes.select_related('emisor').order_by('fecha_envio', 'pk'):
+        m.rol_emisor = _rol_emisor(m.emisor, disputa)
+        mensajes.append(m)
+    desarrollador = disputa.contratacion.desarrollador if disputa.contratacion_id else None
+    return {
+        'disputa': disputa,
+        'proyecto': disputa.proyecto,
+        'empresa': disputa.proyecto.empresa,
+        'desarrollador': desarrollador,
+        'mediador': disputa.mediador,
+        'mensajes': mensajes,
+        'puede_escribir': disputa.estado in ESTADOS_MENSAJERIA,
+        'error': error,
+    }
+
+
+def _destinatarios_mensaje(disputa, emisor):
+    ids = {disputa.proyecto.empresa_id}
+    if disputa.contratacion_id:
+        ids.add(disputa.contratacion.desarrollador_id)
+    elif disputa.iniciado_por_id != disputa.proyecto.empresa_id:
+        ids.add(disputa.iniciado_por_id)
+    if disputa.mediador_id:
+        ids.add(disputa.mediador_id)
+    else:
+        ids |= set(
+            Usuario.objects.filter(rol='administrador', estado='activo')
+            .values_list('pk', flat=True)
+        )
+    ids.discard(emisor.pk)
+    return ids
+
+
+@login_required
+def detalle_disputa_view(request, disputa_id):
+    disputa = _get_disputa(disputa_id)
+    if not _es_participante(request.user, disputa):
         raise PermissionDenied
-    return HttpResponse(f'Disputa #{disputa.pk} - {disputa.get_estado_display()}')
+    return render(request, 'disputas/sala_mediacion.html', _contexto_sala(disputa))
+
+
+@login_required
+@require_POST
+def enviar_mensaje_disputa_view(request, disputa_id):
+    user = request.user
+    contenido = request.POST.get('contenido', '').strip()
+    error = None
+
+    with transaction.atomic():
+        disputa = _get_disputa(disputa_id)
+        if not _es_participante(user, disputa):
+            raise PermissionDenied
+        # Releer bloqueando para evitar carreras con la resolución.
+        estado_actual = (
+            Disputa.objects.select_for_update().values_list('estado', flat=True).get(pk=disputa.pk)
+        )
+        disputa.estado = estado_actual
+
+        if estado_actual not in ESTADOS_MENSAJERIA:
+            error = 'La disputa está cerrada: no se pueden enviar nuevos mensajes.'
+        elif not contenido:
+            error = 'El mensaje no puede estar vacío.'
+        else:
+            if user.rol == 'administrador' and disputa.estado == 'abierta':
+                disputa.estado = 'en_mediacion'
+                if not disputa.mediador_id:
+                    disputa.mediador = user
+                disputa.save(update_fields=['estado', 'mediador'])
+
+            MensajeDisputa.objects.create(disputa=disputa, emisor=user, contenido=contenido)
+            Notificacion.objects.bulk_create([
+                Notificacion(
+                    usuario_id=uid, proyecto=disputa.proyecto, tipo='mensaje',
+                    mensaje=(
+                        f"Nuevo mensaje de {user.nombre or user.username} en la disputa "
+                        f"#{disputa.pk} del proyecto '{disputa.proyecto.titulo}'."
+                    ),
+                )
+                for uid in _destinatarios_mensaje(disputa, user)
+            ])
+
+    if error:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'error': error}, status=400)
+        return render(
+            request, 'disputas/sala_mediacion.html', _contexto_sala(disputa, error), status=400,
+        )
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True})
+    return redirect('disputas:detalle_disputa', disputa_id=disputa.id)

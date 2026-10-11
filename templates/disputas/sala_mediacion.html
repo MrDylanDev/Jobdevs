@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}TEIR | Sala de Mediación #{{ disputa.pk }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+  {% if error %}
+    <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h1 class="h5 mb-0"><i class="fa fa-gavel me-2"></i>Sala de Mediación #{{ disputa.pk }}</h1>
+      <span class="badge {% if disputa.estado == 'resuelta' %}bg-success{% elif disputa.estado == 'cancelada' %}bg-secondary{% elif disputa.estado == 'en_mediacion' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+        {{ disputa.get_estado_display }}
+      </span>
+    </div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Proyecto</dt>
+        <dd class="col-sm-9">{{ proyecto.titulo }}</dd>
+        <dt class="col-sm-3">Empresa</dt>
+        <dd class="col-sm-9">{{ empresa.nombre|default:empresa.username }}</dd>
+        <dt class="col-sm-3">Desarrollador</dt>
+        <dd class="col-sm-9">{% if desarrollador %}{{ desarrollador.nombre|default:desarrollador.username }}{% else %}<span class="text-muted">Sin asignar</span>{% endif %}</dd>
+        <dt class="col-sm-3">Mediador</dt>
+        <dd class="col-sm-9 mb-0">{% if mediador %}{{ mediador.nombre|default:mediador.username }}{% else %}<span class="text-muted">Pendiente de asignación</span>{% endif %}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="alert alert-warning" role="alert">
+    <h2 class="h6 mb-1"><i class="fa fa-triangle-exclamation me-1"></i>Motivo de la disputa</h2>
+    <p class="mb-1">{{ disputa.motivo|linebreaksbr }}</p>
+    <small class="text-muted">
+      {% if disputa.estado == 'resuelta' or disputa.estado == 'cancelada' %}
+        El congelamiento del proyecto fue levantado al cerrarse la disputa.
+      {% else %}
+        <i class="fa fa-snowflake me-1"></i>El proyecto y la contratación permanecen congelados hasta la resolución.
+      {% endif %}
+    </small>
+  </div>
+
+  {% if disputa.estado == 'resuelta' %}
+    <div class="card border-success mb-3">
+      <div class="card-header bg-success text-white">Resolución</div>
+      <div class="card-body">
+        {% if disputa.resolucion %}<p class="fw-semibold mb-1">{{ disputa.get_resolucion_display }}</p>{% endif %}
+        <p class="mb-1">{{ disputa.notas_resolucion|linebreaksbr }}</p>
+        {% if disputa.fecha_resolucion %}
+          <small class="text-muted">Resuelta el {{ disputa.fecha_resolucion|date:"d/m/Y H:i" }}</small>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header"><i class="fa fa-comments me-2"></i>Conversación tripartita</div>
+    <div class="card-body" style="max-height: 480px; overflow-y: auto;">
+      {% for m in mensajes %}
+        <div class="mb-3 p-2 rounded border-start border-4
+          {% if m.rol_emisor == 'empresa' %}border-primary bg-primary bg-opacity-10
+          {% elif m.rol_emisor == 'dev' %}border-success bg-success bg-opacity-10
+          {% else %}border-warning bg-warning bg-opacity-10{% endif %}">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="fw-semibold">
+              {{ m.emisor.nombre|default:m.emisor.username }}
+              {% if m.rol_emisor == 'empresa' %}<span class="badge bg-primary">Empresa</span>
+              {% elif m.rol_emisor == 'dev' %}<span class="badge bg-success">Desarrollador</span>
+              {% else %}<span class="badge text-white" style="background-color:#6f42c1;">Mediador Admin</span>{% endif %}
+            </span>
+            <span class="text-muted">{{ m.fecha_envio|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div>{{ m.contenido|linebreaksbr }}</div>
+        </div>
+      {% empty %}
+        <p class="text-muted mb-0">Aún no hay mensajes en esta sala.</p>
+      {% endfor %}
+    </div>
+    <div class="card-footer">
+      {% if puede_escribir %}
+        <form method="post" action="{% url 'disputas:enviar_mensaje_disputa' disputa.pk %}" novalidate>
+          {% csrf_token %}
+          <div class="mb-2">
+            <label for="contenido" class="form-label visually-hidden">Mensaje</label>
+            <textarea id="contenido" name="contenido" class="form-control" rows="3" required
+                      placeholder="Escribe tu mensaje..."></textarea>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane me-1"></i>Enviar</button>
+          </div>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0"><i class="fa fa-lock me-1"></i>La disputa está cerrada; no se admiten nuevos mensajes.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
