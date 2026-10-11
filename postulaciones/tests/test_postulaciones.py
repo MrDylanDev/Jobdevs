@@ -246,6 +246,78 @@ class TestAceptarPostulacion:
 
 
 
+class TestPostulacionEnNegociacion:
+    """SCRUM-150/151: el estado en_negociacion reserva cupo de vacantes."""
+
+    def _escenario(self, empresa_user, desarrollador_user, vacantes=2):
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Negociacion', descripcion='DN',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=vacantes,
+        )
+        dev_activo = User.objects.create_user(
+            username='dev_activo_neg', email='dev_activo_neg@test.teir',
+            nombre='Dev Activo', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=dev_activo,
+            empresa=empresa_user, estado='activa',
+        )
+        return proyecto
+
+    def test_crear_postulacion_en_negociacion(self, empresa_user, desarrollador_user):
+        from django.utils import timezone
+        proyecto = self._escenario(empresa_user, desarrollador_user)
+        limite = timezone.now() + timezone.timedelta(days=3)
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            estado='en_negociacion', fecha_limite_negociacion=limite,
+        )
+        post.refresh_from_db()
+        assert post.estado == 'en_negociacion'
+        assert post.fecha_limite_negociacion == limite
+        assert post.get_estado_display() == 'En Negociación'
+
+    def test_en_negociacion_descuenta_vacantes_disponibles_en_dashboard(
+            self, auth_client, empresa_user, desarrollador_user):
+        proyecto = self._escenario(empresa_user, desarrollador_user, vacantes=3)
+
+        res = auth_client.get(reverse('dashboard_empresa'))
+        item = next(i for i in res.context['en_desarrollo_v'] if i['proyecto_id'] == proyecto.id)
+        assert item['vacantes_disponibles'] == 2  # 3 - 1 contratación activa
+
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='en_negociacion',
+        )
+        res = auth_client.get(reverse('dashboard_empresa'))
+        item = next(i for i in res.context['en_desarrollo_v'] if i['proyecto_id'] == proyecto.id)
+        assert item['vacantes_disponibles'] == 1  # 3 - 1 activa - 1 en negociación
+
+    def test_en_negociacion_bloquea_aceptar_otra_postulacion_sin_cupo(
+            self, auth_client, empresa_user, desarrollador_user):
+        from contrataciones.models import Contratacion
+        proyecto = self._escenario(empresa_user, desarrollador_user, vacantes=2)
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='en_negociacion',
+        )
+        dev2 = User.objects.create_user(
+            username='dev2_neg', email='dev2_neg@test.teir',
+            nombre='Dev 2 Neg', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        post2 = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, estado='pendiente',
+        )
+
+        res = auth_client.post(reverse('aceptar_postulacion', args=[post2.id]), follow=True)
+        assert res.status_code == 200
+        post2.refresh_from_db()
+        assert post2.estado == 'pendiente'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        assert any('vacantes' in str(m).lower() for m in res.context['messages'])
+
+
 class TestVerPostulacionesEmpresaFiltros:
     """SCRUM-146 (HU-E08): filtros por habilidades, programa y ficha."""
 

@@ -5,6 +5,7 @@ from proyectos.models import Proyecto
 class Postulacion(models.Model):
     ESTADO = [
         ('pendiente', 'Pendiente'),
+        ('en_negociacion', 'En Negociación'),
         ('aceptada', 'Aceptada'),
         ('rechazada', 'Rechazada'),
     ]
@@ -13,6 +14,7 @@ class Postulacion(models.Model):
     mensaje = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=25, choices=ESTADO, default='pendiente')
     fecha = models.DateTimeField(auto_now_add=True)
+    fecha_limite_negociacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'postulaciones'
