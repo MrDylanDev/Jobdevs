@@ -4,8 +4,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
@@ -145,3 +147,70 @@ def solicitar_verificacion_empresa(request):
         'tipos_persona': PerfilEmpresa.TIPO_PERSONA_CHOICES,
         'tipos_documento': PerfilEmpresa.TIPO_DOCUMENTO_CHOICES,
     })
+
+
+@login_required
+@require_POST
+def admin_resolver_verificacion_empresa(request, perfil_id):
+    """Aprueba o rechaza una solicitud de verificación de empresa (solo administrador)."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=verificacionEmpresasSection')
+    accion = request.POST.get('accion', '').strip()
+    notas = request.POST.get('notas', '').strip()
+
+    if accion not in ('aprobar', 'rechazar'):
+        messages.error(request, 'Acción de verificación no válida.')
+        return destino
+    if accion == 'rechazar' and not notas:
+        messages.error(request, 'Debes indicar el motivo del rechazo.')
+        return destino
+
+    with transaction.atomic():
+        perfil = get_object_or_404(
+            PerfilEmpresa.objects.select_for_update().select_related('usuario'),
+            id=perfil_id,
+        )
+        if perfil.estado_verificacion != 'en_revision':
+            messages.warning(request, 'Esta solicitud ya no está en revisión.')
+            return destino
+
+        nombre = perfil.razon_social or perfil.usuario.nombre
+        perfil.fecha_verificacion = timezone.now()
+        perfil.verificado_por = request.user
+        perfil.notas_auditoria = notas or None
+
+        if accion == 'aprobar':
+            perfil.estado_verificacion = 'verificada'
+            accion_log = f'Aprobó la verificación de la empresa {nombre} ({perfil.documento_completo})'
+            mensaje = (
+                f'Tu empresa {nombre} fue verificada. '
+                'Ya cuentas con la insignia de empresa verificada.'
+            )
+            if notas:
+                mensaje += f' Observaciones: {notas}'
+            messages.success(request, f'Empresa {nombre} verificada correctamente.')
+        else:
+            perfil.estado_verificacion = 'rechazada'
+            accion_log = f'Rechazó la verificación de la empresa {nombre} ({perfil.documento_completo})'
+            mensaje = (
+                f'Tu solicitud de verificación para {nombre} fue rechazada. '
+                f'Motivo: {notas}. Puedes corregir tus datos y enviarla nuevamente.'
+            )
+            messages.info(request, f'Solicitud de {nombre} rechazada.')
+        perfil.save()
+
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=accion_log,
+            tabla_afectada='perfil_empresa',
+            registro_id=perfil.id,
+        )
+        Notificacion.objects.create(
+            usuario=perfil.usuario,
+            tipo='aprobacion' if accion == 'aprobar' else 'alerta',
+            mensaje=mensaje,
+        )
+
+    return destino

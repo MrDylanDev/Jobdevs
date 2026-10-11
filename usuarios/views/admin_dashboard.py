@@ -8,7 +8,7 @@ from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value,
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Usuario
+from ..models import Usuario, PerfilEmpresa
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
@@ -174,7 +174,15 @@ def dashboard_admin(request):
         .order_by('-fecha_creacion')
     )
 
+    empresas_en_revision = list(
+        PerfilEmpresa.objects.filter(estado_verificacion='en_revision')
+        .select_related('usuario')
+        .order_by('fecha_solicitud_verificacion')
+    )
+
     context = {
+        'empresas_en_revision': empresas_en_revision,
+        'total_empresas_en_revision': len(empresas_en_revision),
         'disputas_activas': disputas_activas,
         'total_disputas_activas': len(disputas_activas),
         'categorias_solucion': categorias_solucion,
