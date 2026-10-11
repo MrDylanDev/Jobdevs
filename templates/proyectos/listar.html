@@ -66,10 +66,9 @@
               <label class="form-label">Tipo de Solución</label>
               <select name="tipo" class="form-select">
                   <option value="">Todas las opciones</option>
-                  <option value="sitio_web" {% if request.GET.tipo == 'sitio_web' %}selected{% endif %}>Sitio Web</option>
-                  <option value="aplicacion_movil" {% if request.GET.tipo == 'aplicacion_movil' %}selected{% endif %}>App Móvil</option>
-                  <option value="automatizacion" {% if request.GET.tipo == 'automatizacion' %}selected{% endif %}>Automatización</option>
-                  <option value="sistema_escritorio" {% if request.GET.tipo == 'sistema_escritorio' %}selected{% endif %}>Sistema de Escritorio</option>
+                  {% for c in categorias_solucion %}
+                  <option value="{{ c.slug }}" {% if request.GET.tipo == c.slug %}selected{% endif %}>{{ c.nombre }}</option>
+                  {% endfor %}
               </select>
           </div>
           <div class="filter-group">

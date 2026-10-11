@@ -4,7 +4,7 @@ from django.db.models import Avg, Q, Count, Prefetch
 from ..models import Usuario, PerfilEmpresa
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_id
-from proyectos.models import Proyecto, Valoracion
+from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
 from ._helpers import get_notificaciones_context
@@ -91,6 +91,7 @@ def dashboard_empresa(request):
         'notificaciones': notificaciones_recientes,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'perfil': perfil,
-        'admin_id': admin_id
+        'admin_id': admin_id,
+        'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     }
     return render(request, 'empresa/empresa.html', context)

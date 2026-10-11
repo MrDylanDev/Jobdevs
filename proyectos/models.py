@@ -3,6 +3,23 @@ from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+class CategoriaSolucion(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, default='')
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'categorias_solucion'
+        verbose_name = 'Categoría de Solución'
+        verbose_name_plural = 'Categorías de Solución'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
 class Proyecto(models.Model):
     TIPO_SOLUCION = [
         ('sitio_web', 'Sitio Web'),
@@ -29,6 +46,10 @@ class Proyecto(models.Model):
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
     tipo_solucion = models.CharField(max_length=30, choices=TIPO_SOLUCION)
+    categoria = models.ForeignKey(
+        CategoriaSolucion, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='proyectos',
+    )
     prioridad = models.CharField(max_length=10, choices=PRIORIDAD, default='media')
     vacantes = models.PositiveIntegerField(default=1)
     estado = models.CharField(max_length=25, choices=ESTADO, default='publicado')
@@ -37,6 +58,24 @@ class Proyecto(models.Model):
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
+
+    def save(self, *args, **kwargs):
+        """Mantiene sincronizados `categoria` y `tipo_solucion`."""
+        if self.categoria_id and not self.tipo_solucion:
+            self.tipo_solucion = self.categoria.slug
+        elif self.tipo_solucion and not self.categoria_id:
+            categoria = CategoriaSolucion.objects.filter(slug=self.tipo_solucion).first()
+            if categoria:
+                self.categoria = categoria
+        super().save(*args, **kwargs)
+
+    def get_tipo_solucion_display(self):
+        if self.categoria_id:
+            return self.categoria.nombre
+        categoria = CategoriaSolucion.objects.filter(slug=self.tipo_solucion).first()
+        if categoria:
+            return categoria.nombre
+        return dict(self.TIPO_SOLUCION).get(self.tipo_solucion, self.tipo_solucion)
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):
         """Registra una entrada en el historial de estados."""

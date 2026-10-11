@@ -11,7 +11,7 @@ from datetime import timedelta
 from ..models import Usuario
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids
-from proyectos.models import Proyecto, Valoracion
+from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
@@ -163,7 +163,12 @@ def dashboard_admin(request):
 
     notificaciones_admin, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
 
+    categorias_solucion = CategoriaSolucion.objects.annotate(
+        proyectos_count=Count('proyectos')
+    ).order_by('nombre')
+
     context = {
+        'categorias_solucion': categorias_solucion,
         'total_usuarios': total_usuarios, 'total_proyectos': total_proyectos,
         'total_devs': total_devs, 'total_empresas': total_empresas,
         'p_pub': p_pub, 'p_des': p_des, 'p_fin': p_fin,
