@@ -896,7 +896,7 @@
                 <td>{{ e.razon_social|default:"—" }}</td>
                 <td>
                   {% if e.documento_soporte %}
-                  <a href="{{ e.documento_soporte.url }}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver PDF</a>
+                  <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver PDF</a>
                   {% else %}Sin documento{% endif %}
                 </td>
                 <td>
@@ -908,7 +908,7 @@
                   <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="rechazar">
-                    <textarea name="notas" required rows="2" placeholder="Motivo del rechazo" style="width:100%;margin-bottom:4px;"></textarea>
+                    <textarea name="notas" required rows="2" aria-label="Motivo del rechazo de verificación" placeholder="Motivo del rechazo" style="width:100%;margin-bottom:4px;"></textarea>
                     <button type="submit" class="btn btn-danger">Rechazar</button>
                   </form>
                 </td>

@@ -8,6 +8,11 @@ from proyectos.models import Proyecto
 from usuarios.models import PerfilEmpresa, Usuario
 
 
+@pytest.fixture(autouse=True)
+def tmp_media(tmp_path, settings):
+    settings.MEDIA_ROOT = tmp_path
+
+
 @pytest.mark.django_db
 class TestWorkflowCompletoVerificacionEmpresa:
     """Valida el ciclo de vida completo de verificación de identidad empresarial."""
@@ -125,7 +130,8 @@ class TestWorkflowCompletoVerificacionEmpresa:
         assert perfil.estado_verificacion == "en_revision"
         assert perfil.tipo_persona == "natural"
         assert perfil.tipo_documento == "CC"
-        assert perfil.digito_verificacion is not None
+        assert perfil.digito_verificacion is None
+        assert perfil.documento_completo == "1020304050"
 
         # Admin aprueba
         client.force_login(admin_user)

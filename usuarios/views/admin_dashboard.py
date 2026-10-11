@@ -174,15 +174,18 @@ def dashboard_admin(request):
         .order_by('-fecha_creacion')
     )
 
+    total_empresas_en_revision = PerfilEmpresa.objects.filter(
+        estado_verificacion='en_revision'
+    ).count()
     empresas_en_revision = list(
         PerfilEmpresa.objects.filter(estado_verificacion='en_revision')
         .select_related('usuario')
-        .order_by('fecha_solicitud_verificacion')
+        .order_by('fecha_solicitud_verificacion')[:50]
     )
 
     context = {
         'empresas_en_revision': empresas_en_revision,
-        'total_empresas_en_revision': len(empresas_en_revision),
+        'total_empresas_en_revision': total_empresas_en_revision,
         'disputas_activas': disputas_activas,
         'total_disputas_activas': len(disputas_activas),
         'categorias_solucion': categorias_solucion,

@@ -38,8 +38,15 @@
     </div>
   {% else %}
     {% if perfil.estado_verificacion == 'en_revision' %}
-      <div class="alert alert-info">
-        Tu solicitud está en revisión. Un administrador validará tus documentos; puedes actualizarla enviando el formulario de nuevo.
+      <div class="card border-warning">
+        <div class="card-body">
+          <h2 class="h5 text-warning-emphasis"><i class="fa fa-hourglass-half me-2"></i>Solicitud en revisión</h2>
+          <p class="mb-1">Tu solicitud ya se encuentra en revisión por el equipo del SENA. No es posible modificarla hasta obtener una respuesta.</p>
+          <p class="mb-1 text-muted">Documento: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</p>
+          {% if perfil.documento_soporte %}
+            <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver documento enviado</a>
+          {% endif %}
+        </div>
       </div>
     {% elif perfil.estado_verificacion == 'rechazada' %}
       <div class="alert alert-danger">
@@ -53,6 +60,7 @@
       </div>
     {% endif %}
 
+    {% if perfil.estado_verificacion != 'en_revision' %}
     {% if errores %}
       <div class="alert alert-danger" role="alert">Revisa los campos marcados: la solicitud no fue enviada.</div>
     {% endif %}
@@ -117,6 +125,23 @@
         <button type="submit" class="btn btn-primary">Enviar solicitud</button>
       </div>
     </form>
+    {% endif %}
   {% endif %}
 </div>
+<script>
+  (function () {
+    var persona = document.getElementById('tipo_persona');
+    var documento = document.getElementById('tipo_documento');
+    if (!persona || !documento) return;
+    function sync() {
+      var juridica = persona.value === 'juridica';
+      if (juridica) documento.value = 'NIT';
+      Array.prototype.forEach.call(documento.options, function (o) {
+        o.disabled = juridica && o.value !== 'NIT';
+      });
+    }
+    persona.addEventListener('change', sync);
+    sync();
+  })();
+</script>
 {% endblock %}

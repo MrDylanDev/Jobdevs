@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -33,13 +34,19 @@ def _validar_solicitud(request, perfil):
     if tipo_documento not in tipos_documento:
         errores['tipo_documento'] = 'Selecciona un tipo de documento válido.'
 
+    if tipo_persona == 'juridica' and tipo_documento != 'NIT' and 'tipo_documento' not in errores:
+        errores['tipo_documento'] = 'Las personas jurídicas deben identificarse con NIT.'
+
     numero = limpiar_documento(request.POST.get('numero_documento', ''))
     dv = None
     if not numero:
         errores['numero_documento'] = 'El número de documento es obligatorio.'
     else:
         try:
-            dv = calcular_dv_dian(numero)
+            # El DV DIAN solo aplica a NIT; para CC/CE solo se valida el formato.
+            calculado = calcular_dv_dian(numero)
+            if tipo_documento == 'NIT':
+                dv = calculado
         except ValueError as exc:
             mensaje = str(exc)
             if 'dígitos' in mensaje and 'más de' not in mensaje:
@@ -62,6 +69,11 @@ def _validar_solicitud(request, perfil):
         errores['documento_soporte'] = 'El documento de soporte debe ser un archivo PDF.'
     elif archivo.size > MAX_SOPORTE_BYTES:
         errores['documento_soporte'] = 'El documento de soporte no puede superar los 5 MB.'
+    else:
+        cabecera = archivo.read(1024)
+        archivo.seek(0)
+        if not cabecera.startswith(b'%PDF-'):
+            errores['documento_soporte'] = 'El archivo debe ser un documento PDF válido.'
 
     datos = {
         'tipo_persona': tipo_persona,
@@ -86,6 +98,13 @@ def solicitar_verificacion_empresa(request):
         if perfil.estado_verificacion == 'verificada':
             messages.info(request, 'Tu empresa ya está verificada.')
             return redirect('solicitar_verificacion_empresa')
+        if perfil.estado_verificacion == 'en_revision':
+            messages.warning(
+                request,
+                'Tu solicitud ya se encuentra en revisión por el equipo del SENA. '
+                'No es posible modificarla hasta obtener una respuesta.',
+            )
+            return redirect('solicitar_verificacion_empresa')
 
         datos, errores = _validar_solicitud(request, perfil)
         if not errores:
@@ -93,7 +112,8 @@ def solicitar_verificacion_empresa(request):
                 perfil.tipo_persona = datos['tipo_persona']
                 perfil.tipo_documento = datos['tipo_documento']
                 perfil.numero_documento = datos['numero_documento']
-                perfil.digito_verificacion = str(datos['digito_verificacion'])
+                dv = datos['digito_verificacion']
+                perfil.digito_verificacion = str(dv) if datos['tipo_documento'] == 'NIT' and dv is not None else None
                 perfil.razon_social = datos['razon_social']
                 if datos['documento_soporte'] is not None:
                     perfil.documento_soporte = datos['documento_soporte']
@@ -103,7 +123,7 @@ def solicitar_verificacion_empresa(request):
 
                 LogAuditoria.objects.create(
                     usuario=request.user,
-                    accion=f'Solicitud de verificación de empresa ({perfil.documento_completo})',
+                    accion=f'Solicitud de verificación de empresa ({perfil.documento_completo})'[:300],
                     tabla_afectada='perfil_empresa',
                     registro_id=perfil.id,
                 )
@@ -203,7 +223,7 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
 
         LogAuditoria.objects.create(
             usuario=request.user,
-            accion=accion_log,
+            accion=accion_log[:300],
             tabla_afectada='perfil_empresa',
             registro_id=perfil.id,
         )
@@ -214,3 +234,18 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
         )
 
     return destino
+
+
+@login_required
+def descargar_documento_soporte_empresa(request, perfil_id):
+    """Sirve el documento de soporte (privado) al administrador o a la empresa dueña."""
+    perfil = get_object_or_404(PerfilEmpresa, id=perfil_id)
+    if request.user.rol != 'administrador' and request.user.pk != perfil.usuario_id:
+        raise PermissionDenied
+    if not perfil.documento_soporte:
+        raise Http404('Documento no disponible.')
+    try:
+        archivo = perfil.documento_soporte.open('rb')
+    except FileNotFoundError:
+        raise Http404('Documento no disponible.')
+    return FileResponse(archivo, content_type='application/pdf')

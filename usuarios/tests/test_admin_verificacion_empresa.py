@@ -165,7 +165,10 @@ def test_dashboard_renderiza_panel_verificacion(admin_client, perfil):
     assert 'Verificación de Empresas' in html
     assert 'Acme S.A.S.' in html
     assert '900123456-7' in html
-    assert perfil.documento_soporte.url in html
+    doc_url = reverse('descargar_documento_soporte_empresa', args=[perfil.id])
+    assert doc_url in html
+    assert perfil.documento_soporte.url not in html
+    assert 'aria-label="Motivo del rechazo de verificación"' in html
     assert _url(perfil) in html
     assert 'value="aprobar"' in html
     assert 'value="rechazar"' in html
@@ -177,3 +180,61 @@ def test_dashboard_sin_documento_no_muestra_enlace(admin_client, perfil):
     html = admin_client.get(reverse('dashboard_admin')).content.decode()
     assert 'Acme S.A.S.' in html
     assert 'verificaciones/empresas/rut.pdf' not in html
+
+
+def test_dashboard_limita_a_50_y_cuenta_total(admin_client, perfil):
+    from usuarios.models import Usuario
+    for i in range(55):
+        u = Usuario.objects.create_user(
+            username=f'emp_extra_{i}', email=f'extra{i}@test.teir', nombre=f'Extra {i}',
+            rol='empresa', estado='activo', password='x',
+        )
+        PerfilEmpresa.objects.create(
+            usuario=u, razon_social=f'Extra {i}', estado_verificacion='en_revision',
+            fecha_solicitud_verificacion=timezone.now(),
+        )
+    response = admin_client.get(reverse('dashboard_admin'))
+    assert response.context['total_empresas_en_revision'] == 56
+    assert len(response.context['empresas_en_revision']) == 50
+
+
+# ── Descarga privada del documento de soporte ───────────────────────────────
+
+def _doc_url(perfil):
+    return reverse('descargar_documento_soporte_empresa', args=[perfil.id])
+
+
+@pytest.fixture
+def perfil_con_archivo(perfil, settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    from django.core.files.base import ContentFile
+    perfil.documento_soporte.save('rut.pdf', ContentFile(b'%PDF-1.4 secreto'), save=True)
+    return perfil
+
+
+def test_descarga_documento_anonimo_redirige_a_login(client, perfil_con_archivo):
+    response = client.get(_doc_url(perfil_con_archivo))
+    assert response.status_code == 302
+    assert reverse('login') in response.url
+
+
+def test_descarga_documento_admin_ok(admin_client, perfil_con_archivo):
+    response = admin_client.get(_doc_url(perfil_con_archivo))
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/pdf'
+    assert b''.join(response.streaming_content) == b'%PDF-1.4 secreto'
+
+
+def test_descarga_documento_empresa_duena_ok(client, perfil_con_archivo, empresa_user):
+    client.force_login(empresa_user)
+    assert client.get(_doc_url(perfil_con_archivo)).status_code == 200
+
+
+def test_descarga_documento_otro_usuario_403(dev_client, perfil_con_archivo):
+    assert dev_client.get(_doc_url(perfil_con_archivo)).status_code == 403
+
+
+def test_descarga_documento_sin_archivo_404(admin_client, perfil):
+    perfil.documento_soporte = ''
+    perfil.save()
+    assert admin_client.get(_doc_url(perfil)).status_code == 404

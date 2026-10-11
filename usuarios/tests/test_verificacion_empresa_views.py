@@ -135,13 +135,20 @@ def test_post_exitoso_notifica_a_todos_los_administradores(auth_client, perfil, 
     assert not Notificacion.objects.filter(usuario=perfil.usuario).exists()
 
 
-def test_post_con_cc_calcula_dv(auth_client, perfil):
+def test_post_con_cc_no_guarda_dv(auth_client, perfil):
     auth_client.post(reverse(URL_NAME), _payload(
         tipo_persona='natural', tipo_documento='CC', numero_documento='1234567890',
     ))
     perfil.refresh_from_db()
     assert perfil.numero_documento == '1234567890'
-    assert perfil.digito_verificacion == str(calcular_dv_dian('1234567890'))
+    assert perfil.digito_verificacion is None
+    assert perfil.documento_completo == '1234567890'
+
+
+def test_post_con_nit_guarda_dv(auth_client, perfil):
+    auth_client.post(reverse(URL_NAME), _payload())
+    perfil.refresh_from_db()
+    assert perfil.digito_verificacion == str(calcular_dv_dian(NIT))
 
 
 # --- POST inválido ---
@@ -208,3 +215,43 @@ def test_reenvio_tras_rechazo_vuelve_a_en_revision(auth_client, perfil):
     assert perfil.estado_verificacion == 'en_revision'
     assert perfil.numero_documento == NIT
     assert perfil.fecha_solicitud_verificacion is not None
+
+
+def test_archivo_pdf_falso_por_contenido_es_rechazado(auth_client, perfil):
+    falso = SimpleUploadedFile('rut.pdf', b'MZ no soy un pdf', content_type='application/pdf')
+    response = auth_client.post(reverse(URL_NAME), _payload(documento_soporte=falso))
+    assert response.status_code == 200
+    assert 'El archivo debe ser un documento PDF válido.' in response.content.decode()
+    _assert_sin_cambios(perfil)
+
+
+def test_juridica_con_cc_es_rechazada(auth_client, perfil):
+    response = auth_client.post(reverse(URL_NAME), _payload(tipo_documento='CC'))
+    assert response.status_code == 200
+    assert 'Las personas jurídicas deben identificarse con NIT.' in response.content.decode()
+    _assert_sin_cambios(perfil)
+
+
+def test_en_revision_bloquea_post(auth_client, perfil):
+    perfil.estado_verificacion = 'en_revision'
+    perfil.razon_social = 'Original'
+    perfil.save()
+    response = auth_client.post(reverse(URL_NAME), _payload(razon_social='Cambiada'))
+    assert response.status_code == 302
+    assert any('ya se encuentra en revisión' in m for m in _messages(response))
+    perfil.refresh_from_db()
+    assert perfil.razon_social == 'Original'
+    assert perfil.estado_verificacion == 'en_revision'
+
+
+def test_en_revision_oculta_formulario(auth_client, perfil):
+    perfil.estado_verificacion = 'en_revision'
+    perfil.save()
+    html = auth_client.get(reverse(URL_NAME)).content.decode()
+    assert 'name="documento_soporte"' not in html
+    assert 'ya se encuentra en revisión' in html
+
+
+def test_accion_log_se_trunca_a_300(auth_client, perfil):
+    auth_client.post(reverse(URL_NAME), _payload(numero_documento=NIT))
+    assert all(len(l.accion) <= 300 for l in LogAuditoria.objects.all())
