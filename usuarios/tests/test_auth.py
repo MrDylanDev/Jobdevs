@@ -89,6 +89,34 @@ class TestLoginView:
         assert not any('suspendida' in m.lower() for m in messages)
         assert any('incorrectos' in m.lower() for m in messages)
 
+    def test_suspended_user_session_restoration_rejected(self, client, empresa_user):
+        """If a logged in user becomes suspended, session restoration must reject them on protected views."""
+        client.force_login(empresa_user)
+        res1 = client.get(reverse('dashboard_empresa'))
+        assert res1.status_code == 200
+
+        empresa_user.is_active = False
+        empresa_user.estado = 'suspendido'
+        empresa_user.save(update_fields=['is_active', 'estado'])
+
+        res2 = client.get(reverse('dashboard_empresa'))
+        assert res2.status_code == 302
+
+    def test_backend_get_user_rejects_inactive_user(self, db):
+        """UsuarioAuthBackend.get_user must return None for inactive or suspended users."""
+        from usuarios.backends import UsuarioAuthBackend
+        backend = UsuarioAuthBackend()
+        user = User.objects.create_user(
+            username='inactive_sess',
+            email='inactive_sess@test.teir',
+            nombre='Inactive Sess',
+            rol='desarrollador',
+            estado='suspendido',
+            is_active=False,
+            password='TestPass123!',
+        )
+        assert backend.get_user(user.id) is None
+
     def test_login_automatic_role_routing_ignores_extra_role_param(self, client, empresa_user):
         """Even if legacy client sends rol_seleccionado='desarrollador', user lands on their real role dashboard."""
         response = client.post(reverse('login'), {
