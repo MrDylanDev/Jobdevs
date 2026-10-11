@@ -54,6 +54,41 @@ class TestLoginView:
         assert response.status_code == 302
         assert response.url == reverse('inicio')
 
+    def test_login_wrong_password_message_identical_for_existing_and_nonexistent(self, client, empresa_user):
+        """Failed attempt on existing vs nonexistent user must return identical message text (anti-enumeration)."""
+        res_existing = client.post(reverse('login'), {
+            'username': 'empresa_test',
+            'password': 'WrongPassword!',
+        }, follow=True)
+        msg_existing = [m.message for m in res_existing.context['messages']]
+
+        res_nonexistent = client.post(reverse('login'), {
+            'username': 'no_existe_usuario',
+            'password': 'WrongPassword!',
+        }, follow=True)
+        msg_nonexistent = [m.message for m in res_nonexistent.context['messages']]
+
+        assert msg_existing == msg_nonexistent == ["Usuario o contraseña incorrectos."]
+
+    def test_login_lockout_threshold_does_not_reveal_status(self, client, empresa_user):
+        """Reaching 5 failed attempts locks out account but returns identical generic error (anti-enumeration)."""
+        empresa_user.intentos_fallidos = 4
+        empresa_user.save(update_fields=['intentos_fallidos'])
+
+        response = client.post(reverse('login'), {
+            'username': 'empresa_test',
+            'password': 'WrongPassword!',
+        }, follow=True)
+
+        empresa_user.refresh_from_db()
+        assert empresa_user.intentos_fallidos == 5
+        assert empresa_user.estado == 'suspendido'
+        assert not empresa_user.is_active
+
+        messages = [m.message for m in response.context['messages']]
+        assert not any('suspendida' in m.lower() for m in messages)
+        assert any('incorrectos' in m.lower() for m in messages)
+
     def test_login_automatic_role_routing_ignores_extra_role_param(self, client, empresa_user):
         """Even if legacy client sends rol_seleccionado='desarrollador', user lands on their real role dashboard."""
         response = client.post(reverse('login'), {

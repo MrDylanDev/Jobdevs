@@ -86,6 +86,10 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'usuarios.backends.UsuarioAuthBackend',
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'usuarios.validators.ComplexPasswordValidator'},
 ]

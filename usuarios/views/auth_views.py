@@ -49,33 +49,21 @@ def login_view(request):
                 return redirect('dashboard_empresa')
             return redirect('dashboard_desarrollador')            
         
-        # 2. Si authenticate() retornó None:
-        # Puede deberse a credenciales incorrectas, usuario inexistente, o usuario inactivo
-        # (ModelBackend retorna None cuando is_active=False).
+        # 2. Credenciales inválidas (usuario no existe o contraseña incorrecta).
+        # authenticate() ejecutó exactamente un ciclo criptográfico (hasher real o dummy).
+        # Si el usuario existe en DB, incrementamos intentos fallidos y bloqueamos al llegar a 5,
+        # pero NUNCA exponemos la existencia de la cuenta ni el conteo en el mensaje de error.
         user_to_check = Usuario.objects.filter(username=username).first()
         if user_to_check:
-            # Si el usuario está inactivo/suspendido y proveyó la contraseña correcta:
-            if (user_to_check.estado in ['suspendido', 'inactivo'] or not user_to_check.is_active) and user_to_check.check_password(password):
-                messages.error(
-                    request,
-                    "Tu cuenta ha sido suspendida o está inactiva. Por favor, comunícate con el administrador para más información."
-                )
-                return redirect('inicio')
-
-            # Manejo de intentos fallidos por contraseña errónea
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
                 user_to_check.estado = 'suspendido'
-                user_to_check.is_active = False  # Bloquear a nivel Django, no solo chequeo manual
+                user_to_check.is_active = False  # Bloquear a nivel Django
                 user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active'])
-                messages.error(request, "Tu cuenta ha sido suspendida por exceso de intentos fallidos. Contacta a soporte.")
             else:
                 user_to_check.save(update_fields=['intentos_fallidos'])
-                messages.error(request, f"Usuario o contraseña incorrectos. Intento {user_to_check.intentos_fallidos} de 5.")
-        else:
-            # Error genérico para usuarios que no existen
-            messages.error(request, "Usuario o contraseña incorrectos.")
-            
+
+        messages.error(request, "Usuario o contraseña incorrectos.")
         return redirect('inicio')
             
     # Si viene del admin, mostrar login estilo admin
