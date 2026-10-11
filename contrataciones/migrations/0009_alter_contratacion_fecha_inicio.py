@@ -4,6 +4,18 @@ import django.utils.timezone
 from django.db import migrations, models
 
 
+def backfill_fecha_inicio(apps, schema_editor):
+    Contratacion = apps.get_model('contrataciones', 'Contratacion')
+    # Para cualquier fila con fecha_inicio NULL, backfillear con la fecha de publicación del proyecto
+    # o timezone.now si no estuviese disponible, evitando distorsionar cálculos de vencimiento.
+    for contrato in Contratacion.objects.filter(fecha_inicio__isnull=True).select_related('proyecto'):
+        if contrato.proyecto and getattr(contrato.proyecto, 'fecha_publicacion', None):
+            contrato.fecha_inicio = contrato.proyecto.fecha_publicacion.date()
+        else:
+            contrato.fecha_inicio = django.utils.timezone.now().date()
+        contrato.save(update_fields=['fecha_inicio'])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,6 +23,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(backfill_fecha_inicio, migrations.RunPython.noop),
         migrations.AlterField(
             model_name='contratacion',
             name='fecha_inicio',

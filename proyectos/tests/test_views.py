@@ -44,6 +44,9 @@ class TestListarProyectos:
 
     def test_desarrollador_excludes_already_applied_projects(self, dev_client, desarrollador_user, empresa_user):
         """Desarrollador should not see projects they have already applied to (filtered at SQL level)."""
+        from django.test.utils import CaptureQueriesContext
+        from django.db import connection
+
         p_aplicado = Proyecto.objects.create(
             empresa=empresa_user, titulo='Proyecto Ya Aplicado', descripcion='Desc',
             tipo_solucion='sitio_web', estado='publicado',
@@ -56,11 +59,18 @@ class TestListarProyectos:
             proyecto=p_aplicado, desarrollador=desarrollador_user,
             mensaje='Propuesta', estado='pendiente',
         )
-        response = dev_client.get(reverse('listar_proyectos'))
+
+        with CaptureQueriesContext(connection) as captured_queries:
+            response = dev_client.get(reverse('listar_proyectos'))
+
         assert response.status_code == 200
         proyectos_ids = [p['id'] for p in response.context['proyectos']]
         assert p_aplicado.id not in proyectos_ids
         assert p_disponible.id in proyectos_ids
+
+        # Assert that SQL contains the exclusion condition directly
+        sql_statements = [q['sql'] for q in captured_queries]
+        assert any(('NOT' in q or 'NOT IN' in q) and 'proyectos' in q for q in sql_statements)
 
 
 class TestCrearProyecto:

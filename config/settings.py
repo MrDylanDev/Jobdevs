@@ -86,6 +86,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'teir_cache_table',
+    }
+}
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'usuarios.validators.ComplexPasswordValidator'},
 ]
