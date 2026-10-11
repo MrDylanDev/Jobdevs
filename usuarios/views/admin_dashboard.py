@@ -210,6 +210,8 @@ def admin_toggle_usuario(request, usuario_id):
     else:
         user.estado = 'activo'
         user.is_active = True
+        user.intentos_fallidos = 0
+        user.bloqueado_por_intentos = False
         
     user.save()
     LogAuditoria.objects.create(

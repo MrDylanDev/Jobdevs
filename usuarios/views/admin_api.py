@@ -153,7 +153,7 @@ def api_bulk_toggle(request):
         return JsonResponse({'error': 'Parámetros inválidos.'}, status=400)
 
     if action == 'activate':
-        Usuario.objects.filter(id__in=ids).update(estado='activo', is_active=True)
+        Usuario.objects.filter(id__in=ids).update(estado='activo', is_active=True, intentos_fallidos=0, bloqueado_por_intentos=False)
     else:
         Usuario.objects.filter(id__in=ids).exclude(id=request.user.id).update(estado='suspendido', is_active=False)
 

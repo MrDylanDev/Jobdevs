@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
@@ -31,16 +34,22 @@ def login_view(request):
                 return redirect('inicio')
 
             # Login exitoso: Resetear intentos fallidos si tenía alguno
-            if user.intentos_fallidos > 0:
+            if user.intentos_fallidos > 0 or getattr(user, 'bloqueado_por_intentos', False):
                 user.intentos_fallidos = 0
-                user.save(update_fields=['intentos_fallidos'])
+                user.bloqueado_por_intentos = False
+                user.save(update_fields=['intentos_fallidos', 'bloqueado_por_intentos'])
 
             login(request, user)
 
-            # Si hay next y es admin, redirigir ahí
+            # Si hay next y es admin, redirigir solo si el host/esquema es seguro y permitido
             next_url = request.POST.get('next', '')
             if next_url and user.rol == 'administrador':
-                return redirect(next_url)
+                if url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    return redirect(next_url)
 
             # Redirección automática según el rol del usuario autenticado
             if user.rol == 'administrador':
@@ -57,9 +66,12 @@ def login_view(request):
         if user_to_check:
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
+                # Solo marcar bloqueado_por_intentos si la cuenta no estaba ya suspendida administrativamente
+                if user_to_check.estado not in ('suspendido', 'inactivo'):
+                    user_to_check.bloqueado_por_intentos = True
                 user_to_check.estado = 'suspendido'
                 user_to_check.is_active = False  # Bloquear a nivel Django
-                user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active'])
+                user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active', 'bloqueado_por_intentos'])
             else:
                 user_to_check.save(update_fields=['intentos_fallidos'])
 
@@ -138,18 +150,28 @@ def restablecer_view(request, token):
             if len(password) < 8:
                 messages.error(request, "La contraseña debe tener al menos 8 caracteres.")
                 return render(request, 'publico/restablecercon.html', {'token': token})
-                
+
+            # Validar complejidad con los validadores oficiales de Django
+            try:
+                validate_password(password, user=usuario)
+            except ValidationError as e:
+                for error in e.messages:
+                    messages.error(request, error)
+                return render(request, 'publico/restablecercon.html', {'token': token})
+
             # Actualizar contraseña e invalidar token
             usuario.set_password(password)
             usuario.token_recuperacion = None
             usuario.token_expiracion = None
-            # Resetear intentos fallidos por si estaba bloqueado temporalmente por contraseña incorrecta
-            usuario.intentos_fallidos = 0
-            if usuario.estado == 'suspendido' and not usuario.is_active:
-                # Si estaba suspendido por intentos, se reactiva
+
+            # Solo reactivar si la cuenta estaba bloqueada por exceso de intentos fallidos.
+            # Las suspensiones administrativas tienen bloqueado_por_intentos=False y se preservan.
+            if getattr(usuario, 'bloqueado_por_intentos', False):
+                usuario.bloqueado_por_intentos = False
                 usuario.estado = 'activo'
                 usuario.is_active = True
-                
+
+            usuario.intentos_fallidos = 0
             usuario.save()
             
             messages.success(request, "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.")
