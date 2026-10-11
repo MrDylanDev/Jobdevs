@@ -1,6 +1,18 @@
 """Utilidades DIAN: cálculo y validación del Dígito de Verificación (DV).
 
-Implementa el algoritmo oficial Módulo 11 de la DIAN para NIT y cédulas.
+Implementa el algoritmo oficial Módulo 11 de la DIAN para NIT y cédulas
+en Colombia.
+
+Marco normativo y fuentes técnicas:
+- Estatuto Tributario Nacional, Arts. 555-1 y 555-2.
+- Decreto 2460 de 2013 (art. 19), compilado en el Decreto Único
+  Reglamentario 1625 de 2016 (art. 1.6.1.2.21).
+  https://normograma.dian.gov.co/dian/compilacion/docs/decreto_2460_2013.htm
+- Concepto Tributario DIAN 35986 de 1997 (Naturaleza del DV).
+  https://normograma.dian.gov.co/dian/compilacion/docs/concepto_tributario_dian_0035986_1997.htm
+- Especificación algorítmica: factores primos ponderados Módulo 11:
+  https://www.consultorcontable.com/digito-de-verificacion-de-nit/
+  https://www.gerencie.com/digito-de-verificacion-del-nit.html
 """
 
 # Factores oficiales DIAN; se aplican de derecha a izquierda sobre el número.
