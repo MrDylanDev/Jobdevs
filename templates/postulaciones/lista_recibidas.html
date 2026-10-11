@@ -158,16 +158,35 @@
               </div>
               
               <div style="display: flex; flex-direction: column; gap: 10px; min-width: 160px;">
-                  {% if proyecto.estado == 'publicado' %}
+                  {% if post.estado == 'en_negociacion' %}
+                      <span class="badge badge-info" style="justify-content: center;"><i class="fa fa-handshake"></i>&nbsp;En Negociación</span>
+                      {% if post.fecha_limite_negociacion %}
+                        <div style="font-size: 11px; color: var(--text-muted); text-align: center;">Vence el {{ post.fecha_limite_negociacion|date:"d M Y" }}</div>
+                      {% endif %}
+                      {% if post.contrato_id %}
+                        <a href="{% url 'ver_contrato_digital' post.contrato_id %}" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                            <i class="fa fa-file-signature"></i> Ver Contrato
+                        </a>
+                      {% endif %}
+                      <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                          <i class="fa fa-message"></i> Ir al Chat
+                      </a>
+                  {% elif proyecto.estado == 'publicado' %}
+                      <form method="post" action="{% url 'iniciar_negociacion' post.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
+                              <i class="fa fa-handshake"></i> Iniciar Negociación
+                          </button>
+                      </form>
                       <form method="post" action="{% url 'aceptar_postulacion' post.id %}">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 10px;">
                               <i class="fa fa-check"></i> Contratar
                           </button>
                       </form>
-                      <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="alert('Se abrirá el chat con el talento')">
+                      <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
                           <i class="fa fa-message"></i> Mensaje Privado
-                      </button>
+                      </a>
                   {% else %}
                       <span class="badge badge-gray" style="justify-content: center;">Proyecto cerrado</span>
                   {% endif %}

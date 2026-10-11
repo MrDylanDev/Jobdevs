@@ -407,3 +407,106 @@ class TestVerPostulacionesEmpresaFiltros:
             {'programa': 'ADSO'},
         )
         assert res.status_code == 404
+
+
+class TestIniciarNegociacion:
+    """SCRUM-149: la empresa inicia negociación y se crea el contrato digital borrador."""
+
+    @pytest.fixture
+    def escenario(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Negociar', descripcion='DN',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+        return proyecto, post
+
+    def test_inicia_negociacion_crea_contrato_notifica_y_redirige_al_chat(
+            self, auth_client, escenario, desarrollador_user):
+        from django.utils import timezone
+        from contrataciones.models import ContratoDigital
+        from logs.models import LogAuditoria
+        from notificaciones.models import Notificacion
+        proyecto, post = escenario
+
+        antes = timezone.now()
+        res = auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
+
+        assert res.status_code == 302
+        assert res.url == reverse('sala_chat', args=[desarrollador_user.id, proyecto.id])
+        post.refresh_from_db()
+        assert post.estado == 'en_negociacion'
+        delta = post.fecha_limite_negociacion - antes
+        assert 6 < delta.days + delta.seconds / 86400 <= 7.01
+        contrato = ContratoDigital.objects.get(postulacion=post)
+        assert contrato.estado == 'borrador'
+        assert Notificacion.objects.filter(usuario=desarrollador_user, proyecto=proyecto).exists()
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='postulaciones', registro_id=post.id,
+            accion__contains='negociación').exists()
+
+    def test_requiere_post(self, auth_client, escenario):
+        _, post = escenario
+        assert auth_client.get(reverse('iniciar_negociacion', args=[post.id])).status_code == 405
+
+    def test_dev_no_puede_iniciar_negociacion(self, dev_client, escenario):
+        _, post = escenario
+        dev_client.post(reverse('iniciar_negociacion', args=[post.id]))
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+
+    def test_otra_empresa_recibe_404(self, client, escenario):
+        _, post = escenario
+        User.objects.create_user(
+            username='otra_emp', email='otra_emp@test.teir', nombre='Otra',
+            rol='empresa', estado='activo', password='TestPass123!',
+        )
+        client.login(username='otra_emp', password='TestPass123!')
+        res = client.post(reverse('iniciar_negociacion', args=[post.id]))
+        assert res.status_code == 404
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+
+    def test_solo_desde_pendiente(self, auth_client, escenario):
+        from contrataciones.models import ContratoDigital
+        _, post = escenario
+        post.estado = 'rechazada'
+        post.save()
+        auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
+        post.refresh_from_db()
+        assert post.estado == 'rechazada'
+        assert not ContratoDigital.objects.filter(postulacion=post).exists()
+
+    def test_bloquea_si_no_hay_cupo(self, auth_client, escenario):
+        from contrataciones.models import ContratoDigital
+        proyecto, post = escenario
+        dev2 = User.objects.create_user(
+            username='dev_neg2', email='dev_neg2@test.teir', nombre='Dev N2',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        Postulacion.objects.create(proyecto=proyecto, desarrollador=dev2, estado='en_negociacion')
+
+        res = auth_client.post(reverse('iniciar_negociacion', args=[post.id]), follow=True)
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+        assert not ContratoDigital.objects.filter(postulacion=post).exists()
+        assert any('vacantes' in str(m).lower() for m in res.context['messages'])
+
+    def test_lista_recibidas_muestra_acciones_segun_estado(self, auth_client, escenario, desarrollador_user):
+        from contrataciones.models import ContratoDigital
+        proyecto, post = escenario
+        url = reverse('ver_postulaciones_empresa', args=[proyecto.id])
+
+        html = auth_client.get(url).content.decode()
+        assert reverse('iniciar_negociacion', args=[post.id]) in html
+        assert reverse('aceptar_postulacion', args=[post.id]) in html
+
+        auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
+        contrato = ContratoDigital.objects.get(postulacion=post)
+        html = auth_client.get(url).content.decode()
+        assert 'En Negociación' in html
+        assert reverse('ver_contrato_digital', args=[contrato.id]) in html
+        assert reverse('sala_chat', args=[desarrollador_user.id, proyecto.id]) in html
+        assert reverse('iniciar_negociacion', args=[post.id]) not in html

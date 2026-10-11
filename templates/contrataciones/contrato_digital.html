@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TEIR | Contrato Digital #{{ contrato.id }}</title>
+  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <style>
+    .cd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .cd-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+    .cd-value { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .cd-section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; color: var(--text-primary); }
+    .cd-clausulas { background: var(--page-bg); border-left: 3px solid var(--border); padding: 14px; border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
+    .cd-disclaimer { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; padding: 14px 16px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
+    .cd-firma { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .cd-firma:last-child { border-bottom: 0; }
+    .cd-sello { font-family: monospace; font-size: 12px; word-break: break-all; background: #0f172a; color: #86efac; padding: 14px; border-radius: var(--radius-sm); }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{% static 'IMG/Logo.jpg' %}" alt="TEIR">
+      <div>
+        <div class="sidebar-brand-text">TEIR</div>
+        <div class="sidebar-brand-sub">{% if rol_contrato == 'empresa' %}Empresa{% elif rol_contrato == 'desarrollador' %}Desarrollador{% else %}Administrador{% endif %}</div>
+      </div>
+    </div>
+    <div class="sidebar-group" style="padding-top:20px;">
+      {% if rol_contrato == 'empresa' %}
+        <a class="nav-item" href="{% url 'ver_postulaciones_empresa' proyecto.id %}">
+          <i class="fa fa-arrow-left"></i><span>Volver a Postulaciones</span>
+        </a>
+      {% elif rol_contrato == 'desarrollador' %}
+        <a class="nav-item" href="{% url 'dashboard_desarrollador' %}">
+          <i class="fa fa-arrow-left"></i><span>Volver al Panel</span>
+        </a>
+      {% else %}
+        <a class="nav-item" href="{% url 'inicio' %}">
+          <i class="fa fa-arrow-left"></i><span>Volver</span>
+        </a>
+      {% endif %}
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="top-header-title">
+        Contrato Digital
+        <span>/ TEIR Platform</span>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">{{ request.user.nombre|default:request.user.username|slice:":1"|upper }}</div>
+        <div>
+          <div class="user-name">{{ request.user.nombre|default:request.user.username }}</div>
+          <div class="user-role">{{ request.user.rol|capfirst }}</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
+            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Contrato Digital #{{ contrato.id }}</div>
+          <div class="page-subtitle">{{ proyecto.titulo }}</div>
+        </div>
+        <div>
+          <span class="badge {% if contrato.estado == 'firmado' %}badge-success{% elif contrato.estado == 'pendiente_firma' %}badge-warning{% elif contrato.estado == 'borrador' %}badge-gray{% else %}badge-danger{% endif %}" style="font-size:12px; padding:6px 12px;">
+            {{ contrato.get_estado_display|upper }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Partes -->
+      <div class="cd-grid">
+        <div class="card">
+          <span class="cd-label">Proyecto</span>
+          <div class="cd-value">{{ proyecto.titulo }}</div>
+        </div>
+        <div class="card">
+          <span class="cd-label">Empresa contratante</span>
+          <div class="cd-value">{{ empresa.nombre|default:empresa.username }}</div>
+          <div style="font-size:12px; color:var(--text-secondary);">{{ empresa.email }}</div>
+        </div>
+        <div class="card">
+          <span class="cd-label">Desarrollador</span>
+          <div class="cd-value">{{ desarrollador.nombre|default:desarrollador.username }}</div>
+          <div style="font-size:12px; color:var(--text-secondary);">{{ desarrollador.email }}</div>
+        </div>
+      </div>
+
+      <!-- Términos económicos -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="cd-section-title"><i class="fa fa-coins"></i> Términos económicos</div>
+        {% if puede_editar %}
+          <form method="post" action="{% url 'ver_contrato_digital' contrato.id %}">
+            {% csrf_token %}
+            <div class="cd-grid" style="margin-bottom:0;">
+              <div class="form-group">
+                <label class="form-label" for="monto">Monto</label>
+                <input type="number" step="0.01" min="0" id="monto" name="monto" class="form-input" value="{{ contrato.monto|stringformat:'.2f' }}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="moneda">Moneda</label>
+                <select id="moneda" name="moneda" class="form-select">
+                  {% for codigo, nombre in monedas %}
+                    <option value="{{ codigo }}" {% if contrato.moneda == codigo %}selected{% endif %}>{{ nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="forma_pago">Forma de pago</label>
+                <select id="forma_pago" name="forma_pago" class="form-select">
+                  {% for codigo, nombre in formas_pago %}
+                    <option value="{{ codigo }}" {% if contrato.forma_pago == codigo %}selected{% endif %}>{{ nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="comentarios_adicionales">Comentarios adicionales</label>
+              <textarea id="comentarios_adicionales" name="comentarios_adicionales" rows="4" class="form-textarea">{{ contrato.comentarios_adicionales }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-floppy-disk"></i> Guardar términos</button>
+          </form>
+        {% else %}
+          <div class="cd-grid" style="margin-bottom:0;">
+            <div><span class="cd-label">Monto</span><div class="cd-value">{{ contrato.monto|floatformat:2 }}</div></div>
+            <div><span class="cd-label">Moneda</span><div class="cd-value">{{ contrato.moneda }}</div></div>
+            <div><span class="cd-label">Forma de pago</span><div class="cd-value">{{ contrato.get_forma_pago_display }}</div></div>
+          </div>
+          {% if contrato.comentarios_adicionales %}
+            <span class="cd-label" style="margin-top:16px;">Comentarios adicionales</span>
+            <div class="cd-clausulas">{{ contrato.comentarios_adicionales|linebreaksbr }}</div>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Cláusulas -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="cd-section-title"><i class="fa fa-scale-balanced"></i> Cláusulas</div>
+        <div class="cd-clausulas">{{ contrato.clausulas|linebreaksbr }}</div>
+      </div>
+
+      <!-- Disclaimer legal -->
+      <div class="cd-disclaimer" role="note">
+        <strong><i class="fa fa-triangle-exclamation"></i> Aviso legal:</strong>
+        {{ contrato.disclaimer }}
+      </div>
+
+      <!-- Estado de firmas -->
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="cd-section-title"><i class="fa fa-signature"></i> Estado de firmas</div>
+        <div class="cd-firma">
+          <div>
+            <div class="cd-value">Empresa</div>
+            <div style="font-size:12px; color:var(--text-secondary);">{{ empresa.nombre|default:empresa.username }}</div>
+          </div>
+          <div style="text-align:right;">
+            {% if contrato.firmado_empresa %}
+              <span class="badge badge-success"><i class="fa fa-check"></i> Firmado</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">{{ contrato.fecha_firma_empresa|date:"d M Y, H:i" }}</div>
+            {% else %}
+              <span class="badge badge-warning"><i class="fa fa-clock"></i> Pendiente</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="cd-firma">
+          <div>
+            <div class="cd-value">Desarrollador</div>
+            <div style="font-size:12px; color:var(--text-secondary);">{{ desarrollador.nombre|default:desarrollador.username }}</div>
+          </div>
+          <div style="text-align:right;">
+            {% if contrato.firmado_desarrollador %}
+              <span class="badge badge-success"><i class="fa fa-check"></i> Firmado</span>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">{{ contrato.fecha_firma_desarrollador|date:"d M Y, H:i" }}</div>
+            {% else %}
+              <span class="badge badge-warning"><i class="fa fa-clock"></i> Pendiente</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sello digital -->
+      {% if contrato.hash_contrato %}
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="cd-section-title">
+            <i class="fa fa-lock"></i>
+            {% if contrato.estado == 'firmado' %}Sello digital (SHA-256){% else %}Huella parcial (SHA-256){% endif %}
+          </div>
+          <div class="cd-sello" id="hash-contrato">{{ contrato.hash_contrato }}</div>
+          {% if contrato.estado != 'firmado' %}
+            <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+              Este hash cambiará cuando la otra parte firme; el sello definitivo se emite con ambas firmas.
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Firma -->
+      {% if puede_firmar %}
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="cd-section-title"><i class="fa fa-file-signature"></i> Firma digital</div>
+          <form method="post" action="{% url 'firmar_contrato_digital' contrato.id %}">
+            {% csrf_token %}
+            <label style="display:flex; gap:10px; align-items:flex-start; font-size:13.5px; margin-bottom:16px;">
+              <input type="checkbox" name="acepta_terminos" value="1" required style="margin-top:3px;">
+              <span>He leído y acepto los términos, el monto, la forma de pago y las cláusulas de este contrato digital, y reconozco el aviso legal.</span>
+            </label>
+            <button type="submit" class="btn btn-success"><i class="fa fa-file-signature"></i> Firmar Contrato Digital</button>
+          </form>
+        </div>
+      {% elif ya_firmo and contrato.estado != 'firmado' %}
+        <div class="card" style="margin-bottom: 24px;">
+          <span class="badge badge-info"><i class="fa fa-hourglass-half"></i> Ya firmaste. Esperando la firma de la otra parte.</span>
+        </div>
+      {% endif %}
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
