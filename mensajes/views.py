@@ -2,6 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.core.paginator import Paginator
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.utils.dateparse import parse_date
+from django.utils.html import format_html, format_html_join
+from logs.models import LogAuditoria
 from .models import Mensaje
 from usuarios.models import Usuario
 from usuarios.utils import get_admin_ids
@@ -266,3 +271,100 @@ def ver_mensaje(request, mensaje_id):
     return render(request, 'mensajes/detalle.html', {
         'mensaje': mensaje
     })
+
+
+AUDITORIA_MENSAJES_POR_PAGINA = 25
+
+
+@login_required
+def admin_auditar_mensajes(request):
+    """Auditoría de chats (HU-A20): solo administradores. Toda consulta queda en LogAuditoria."""
+    quiere_json = (
+        'application/json' in request.headers.get('accept', '')
+        or request.GET.get('format') == 'json'
+    )
+    if request.user.rol != 'administrador':
+        if quiere_json:
+            return JsonResponse({'error': 'Acceso denegado.'}, status=403)
+        return HttpResponseForbidden('Acceso denegado.')
+
+    filtros = {
+        k: request.GET.get(k, '').strip()
+        for k in ('remitente', 'receptor', 'proyecto', 'q', 'fecha_desde', 'fecha_hasta')
+    }
+
+    mensajes_qs = Mensaje.objects.select_related('remitente', 'receptor', 'proyecto')
+    if filtros['remitente']:
+        mensajes_qs = mensajes_qs.filter(
+            Q(remitente__username__icontains=filtros['remitente'])
+            | Q(remitente__nombre__icontains=filtros['remitente'])
+        )
+    if filtros['receptor']:
+        mensajes_qs = mensajes_qs.filter(
+            Q(receptor__username__icontains=filtros['receptor'])
+            | Q(receptor__nombre__icontains=filtros['receptor'])
+        )
+    if filtros['proyecto']:
+        q_proyecto = Q(proyecto__titulo__icontains=filtros['proyecto'])
+        if filtros['proyecto'].isdigit():
+            q_proyecto |= Q(proyecto__id=int(filtros['proyecto']))
+        mensajes_qs = mensajes_qs.filter(q_proyecto)
+    if filtros['q']:
+        mensajes_qs = mensajes_qs.filter(
+            Q(contenido__icontains=filtros['q']) | Q(titulo__icontains=filtros['q'])
+        )
+    fecha_desde = parse_date(filtros['fecha_desde']) if filtros['fecha_desde'] else None
+    fecha_hasta = parse_date(filtros['fecha_hasta']) if filtros['fecha_hasta'] else None
+    if fecha_desde:
+        mensajes_qs = mensajes_qs.filter(fecha_envio__date__gte=fecha_desde)
+    if fecha_hasta:
+        mensajes_qs = mensajes_qs.filter(fecha_envio__date__lte=fecha_hasta)
+    mensajes_qs = mensajes_qs.order_by('-fecha_envio', '-id')
+
+    paginator = Paginator(mensajes_qs, AUDITORIA_MENSAJES_POR_PAGINA)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    detalle_filtros = ', '.join(f'{k}={v}' for k, v in filtros.items() if v) or 'sin filtros'
+    accion = f"Auditoría de mensajes: consultó conversaciones con filtros [{detalle_filtros}]"
+    LogAuditoria.objects.create(
+        usuario=request.user,
+        accion=accion[:300],
+        tabla_afectada='mensajes',
+    )
+
+    if quiere_json:
+        return JsonResponse({
+            'mensajes': [{
+                'id': m.id,
+                'remitente_username': m.remitente.username,
+                'remitente_nombre': m.remitente.nombre,
+                'receptor_username': m.receptor.username if m.receptor else None,
+                'receptor_nombre': m.receptor.nombre if m.receptor else None,
+                'proyecto_titulo': m.proyecto.titulo if m.proyecto else None,
+                'titulo': m.titulo or '',
+                'contenido': m.contenido,
+                'fecha_envio': m.fecha_envio.isoformat(),
+                'es_grupal': m.receptor_id is None,
+            } for m in page_obj],
+            'pagina': page_obj.number,
+            'total_paginas': paginator.num_pages,
+            'total': paginator.count,
+        })
+
+    filas = format_html_join(
+        '',
+        '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>',
+        (
+            (
+                m.fecha_envio.strftime('%d/%m/%Y %H:%M'),
+                m.remitente.nombre or m.remitente.username,
+                'Grupal de Proyecto' if m.receptor_id is None else f'Privado: {m.receptor.username}',
+                m.proyecto.titulo if m.proyecto else '—',
+                m.contenido[:120],
+            )
+            for m in page_obj
+        ),
+    )
+    return HttpResponse(format_html(
+        '<table class="data-table"><tbody>{}</tbody></table>', filas
+    ))
