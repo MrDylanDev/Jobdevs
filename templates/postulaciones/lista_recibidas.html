@@ -80,6 +80,33 @@
         </div>
       </div>
 
+      <!-- Filtros -->
+      <form method="get" action="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="card" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+        <div class="form-group" style="flex: 2; min-width: 220px; margin-bottom: 0;">
+          <label class="form-label" for="filtro-habilidad">Habilidades técnicas</label>
+          <input type="text" id="filtro-habilidad" name="habilidad" class="form-input" value="{{ filtros.habilidad }}" placeholder="Ej: Python, React, SQL...">
+        </div>
+        <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
+          <label class="form-label" for="filtro-programa">Programa de formación</label>
+          <select id="filtro-programa" name="programa" class="form-select">
+            <option value="">Todos los programas</option>
+            {% for prog in programas_disponibles %}
+              <option value="{{ prog }}" {% if filtros.programa == prog %}selected{% endif %}>{{ prog }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 140px; margin-bottom: 0;">
+          <label class="form-label" for="filtro-ficha">Ficha</label>
+          <input type="text" id="filtro-ficha" name="ficha" class="form-input" value="{{ filtros.ficha }}" placeholder="Ej: 2558104">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Filtrar</button>
+          {% if filtros.programa or filtros.ficha or filtros.habilidad %}
+            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary"><i class="fa fa-xmark"></i> Limpiar filtros</a>
+          {% endif %}
+        </div>
+      </form>
+
       <!-- Lista de Postulaciones -->
       <div style="display:flex; flex-direction:column; gap:16px;">
         {% for post in postulaciones %}
@@ -149,8 +176,14 @@
         {% empty %}
           <div class="empty-state" style="padding: 80px 20px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
               <i class="fa fa-users" style="font-size: 40px; color: var(--border); margin-bottom: 15px;"></i>
-              <p style="color: var(--text-secondary); font-size: 15px;">Aún no has recibido postulaciones para este proyecto.</p>
-              <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Te notificaremos cuando un desarrollador se interese.</p>
+              {% if filtros.programa or filtros.ficha or filtros.habilidad %}
+                <p style="color: var(--text-secondary); font-size: 15px;">No hay postulaciones que coincidan con los filtros aplicados.</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Prueba con otros criterios o restablece los filtros.</p>
+                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="margin-top: 16px;"><i class="fa fa-rotate-left"></i> Restablecer filtros</a>
+              {% else %}
+                <p style="color: var(--text-secondary); font-size: 15px;">Aún no has recibido postulaciones para este proyecto.</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Te notificaremos cuando un desarrollador se interese.</p>
+              {% endif %}
           </div>
         {% endfor %}
       </div>

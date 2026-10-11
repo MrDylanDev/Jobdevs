@@ -18,7 +18,35 @@ def ver_postulaciones_empresa(request, proyecto_id):
         proyecto_id=proyecto_id,
         estado='pendiente'
     ).select_related('desarrollador__perfil_desarrollador').order_by('-fecha')
-    
+
+    programa = request.GET.get('programa', '').strip()
+    ficha = request.GET.get('ficha', '').strip()
+    habilidad = request.GET.get('habilidad', '').strip()
+
+    if programa:
+        postulaciones_orm = postulaciones_orm.filter(
+            desarrollador__perfil_desarrollador__programa_formacion__icontains=programa
+        )
+    if ficha:
+        postulaciones_orm = postulaciones_orm.filter(
+            desarrollador__perfil_desarrollador__ficha__icontains=ficha
+        )
+    if habilidad:
+        for term in (t.strip() for t in habilidad.split(',')):
+            if term:
+                postulaciones_orm = postulaciones_orm.filter(
+                    desarrollador__perfil_desarrollador__habilidades__icontains=term
+                )
+
+    programas_disponibles = (
+        Postulacion.objects.filter(proyecto_id=proyecto_id, estado='pendiente')
+        .exclude(desarrollador__perfil_desarrollador__programa_formacion__isnull=True)
+        .exclude(desarrollador__perfil_desarrollador__programa_formacion='')
+        .values_list('desarrollador__perfil_desarrollador__programa_formacion', flat=True)
+        .distinct()
+        .order_by('desarrollador__perfil_desarrollador__programa_formacion')
+    )
+
     postulaciones = []
     for p in postulaciones_orm:
         perfil = getattr(p.desarrollador, 'perfil_desarrollador', None)
@@ -38,7 +66,12 @@ def ver_postulaciones_empresa(request, proyecto_id):
             'fecha': p.fecha,
         })
             
-    return render(request, 'postulaciones/lista_recibidas.html', {'proyecto': proyecto, 'postulaciones': postulaciones})
+    return render(request, 'postulaciones/lista_recibidas.html', {
+        'proyecto': proyecto,
+        'postulaciones': postulaciones,
+        'programas_disponibles': list(programas_disponibles),
+        'filtros': {'programa': programa, 'ficha': ficha, 'habilidad': habilidad},
+    })
 
 @login_required
 def postularse_a_proyecto(request, proyecto_id):

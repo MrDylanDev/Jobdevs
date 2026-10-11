@@ -244,3 +244,94 @@ class TestAceptarPostulacion:
             assert res.status_code == 302
             assert mock_lock.called, "select_for_update debe ser invocado sobre Proyecto para serializar contrataciones"
 
+
+
+class TestVerPostulacionesEmpresaFiltros:
+    """SCRUM-146 (HU-E08): filtros por habilidades, programa y ficha."""
+
+    @staticmethod
+    def _crear_candidato(proyecto, username, programa, ficha, habilidades):
+        from usuarios.models import PerfilDesarrollador
+        dev = User.objects.create_user(
+            username=username, email=f'{username}@test.teir',
+            nombre=username.upper(), rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        PerfilDesarrollador.objects.update_or_create(
+            usuario=dev,
+            defaults={
+                'programa_formacion': programa,
+                'ficha': ficha,
+                'habilidades': habilidades,
+            },
+        )
+        Postulacion.objects.create(proyecto=proyecto, desarrollador=dev, estado='pendiente')
+        return dev
+
+    @pytest.fixture
+    def escenario(self, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='P Filtros', descripcion='DF',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=3,
+        )
+        self._crear_candidato(proyecto, 'ana', 'ADSO', '2558104', 'Python, Django, SQL')
+        self._crear_candidato(proyecto, 'beto', 'Multimedia', '2600001', 'React, JavaScript')
+        self._crear_candidato(proyecto, 'carla', 'ADSO', '2700002', 'React, SQL')
+        return proyecto
+
+    @staticmethod
+    def _nombres(response):
+        return sorted(p['desarrollador']['nombre'] for p in response.context['postulaciones'])
+
+    def test_filtrar_por_programa_formacion(self, auth_client, escenario):
+        res = auth_client.get(
+            reverse('ver_postulaciones_empresa', args=[escenario.id]),
+            {'programa': 'Multimedia'},
+        )
+        assert res.status_code == 200
+        assert self._nombres(res) == ['BETO']
+        assert res.context['filtros']['programa'] == 'Multimedia'
+        assert res.context['programas_disponibles'] == ['ADSO', 'Multimedia']
+
+    def test_filtrar_por_ficha(self, auth_client, escenario):
+        res = auth_client.get(
+            reverse('ver_postulaciones_empresa', args=[escenario.id]),
+            {'ficha': '2558104'},
+        )
+        assert res.status_code == 200
+        assert self._nombres(res) == ['ANA']
+
+    def test_filtrar_por_habilidades(self, auth_client, escenario):
+        url = reverse('ver_postulaciones_empresa', args=[escenario.id])
+        res = auth_client.get(url, {'habilidad': 'react'})
+        assert self._nombres(res) == ['BETO', 'CARLA']
+
+        # Varios términos separados por comas: el candidato debe cumplir todos
+        res = auth_client.get(url, {'habilidad': 'REACT, sql'})
+        assert self._nombres(res) == ['CARLA']
+
+        # Sin coincidencias: lista vacía y mensaje para restablecer filtros
+        res = auth_client.get(url, {'habilidad': 'cobol'})
+        assert res.context['postulaciones'] == []
+        assert 'Restablecer filtros' in res.content.decode()
+
+    def test_filtros_combinados(self, auth_client, escenario):
+        res = auth_client.get(
+            reverse('ver_postulaciones_empresa', args=[escenario.id]),
+            {'programa': 'ADSO', 'habilidad': 'react'},
+        )
+        assert res.status_code == 200
+        assert self._nombres(res) == ['CARLA']
+
+    def test_otra_empresa_no_puede_ver_postulaciones(self, client, escenario):
+        User.objects.create_user(
+            username='otra_empresa', email='otra@test.teir',
+            nombre='Otra', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        client.login(username='otra_empresa', password='TestPass123!')
+        res = client.get(
+            reverse('ver_postulaciones_empresa', args=[escenario.id]),
+            {'programa': 'ADSO'},
+        )
+        assert res.status_code == 404
