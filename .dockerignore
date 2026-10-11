@@ -20,35 +20,38 @@ ENV/
 .venv/
 
 # ===== Variables de Entorno =====
-.env
-.env.local
-.env.production
+.env*
+*.env*
+docker/.env*
 
 # ===== OpenCode / AI Tools =====
 .atl/
 .pi/
+.agents/
+odd/
+.codegraph/
 
-# ===== IDE =====
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.gemini/
-
-# ===== Docker =====
-docker-compose.yml
-docker-compose.override.yml
-Dockerfile
-.dockerignore
-
-# ===== Base de Datos Local =====
+# ===== Base de Datos Local y Dumps =====
+database/
 db.sqlite3
 *.mysql
+postgres_data/
 
 # ===== Documentación =====
 *.md
+docs/
 LICENSE
+
+# ===== Pruebas y Cobertura =====
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+
+# ===== User Media (montado via volumen) =====
+media/
 
 # ===== OS =====
 .DS_Store

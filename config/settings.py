@@ -107,7 +107,22 @@ else:
     }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'usuarios.validators.ComplexPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 8},
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'usuarios.validators.ComplexPasswordValidator',
+    },
 ]
 
 PASSWORD_HASHERS = [
@@ -137,13 +152,29 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expira al cerrar navegador
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://localhost',
-    'http://127.0.0.1:8000',
-    'http://127.0.0.1',
-    'http://0.0.0.0:8000',
-]
+_csrf_origins = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS')
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
+elif DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost',
+        'http://127.0.0.1',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+
+# Configuraciones de transporte seguro y cookies (activadas vía env en producción)
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'False') == 'True'
+SESSION_COOKIE_SECURE = os.environ.get('DJANGO_SESSION_COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SECURE = os.environ.get('DJANGO_CSRF_COOKIE_SECURE', 'False') == 'True'
+if os.environ.get('DJANGO_SECURE_HSTS_SECONDS'):
+    SECURE_HSTS_SECONDS = int(os.environ['DJANGO_SECURE_HSTS_SECONDS'])
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+if os.environ.get('DJANGO_SECURE_PROXY_SSL_HEADER', 'False') == 'True':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {

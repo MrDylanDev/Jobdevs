@@ -24,7 +24,12 @@ wheels/
 .venv/
 venv/
 ENV/
+
+# Variables de entorno
 .env
+.env.*
+!.env.docker.example
+*.env
 
 # Database
 db.sqlite3
@@ -32,10 +37,13 @@ db.sqlite3
 postgres_data/
 scratch/
 
-# Cache
+# Cache y Tests
 .pytest_cache/
 .coverage
 htmlcov/
+test-results/
+playwright-report/
+.playwright/
 
 # Static files
 staticfiles/
@@ -45,8 +53,6 @@ staticfiles/
 logs/app.log
 
 # Docker
-.env
-.env.docker
 mysql_data/
 
 # User uploads
@@ -55,5 +61,8 @@ media/
 # AI Tools
 .atl/
 .pi/
+.agents/
+odd/
+.codegraph/
 
 
