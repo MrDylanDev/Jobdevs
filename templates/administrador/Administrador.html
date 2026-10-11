@@ -58,6 +58,7 @@
         <i class="fa fa-file-shield"></i>
         <span>Auditoría</span>
       </button>
+      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i class="fa fa-shield-halved"></i><span>Auditoría de Chats</span></button>
       <button class="nav-item" onclick="showSection('reportsSection', this)">
         <i class="fa fa-file-export"></i>
         <span>Reportes</span>
@@ -769,6 +770,57 @@
         </div>
       </section>
 
+      <!-- Auditoría de Chats -->
+      <section id="auditChatsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Auditoría de Chats</div>
+            <div class="page-subtitle">Inspección de conversaciones privadas y grupales</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;border-left:4px solid var(--warning, #f59e0b);">
+          <i class="fa fa-triangle-exclamation"></i>
+          Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
+        </div>
+        <form id="auditChatsForm" class="card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+          <div class="form-group"><label class="form-label">Remitente</label><input type="text" name="remitente" class="form-input" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Proyecto (título o ID)</label><input type="text" name="proyecto" class="form-input" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Texto</label><input type="text" name="q" class="form-input" autocomplete="off"></div>
+          <div class="form-group" style="align-self:end;"><button type="submit" class="btn btn-primary btn-full"><i class="fa fa-magnifying-glass"></i> Buscar / Auditar</button></div>
+        </form>
+        <div class="table-wrapper">
+          <table class="data-table" id="auditChatsTable">
+            <thead>
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Remitente</th>
+                <th>Destinatario</th>
+                <th>Proyecto</th>
+                <th>Extracto del Mensaje</th>
+                <th style="text-align:center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="auditChatsBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Use el formulario para iniciar una auditoría.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="auditChatsPager" style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;"></div>
+      </section>
+
+      <!-- Modal Mensaje Auditado -->
+      <div id="auditChatModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatModal')">
+        <div class="modal-box">
+          <h3 id="auditChatModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
+          <div id="auditChatModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
+          <div id="auditChatModalBody" style="white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;"></div>
+          <div style="margin-top:20px;">
+            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditChatModal')">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Reportes -->
       <section id="reportsSection" class="section-v">
         <div class="page-header">
@@ -871,6 +923,91 @@
         sendCategory(CATEGORY_API.crear, 'POST', payload);
       }
     });
+  })();
+</script>
+
+<script>
+  (function () {
+    const AUDIT_URL = "{% url 'admin_auditar_mensajes' %}";
+    const form = document.getElementById('auditChatsForm');
+    const body = document.getElementById('auditChatsBody');
+    const pager = document.getElementById('auditChatsPager');
+    let mensajes = [];
+
+    function cell(text) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      return td;
+    }
+
+    function render(data) {
+      mensajes = data.mensajes;
+      body.innerHTML = '';
+      if (!mensajes.length) {
+        const tr = document.createElement('tr');
+        const td = cell('No se encontraron mensajes.');
+        td.colSpan = 6; td.style.textAlign = 'center';
+        tr.appendChild(td); body.appendChild(tr);
+      }
+      mensajes.forEach(function (m, i) {
+        const tr = document.createElement('tr');
+        tr.appendChild(cell(new Date(m.fecha_envio).toLocaleString('es-CO')));
+        tr.appendChild(cell(m.remitente_nombre + ' (@' + m.remitente_username + ')'));
+        tr.appendChild(cell(m.es_grupal ? 'Grupal de Proyecto'
+          : 'Privado: ' + m.receptor_nombre + ' (@' + m.receptor_username + ')'));
+        tr.appendChild(cell(m.proyecto_titulo || '—'));
+        tr.appendChild(cell(m.contenido.length > 80 ? m.contenido.slice(0, 80) + '…' : m.contenido));
+        const td = document.createElement('td');
+        td.style.textAlign = 'center';
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'btn btn-secondary';
+        btn.innerHTML = '<i class="fa fa-eye"></i>';
+        btn.title = 'Ver mensaje completo';
+        btn.addEventListener('click', function () { openAuditChatModal(i); });
+        td.appendChild(btn); tr.appendChild(td);
+        body.appendChild(tr);
+      });
+      pager.innerHTML = '';
+      if (data.total_paginas > 1) {
+        const prev = document.createElement('button');
+        prev.type = 'button'; prev.className = 'btn btn-secondary'; prev.textContent = 'Anterior';
+        prev.disabled = data.pagina <= 1;
+        prev.addEventListener('click', function () { search(data.pagina - 1); });
+        const next = document.createElement('button');
+        next.type = 'button'; next.className = 'btn btn-secondary'; next.textContent = 'Siguiente';
+        next.disabled = data.pagina >= data.total_paginas;
+        next.addEventListener('click', function () { search(data.pagina + 1); });
+        const label = document.createElement('span');
+        label.textContent = 'Página ' + data.pagina + ' de ' + data.total_paginas + ' (' + data.total + ' mensajes)';
+        pager.append(prev, label, next);
+      }
+    }
+
+    async function search(page) {
+      const params = new URLSearchParams(new FormData(form));
+      params.set('format', 'json');
+      if (page) params.set('page', page);
+      try {
+        const response = await fetch(AUDIT_URL + '?' + params.toString(), {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) { alert('No se pudo completar la auditoría.'); return; }
+        render(await response.json());
+      } catch (err) { alert('Error de red.'); }
+    }
+
+    window.openAuditChatModal = function (i) {
+      const m = mensajes[i];
+      document.getElementById('auditChatModalTitle').textContent = m.titulo || 'Mensaje #' + m.id;
+      document.getElementById('auditChatModalMeta').textContent =
+        new Date(m.fecha_envio).toLocaleString('es-CO') + ' · De @' + m.remitente_username +
+        ' → ' + (m.es_grupal ? 'Chat grupal' : '@' + m.receptor_username) +
+        (m.proyecto_titulo ? ' · Proyecto: ' + m.proyecto_titulo : '');
+      document.getElementById('auditChatModalBody').textContent = m.contenido;
+      document.getElementById('auditChatModal').classList.add('open');
+    };
+
+    form.addEventListener('submit', function (e) { e.preventDefault(); search(1); });
   })();
 </script>
 </body>

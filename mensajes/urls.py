@@ -12,4 +12,7 @@ urlpatterns = [
     path('enviados/', views.mensajeria_sent, name='mensajeria_sent'),
     path('redactar/', views.mensajeria_redactar, name='mensajeria_redactar'),
     path('ver/<int:mensaje_id>/', views.ver_mensaje, name='ver_mensaje'),
+
+    # Auditoría de chats (administrador)
+    path('auditoria/', views.admin_auditar_mensajes, name='admin_auditar_mensajes'),
 ]
