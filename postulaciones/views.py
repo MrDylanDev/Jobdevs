@@ -157,7 +157,12 @@ def aceptar_postulacion(request, postulacion_id):
                 estado='activa'
             ).count()
 
-            if contrataciones_activas >= proyecto.vacantes:
+            postulaciones_en_negociacion = Postulacion.objects.filter(
+                proyecto=proyecto,
+                estado='en_negociacion'
+            ).exclude(id=postulacion.id).count()
+
+            if contrataciones_activas + postulaciones_en_negociacion >= proyecto.vacantes:
                 messages.error(
                     request,
                     "El proyecto ya ha alcanzado el límite de vacantes disponibles."
