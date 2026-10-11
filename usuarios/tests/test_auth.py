@@ -362,13 +362,33 @@ class TestRestablecerView:
         assert user.estado == 'suspendido'
         assert not user.is_active
 
+    def test_restablecer_admin_suspended_user_with_failed_attempts_still_does_not_autoreactivate(self, client, user_with_token):
+        """Admin-suspended user who also gets failed attempts must NOT self-reactivate via password reset."""
+        user, token = user_with_token
+        user.estado = 'suspendido'
+        user.is_active = False
+        user.bloqueado_por_intentos = False  # Suspended by admin
+        user.intentos_fallidos = 10  # Multiple failed logins after ban
+        user.save(update_fields=['estado', 'is_active', 'bloqueado_por_intentos', 'intentos_fallidos'])
+
+        response = client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'NewSecurePass123!', 'password_confirm': 'NewSecurePass123!'}
+        )
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.check_password('NewSecurePass123!')
+        assert user.estado == 'suspendido'
+        assert not user.is_active
+
     def test_restablecer_lockout_suspended_user_does_autoreactivate(self, client, user_with_token):
         """User locked out by 5 failed attempts is reactivated upon successful password reset."""
         user, token = user_with_token
         user.estado = 'suspendido'
         user.is_active = False
-        user.intentos_fallidos = 5  # Suspended by lockout
-        user.save(update_fields=['estado', 'is_active', 'intentos_fallidos'])
+        user.bloqueado_por_intentos = True  # Specifically locked out by failed attempts
+        user.intentos_fallidos = 5
+        user.save(update_fields=['estado', 'is_active', 'bloqueado_por_intentos', 'intentos_fallidos'])
 
         response = client.post(
             reverse('restablecer', args=[token]),
@@ -379,4 +399,5 @@ class TestRestablecerView:
         assert user.check_password('NewSecurePass123!')
         assert user.estado == 'activo'
         assert user.is_active
+        assert not user.bloqueado_por_intentos
         assert user.intentos_fallidos == 0

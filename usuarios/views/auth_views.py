@@ -34,9 +34,10 @@ def login_view(request):
                 return redirect('inicio')
 
             # Login exitoso: Resetear intentos fallidos si tenía alguno
-            if user.intentos_fallidos > 0:
+            if user.intentos_fallidos > 0 or getattr(user, 'bloqueado_por_intentos', False):
                 user.intentos_fallidos = 0
-                user.save(update_fields=['intentos_fallidos'])
+                user.bloqueado_por_intentos = False
+                user.save(update_fields=['intentos_fallidos', 'bloqueado_por_intentos'])
 
             login(request, user)
 
@@ -65,9 +66,12 @@ def login_view(request):
         if user_to_check:
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
+                # Solo marcar bloqueado_por_intentos si la cuenta no estaba ya suspendida administrativamente
+                if user_to_check.estado not in ('suspendido', 'inactivo'):
+                    user_to_check.bloqueado_por_intentos = True
                 user_to_check.estado = 'suspendido'
                 user_to_check.is_active = False  # Bloquear a nivel Django
-                user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active'])
+                user_to_check.save(update_fields=['intentos_fallidos', 'estado', 'is_active', 'bloqueado_por_intentos'])
             else:
                 user_to_check.save(update_fields=['intentos_fallidos'])
 
@@ -160,10 +164,10 @@ def restablecer_view(request, token):
             usuario.token_recuperacion = None
             usuario.token_expiracion = None
 
-            # Solo reactivar si la cuenta estaba bloqueada por exceso de intentos fallidos (>= 5).
-            # Si la cuenta fue suspendida o inactivada administrativamente por un admin,
-            # la sanción se preserva intacta.
-            if usuario.intentos_fallidos >= 5:
+            # Solo reactivar si la cuenta estaba bloqueada por exceso de intentos fallidos.
+            # Las suspensiones administrativas tienen bloqueado_por_intentos=False y se preservan.
+            if getattr(usuario, 'bloqueado_por_intentos', False):
+                usuario.bloqueado_por_intentos = False
                 usuario.estado = 'activo'
                 usuario.is_active = True
 

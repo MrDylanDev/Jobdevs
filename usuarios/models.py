@@ -53,6 +53,7 @@ class Usuario(AbstractUser):
     token_recuperacion = models.CharField(max_length=255, null=True, blank=True)
     token_expiracion = models.DateTimeField(null=True, blank=True)
     intentos_fallidos = models.PositiveSmallIntegerField(default=0)
+    bloqueado_por_intentos = models.BooleanField(default=False)
 
     objects = UsuarioManager()
 
