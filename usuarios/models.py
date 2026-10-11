@@ -82,6 +82,22 @@ class Usuario(AbstractUser):
         db_table = 'usuarios'
 
 class PerfilEmpresa(models.Model):
+    TIPO_PERSONA_CHOICES = [
+        ('juridica', 'Persona Jurídica (Empresa)'),
+        ('natural', 'Persona Natural / Negocio'),
+    ]
+    TIPO_DOCUMENTO_CHOICES = [
+        ('NIT', 'NIT'),
+        ('CC', 'Cédula de Ciudadanía'),
+        ('CE', 'Cédula de Extranjería'),
+    ]
+    ESTADO_VERIFICACION_CHOICES = [
+        ('sin_verificar', 'Sin Verificar'),
+        ('en_revision', 'En Revisión'),
+        ('verificada', 'Verificada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_empresa', db_column='usuario_id')
     nombre_empresa = models.CharField(max_length=200, blank=True, null=True)
     sector = models.CharField(max_length=100, blank=True, null=True)
@@ -90,6 +106,50 @@ class PerfilEmpresa(models.Model):
     ciudad = models.CharField(max_length=100, blank=True, null=True)
     logo = models.ImageField(upload_to='perfiles/empresas/', blank=True, null=True)
     calificacion_promedio = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+
+    # Verificación de identidad
+    tipo_persona = models.CharField(max_length=20, choices=TIPO_PERSONA_CHOICES, default='juridica')
+    tipo_documento = models.CharField(max_length=20, choices=TIPO_DOCUMENTO_CHOICES, default='NIT')
+    numero_documento = models.CharField(max_length=30, blank=True, null=True)
+    digito_verificacion = models.CharField(max_length=2, blank=True, null=True)
+    razon_social = models.CharField(max_length=255, blank=True, null=True)
+    documento_soporte = models.FileField(upload_to='verificaciones/empresas/', blank=True, null=True)
+    estado_verificacion = models.CharField(
+        max_length=20, choices=ESTADO_VERIFICACION_CHOICES, default='sin_verificar'
+    )
+    fecha_solicitud_verificacion = models.DateTimeField(null=True, blank=True)
+    fecha_verificacion = models.DateTimeField(null=True, blank=True)
+    verificado_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='empresas_verificadas',
+    )
+    notas_auditoria = models.TextField(blank=True, null=True)
+
+    @property
+    def es_verificada(self):
+        return self.estado_verificacion == 'verificada'
+
+    @property
+    def documento_completo(self):
+        """Documento con dígito de verificación, p. ej. '900123456-7'."""
+        if not self.numero_documento:
+            return ''
+        if self.digito_verificacion not in (None, ''):
+            return f"{self.numero_documento}-{self.digito_verificacion}"
+        return self.numero_documento
+
+    @property
+    def badge_info(self):
+        """Etiqueta y clase CSS de la insignia según estado y tipo de persona."""
+        if self.estado_verificacion == 'verificada':
+            if self.tipo_persona == 'natural':
+                return {'label': 'Negocio Verificado', 'css_class': 'badge-verificada'}
+            return {'label': 'Empresa Verificada', 'css_class': 'badge-verificada'}
+        if self.estado_verificacion == 'en_revision':
+            return {'label': 'En Revisión', 'css_class': 'badge-en-revision'}
+        if self.estado_verificacion == 'rechazada':
+            return {'label': 'Verificación Rechazada', 'css_class': 'badge-rechazada'}
+        return {'label': 'Sin Verificar', 'css_class': 'badge-sin-verificar'}
 
     def __str__(self):
         return self.nombre_empresa or f"Empresa {self.usuario.username}"
