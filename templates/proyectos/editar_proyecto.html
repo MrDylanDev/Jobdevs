@@ -59,11 +59,11 @@
             <div class="form-group">
               <label class="form-label"><i class="fa fa-cubes" style="margin-right:6px;"></i>Tipo de Solución</label>
               <select name="tipo_solucion" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
-                <option value="sitio_web" {% if proyecto.tipo_solucion == 'sitio_web' %}selected{% endif %}>Sitio Web</option>
-                <option value="aplicacion_movil" {% if proyecto.tipo_solucion == 'aplicacion_movil' %}selected{% endif %}>Aplicación Móvil</option>
-                <option value="automatizacion" {% if proyecto.tipo_solucion == 'automatizacion' %}selected{% endif %}>Automatización</option>
-                <option value="sistema_escritorio" {% if proyecto.tipo_solucion == 'sistema_escritorio' %}selected{% endif %}>Sistema de Escritorio</option>
-                <option value="otro" {% if proyecto.tipo_solucion == 'otro' %}selected{% endif %}>Otro</option>
+                {% for c in categorias_solucion %}
+                <option value="{{ c.slug }}" {% if proyecto.tipo_solucion == c.slug %}selected{% endif %}>{{ c.nombre }}</option>
+                {% empty %}
+                <option value="{{ proyecto.tipo_solucion }}" selected>{{ proyecto.get_tipo_solucion_display }}</option>
+                {% endfor %}
               </select>
             </div>
 

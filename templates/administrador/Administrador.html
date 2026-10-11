@@ -50,6 +50,10 @@
         <i class="fa fa-diagram-project"></i>
         <span>Proyectos</span>
       </button>
+      <button class="nav-item" onclick="showSection('categoriesSection', this)">
+        <i class="fa fa-tags"></i>
+        <span>Categorías</span>
+      </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i class="fa fa-file-shield"></i>
         <span>Auditoría</span>
@@ -642,6 +646,95 @@
         </div>
       </div>
 
+      <!-- Categorías de Solución -->
+      <section id="categoriesSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Categorías de Solución</div>
+            <div class="page-subtitle">Administra los tipos de solución disponibles para los proyectos</div>
+          </div>
+          <button class="btn btn-primary" onclick="openCategoryModal()">
+            <i class="fa fa-plus"></i> Nueva Categoría
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table" id="categoriesTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Código / Slug</th>
+                <th>Descripción</th>
+                <th style="text-align:center;">Proyectos</th>
+                <th>Estado</th>
+                <th style="text-align:center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in categorias_solucion %}
+                <tr data-id="{{ c.id }}" data-nombre="{{ c.nombre }}" data-slug="{{ c.slug }}" data-descripcion="{{ c.descripcion }}" data-activo="{{ c.activo|yesno:'true,false' }}">
+                  <td><strong>{{ c.nombre }}</strong></td>
+                  <td><code>{{ c.slug }}</code></td>
+                  <td style="color:var(--text-secondary);">{{ c.descripcion|default:"—" }}</td>
+                  <td style="text-align:center;">{{ c.proyectos_count }}</td>
+                  <td>
+                    <span class="badge {% if c.activo %}badge-success{% else %}badge-gray{% endif %}">
+                      {% if c.activo %}Activa{% else %}Inactiva{% endif %}
+                    </span>
+                  </td>
+                  <td style="text-align:center; white-space:nowrap;">
+                    <button onclick="openCategoryModal({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button onclick="toggleCategory({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px;" title="{% if c.activo %}Desactivar{% else %}Activar{% endif %}">
+                      {% if c.activo %}
+                        <i class="fa fa-toggle-on" style="color:var(--success);"></i>
+                      {% else %}
+                        <i class="fa fa-toggle-off" style="color:var(--text-muted);"></i>
+                      {% endif %}
+                    </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay categorías registradas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Modal Crear/Editar Categoría -->
+      <div id="categoryModal" class="modal-overlay" onclick="if(event.target===this)closeModal('categoryModal')">
+        <div class="modal-box">
+          <h3 id="categoryModalTitle" style="margin-bottom:16px; font-size:18px;">Nueva Categoría</h3>
+          <form id="categoryForm">
+            {% csrf_token %}
+            <input type="hidden" id="category-id">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="category-nombre" class="form-input" required maxlength="100" autocomplete="off">
+            </div>
+            <div class="form-group" id="category-slug-group">
+              <label class="form-label">Código / Slug <small style="color:var(--text-muted);">(opcional, se genera del nombre)</small></label>
+              <input type="text" id="category-slug" class="form-input" maxlength="50" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <textarea id="category-descripcion" class="form-input" style="min-height:80px;resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;">
+                <input type="checkbox" id="category-activo" checked> Categoría activa
+              </label>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px;">
+              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('categoryModal')">Cancelar</button>
+              <button type="submit" class="btn btn-primary btn-full">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Auditoría -->
       <section id="auditSection" class="section-v">
         <div class="page-header">
@@ -713,5 +806,72 @@
 </div>
 
 <script src="{% static 'administrador/script/administrador.js' %}"></script>
+<script>
+  (function () {
+    const CATEGORY_API = {
+      crear: "{% url 'api_categoria_crear' %}",
+      actualizar: "{% url 'api_categoria_actualizar' 0 %}",
+      toggle: "{% url 'api_categoria_toggle' 0 %}"
+    };
+    const apiUrl = (tpl, id) => tpl.replace('/0/', '/' + id + '/');
+    const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const reload = () => { window.location.href = '?section=categoriesSection'; };
+
+    async function sendCategory(url, method, payload) {
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+          body: JSON.stringify(payload || {})
+        });
+        const result = await response.json().catch(() => ({}));
+        if (response.ok) { reload(); }
+        else { alert(result.error || 'No se pudo completar la operación.'); }
+      } catch (err) { alert('Error de red.'); }
+    }
+
+    window.openCategoryModal = function (id) {
+      const form = document.getElementById('categoryForm');
+      form.reset();
+      document.getElementById('category-id').value = id || '';
+      const slugGroup = document.getElementById('category-slug-group');
+      if (id) {
+        const row = document.querySelector('#categoriesTable tr[data-id="' + id + '"]');
+        document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
+        document.getElementById('category-nombre').value = row.dataset.nombre;
+        document.getElementById('category-slug').value = row.dataset.slug;
+        document.getElementById('category-slug').disabled = true;
+        document.getElementById('category-descripcion').value = row.dataset.descripcion;
+        document.getElementById('category-activo').checked = row.dataset.activo === 'true';
+      } else {
+        document.getElementById('categoryModalTitle').textContent = 'Nueva Categoría';
+        document.getElementById('category-slug').disabled = false;
+        document.getElementById('category-activo').checked = true;
+      }
+      document.getElementById('categoryModal').classList.add('open');
+    };
+
+    window.toggleCategory = function (id) {
+      sendCategory(apiUrl(CATEGORY_API.toggle, id), 'POST');
+    };
+
+    document.getElementById('categoryForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const id = document.getElementById('category-id').value;
+      const payload = {
+        nombre: document.getElementById('category-nombre').value,
+        descripcion: document.getElementById('category-descripcion').value,
+        activo: document.getElementById('category-activo').checked
+      };
+      if (id) {
+        sendCategory(apiUrl(CATEGORY_API.actualizar, id), 'PUT', payload);
+      } else {
+        const slug = document.getElementById('category-slug').value.trim();
+        if (slug) payload.slug = slug;
+        sendCategory(CATEGORY_API.crear, 'POST', payload);
+      }
+    });
+  })();
+</script>
 </body>
 </html>
