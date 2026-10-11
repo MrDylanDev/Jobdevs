@@ -48,6 +48,7 @@ def listar_proyectos(request):
         logo = p.empresa.perfil_empresa.logo.url if (
             hasattr(p.empresa, 'perfil_empresa') and p.empresa.perfil_empresa.logo
         ) else None
+        perfil = getattr(p.empresa, 'perfil_empresa', None)
         proyectos.append({
             'id': p.id,
             'titulo': p.titulo,
@@ -59,6 +60,9 @@ def listar_proyectos(request):
             'num_postulaciones': p.num_postulaciones,
             'empresa_reputacion': p.empresa_reputacion,
             'empresa_logo': logo,
+            'empresa_verificada': perfil.es_verificada if perfil else False,
+            'empresa_badge': perfil.badge_info if perfil else None,
+            'empresa_estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
         })
 
     return render(request, 'proyectos/listar.html', {

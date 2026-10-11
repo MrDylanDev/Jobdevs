@@ -22,12 +22,12 @@ def dashboard_desarrollador(request):
     p_fav = Favorito.objects.filter(desarrollador=request.user).count()
 
     mis_postulaciones = Postulacion.objects.filter(desarrollador=request.user).select_related('proyecto')
-    mis_proyectos_activos_q = Contratacion.objects.filter(desarrollador=request.user, estado='activa').select_related('proyecto', 'empresa')
+    mis_proyectos_activos_q = Contratacion.objects.filter(desarrollador=request.user, estado='activa').select_related('proyecto', 'empresa', 'empresa__perfil_empresa')
     
     mis_proyectos_finalizados = Contratacion.objects.filter(
         Q(desarrollador=request.user) & 
         (Q(estado='finalizada') | Q(proyecto__estado='finalizado'))
-    ).select_related('proyecto', 'empresa').annotate(
+    ).select_related('proyecto', 'empresa', 'empresa__perfil_empresa').annotate(
         num_desarrolladores=Count('proyecto__contrataciones')
     ).distinct()
     
@@ -50,7 +50,7 @@ def dashboard_desarrollador(request):
 
     mis_proyectos_qs = Proyecto.objects.filter(
         equipos__miembros=request.user, estado='en_desarrollo'
-    ).select_related('empresa').annotate(
+    ).select_related('empresa', 'empresa__perfil_empresa').annotate(
         hitos_completados=Count('entregables', filter=Q(entregables__estado='completado')),
         hitos_totales=Count('entregables'),
     ).prefetch_related(
@@ -76,11 +76,15 @@ def dashboard_desarrollador(request):
             hitos_por_proyecto[p_id].append(h)
 
         for p in mis_proyectos_qs:
+            perfil_empresa = getattr(p.empresa, 'perfil_empresa', None)
             dev_ids = [c.desarrollador_id for c in p.contratos_activos]
             mis_proyectos_v.append({
                 'proyecto_id': p.id,
                 'titulo': p.titulo,
                 'empresa_nombre': p.empresa.nombre,
+                'empresa_verificada': perfil_empresa.es_verificada if perfil_empresa else False,
+                'empresa_badge': perfil_empresa.badge_info if perfil_empresa else None,
+                'empresa_estado_verificacion': perfil_empresa.estado_verificacion if perfil_empresa else 'sin_verificar',
                 'hitos_completados': p.hitos_completados,
                 'hitos_totales': p.hitos_totales,
                 'ultimo_avance': None,
