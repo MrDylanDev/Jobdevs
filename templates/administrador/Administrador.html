@@ -64,6 +64,16 @@
         <span>Verificación Empresas</span>
         {% if total_empresas_en_revision %}<span class="badge bg-danger ms-auto">{{ total_empresas_en_revision }}</span>{% endif %}
       </button>
+      <button class="nav-item" onclick="showSection('verificacionDevsSection', this)">
+        <i class="fa fa-user-check"></i>
+        <span>Verificación Aprendices</span>
+        {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
+      </button>
+      <button class="nav-item" onclick="showSection('fichasSenaSection', this)">
+        <i class="fa fa-id-card"></i>
+        <span>Lista Blanca SENA</span>
+        {% if total_fichas_sena %}<span class="badge bg-secondary ms-auto">{{ total_fichas_sena }}</span>{% endif %}
+      </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i class="fa fa-file-shield"></i>
         <span>Auditoría</span>
@@ -918,6 +928,140 @@
           </table>
           {% else %}
           <p style="margin:0;">No hay solicitudes de verificación en revisión.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Verificación de Aprendices SENA -->
+      <section id="verificacionDevsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">
+              Verificación de Aprendices SENA
+              <span class="badge bg-danger">{{ total_desarrolladores_en_revision }}</span>
+            </div>
+            <div class="page-subtitle">Solicitudes manuales de verificación de aprendices pendientes de resolución</div>
+          </div>
+        </div>
+        <div class="card">
+          {% if desarrolladores_en_revision %}
+          <table style="width:100%;">
+            <thead>
+              <tr><th>Aprendiz</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              {% for d in desarrolladores_en_revision %}
+              <tr>
+                <td>
+                  <strong>{{ d.usuario.nombre|default:d.usuario.username }}</strong><br>
+                  <small class="text-muted">@{{ d.usuario.username }} - {{ d.usuario.email }}</small>
+                </td>
+                <td><span class="badge bg-secondary">{{ d.ficha|default:"—" }}</span></td>
+                <td>{{ d.programa_formacion|default:"—" }}</td>
+                <td>
+                  {% if d.documento_soporte %}
+                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary"><i class="fa fa-file-pdf me-1"></i> Ver PDF</a>
+                  {% else %}Sin documento{% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" style="display:inline-block;margin-bottom:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="aprobar">
+                    <button type="submit" class="btn btn-primary btn-sm">Aprobar</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="rechazar">
+                    <textarea name="notas" required rows="2" aria-label="Motivo del rechazo de verificación SENA" placeholder="Motivo del rechazo" style="width:100%;margin-bottom:4px;"></textarea>
+                    <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="margin:0;">No hay solicitudes manuales de aprendices en revisión.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Lista Blanca de Fichas SENA -->
+      <section id="fichasSenaSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">
+              Lista Blanca Oficial de Fichas SENA
+              <span class="badge bg-primary">{{ total_fichas_sena }}</span>
+            </div>
+            <div class="page-subtitle">Gestión de fichas activas autorizadas para verificación automática instantánea</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:24px;">
+          <h3 class="h5 mb-3"><i class="fa fa-plus-circle me-1 text-primary"></i> Registrar Nueva Ficha SENA</h3>
+          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" style="font-weight:600;">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Programa de Formación *</label>
+              <input type="text" name="programa_formacion" required placeholder="Ej: ADSO" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Regional</label>
+              <input type="text" name="regional" placeholder="Ej: Distrito Capital" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Centro de Formación</label>
+              <input type="text" name="centro_formacion" placeholder="Ej: CSF" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;">
+                <i class="fa fa-save me-1"></i> Guardar Ficha
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3 class="h5 mb-3"><i class="fa fa-list me-1 text-secondary"></i> Catálogo de Fichas Registradas</h3>
+          {% if fichas_sena %}
+          <table style="width:100%;">
+            <thead>
+              <tr><th>Ficha</th><th>Programa</th><th>Regional / Centro</th><th>Estado</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+              {% for f in fichas_sena %}
+              <tr>
+                <td><strong>{{ f.numero_ficha }}</strong></td>
+                <td>{{ f.programa_formacion }}</td>
+                <td>
+                  <small>{{ f.regional|default:"—" }}<br>{{ f.centro_formacion|default:"—" }}</small>
+                </td>
+                <td>
+                  {% if f.activa %}
+                  <span class="badge bg-success">Activa</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Inactiva</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if f.activa %}btn-warning{% else %}btn-success{% endif %}">
+                      {% if f.activa %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="margin:0;">No hay fichas registradas aún en la lista blanca.</p>
           {% endif %}
         </div>
       </section>

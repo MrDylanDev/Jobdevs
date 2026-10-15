@@ -1,6 +1,8 @@
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
@@ -8,7 +10,7 @@ from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value,
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Usuario, PerfilEmpresa
+from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
@@ -183,7 +185,22 @@ def dashboard_admin(request):
         .order_by('fecha_solicitud_verificacion')[:50]
     )
 
+    total_desarrolladores_en_revision = PerfilDesarrollador.objects.filter(
+        estado_verificacion='en_revision'
+    ).count()
+    desarrolladores_en_revision = list(
+        PerfilDesarrollador.objects.filter(estado_verificacion='en_revision')
+        .select_related('usuario')
+        .order_by('fecha_solicitud_verificacion')[:50]
+    )
+    total_fichas_sena = FichaSena.objects.count()
+    fichas_sena = list(FichaSena.objects.all().order_by('-fecha_creacion')[:100])
+
     context = {
+        'desarrolladores_en_revision': desarrolladores_en_revision,
+        'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
+        'fichas_sena': fichas_sena,
+        'total_fichas_sena': total_fichas_sena,
         'empresas_en_revision': empresas_en_revision,
         'total_empresas_en_revision': total_empresas_en_revision,
         'disputas_activas': disputas_activas,
@@ -290,3 +307,69 @@ def admin_reactivar_proyecto(request, proyecto_id):
 
     messages.success(request, f"Proyecto '{proyecto.titulo}' reactivado y contratos restablecidos.")
     return redirect('ver_avances', proyecto_id=proyecto.id)
+
+
+@login_required
+@require_POST
+def admin_crear_ficha_sena(request):
+    """Crea una nueva ficha en la lista blanca oficial del SENA (solo administrador)."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    numero_ficha = re.sub(r'[\s\-]+', '', request.POST.get('numero_ficha', '').strip())
+    programa = request.POST.get('programa_formacion', '').strip()
+    regional = request.POST.get('regional', '').strip() or None
+    centro = request.POST.get('centro_formacion', '').strip() or None
+
+    if not numero_ficha or not programa:
+        messages.error(request, 'El número de ficha y el programa de formación son obligatorios.')
+        return destino
+
+    if FichaSena.objects.filter(numero_ficha=numero_ficha).exists():
+        messages.error(request, f'La ficha {numero_ficha} ya existe en la lista blanca oficial.')
+        return destino
+
+    with transaction.atomic():
+        ficha = FichaSena.objects.create(
+            numero_ficha=numero_ficha,
+            programa_formacion=programa,
+            regional=regional,
+            centro_formacion=centro,
+            activa=True,
+            creada_por=request.user,
+        )
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=f'Creó ficha SENA {numero_ficha} ({programa})'[:300],
+            tabla_afectada='fichas_sena',
+            registro_id=ficha.id,
+        )
+    messages.success(request, f'Ficha {numero_ficha} registrada exitosamente en la lista blanca.')
+    return destino
+
+
+@login_required
+@require_POST
+def admin_toggle_ficha_sena(request, ficha_id):
+    """Activa o desactiva una ficha SENA en la lista blanca (solo administrador)."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    with transaction.atomic():
+        ficha = get_object_or_404(FichaSena.objects.select_for_update(), id=ficha_id)
+        ficha.activa = not ficha.activa
+        ficha.save()
+
+        accion_str = 'Activó' if ficha.activa else 'Desactivó'
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=f'{accion_str} ficha SENA {ficha.numero_ficha}'[:300],
+            tabla_afectada='fichas_sena',
+            registro_id=ficha.id,
+        )
+    estado_str = 'activada' if ficha.activa else 'desactivada'
+    messages.success(request, f'Ficha {ficha.numero_ficha} {estado_str} correctamente.')
+    return destino
+

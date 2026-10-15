@@ -16,7 +16,7 @@ from notificaciones.models import Notificacion
 from ..decorators import requiere_usuario_activo
 from ..models import PerfilDesarrollador, PerfilEmpresa, Usuario
 from ..services_sena import (
-    admin_resolver_verificacion_desarrollador,
+    admin_resolver_verificacion_desarrollador as resolver_desarrollador_sena_service,
     solicitar_verificacion_manual_desarrollador,
     verificar_desarrollador_automatico,
 )
@@ -239,6 +239,35 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
         )
 
     return destino
+
+
+@login_required
+@require_POST
+def admin_resolver_verificacion_desarrollador(request, perfil_id):
+    """Aprueba o rechaza una solicitud de verificación manual de aprendiz SENA (solo administrador)."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=verificacionDevsSection')
+    accion = request.POST.get('accion', '').strip()
+    notas = request.POST.get('notas', '').strip()
+
+    ok, msg = resolver_desarrollador_sena_service(
+        perfil_id=perfil_id,
+        admin_user=request.user,
+        accion=accion,
+        notas=notas,
+    )
+    if ok:
+        if accion == 'aprobar':
+            messages.success(request, msg)
+        else:
+            messages.info(request, msg)
+    else:
+        messages.error(request, msg)
+
+    return destino
+
 
 
 @login_required
