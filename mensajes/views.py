@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
@@ -39,36 +40,41 @@ def sala_chat_grupal(request, proyecto_id):
             messages.error(request, "No se pueden enviar mensajes a proyectos finalizados.")
             return redirect('sala_chat_grupal', proyecto_id=proyecto.id)
 
-        contenido = request.POST.get('cuerpo') or request.POST.get('contenido')
+        contenido = (request.POST.get('cuerpo') or request.POST.get('contenido') or '').strip()
         if contenido:
+            if len(contenido) > 2000:
+                messages.error(request, "El mensaje no puede superar los 2000 caracteres.")
+                return redirect('sala_chat_grupal', proyecto_id=proyecto.id)
+
             try:
-                Mensaje.objects.create(
-                    remitente=request.user,
-                    receptor=None, # Mensaje grupal
-                    titulo=f"Espacio de Trabajo: {proyecto.titulo}",
-                    contenido=contenido,
-                    proyecto=proyecto
-                )
+                with transaction.atomic():
+                    Mensaje.objects.create(
+                        remitente=request.user,
+                        receptor=None, # Mensaje grupal
+                        titulo=f"Espacio de Trabajo: {proyecto.titulo}",
+                        contenido=contenido,
+                        proyecto=proyecto
+                    )
 
-                # Notificar a todos los participantes del proyecto excepto el remitente
-                destinatarios_ids = set(
-                    Contratacion.objects.filter(
-                        proyecto=proyecto, estado__in=['activa', 'finalizada']
-                    ).values_list('desarrollador_id', flat=True)
-                )
-                destinatarios_ids.add(proyecto.empresa_id)
-                destinatarios_ids.discard(request.user.id)
+                    # Notificar a todos los participantes del proyecto excepto el remitente
+                    destinatarios_ids = set(
+                        Contratacion.objects.filter(
+                            proyecto=proyecto, estado__in=['activa', 'finalizada']
+                        ).values_list('desarrollador_id', flat=True)
+                    )
+                    destinatarios_ids.add(proyecto.empresa_id)
+                    destinatarios_ids.discard(request.user.id)
 
-                notificaciones = [
-                    Notificacion(
-                        usuario_id=dest_id,
-                        proyecto=proyecto,
-                        tipo='mensaje',
-                        mensaje=f"{request.user.nombre or request.user.username} envió un mensaje en '{proyecto.titulo}'"
-                    ) for dest_id in destinatarios_ids
-                ]
-                if notificaciones:
-                    Notificacion.objects.bulk_create(notificaciones)
+                    notificaciones = [
+                        Notificacion(
+                            usuario_id=dest_id,
+                            proyecto=proyecto,
+                            tipo='mensaje',
+                            mensaje=f"{request.user.nombre or request.user.username} envió un mensaje en '{proyecto.titulo}'"
+                        ) for dest_id in destinatarios_ids
+                    ]
+                    if notificaciones:
+                        Notificacion.objects.bulk_create(notificaciones)
 
                 return redirect('sala_chat_grupal', proyecto_id=proyecto_id)
             except Exception as e:
@@ -131,23 +137,28 @@ def sala_chat(request, receptor_id, proyecto_id=None):
             messages.error(request, "No se pueden enviar mensajes a proyectos finalizados.")
             return redirect('sala_chat', receptor_id=receptor_id, proyecto_id=proyecto_id if proyecto_id else 0)
 
-        contenido = request.POST.get('contenido')
+        contenido = (request.POST.get('contenido') or '').strip()
         if contenido:
-            try:
-                Mensaje.objects.create(
-                    remitente=request.user,
-                    receptor=receptor,
-                    titulo=f"Chat: {proyecto.titulo if proyecto else 'General'}",
-                    contenido=contenido,
-                    proyecto=proyecto
-                )
+            if len(contenido) > 2000:
+                messages.error(request, "El mensaje no puede superar los 2000 caracteres.")
+                return redirect('sala_chat', receptor_id=receptor_id, proyecto_id=proyecto_id if proyecto_id else 0)
 
-                Notificacion.objects.create(
-                    usuario=receptor,
-                    proyecto=proyecto,
-                    tipo='mensaje',
-                    mensaje=f"{request.user.nombre or request.user.username} te envió un mensaje: {proyecto.titulo if proyecto else 'General'}"
-                )
+            try:
+                with transaction.atomic():
+                    Mensaje.objects.create(
+                        remitente=request.user,
+                        receptor=receptor,
+                        titulo=f"Chat: {proyecto.titulo if proyecto else 'General'}",
+                        contenido=contenido,
+                        proyecto=proyecto
+                    )
+
+                    Notificacion.objects.create(
+                        usuario=receptor,
+                        proyecto=proyecto,
+                        tipo='mensaje',
+                        mensaje=f"{request.user.nombre or request.user.username} te envió un mensaje: {proyecto.titulo if proyecto else 'General'}"
+                    )
 
                 return redirect('sala_chat', receptor_id=receptor_id, proyecto_id=proyecto_id if proyecto_id else 0)
             except Exception as e:
@@ -221,6 +232,10 @@ def mensajeria_redactar(request):
 
         if not receptor_id or not contenido:
             messages.error(request, 'Debes seleccionar un destinatario y escribir un mensaje.')
+        elif len(contenido) > 2000:
+            messages.error(request, 'El contenido del mensaje no puede superar los 2000 caracteres.')
+        elif len(titulo) > 200:
+            messages.error(request, 'El título del mensaje no puede superar los 200 caracteres.')
         else:
             try:
                 receptor = get_object_or_404(Usuario, id=receptor_id)
@@ -230,31 +245,38 @@ def mensajeria_redactar(request):
                     messages.error(request, 'No tienes autorización para comunicarte con este usuario o proyecto.')
                     return redirect('mensajeria_redactar')
 
-                Mensaje.objects.create(
-                    remitente=request.user,
-                    receptor=receptor,
-                    titulo=titulo or f'Mensaje de {request.user.nombre or request.user.username}',
-                    contenido=contenido,
-                    proyecto=proyecto
-                )
+                with transaction.atomic():
+                    Mensaje.objects.create(
+                        remitente=request.user,
+                        receptor=receptor,
+                        titulo=titulo or f'Mensaje de {request.user.nombre or request.user.username}',
+                        contenido=contenido,
+                        proyecto=proyecto
+                    )
 
-                Notificacion.objects.create(
-                    usuario=receptor,
-                    proyecto=proyecto,
-                    tipo='mensaje',
-                    mensaje=f"{request.user.nombre or request.user.username} te envió un mensaje: {titulo or 'General'}"
-                )
+                    Notificacion.objects.create(
+                        usuario=receptor,
+                        proyecto=proyecto,
+                        tipo='mensaje',
+                        mensaje=f"{request.user.nombre or request.user.username} te envió un mensaje: {titulo or 'General'}"
+                    )
 
                 messages.success(request, f'Mensaje enviado a {receptor.nombre or receptor.username}.')
                 return redirect('mensajeria_sent')
             except Exception as e:
                 messages.error(request, f'Error al enviar el mensaje: {e}')
 
+    def _safe_int(val, default=0):
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return default
+
     return render(request, 'mensajes/redactar.html', {
         'usuarios': usuarios_disponibles,
         'proyectos': proyectos_disponibles,
-        'para_id': int(request.GET.get('para', 0)),
-        'proyecto_pre': int(request.GET.get('proyecto', 0)),
+        'para_id': _safe_int(request.GET.get('para', 0)),
+        'proyecto_pre': _safe_int(request.GET.get('proyecto', 0)),
     })
 
 
