@@ -319,7 +319,8 @@
                   {{ proyecto.fecha_fin|date:"d M"|default:"Sin fecha" }}
                 </span>
               </div>
-              <div class="project-card-sub" style="margin-bottom:16px;">Empresa: {{ proyecto.empresa_nombre }}
+              <div class="project-card-sub" style="margin-bottom:16px;">
+                Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:inherit; text-decoration:none; font-weight:600;" title="Ver perfil institucional y reseñas">{{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i></a>
                 {% if proyecto.empresa_badge %}
                   <span class="badge {% if proyecto.empresa_verificada %}{% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}{% elif proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">
                     <i class="fa {% if proyecto.empresa_verificada %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
