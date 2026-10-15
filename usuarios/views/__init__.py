@@ -22,6 +22,7 @@ from .dashboard_views import (
 
 from .empresa_dashboard import (
     dashboard_empresa,
+    detalle_empresa,
 )
 
 from .dev_dashboard import (
