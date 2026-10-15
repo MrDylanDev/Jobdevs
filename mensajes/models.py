@@ -13,6 +13,11 @@ class Mensaje(models.Model):
 
     class Meta:
         db_table = 'mensajes'
+        indexes = [
+            models.Index(fields=['remitente', 'receptor', 'proyecto'], name='idx_msg_rem_rec_proy'),
+            models.Index(fields=['receptor', 'leido'], name='idx_msg_receptor_leido'),
+            models.Index(fields=['proyecto', 'receptor'], name='idx_msg_proy_receptor'),
+        ]
 
     def __str__(self):
         receptor_name = self.receptor.username if self.receptor else "GRUPO"

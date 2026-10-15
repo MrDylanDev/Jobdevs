@@ -120,7 +120,7 @@ def sala_chat(request, receptor_id, proyecto_id=None):
         # En chat general, solo mostramos los que no tienen proyecto asignado
         mensajes_chat = mensajes_chat.filter(proyecto__isnull=True)
 
-    mensajes_chat = mensajes_chat.order_by('fecha_envio')
+    mensajes_chat = mensajes_chat.select_related('remitente', 'receptor').order_by('fecha_envio')
     
     # Marcar leídos solo de este contexto
     mensajes_chat.filter(receptor=request.user, leido=False).update(leido=True)
@@ -166,24 +166,34 @@ def sala_chat(request, receptor_id, proyecto_id=None):
 
 @login_required
 def mensajeria_inbox(request):
-    """Bandeja de entrada: mensajes directos recibidos (con receptor != None)"""
+    """Bandeja de entrada: mensajes directos recibidos (con receptor != None) con paginación"""
     mensajes_recibidos = Mensaje.objects.filter(
         receptor=request.user
     ).select_related('remitente', 'proyecto').order_by('-fecha_envio')
+    
+    paginator = Paginator(mensajes_recibidos, 20)
+    page_number = request.GET.get('page')
+    mensajes = paginator.get_page(page_number)
+    
     return render(request, 'mensajes/inbox.html', {
-        'mensajes': mensajes_recibidos
+        'mensajes': mensajes
     })
 
 
 @login_required
 def mensajeria_sent(request):
-    """Mensajes enviados directamente (con receptor != None)"""
+    """Mensajes enviados directamente (con receptor != None) con paginación"""
     mensajes_enviados = Mensaje.objects.filter(
         remitente=request.user,
         receptor__isnull=False
     ).select_related('receptor', 'proyecto').order_by('-fecha_envio')
+    
+    paginator = Paginator(mensajes_enviados, 20)
+    page_number = request.GET.get('page')
+    mensajes = paginator.get_page(page_number)
+    
     return render(request, 'mensajes/sent.html', {
-        'mensajes': mensajes_enviados
+        'mensajes': mensajes
     })
 
 
