@@ -51,6 +51,18 @@ class RegistroUsuarioForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Programa de formación (ADSO, etc)'}),
         label="Programa de Formación (Opcional)"
     )
+    sector = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Sector (ej: Tecnología, Salud)'}),
+        label="Sector Empresarial (Opcional)"
+    )
+    ciudad = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad (ej: Bogotá, Medellín)'}),
+        label="Ciudad de Operación (Opcional)"
+    )
     
     class Meta:
         model = Usuario
@@ -65,6 +77,12 @@ class RegistroUsuarioForm(UserCreationForm):
             self.add_error('tipo_documento', "Un desarrollador solo puede registrarse con Cédula.")
         
         return cleaned_data
+
+    def clean_identificacion(self):
+        identificacion = (self.cleaned_data.get('identificacion') or '').strip()
+        if identificacion and Usuario.objects.filter(identificacion=identificacion).exists():
+            raise forms.ValidationError("Este número de identificación/NIT ya se encuentra registrado.")
+        return identificacion
 
     def clean_fecha_nacimiento(self):
         fecha = self.cleaned_data.get('fecha_nacimiento')
@@ -88,7 +106,16 @@ class RegistroUsuarioForm(UserCreationForm):
             
             # Crear perfil según el rol seleccionado
             if user.rol == 'empresa':
-                PerfilEmpresa.objects.get_or_create(usuario=user)
+                perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=user)
+                sector = (self.cleaned_data.get('sector') or '').strip()
+                ciudad = (self.cleaned_data.get('ciudad') or '').strip()
+                if sector:
+                    perfil.sector = sector
+                if ciudad:
+                    perfil.ciudad = ciudad
+                if not perfil.nombre_empresa:
+                    perfil.nombre_empresa = user.nombre
+                perfil.save()
             elif user.rol == 'desarrollador':
                 perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
                 ficha = (self.cleaned_data.get('ficha') or '').strip()
