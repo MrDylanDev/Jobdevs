@@ -51,6 +51,7 @@ def listar_proyectos(request):
         perfil = getattr(p.empresa, 'perfil_empresa', None)
         proyectos.append({
             'id': p.id,
+            'empresa_id': p.empresa_id,
             'titulo': p.titulo,
             'descripcion': p.descripcion,
             'tipo_solucion': p.tipo_solucion,
