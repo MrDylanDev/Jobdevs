@@ -11,6 +11,7 @@ from contrataciones.models import Contratacion, ContratoDigital
 from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
 from proyectos.models import Equipo
+from usuarios.models import PerfilDesarrollador
 
 @login_required
 def ver_postulaciones_empresa(request, proyecto_id):
@@ -87,6 +88,14 @@ def ver_postulaciones_empresa(request, proyecto_id):
 def postularse_a_proyecto(request, proyecto_id):
     if request.user.rol != 'desarrollador':
         return redirect('inicio')
+    
+    perfil_dev, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
+    if not perfil_dev.es_verificado_sena:
+        messages.error(
+            request,
+            "Debes verificar tu identidad como aprendiz SENA antes de postularte a proyectos."
+        )
+        return redirect('solicitar_verificacion_desarrollador')
     
     proyecto = Proyecto.objects.filter(id=proyecto_id).first()
 

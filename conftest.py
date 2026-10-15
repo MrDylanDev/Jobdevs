@@ -99,6 +99,10 @@ def desarrollador_user(db):
         estado='activo',
         password='TestPass123!',
     )
+    from usuarios.models import PerfilDesarrollador
+    perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
+    perfil.estado_verificacion = 'verificado'
+    perfil.save()
     return user
 
 
