@@ -1,7 +1,9 @@
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from proyectos.models import Proyecto, Entregable
+from contrataciones.models import Contratacion
 from avances.models import Avance
 
 User = get_user_model()
@@ -78,3 +80,89 @@ class TestVerAvances:
             reverse('ver_avances', args=[proyecto.id])
         )
         assert response.status_code == 200
+
+    def test_ver_avances_muestra_boton_descargar_archivo(self, auth_client, empresa_user, desarrollador_user):
+        """RF 4.2.1 (SCRUM-64): Ver avances muestra enlace para descargar archivo adjunto."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='VA Evidencias',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        entregable = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito Evidencia', descripcion='H',
+        )
+        archivo = SimpleUploadedFile("evidencia_doc.pdf", b"%PDF-1.4 contenido", content_type="application/pdf")
+        avance = Avance.objects.create(
+            proyecto=proyecto, entregable=entregable,
+            desarrollador=desarrollador_user, descripcion='Avance con archivo',
+            archivo_adjunto=archivo,
+        )
+        response = auth_client.get(reverse('ver_avances', args=[proyecto.id]))
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'Descargar Archivo' in content or 'evidencia_doc' in content
+
+
+class TestRegistrarAvance:
+    """Tests for registrar_avance view."""
+
+    @pytest.fixture
+    def escenario_avance(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Avances',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        entregable = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito Test',
+            descripcion='Desc', estado='pendiente',
+        )
+        contratacion = Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
+        )
+        return proyecto, entregable, contratacion
+
+    def test_registrar_avance_con_archivo_adjunto_sin_url(self, dev_client, desarrollador_user, escenario_avance):
+        """RF 4.2.1 (SCRUM-64): Desarrollador puede subir archivo real de evidencia sin URL."""
+        proyecto, entregable, _ = escenario_avance
+        archivo = SimpleUploadedFile("codigo.zip", b"PK\x03\x04 fake zip content", content_type="application/zip")
+
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Subida de código fuente en ZIP',
+            'archivo_url': '',
+            'archivo_adjunto': archivo,
+        }, follow=True)
+        assert response.status_code == 200
+        assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
+        assert bool(avance.archivo_adjunto) is True
+        assert avance.archivo_url in (None, '')
+
+    def test_registrar_avance_con_url_sin_archivo(self, dev_client, desarrollador_user, escenario_avance):
+        """Desarrollador puede registrar avance solo con URL de repositorio."""
+        proyecto, entregable, _ = escenario_avance
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Enlace al repo',
+            'archivo_url': 'https://github.com/mrdylan/teir',
+        }, follow=True)
+        assert response.status_code == 200
+        assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
+        assert avance.archivo_url == 'https://github.com/mrdylan/teir'
+
+    def test_registrar_avance_sin_url_ni_archivo_muestra_error(self, dev_client, desarrollador_user, escenario_avance):
+        """Si no se ingresa ni URL ni archivo adjunto, se rechaza la solicitud."""
+        proyecto, entregable, _ = escenario_avance
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Sin evidencia alguna',
+            'archivo_url': '',
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        content = response.content.decode('utf-8')
+        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in content
+
