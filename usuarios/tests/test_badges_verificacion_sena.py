@@ -72,6 +72,24 @@ def dev_sin_verificar(db):
     return user
 
 
+@pytest.fixture
+def dev_egresado_verificado(db):
+    user = Usuario.objects.create_user(
+        username='dev_egresado',
+        email='egresado@sena.edu.co',
+        nombre='Mariana Egresada',
+        password='Password123!',
+        rol='desarrollador',
+        identificacion='1000000004',
+    )
+    perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
+    perfil.condicion_sena = 'egresado'
+    perfil.programa_formacion = 'Tecnólogo ADSO'
+    perfil.estado_verificacion = 'verificado'
+    perfil.save()
+    return user
+
+
 @pytest.mark.django_db
 class TestBadgesVerificacionSena:
     def test_dashboard_dev_verificado_muestra_badge_verificado(self, client, dev_verificado):
@@ -115,3 +133,37 @@ class TestBadgesVerificacionSena:
         content = response.content.decode('utf-8')
         assert 'Aprendiz SENA' in content
         assert 'data-testid="badge-sena-postulante"' in content
+
+    def test_dashboard_dev_egresado_verificado_muestra_badge_egresado(self, client, dev_egresado_verificado):
+        client.force_login(dev_egresado_verificado)
+        response = client.get(reverse('dashboard_desarrollador'))
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'Egresado SENA' in content
+        assert 'data-testid="badge-verificacion-sena"' in content
+        assert 'alerta-verificacion-sena' not in content
+
+    def test_ver_postulaciones_empresa_muestra_badge_egresado_sena(
+        self, client, empresa_user, dev_egresado_verificado
+    ):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Test Egresados',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        Postulacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=dev_egresado_verificado,
+            mensaje='Carta de egresada',
+            estado='pendiente',
+        )
+
+        client.force_login(empresa_user)
+        response = client.get(reverse('ver_postulaciones_empresa', args=[proyecto.id]))
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'Egresado SENA' in content
+        assert 'data-testid="badge-sena-postulante"' in content
+
