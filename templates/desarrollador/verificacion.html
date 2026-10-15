@@ -72,12 +72,17 @@
           <ul class="nav nav-tabs card-header-tabs" id="metodoTab" role="tablist">
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if valores.metodo != 'manual' %}active{% endif %}" id="auto-tab" data-bs-toggle="tab" data-bs-target="#auto-pane" type="button" role="tab" aria-controls="auto-pane" aria-selected="{% if valores.metodo != 'manual' %}true{% else %}false{% endif %}">
-                <i class="fa fa-bolt me-1 text-warning"></i> Verificación Instantánea (Lista Blanca)
+                <i class="fa fa-bolt me-1 text-warning"></i> Aprendiz (Lista Blanca)
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link {% if valores.metodo == 'manual' %}active{% endif %}" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' %}true{% else %}false{% endif %}">
-                <i class="fa fa-file-upload me-1 text-primary"></i> Solicitud Manual con Soporte (PDF)
+              <button class="nav-link {% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}active{% endif %}" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}true{% else %}false{% endif %}">
+                <i class="fa fa-id-badge me-1 text-primary"></i> Aprendiz (Carnet / Certificado)
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if valores.condicion_sena == 'egresado' %}active{% endif %}" id="egresado-tab" data-bs-toggle="tab" data-bs-target="#egresado-pane" type="button" role="tab" aria-controls="egresado-pane" aria-selected="{% if valores.condicion_sena == 'egresado' %}true{% else %}false{% endif %}">
+                <i class="fa fa-graduation-cap me-1 text-success"></i> Egresado SENA (Diploma)
               </button>
             </li>
           </ul>
@@ -111,11 +116,12 @@
               </form>
             </div>
 
-            <!-- PESTAÑA MANUAL -->
-            <div class="tab-pane fade {% if valores.metodo == 'manual' %}show active{% endif %}" id="manual-pane" role="tabpanel" aria-labelledby="manual-tab">
+            <!-- PESTAÑA MANUAL APRENDIZ -->
+            <div class="tab-pane fade {% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}show active{% endif %}" id="manual-pane" role="tabpanel" aria-labelledby="manual-tab">
               <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 <input type="hidden" name="metodo" value="manual">
+                <input type="hidden" name="condicion_sena" value="aprendiz">
 
                 <div class="mb-3">
                   <label for="id_ficha_manual" class="form-label fw-bold">Número de Ficha SENA <span class="text-danger">*</span></label>
@@ -144,7 +150,49 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                  <i class="fa fa-paper-plane me-1"></i> Enviar Solicitud a Revisión
+                  <i class="fa fa-paper-plane me-1"></i> Enviar Solicitud de Aprendiz
+                </button>
+              </form>
+            </div>
+
+            <!-- PESTAÑA EGRESADO SENA -->
+            <div class="tab-pane fade {% if valores.condicion_sena == 'egresado' %}show active{% endif %}" id="egresado-pane" role="tabpanel" aria-labelledby="egresado-tab">
+              <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="metodo" value="manual">
+                <input type="hidden" name="condicion_sena" value="egresado">
+
+                <div class="alert alert-light border mb-3">
+                  <i class="fa fa-info-circle text-success me-1"></i>
+                  <strong>¿Sos egresado titulado del SENA?</strong> Adjuntá tu diploma o acta de grado oficial descargada de SofíaPlus para obtener la insignia de <strong>Egresado SENA</strong> y postularte a proyectos sin límite.
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_programa_egresado" class="form-label fw-bold">Programa Técnico o Tecnológico Culminado <span class="text-danger">*</span></label>
+                  <input type="text" name="programa_formacion" id="id_programa_egresado" class="form-control {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Tecnólogo en Análisis y Desarrollo de Software (ADSO)" required>
+                  {% if errores.programa_formacion %}
+                    <div class="invalid-feedback">{{ errores.programa_formacion }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_ficha_egresado" class="form-label fw-bold">Número de Ficha Antigua (Opcional)</label>
+                  <input type="text" name="ficha" id="id_ficha_egresado" class="form-control" value="{{ valores.ficha }}" placeholder="Ej: 2142345 (opcional si no la recuerdas)">
+                  <div class="form-text">Si no recordás tu número de ficha, podés dejarlo en blanco. Lo validaremos con tu diploma.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_soporte_egresado" class="form-label fw-bold">Diploma o Acta de Grado (PDF) <span class="text-danger">*</span></label>
+                  <input type="file" name="documento_soporte" id="id_soporte_egresado" class="form-control {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+                  {% if errores.documento_soporte %}
+                    <div class="invalid-feedback">{{ errores.documento_soporte }}</div>
+                  {% else %}
+                    <div class="form-text">Documento en formato PDF (máximo 5 MB) con código de verificación o firma oficial.</div>
+                  {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                  <i class="fa fa-graduation-cap me-1"></i> Enviar Diploma a Revisión
                 </button>
               </form>
             </div>

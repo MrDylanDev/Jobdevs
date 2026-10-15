@@ -307,6 +307,7 @@ def solicitar_verificacion_desarrollador(request):
             return redirect('solicitar_verificacion_desarrollador')
 
         metodo = request.POST.get('metodo', 'automatica').strip()
+        condicion = request.POST.get('condicion_sena', 'aprendiz').strip()
         ficha = request.POST.get('ficha', '').strip()
         programa = request.POST.get('programa_formacion', '').strip()
 
@@ -321,7 +322,7 @@ def solicitar_verificacion_desarrollador(request):
                 messages.success(request, msg)
                 return redirect('solicitar_verificacion_desarrollador')
             errores = {'ficha': msg}
-            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo}
+            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo, 'condicion_sena': condicion}
             return render(request, 'desarrollador/verificacion.html', {
                 'perfil': perfil, 'errores': errores, 'valores': valores,
             })
@@ -334,11 +335,12 @@ def solicitar_verificacion_desarrollador(request):
                 programa_formacion=programa,
                 documento_soporte=archivo,
                 usuario_solicitante=request.user,
+                condicion_sena=condicion,
             )
             if ok:
                 messages.success(request, msg)
                 return redirect('solicitar_verificacion_desarrollador')
-            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo}
+            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo, 'condicion_sena': condicion}
             return render(request, 'desarrollador/verificacion.html', {
                 'perfil': perfil, 'errores': errores, 'valores': valores,
             })
@@ -349,6 +351,7 @@ def solicitar_verificacion_desarrollador(request):
     valores = {
         'ficha': perfil.ficha or '',
         'programa_formacion': perfil.programa_formacion or '',
+        'condicion_sena': perfil.condicion_sena or 'aprendiz',
         'metodo': 'automatica',
     }
     return render(request, 'desarrollador/verificacion.html', {

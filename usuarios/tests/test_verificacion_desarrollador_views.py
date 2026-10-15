@@ -157,6 +157,33 @@ class TestVerificacionDesarrolladorViews:
         assert perfil.ficha == '2899999'
         assert bool(perfil.documento_soporte) is True
 
+    def test_desarrollador_post_manual_egresado_con_diploma_pasa_a_en_revision(
+        self, client, dev_user
+    ):
+        client.force_login(dev_user)
+        pdf_file = SimpleUploadedFile(
+            'diploma_egresado.pdf',
+            b'%PDF-1.4 diploma egresado sena',
+            content_type='application/pdf',
+        )
+        response = client.post(
+            reverse('solicitar_verificacion_desarrollador'),
+            {
+                'metodo': 'manual',
+                'condicion_sena': 'egresado',
+                'ficha': '',
+                'programa_formacion': 'ADSO',
+                'documento_soporte': pdf_file,
+            },
+            follow=True,
+        )
+        assert response.status_code == 200
+        perfil = dev_user.perfil_desarrollador
+        perfil.refresh_from_db()
+        assert perfil.estado_verificacion == 'en_revision'
+        assert perfil.condicion_sena == 'egresado'
+        assert bool(perfil.documento_soporte) is True
+
     def test_desarrollador_en_revision_bloquea_nuevo_post(
         self, client, dev_user
     ):
