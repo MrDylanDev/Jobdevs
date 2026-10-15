@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.models import Session
 from django.test import Client
 from proyectos.models import Proyecto
 
@@ -66,6 +67,28 @@ class TestAdminToggleUsuario:
         )
         assert response.status_code == 302
 
+    def test_admin_toggle_usuario_invalida_sesion_activa_inmediatamente(self, admin_client, desarrollador_user):
+        """RF 1.3.2 (SCRUM-44): Suspender usuario elimina su sesión activa de django_session en tiempo real."""
+        dev_client = Client()
+        login_ok = dev_client.login(username=desarrollador_user.username, password='TestPass123!')
+        assert login_ok is True
+        session_key = dev_client.cookies['sessionid'].value
+        assert Session.objects.filter(session_key=session_key).exists()
+
+        # Admin suspende al desarrollador
+        response = admin_client.post(reverse('admin_toggle_usuario', args=[desarrollador_user.id]))
+        assert response.status_code == 302
+        desarrollador_user.refresh_from_db()
+        assert not desarrollador_user.is_active
+
+        # Sesión destruida en base de datos inmediatamente
+        assert not Session.objects.filter(session_key=session_key).exists()
+
+        # Próxima petición del usuario es expulsada a login
+        res_dev = dev_client.get(reverse('dashboard_desarrollador'))
+        assert res_dev.status_code == 302
+        assert '/login/' in res_dev.url
+
 
 class TestAdminReactivarProyecto:
     """Tests for admin_reactivar_proyecto view."""
@@ -129,13 +152,24 @@ class TestApiBulkToggle:
         assert user2.is_active
 
     def test_admin_bulk_suspend(self, admin_client, desarrollador_user):
-        """Admin can bulk suspend users."""
+        """Admin can bulk suspend users and their active sessions are deleted (SCRUM-44)."""
         import json
         user2 = User.objects.create_user(
             username='bulk3', email='bulk3@t.teir', nombre='B3',
             rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
+        c1 = Client()
+        c1.login(username=desarrollador_user.username, password='TestPass123!')
+        s1 = c1.cookies['sessionid'].value
+
+        c2 = Client()
+        c2.login(username='bulk3', password='TestPass123!')
+        s2 = c2.cookies['sessionid'].value
+
+        assert Session.objects.filter(session_key=s1).exists()
+        assert Session.objects.filter(session_key=s2).exists()
+
         response = admin_client.post(
             reverse('api_bulk_toggle'),
             data=json.dumps({'ids': [desarrollador_user.id, user2.id], 'action': 'suspend'}),
@@ -146,6 +180,10 @@ class TestApiBulkToggle:
         user2.refresh_from_db()
         assert not desarrollador_user.is_active
         assert not user2.is_active
+
+        # Ambas sesiones activas fueron destruidas de raíz
+        assert not Session.objects.filter(session_key=s1).exists()
+        assert not Session.objects.filter(session_key=s2).exists()
 
     def test_non_admin_cannot_bulk(self, auth_client, desarrollador_user):
         """Non-admin cannot use bulk toggle."""
