@@ -52,7 +52,7 @@ class Proyecto(models.Model):
         null=True, blank=True, related_name='proyectos',
     )
     prioridad = models.CharField(max_length=10, choices=PRIORIDAD, default='media')
-    vacantes = models.PositiveIntegerField(default=1)
+    vacantes = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     estado = models.CharField(max_length=25, choices=ESTADO, default='publicado')
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
     fecha_limite = models.DateField(null=True, blank=True)
