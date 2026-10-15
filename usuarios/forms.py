@@ -123,9 +123,10 @@ class PerfilEmpresaForm(forms.ModelForm):
 class PerfilDesarrolladorForm(forms.ModelForm):
     class Meta:
         model = PerfilDesarrollador
-        fields = ['foto_perfil', 'programa_formacion', 'ficha', 'habilidades', 'portafolio_url']
+        fields = ['foto_perfil', 'telefono', 'programa_formacion', 'ficha', 'habilidades', 'portafolio_url']
         widgets = {
             'foto_perfil': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto (ej: 3001234567)'}),
             'portafolio_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://github.com/tu-usuario'}),
             'programa_formacion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Programa de formación (ADSO, etc)'}),
             'ficha': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número de Ficha'}),
