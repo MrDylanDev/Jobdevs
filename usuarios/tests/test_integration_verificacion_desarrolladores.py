@@ -255,3 +255,92 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
         perfil.refresh_from_db()
         assert perfil.estado_verificacion == 'verificado'
         assert perfil.es_verificado_sena is True
+
+    def test_ciclo_4_egresado_sena_solicitud_con_diploma_aprobacion_y_postulacion(
+        self, client, admin_user, empresa_user, proyecto_abierto
+    ):
+        # 1. Egresado se registra
+        client.post(reverse('registro'), {
+            'username': 'egresada_laura',
+            'nombre': 'Laura Restrepo',
+            'tipo_documento': 'cedula',
+            'identificacion': '1030405060',
+            'email': 'laura@sena.edu.co',
+            'fecha_nacimiento': '1999-05-20',
+            'rol': 'desarrollador',
+            'password1': 'LauraPass123!',
+            'password2': 'LauraPass123!',
+        })
+        dev = Usuario.objects.get(username='egresada_laura')
+        perfil = dev.perfil_desarrollador
+        assert perfil.estado_verificacion == 'sin_verificar'
+
+        # 2. Intenta postularse y es bloqueada
+        client.force_login(dev)
+        res_bloqueo = client.post(
+            reverse('postularse_a_proyecto', args=[proyecto_abierto.id]),
+            {'carta': 'Soy egresada', 'experiencia': 'SENA', 'link': ''},
+            follow=True,
+        )
+        assert res_bloqueo.status_code == 200
+        assert not Postulacion.objects.filter(proyecto=proyecto_abierto, desarrollador=dev).exists()
+
+        # 3. Envía solicitud de verificación como Egresada con diploma PDF
+        diploma_pdf = SimpleUploadedFile(
+            'diploma_adso.pdf',
+            b'%PDF-1.4 diploma oficial de tecnologo en adso sena sofia plus',
+            content_type='application/pdf',
+        )
+        res_solicitud = client.post(
+            reverse('solicitar_verificacion_desarrollador'),
+            {
+                'metodo': 'manual',
+                'condicion_sena': 'egresado',
+                'ficha': '',
+                'programa_formacion': 'Tecnología en ADSO',
+                'documento_soporte': diploma_pdf,
+            },
+            follow=True,
+        )
+        assert res_solicitud.status_code == 200
+        perfil.refresh_from_db()
+        assert perfil.condicion_sena == 'egresado'
+        assert perfil.estado_verificacion == 'en_revision'
+
+        # 4. Admin revisa y aprueba como Egresada SENA
+        client.force_login(admin_user)
+        res_aprobar = client.post(
+            reverse('admin_resolver_verificacion_desarrollador', args=[perfil.id]),
+            {'accion': 'aprobar', 'notas': 'Título y acta de grado validados correctamente'},
+            follow=True,
+        )
+        assert res_aprobar.status_code == 200
+        perfil.refresh_from_db()
+        assert perfil.estado_verificacion == 'verificado'
+        assert perfil.condicion_sena == 'egresado'
+        assert perfil.es_verificado_sena is True
+
+        # 5. Egresada ingresa al dashboard: ve badge "Egresado SENA" y puede postularse
+        client.force_login(dev)
+        res_dash = client.get(reverse('dashboard_desarrollador'))
+        assert res_dash.status_code == 200
+        dash_content = res_dash.content.decode('utf-8')
+        assert 'Egresado SENA' in dash_content
+        assert 'alerta-verificacion-sena' not in dash_content
+
+        res_postular = client.post(
+            reverse('postularse_a_proyecto', args=[proyecto_abierto.id]),
+            {'carta': 'Postulación formal de egresada', 'experiencia': 'ADSO', 'link': ''},
+            follow=True,
+        )
+        assert res_postular.status_code == 200
+        assert Postulacion.objects.filter(proyecto=proyecto_abierto, desarrollador=dev).exists()
+
+        # 6. Empresa ve la postulación con el badge "Egresado SENA"
+        client.force_login(empresa_user)
+        res_empresa = client.get(reverse('ver_postulaciones_empresa', args=[proyecto_abierto.id]))
+        assert res_empresa.status_code == 200
+        empresa_content = res_empresa.content.decode('utf-8')
+        assert 'Laura Restrepo' in empresa_content
+        assert 'Egresado SENA' in empresa_content
+        assert 'data-testid="badge-sena-postulante"' in empresa_content
