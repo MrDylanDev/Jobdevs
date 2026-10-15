@@ -79,7 +79,7 @@ class TestBadgesVerificacionSena:
         response = client.get(reverse('dashboard_desarrollador'))
         assert response.status_code == 200
         content = response.content.decode('utf-8')
-        assert 'Verificado SENA' in content
+        assert 'Aprendiz SENA' in content
         assert 'data-testid="badge-verificacion-sena"' in content
         assert 'alerta-verificacion-sena' not in content
 
@@ -113,5 +113,5 @@ class TestBadgesVerificacionSena:
         response = client.get(reverse('ver_postulaciones_empresa', args=[proyecto.id]))
         assert response.status_code == 200
         content = response.content.decode('utf-8')
-        assert 'Verificado SENA' in content
+        assert 'Aprendiz SENA' in content
         assert 'data-testid="badge-sena-postulante"' in content

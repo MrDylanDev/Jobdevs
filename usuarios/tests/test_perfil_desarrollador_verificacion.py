@@ -68,6 +68,7 @@ class TestFichaSenaModel:
 class TestPerfilDesarrolladorVerificacionModel:
     def test_defaults_verificacion(self, dev_user):
         perfil = dev_user.perfil_desarrollador
+        assert perfil.condicion_sena == 'aprendiz'
         assert perfil.estado_verificacion == 'sin_verificar'
         assert perfil.ficha_sena is None
         assert perfil.documento_soporte.name in (None, '')
@@ -89,14 +90,19 @@ class TestPerfilDesarrolladorVerificacionModel:
         perfil.save()
         assert perfil.es_verificado_sena is esperado
 
-    @pytest.mark.parametrize('estado,label_esperado,css_esperado', [
-        ('verificado', 'Verificado SENA', 'badge-verificada'),
-        ('en_revision', 'En Revisión SENA', 'badge-en-revision'),
-        ('rechazado', 'Verificación Rechazada', 'badge-rechazada'),
-        ('sin_verificar', 'Sin Verificar', 'badge-sin-verificar'),
+    @pytest.mark.parametrize('condicion,estado,label_esperado,css_esperado', [
+        ('aprendiz', 'verificado', 'Aprendiz SENA', 'badge-verificada'),
+        ('egresado', 'verificado', 'Egresado SENA', 'badge-verificada'),
+        ('aprendiz', 'en_revision', 'En Revisión SENA', 'badge-en-revision'),
+        ('egresado', 'en_revision', 'En Revisión (Egresado)', 'badge-en-revision'),
+        ('aprendiz', 'rechazado', 'Verificación Rechazada', 'badge-rechazada'),
+        ('egresado', 'rechazado', 'Verificación Rechazada', 'badge-rechazada'),
+        ('aprendiz', 'sin_verificar', 'Sin Verificar', 'badge-sin-verificar'),
+        ('egresado', 'sin_verificar', 'Sin Verificar', 'badge-sin-verificar'),
     ])
-    def test_badge_info_property(self, dev_user, estado, label_esperado, css_esperado):
+    def test_badge_info_property_por_condicion(self, dev_user, condicion, estado, label_esperado, css_esperado):
         perfil = dev_user.perfil_desarrollador
+        perfil.condicion_sena = condicion
         perfil.estado_verificacion = estado
         perfil.save()
         badge = perfil.badge_info

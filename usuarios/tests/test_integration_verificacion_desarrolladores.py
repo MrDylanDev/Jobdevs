@@ -94,7 +94,7 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
         # 3. Visita su dashboard: badge visible y sin alertas de bloqueo
         res_dash = client.get(reverse('dashboard_desarrollador'))
         dash_content = res_dash.content.decode('utf-8')
-        assert 'Verificado SENA' in dash_content
+        assert 'Aprendiz SENA' in dash_content
         assert 'alerta-verificacion-sena' not in dash_content
 
         # 4. Se postula exitosamente al proyecto publicado
@@ -110,13 +110,13 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
         assert res_postular.status_code == 200
         assert Postulacion.objects.filter(proyecto=proyecto_abierto, desarrollador=dev).exists()
 
-        # 5. Empresa ve al candidato postulado con su badge "Verificado SENA"
+        # 5. Empresa ve al candidato postulado con su badge "Aprendiz SENA"
         client.force_login(empresa_user)
         res_empresa = client.get(reverse('ver_postulaciones_empresa', args=[proyecto_abierto.id]))
         assert res_empresa.status_code == 200
         empresa_content = res_empresa.content.decode('utf-8')
         assert 'Santiago Montoya' in empresa_content
-        assert 'Verificado SENA' in empresa_content
+        assert 'Aprendiz SENA' in empresa_content
         assert 'data-testid="badge-sena-postulante"' in empresa_content
 
     def test_ciclo_2_registro_sin_ficha_bloqueo_solicitud_manual_y_resolucion_admin(

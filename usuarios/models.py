@@ -180,6 +180,10 @@ class FichaSena(models.Model):
 
 
 class PerfilDesarrollador(models.Model):
+    CONDICION_SENA_CHOICES = [
+        ('aprendiz', 'Aprendiz en Formación'),
+        ('egresado', 'Egresado SENA'),
+    ]
     ESTADO_VERIFICACION_CHOICES = [
         ('sin_verificar', 'Sin Verificar'),
         ('en_revision', 'En Revisión'),
@@ -188,6 +192,9 @@ class PerfilDesarrollador(models.Model):
     ]
 
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_desarrollador', db_column='usuario_id')
+    condicion_sena = models.CharField(
+        max_length=20, choices=CONDICION_SENA_CHOICES, default='aprendiz'
+    )
     programa_formacion = models.CharField(max_length=200, blank=True, null=True)
     ficha = models.CharField(max_length=50, blank=True, null=True)
     habilidades = models.TextField(blank=True, null=True)
@@ -219,10 +226,14 @@ class PerfilDesarrollador(models.Model):
 
     @property
     def badge_info(self):
-        """Etiqueta y clase CSS de la insignia según estado de verificación."""
+        """Etiqueta y clase CSS de la insignia según estado y condición SENA."""
         if self.estado_verificacion == 'verificado':
-            return {'label': 'Verificado SENA', 'css_class': 'badge-verificada'}
+            if self.condicion_sena == 'egresado':
+                return {'label': 'Egresado SENA', 'css_class': 'badge-verificada'}
+            return {'label': 'Aprendiz SENA', 'css_class': 'badge-verificada'}
         if self.estado_verificacion == 'en_revision':
+            if self.condicion_sena == 'egresado':
+                return {'label': 'En Revisión (Egresado)', 'css_class': 'badge-en-revision'}
             return {'label': 'En Revisión SENA', 'css_class': 'badge-en-revision'}
         if self.estado_verificacion == 'rechazado':
             return {'label': 'Verificación Rechazada', 'css_class': 'badge-rechazada'}
