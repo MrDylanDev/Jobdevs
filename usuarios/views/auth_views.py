@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.password_validation import validate_password
@@ -16,13 +17,13 @@ from ..models import Usuario
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        identificador = (request.POST.get('email') or request.POST.get('username') or '').strip()
         password = request.POST.get('password')
         
         # 1. Autenticación normal primero (previene timing side-channels y enumeración)
         # authenticate() corre hashing para usuarios existentes y un dummy hasher
         # para usuarios inexistentes, igualando el tiempo de respuesta.
-        user = authenticate(request=request, username=username, password=password)
+        user = authenticate(request=request, username=identificador, password=password)
 
         if user is not None:
             # Si el usuario proveyó credenciales válidas pero su cuenta está suspendida o inactiva
@@ -62,7 +63,9 @@ def login_view(request):
         # authenticate() ejecutó exactamente un ciclo criptográfico (hasher real o dummy).
         # Si el usuario existe en DB, incrementamos intentos fallidos y bloqueamos al llegar a 5,
         # pero NUNCA exponemos la existencia de la cuenta ni el conteo en el mensaje de error.
-        user_to_check = Usuario.objects.filter(username=username).first()
+        user_to_check = Usuario.objects.filter(
+            Q(email__iexact=identificador) | Q(username__iexact=identificador)
+        ).first()
         if user_to_check:
             user_to_check.intentos_fallidos += 1
             if user_to_check.intentos_fallidos >= 5:
@@ -75,7 +78,7 @@ def login_view(request):
             else:
                 user_to_check.save(update_fields=['intentos_fallidos'])
 
-        messages.error(request, "Usuario o contraseña incorrectos.")
+        messages.error(request, "Correo o contraseña incorrectos.")
         return redirect('inicio')
             
     # Si viene del admin, mostrar login estilo admin

@@ -215,4 +215,46 @@ class TestRegistroView:
         assert 'identificacion' in response.context['form'].errors
         assert 'ya se encuentra registrado' in response.context['form'].errors['identificacion'][0]
 
+    def test_registro_sin_campo_username_autoasigna_email_como_username(self, client):
+        """SCRUM-164: Registro sin campo username autoasigna el correo como username en BD."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Registro Solo Email',
+            'tipo_documento': 'cedula',
+            'identificacion': '1040506070',
+            'email': 'soloemail@test.teir',
+            'fecha_nacimiento': '2001-08-10',
+            'rol': 'desarrollador',
+            'password1': 'EmailPass123!',
+            'password2': 'EmailPass123!',
+        })
+        assert response.status_code == 302
+        assert User.objects.filter(email='soloemail@test.teir').exists()
+        user = User.objects.get(email='soloemail@test.teir')
+        assert user.username == 'soloemail@test.teir'
+        assert user.nombre == 'Registro Solo Email'
+
+    def test_registro_email_duplicado_rechazado(self, client):
+        """SCRUM-164: El correo electrónico debe ser único al registrarse."""
+        User.objects.create_user(
+            username='existente_email@test.teir',
+            email='existente_email@test.teir',
+            identificacion='1040506099',
+            password='TestPassword123!',
+        )
+        response = client.post(reverse('registro'), {
+            'nombre': 'Otro Usuario',
+            'tipo_documento': 'cedula',
+            'identificacion': '1040506088',
+            'email': 'existente_email@test.teir',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPassword123!',
+            'password2': 'TestPassword123!',
+        })
+        assert response.status_code == 200
+        assert 'form' in response.context
+        assert 'email' in response.context['form'].errors
+        assert 'ya se encuentra registrado' in response.context['form'].errors['email'][0]
+
+
 
