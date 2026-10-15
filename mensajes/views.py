@@ -13,6 +13,7 @@ from usuarios.utils import get_admin_ids
 from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+from .services import puede_comunicarse, obtener_destinatarios_disponibles
 
 @login_required
 def sala_chat_grupal(request, proyecto_id):
@@ -21,7 +22,9 @@ def sala_chat_grupal(request, proyecto_id):
     
     # Verificar acceso: Empresa dueña o Desarrollador vinculado (activo o finalizado)
     es_empresa = (request.user.rol == 'empresa' and proyecto.empresa == request.user)
-    es_desarrollador = Contratacion.objects.filter(proyecto=proyecto, desarrollador=request.user).exists()
+    es_desarrollador = Contratacion.objects.filter(
+        proyecto=proyecto, desarrollador=request.user, estado__in=['activa', 'finalizada']
+    ).exists()
     
     if not (es_empresa or es_desarrollador or request.user.rol == 'administrador'):
         messages.error(request, "No tienes acceso a este espacio de trabajo.")
@@ -50,7 +53,7 @@ def sala_chat_grupal(request, proyecto_id):
                 # Notificar a todos los participantes del proyecto excepto el remitente
                 destinatarios_ids = set(
                     Contratacion.objects.filter(
-                        proyecto=proyecto
+                        proyecto=proyecto, estado__in=['activa', 'finalizada']
                     ).values_list('desarrollador_id', flat=True)
                 )
                 destinatarios_ids.add(proyecto.empresa_id)
@@ -73,7 +76,8 @@ def sala_chat_grupal(request, proyecto_id):
 
     # Lista de compañeros (Optimizado con JOIN inverso)
     companeros = Usuario.objects.filter(
-        contrataciones_dev__proyecto=proyecto
+        contrataciones_dev__proyecto=proyecto,
+        contrataciones_dev__estado__in=['activa', 'finalizada']
     ).distinct()
 
     return render(request, 'mensajes/sala_chat.html', {
@@ -96,7 +100,12 @@ def sala_chat(request, receptor_id, proyecto_id=None):
     receptor = get_object_or_404(Usuario, id=receptor_id)
     proyecto = get_object_or_404(Proyecto, id=proyecto_id) if proyecto_id else None
 
-    admin_ids = get_admin_ids()
+    # Control de acceso estricto a chats 1:1
+    if receptor.id == request.user.id:
+        return HttpResponseForbidden("No puedes iniciar una conversación contigo mismo.")
+
+    if not puede_comunicarse(request.user, receptor, proyecto):
+        return HttpResponseForbidden("No tienes autorización para comunicarte con este usuario.")
 
     # Filtro de participantes: Remitente -> Receptor O Receptor -> Remitente
     mensajes_chat = Mensaje.objects.filter(
@@ -181,25 +190,8 @@ def mensajeria_sent(request):
 @login_required
 def mensajeria_redactar(request):
     """Redactar y enviar un mensaje directo a otro usuario"""
-    # Construir lista de usuarios disponibles según el rol
-    if request.user.rol == 'administrador':
-        usuarios_disponibles = Usuario.objects.exclude(id=request.user.id).order_by('nombre')
-    elif request.user.rol == 'empresa':
-        # Empresa puede escribir a desarrolladores contratados y a admins
-        contratados_ids = Contratacion.objects.filter(
-            proyecto__empresa=request.user
-        ).values_list('desarrollador_id', flat=True)
-        admins_ids = Usuario.objects.filter(rol='administrador').values_list('id', flat=True)
-        combined_ids = list(contratados_ids) + list(admins_ids)
-        usuarios_disponibles = Usuario.objects.filter(id__in=combined_ids).exclude(id=request.user.id).order_by('nombre')
-    else:
-        # Desarrollador puede escribir a empresas con quienes tiene contrato y a admins
-        empresas_ids = Contratacion.objects.filter(
-            desarrollador=request.user
-        ).values_list('proyecto__empresa_id', flat=True)
-        admins_ids = Usuario.objects.filter(rol='administrador').values_list('id', flat=True)
-        combined_ids = list(empresas_ids) + list(admins_ids)
-        usuarios_disponibles = Usuario.objects.filter(id__in=combined_ids).exclude(id=request.user.id).order_by('nombre')
+    # Construir lista de usuarios disponibles autorizados según rol
+    usuarios_disponibles = obtener_destinatarios_disponibles(request.user)
 
     # Proyectos visibles para el usuario actual
     if request.user.rol == 'empresa':
@@ -223,6 +215,11 @@ def mensajeria_redactar(request):
             try:
                 receptor = get_object_or_404(Usuario, id=receptor_id)
                 proyecto = Proyecto.objects.filter(id=proyecto_id).first() if proyecto_id else None
+
+                if not puede_comunicarse(request.user, receptor, proyecto):
+                    messages.error(request, 'No tienes autorización para comunicarte con este usuario o proyecto.')
+                    return redirect('mensajeria_redactar')
+
                 Mensaje.objects.create(
                     remitente=request.user,
                     receptor=receptor,
