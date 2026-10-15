@@ -66,7 +66,7 @@
       </button>
       <button class="nav-item" onclick="showSection('verificacionDevsSection', this)">
         <i class="fa fa-user-check"></i>
-        <span>Verificación Aprendices</span>
+        <span>Verificación Talento SENA</span>
         {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('fichasSenaSection', this)">
@@ -932,22 +932,22 @@
         </div>
       </section>
 
-      <!-- Verificación de Aprendices SENA -->
+      <!-- Verificación de Aprendices y Egresados SENA -->
       <section id="verificacionDevsSection" class="section-v">
         <div class="page-header">
           <div>
             <div class="page-title">
-              Verificación de Aprendices SENA
+              Verificación de Talento SENA (Aprendices y Egresados)
               <span class="badge bg-danger">{{ total_desarrolladores_en_revision }}</span>
             </div>
-            <div class="page-subtitle">Solicitudes manuales de verificación de aprendices pendientes de resolución</div>
+            <div class="page-subtitle">Solicitudes manuales de verificación de aprendices y egresados pendientes de resolución</div>
           </div>
         </div>
         <div class="card">
           {% if desarrolladores_en_revision %}
           <table style="width:100%;">
             <thead>
-              <tr><th>Aprendiz</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Acciones</th></tr>
+              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {% for d in desarrolladores_en_revision %}
@@ -956,11 +956,21 @@
                   <strong>{{ d.usuario.nombre|default:d.usuario.username }}</strong><br>
                   <small class="text-muted">@{{ d.usuario.username }} - {{ d.usuario.email }}</small>
                 </td>
+                <td>
+                  {% if d.condicion_sena == 'egresado' %}
+                    <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-graduation-cap me-1"></i>Egresado SENA</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark" style="font-size:11px;"><i class="fa fa-id-badge me-1"></i>Aprendiz</span>
+                  {% endif %}
+                </td>
                 <td><span class="badge bg-secondary">{{ d.ficha|default:"—" }}</span></td>
                 <td>{{ d.programa_formacion|default:"—" }}</td>
                 <td>
                   {% if d.documento_soporte %}
-                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary"><i class="fa fa-file-pdf me-1"></i> Ver PDF</a>
+                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                    <i class="fa {% if d.condicion_sena == 'egresado' %}fa-graduation-cap{% else %}fa-file-pdf{% endif %} me-1"></i>
+                    {% if d.condicion_sena == 'egresado' %}Ver Diploma{% else %}Ver Soporte{% endif %}
+                  </a>
                   {% else %}Sin documento{% endif %}
                 </td>
                 <td>
@@ -981,7 +991,7 @@
             </tbody>
           </table>
           {% else %}
-          <p style="margin:0;">No hay solicitudes manuales de aprendices en revisión.</p>
+          <p style="margin:0;">No hay solicitudes manuales de aprendices o egresados en revisión.</p>
           {% endif %}
         </div>
       </section>

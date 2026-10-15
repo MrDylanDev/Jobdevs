@@ -175,3 +175,18 @@ class TestDashboardAdminContextoVerificacionSena:
         assert 'fichas_sena' in response.context
         assert 'total_fichas_sena' in response.context
         assert response.context['total_fichas_sena'] >= 1
+
+    def test_dashboard_muestra_egresado_en_revision(self, client, admin_user, dev_user):
+        perfil = dev_user.perfil_desarrollador
+        perfil.condicion_sena = 'egresado'
+        perfil.estado_verificacion = 'en_revision'
+        perfil.programa_formacion = 'ADSO Tecnólogo'
+        perfil.documento_soporte = SimpleUploadedFile('diploma.pdf', b'%PDF-1.4 sena', content_type='application/pdf')
+        perfil.save()
+
+        client.force_login(admin_user)
+        response = client.get(reverse('dashboard_admin'))
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'Egresado SENA' in content
+        assert 'Ver Diploma' in content
