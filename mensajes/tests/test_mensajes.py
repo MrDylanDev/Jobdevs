@@ -2,6 +2,8 @@ import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from proyectos.models import Proyecto
+from postulaciones.models import Postulacion
+from contrataciones.models import Contratacion
 from mensajes.models import Mensaje
 
 User = get_user_model()
@@ -62,6 +64,31 @@ class TestMensajeModel:
         )
         assert 'GRUPO' in str(msg)
 
+    def test_eliminacion_usuario_remitente_preserva_mensaje_set_null(self, db):
+        """Auditoría SCRUM-160: Si se elimina el remitente, el mensaje no se destruye en cascada."""
+        u1 = User.objects.create_user(username='u_rem', email='u_rem@test.teir', password='Password123!')
+        u2 = User.objects.create_user(username='u_rec', email='u_rec@test.teir', password='Password123!')
+        msg = Mensaje.objects.create(remitente=u1, receptor=u2, contenido='Mensaje persistente')
+        msg_id = msg.id
+
+        u1.delete()
+        msg.refresh_from_db()
+        assert msg.remitente is None
+        assert msg.receptor == u2
+        assert 'Usuario Eliminado' in str(msg) or 'u_rec' in str(msg)
+
+    def test_eliminacion_usuario_receptor_preserva_mensaje_set_null(self, db):
+        """Auditoría SCRUM-160: Si se elimina el receptor, el remitente conserva su historial enviado."""
+        u1 = User.objects.create_user(username='u_rem2', email='u_rem2@test.teir', password='Password123!')
+        u2 = User.objects.create_user(username='u_rec2', email='u_rec2@test.teir', password='Password123!')
+        msg = Mensaje.objects.create(remitente=u1, receptor=u2, contenido='Mensaje enviado persistente')
+
+        u2.delete()
+        msg.refresh_from_db()
+        assert msg.remitente == u1
+        assert msg.receptor is None
+        assert 'Usuario Eliminado' in str(msg) or 'u_rem2' in str(msg)
+
 
 class TestInbox:
     """Tests for mensajeria_inbox view."""
@@ -103,3 +130,113 @@ class TestRedactar:
         """Anonymous cannot compose messages."""
         response = client.get(reverse('mensajeria_redactar'))
         assert response.status_code == 302
+
+    def test_redactar_get_con_params_invalidos_no_lanza_500(self, auth_client):
+        """Auditoría SCRUM-160: Parámetros GET no numéricos ('para=abc&proyecto=xyz') no deben lanzar 500."""
+        response = auth_client.get(reverse('mensajeria_redactar') + '?para=abc&proyecto=xyz')
+        assert response.status_code == 200
+        assert response.context['para_id'] == 0
+        assert response.context['proyecto_pre'] == 0
+
+
+class TestAutorizacionMensajeria:
+    """Tests de seguridad y autorización según auditoría SCRUM-160."""
+
+    @pytest.fixture
+    def escenario(self, db):
+        empresa = User.objects.create_user(
+            username='empresa_chat', email='emp_chat@test.teir',
+            nombre='Empresa Chat', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        dev = User.objects.create_user(
+            username='dev_chat', email='dev_chat@test.teir',
+            nombre='Dev Chat', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        dev_ajeno = User.objects.create_user(
+            username='dev_ajeno', email='dev_ajeno@test.teir',
+            nombre='Dev Ajeno', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        admin = User.objects.create_user(
+            username='admin_chat', email='admin_chat@test.teir',
+            nombre='Admin Chat', rol='administrador', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa, titulo='Proyecto Chat',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        contratacion = Contratacion.objects.create(
+            proyecto=proyecto, empresa=empresa,
+            desarrollador=dev, estado='activa',
+        )
+        return {
+            'empresa': empresa,
+            'dev': dev,
+            'dev_ajeno': dev_ajeno,
+            'admin': admin,
+            'proyecto': proyecto,
+            'contratacion': contratacion,
+        }
+
+    def test_sala_chat_rechaza_auto_conversacion(self, client, escenario):
+        """No se puede iniciar una conversación con uno mismo."""
+        dev = escenario['dev']
+        client.force_login(dev)
+        response = client.get(reverse('sala_chat_general', args=[dev.id]))
+        assert response.status_code == 403
+
+    def test_sala_chat_bloquea_usuario_sin_relacion_contractual(self, client, escenario):
+        """Un dev ajeno sin relación con la empresa recibe 403."""
+        dev_ajeno = escenario['dev_ajeno']
+        empresa = escenario['empresa']
+        client.force_login(dev_ajeno)
+        response = client.get(reverse('sala_chat_general', args=[empresa.id]))
+        assert response.status_code == 403
+
+    def test_sala_chat_permite_si_hay_contratacion(self, client, escenario):
+        """Dev con contrato activo con la empresa puede acceder al chat 1:1."""
+        dev = escenario['dev']
+        empresa = escenario['empresa']
+        client.force_login(dev)
+        response = client.get(reverse('sala_chat_general', args=[empresa.id]))
+        assert response.status_code == 200
+
+    def test_sala_chat_permite_comunicacion_con_admin(self, client, escenario):
+        """Cualquier usuario puede comunicarse con un administrador."""
+        dev_ajeno = escenario['dev_ajeno']
+        admin = escenario['admin']
+        client.force_login(dev_ajeno)
+        response = client.get(reverse('sala_chat_general', args=[admin.id]))
+        assert response.status_code == 200
+
+    def test_sala_chat_grupal_excluye_contrataciones_canceladas(self, client, escenario):
+        """Un dev con contratación cancelada pierde acceso a la sala grupal del proyecto."""
+        dev = escenario['dev']
+        contratacion = escenario['contratacion']
+        contratacion.estado = 'cancelada'
+        contratacion.save()
+
+        client.force_login(dev)
+        response = client.get(reverse('sala_chat_grupal', args=[escenario['proyecto'].id]))
+        assert response.status_code == 302
+        assert response.url == reverse('inicio')
+
+    def test_mensajeria_redactar_post_rechaza_destinatario_no_permitido(self, client, escenario):
+        """En redactar, si se fuerza un receptor sin relación, el POST es rechazado."""
+        dev_ajeno = escenario['dev_ajeno']
+        empresa = escenario['empresa']
+        client.force_login(dev_ajeno)
+        response = client.post(reverse('mensajeria_redactar'), {
+            'receptor': empresa.id,
+            'titulo': 'Intento no autorizado',
+            'contenido': 'Hola',
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Mensaje.objects.filter(remitente=dev_ajeno, receptor=empresa).exists()
+        content = response.content.decode('utf-8')
+        assert 'No tienes autorización' in content or 'no válido' in content
+

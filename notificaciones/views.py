@@ -1,19 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from .models import Notificacion
 from django.contrib import messages
 
 @login_required
 def lista_notificaciones(request):
-    """Lista todas las notificaciones del usuario actual."""
-    notificaciones = Notificacion.objects.filter(usuario=request.user).order_by('-fecha')
+    """Lista todas las notificaciones del usuario actual con select_related y paginación."""
+    notificaciones_qs = Notificacion.objects.filter(
+        usuario=request.user
+    ).select_related('proyecto').order_by('-fecha')
     
-    # Obtenemos las últimas 10 para una vista rápida si se prefiere
-    historial = notificaciones[:10]
+    paginator = Paginator(notificaciones_qs, 20)
+    page_number = request.GET.get('page')
+    notificaciones = paginator.get_page(page_number)
     
     return render(request, 'notificaciones/lista.html', {
         'notificaciones': notificaciones,
-        'historial': historial
     })
 
 @login_required

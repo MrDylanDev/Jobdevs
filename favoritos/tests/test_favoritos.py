@@ -121,3 +121,44 @@ class TestToggleFavorito:
         )
         assert response.status_code == 302
         assert not Favorito.objects.filter(proyecto=proyecto).exists()
+
+    def test_toggle_favorito_open_redirect_bloqueado(self, dev_client, desarrollador_user, empresa_user):
+        """Auditoría SCRUM-160: Open redirect vía HTTP_REFERER debe ser neutralizado."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Redirect',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = dev_client.post(
+            reverse('toggle_favorito', args=[proyecto.id]),
+            HTTP_REFERER='https://sitio-malicioso.com/phishing',
+        )
+        assert response.status_code == 302
+        assert response.url == reverse('listar_proyectos')
+
+    def test_toggle_favorito_referer_legitimo_permitido(self, dev_client, desarrollador_user, empresa_user):
+        """Un referer interno legítimo debe ser respetado tras el toggle."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Legitimo',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = dev_client.post(
+            reverse('toggle_favorito', args=[proyecto.id]),
+            HTTP_REFERER='http://testserver/proyectos/publicados/',
+        )
+        assert response.status_code == 302
+        assert response.url == 'http://testserver/proyectos/publicados/'
+
+    @pytest.mark.parametrize('estado_no_publicado', ['en_desarrollo', 'en_revision', 'finalizado', 'inactivo'])
+    def test_toggle_favorito_solo_proyectos_publicados(self, dev_client, empresa_user, estado_no_publicado):
+        """Auditoría SCRUM-160: No se pueden favoritear proyectos que no estén publicados."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo=f'Fav {estado_no_publicado}',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado=estado_no_publicado,
+        )
+        response = dev_client.post(reverse('toggle_favorito', args=[proyecto.id]))
+        assert response.status_code == 404
+        assert not Favorito.objects.filter(proyecto=proyecto).exists()
+

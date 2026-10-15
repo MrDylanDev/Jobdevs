@@ -20,6 +20,10 @@ class Notificacion(models.Model):
     class Meta:
         db_table = 'notificaciones'
         verbose_name_plural = "Notificaciones"
+        indexes = [
+            models.Index(fields=['usuario', 'leida'], name='idx_notif_usr_leida'),
+            models.Index(fields=['usuario', '-fecha'], name='idx_notif_usr_fecha'),
+        ]
 
 
     def __str__(self):
