@@ -79,7 +79,7 @@ class TestLoginView:
         }, follow=True)
         msg_nonexistent = [m.message for m in res_nonexistent.context['messages']]
 
-        assert msg_existing == msg_nonexistent == ["Usuario o contraseña incorrectos."]
+        assert msg_existing == msg_nonexistent == ["Correo o contraseña incorrectos."]
 
     def test_login_lockout_threshold_does_not_reveal_status(self, client, empresa_user):
         """Reaching 5 failed attempts locks out account but returns identical generic error (anti-enumeration)."""
