@@ -41,11 +41,16 @@ def registrar_avance(request, proyecto_id):
     if request.method == 'POST':
         try:
             descripcion = request.POST.get('descripcion')
-            archivo_url = request.POST.get('archivo_url')
+            archivo_url = (request.POST.get('archivo_url') or '').strip()
+            archivo_adjunto = request.FILES.get('archivo_adjunto')
             entregable_id = request.POST.get('entregable_id')
             
-            if not archivo_url:
-                messages.error(request, "Debes proporcionar una URL de evidencia (enlace al código, captura, etc.).")
+            if not archivo_url and not archivo_adjunto:
+                messages.error(request, "Debes proporcionar una URL o adjuntar un archivo de evidencia.")
+                return redirect('registrar_avance', proyecto_id=proyecto.id)
+
+            if archivo_adjunto and archivo_adjunto.size > 10 * 1024 * 1024:
+                messages.error(request, "El archivo adjunto no puede superar los 10 MB.")
                 return redirect('registrar_avance', proyecto_id=proyecto.id)
 
             if not entregable_id:
@@ -75,7 +80,8 @@ def registrar_avance(request, proyecto_id):
                     desarrollador=request.user,
                     entregable=entregable,
                     descripcion=descripcion,
-                    archivo_url=archivo_url,
+                    archivo_url=archivo_url or None,
+                    archivo_adjunto=archivo_adjunto,
                     estado='pendiente'
                 )
 

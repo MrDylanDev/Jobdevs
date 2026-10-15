@@ -124,9 +124,14 @@
                 </div>
 
                 <div style="display:flex; gap:10px; align-items:center;">
+                  {% if avance.archivo_adjunto %}
+                    <a href="{{ avance.archivo_adjunto.url }}" target="_blank" download class="btn btn-primary btn-sm">
+                      <i class="fa fa-file-arrow-down"></i> Descargar Archivo
+                    </a>
+                  {% endif %}
                   {% if avance.archivo_url %}
                     <a href="{{ avance.archivo_url }}" target="_blank" class="btn btn-secondary btn-sm">
-                      <i class="fa fa-link"></i> Ver Evidencia
+                      <i class="fa fa-link"></i> Ver Enlace
                     </a>
                   {% endif %}
 

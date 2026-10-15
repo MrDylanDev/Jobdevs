@@ -50,7 +50,7 @@
         {% endif %}
 
         <div class="card">
-          <form method="post" style="display:flex; flex-direction:column; gap:18px;">
+          <form method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
             {% csrf_token %}
 
             <div class="form-group">
@@ -72,8 +72,14 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label"><i class="fa fa-link" style="margin-right:6px;"></i>URL de Evidencia <span style="font-weight:400; color:#ef4444;">(Obligatorio)</span></label>
-              <input type="url" name="archivo_url" required placeholder="https://github.com/... o enlace a Google Drive" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <label class="form-label"><i class="fa fa-link" style="margin-right:6px;"></i>URL de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si adjuntas archivo)</span></label>
+              <input type="url" name="archivo_url" placeholder="https://github.com/... o enlace a repositorio/demo" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"><i class="fa fa-paperclip" style="margin-right:6px;"></i>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si usas URL)</span></label>
+              <input type="file" name="archivo_adjunto" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">Puedes subir código comprimido en ZIP, capturas, diagramas o documentos PDF (máx. 10 MB).</small>
             </div>
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; gap:12px;">

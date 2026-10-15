@@ -195,6 +195,7 @@ class PerfilDesarrollador(models.Model):
     condicion_sena = models.CharField(
         max_length=20, choices=CONDICION_SENA_CHOICES, default='aprendiz'
     )
+    telefono = models.CharField(max_length=20, blank=True, null=True)
     programa_formacion = models.CharField(max_length=200, blank=True, null=True)
     ficha = models.CharField(max_length=50, blank=True, null=True)
     habilidades = models.TextField(blank=True, null=True)

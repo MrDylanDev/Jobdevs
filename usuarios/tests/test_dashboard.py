@@ -125,3 +125,16 @@ class TestDashboardAccess:
         """Anonymous cannot access profile edit."""
         response = client.get(reverse('editar_perfil'))
         assert response.status_code == 302
+
+    def test_editar_perfil_desarrollador_actualiza_telefono(self, dev_client, desarrollador_user):
+        """RF 1.2.2 (SCRUM-41): Desarrollador puede actualizar su teléfono de contacto."""
+        response = dev_client.post(reverse('editar_perfil'), {
+            'telefono': '3001234567',
+            'programa_formacion': 'ADSO',
+            'ficha': '2670123',
+            'habilidades': 'Python, Django',
+            'portafolio_url': 'https://github.com/devtest',
+        }, follow=True)
+        assert response.status_code == 200
+        desarrollador_user.perfil_desarrollador.refresh_from_db()
+        assert desarrollador_user.perfil_desarrollador.telefono == '3001234567'

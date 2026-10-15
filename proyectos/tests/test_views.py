@@ -120,6 +120,20 @@ class TestCrearProyecto:
         assert historial is not None
         assert historial.estado_nuevo == 'publicado'
 
+    @pytest.mark.parametrize('vacantes_invalidas', ['0', '-1', '-5', 'abc', ''])
+    def test_crear_proyecto_vacantes_invalidas_no_guarda(self, auth_client, vacantes_invalidas):
+        """Validar RF 2.1.2 (SCRUM-50): Vacantes < 1 o inválidas no deben guardar el proyecto."""
+        response = auth_client.post(reverse('crear_proyecto'), {
+            'titulo': f'Proyecto Invalido {vacantes_invalidas}',
+            'descripcion': 'Test vacantes',
+            'tipo_solucion': 'sitio_web',
+            'vacantes': vacantes_invalidas,
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Proyecto.objects.filter(titulo=f'Proyecto Invalido {vacantes_invalidas}').exists()
+        content = response.content.decode('utf-8')
+        assert 'Las vacantes deben ser un número mayor o igual a 1' in content
+
 
 class TestEditarProyecto:
     """Tests for editar_proyecto view (SCRUM-103 / RF 2.2.2)."""

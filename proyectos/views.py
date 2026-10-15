@@ -81,6 +81,15 @@ def crear_proyecto(request):
 
     if request.method == 'POST':
         try:
+            try:
+                vacantes = int(request.POST.get('vacantes', 1))
+            except (ValueError, TypeError):
+                vacantes = 0
+
+            if vacantes < 1:
+                messages.error(request, "Las vacantes deben ser un número mayor o igual a 1.")
+                return redirect('dashboard_empresa')
+
             tipo_solucion = request.POST.get('tipo_solucion')
             categoria = categorias_solucion.filter(slug=tipo_solucion).first()
             if categoria is None and tipo_solucion not in dict(Proyecto.TIPO_SOLUCION):
@@ -93,7 +102,7 @@ def crear_proyecto(request):
                 categoria=categoria,
                 tipo_solucion=categoria.slug if categoria else tipo_solucion,
                 prioridad=request.POST.get('prioridad', 'media'),
-                vacantes=int(request.POST.get('vacantes', 1)),
+                vacantes=vacantes,
                 fecha_limite=request.POST.get('fecha_limite') or None,
                 estado='publicado'
             )
