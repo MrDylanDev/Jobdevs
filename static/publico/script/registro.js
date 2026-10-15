@@ -5,11 +5,17 @@ const rolSelect = document.getElementById('id_rol');
 
     function updateDocFields() {
       const rol = rolSelect.value;
+      const sectorCont = document.getElementById('container_empresa_sector');
+      const ciudadCont = document.getElementById('container_empresa_ciudad');
       if (rol === 'empresa') {
         typeDocContainer.style.display = 'block';
+        if (sectorCont) sectorCont.style.display = 'block';
+        if (ciudadCont) ciudadCont.style.display = 'block';
         labelCedula.innerText = 'NIT O NÚMERO DE IDENTIFICACIÓN';
       } else {
         typeDocContainer.style.display = 'none';
+        if (sectorCont) sectorCont.style.display = 'none';
+        if (ciudadCont) ciudadCont.style.display = 'none';
         if (typeDocSelect) typeDocSelect.value = 'cedula';
         labelCedula.innerText = 'NÚMERO DE IDENTIFICACIÓN';
       }
