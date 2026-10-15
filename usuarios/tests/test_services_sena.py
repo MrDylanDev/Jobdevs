@@ -179,6 +179,27 @@ class TestVerificacionManualDesarrollador:
         assert 'documento_soporte' in errores
         assert 'válido' in errores['documento_soporte']
 
+    def test_solicitud_manual_egresado_sin_ficha_requiere_programa_y_soporte(self, dev_user, admin_user):
+        perfil = dev_user.perfil_desarrollador
+        pdf_content = b"%PDF-1.4 diploma de graduacion sena"
+        archivo = SimpleUploadedFile("diploma.pdf", pdf_content, content_type="application/pdf")
+
+        ok, msg, errores = solicitar_verificacion_manual_desarrollador(
+            perfil=perfil,
+            numero_ficha='',
+            programa_formacion='Tecnólogo en ADSO',
+            documento_soporte=archivo,
+            usuario_solicitante=dev_user,
+            condicion_sena='egresado',
+        )
+        assert ok is True
+        assert not errores
+        perfil.refresh_from_db()
+        assert perfil.condicion_sena == 'egresado'
+        assert perfil.estado_verificacion == 'en_revision'
+        assert perfil.programa_formacion == 'Tecnólogo en ADSO'
+        assert bool(perfil.documento_soporte) is True
+
 
 @pytest.mark.django_db
 class TestAdminResolucionDesarrollador:
@@ -234,3 +255,25 @@ class TestAdminResolucionDesarrollador:
         assert perfil.verificado_por == admin_user
         assert perfil.notas_auditoria == 'El documento no es legible.'
         assert Notificacion.objects.filter(usuario=dev_user, tipo='alerta').exists()
+
+    def test_admin_aprobar_solicitud_egresado(self, dev_user, admin_user):
+        perfil = dev_user.perfil_desarrollador
+        perfil.condicion_sena = 'egresado'
+        perfil.estado_verificacion = 'en_revision'
+        perfil.programa_formacion = 'ADSO'
+        perfil.save()
+
+        ok, msg = admin_resolver_verificacion_desarrollador(
+            perfil_id=perfil.id,
+            admin_user=admin_user,
+            accion='aprobar',
+            notas='Diploma verificado',
+        )
+        assert ok is True
+        perfil.refresh_from_db()
+        assert perfil.estado_verificacion == 'verificado'
+        assert perfil.condicion_sena == 'egresado'
+        assert perfil.es_verificado_sena is True
+        notif = Notificacion.objects.filter(usuario=dev_user, tipo='aprobacion').first()
+        assert notif is not None
+        assert 'Egresado SENA' in notif.mensaje

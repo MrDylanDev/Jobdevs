@@ -68,12 +68,15 @@ def verificar_desarrollador_automatico(perfil, numero_ficha, programa_formacion=
     return True, 'Identidad SENA verificada automáticamente con éxito.'
 
 
-def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_formacion, documento_soporte, usuario_solicitante):
-    """Gestiona la solicitud manual de verificación cuando la ficha no está en lista blanca."""
+def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_formacion, documento_soporte, usuario_solicitante, condicion_sena='aprendiz'):
+    """Gestiona la solicitud manual de verificación para aprendices en formación o egresados SENA."""
     errores = {}
     limpio = normalizar_numero_ficha(numero_ficha)
-    if not limpio:
-        errores['ficha'] = 'El número de ficha es obligatorio.'
+
+    condicion = condicion_sena if condicion_sena in ('aprendiz', 'egresado') else 'aprendiz'
+
+    if condicion == 'aprendiz' and not limpio:
+        errores['ficha'] = 'El número de ficha es obligatorio para aprendices en formación.'
 
     programa = (programa_formacion or '').strip()
     if not programa:
@@ -81,7 +84,10 @@ def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_f
 
     if documento_soporte is None:
         if not perfil.documento_soporte or perfil.estado_verificacion == 'sin_verificar':
-            errores['documento_soporte'] = 'Adjunta el documento de soporte (Carnet o Certificado SENA) en formato PDF.'
+            if condicion == 'egresado':
+                errores['documento_soporte'] = 'Adjunta el diploma o acta de grado en formato PDF.'
+            else:
+                errores['documento_soporte'] = 'Adjunta el documento de soporte (Carnet o Certificado SENA) en formato PDF.'
     else:
         ext = os.path.splitext(documento_soporte.name)[1].lower()
         if ext != '.pdf':
@@ -99,6 +105,7 @@ def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_f
 
     with transaction.atomic():
         perfil_locked = PerfilDesarrollador.objects.select_for_update().select_related('usuario').get(id=perfil.id)
+        perfil_locked.condicion_sena = condicion
         perfil_locked.ficha = limpio
         perfil_locked.programa_formacion = programa
         if documento_soporte is not None:
@@ -107,18 +114,25 @@ def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_f
         perfil_locked.fecha_solicitud_verificacion = timezone.now()
         perfil_locked.save()
 
+        etiqueta_condicion = 'egresado SENA' if condicion == 'egresado' else f'aprendiz SENA (Ficha {limpio})'
         LogAuditoria.objects.create(
             usuario=usuario_solicitante,
-            accion=f'Solicitud manual de verificación SENA (Ficha {limpio})'[:300],
+            accion=f'Solicitud manual de verificación como {etiqueta_condicion}'[:300],
             tabla_afectada='perfil_desarrollador',
             registro_id=perfil_locked.id,
         )
 
+        nombre_dev = usuario_solicitante.nombre or usuario_solicitante.username
+        mensaje_admin = (
+            f'El desarrollador {nombre_dev} solicitó verificación como egresado SENA ({programa}).'
+            if condicion == 'egresado' else
+            f'El aprendiz {nombre_dev} solicitó verificación manual SENA (Ficha {limpio}).'
+        )
         Notificacion.objects.bulk_create([
             Notificacion(
                 usuario=admin,
                 tipo='alerta',
-                mensaje=f'El aprendiz {usuario_solicitante.nombre} solicitó verificación manual SENA (Ficha {limpio}).',
+                mensaje=mensaje_admin,
             )
             for admin in Usuario.objects.filter(rol='administrador')
         ])
@@ -153,11 +167,18 @@ def admin_resolver_verificacion_desarrollador(perfil_id, admin_user, accion, not
         nombre = perfil.usuario.nombre or perfil.usuario.username
         if accion == 'aprobar':
             perfil.estado_verificacion = 'verificado'
-            accion_log = f'Aprobó la verificación SENA del aprendiz {nombre} (Ficha {perfil.ficha})'
-            mensaje = (
-                f'¡Felicidades {nombre}! Tu identidad SENA ha sido verificada. '
-                'Ya cuentas con la insignia oficial y puedes postularte a proyectos.'
-            )
+            if perfil.condicion_sena == 'egresado':
+                accion_log = f'Aprobó la verificación de egresado SENA de {nombre} ({perfil.programa_formacion})'
+                mensaje = (
+                    f'¡Felicidades {nombre}! Tu condición de Egresado SENA ha sido verificada. '
+                    'Ya cuentas con la insignia oficial y puedes postularte a proyectos.'
+                )
+            else:
+                accion_log = f'Aprobó la verificación SENA del aprendiz {nombre} (Ficha {perfil.ficha})'
+                mensaje = (
+                    f'¡Felicidades {nombre}! Tu identidad de Aprendiz SENA ha sido verificada. '
+                    'Ya cuentas con la insignia oficial y puedes postularte a proyectos.'
+                )
             if notas:
                 mensaje += f' Observaciones: {notas}'
             tipo_notif = 'aprobacion'
