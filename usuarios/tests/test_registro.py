@@ -37,12 +37,14 @@ class TestRegistroView:
         assert user.estado == 'activo'
 
     def test_registro_empresa_success(self, client):
-        """Valid empresa registration creates user and logs in."""
+        """Valid empresa registration creates user and logs in with sector and ciudad (SCRUM-37)."""
         response = client.post(reverse('registro'), {
             'username': 'nuevaempresa',
             'nombre': 'Nueva Empresa',
             'tipo_documento': 'nit',
             'identificacion': '900123456-7',
+            'sector': 'Fintech y Banca Digital',
+            'ciudad': 'Bogotá D.C.',
             'email': 'empresanueva@test.teir',
             'fecha_nacimiento': '1990-06-15',
             'rol': 'empresa',
@@ -52,6 +54,10 @@ class TestRegistroView:
         assert response.status_code == 302
         assert response.url == reverse('dashboard_empresa')
         assert User.objects.filter(username='nuevaempresa').exists()
+        user = User.objects.get(username='nuevaempresa')
+        assert user.perfil_empresa.sector == 'Fintech y Banca Digital'
+        assert user.perfil_empresa.ciudad == 'Bogotá D.C.'
+        assert user.perfil_empresa.nombre_empresa == 'Nueva Empresa'
 
     def test_registro_missing_required_fields(self, client):
         """Missing required fields return form with errors."""
@@ -181,4 +187,32 @@ class TestRegistroView:
         assert user.perfil_desarrollador.estado_verificacion == 'sin_verificar'
         assert user.perfil_desarrollador.ficha == '9999999'
         assert user.perfil_desarrollador.es_verificado_sena is False
+
+    def test_registro_identificacion_duplicada_muestra_error(self, client):
+        """RF 1.1.1 (SCRUM-37): El NIT o número de identificación debe ser único en el sistema."""
+        User.objects.create_user(
+            username='existente',
+            email='existente@test.teir',
+            identificacion='900999888-1',
+            password='TestPassword123!',
+        )
+        response = client.post(reverse('registro'), {
+            'username': 'intento_duplicado',
+            'nombre': 'Empresa Clon',
+            'tipo_documento': 'nit',
+            'identificacion': '900999888-1',
+            'sector': 'Servicios',
+            'ciudad': 'Cali',
+            'email': 'clon@test.teir',
+            'fecha_nacimiento': '1995-01-01',
+            'rol': 'empresa',
+            'password1': 'TestPassword123!',
+            'password2': 'TestPassword123!',
+        })
+        assert response.status_code == 200
+        assert not User.objects.filter(username='intento_duplicado').exists()
+        assert 'form' in response.context
+        assert 'identificacion' in response.context['form'].errors
+        assert 'ya se encuentra registrado' in response.context['form'].errors['identificacion'][0]
+
 

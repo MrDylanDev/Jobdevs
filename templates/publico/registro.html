@@ -91,6 +91,22 @@
           {% endif %}
         </div>
 
+        <div class="form-group" id="container_empresa_sector" style="display: none;">
+          <label>SECTOR EMPRESARIAL</label>
+          <input type="text" name="sector" value="{{ form.sector.value|default:'' }}" placeholder="Ej: Tecnología, Salud, Alimentos..." autocomplete="off">
+          {% if form.sector.errors %}
+            <ul class="errorlist">{% for error in form.sector.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+
+        <div class="form-group" id="container_empresa_ciudad" style="display: none;">
+          <label>CIUDAD DE OPERACIÓN</label>
+          <input type="text" name="ciudad" value="{{ form.ciudad.value|default:'' }}" placeholder="Ej: Bogotá, Medellín, Cali..." autocomplete="off">
+          {% if form.ciudad.errors %}
+            <ul class="errorlist">{% for error in form.ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+
         <div class="form-group full-width {% if form.identificacion.errors %}error{% endif %}">
           <label id="label_cedula">NÚMERO DE IDENTIFICACIÓN</label>
           <input type="text" name="identificacion" value="{{ form.identificacion.value|default:'' }}" placeholder="Ej: 1002345678" required autocomplete="off">
