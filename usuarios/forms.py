@@ -63,6 +63,12 @@ class RegistroUsuarioForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad (ej: Bogotá, Medellín)'}),
         label="Ciudad de Operación (Opcional)"
     )
+    username = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.HiddenInput(),
+        label="Nombre de Usuario (Opcional)"
+    )
     
     class Meta:
         model = Usuario
@@ -77,7 +83,8 @@ class RegistroUsuarioForm(UserCreationForm):
             self.add_error('tipo_documento', "Un desarrollador solo puede registrarse con Cédula.")
 
         email = cleaned_data.get('email')
-        if email:
+        username = (cleaned_data.get('username') or '').strip()
+        if not username and email:
             cleaned_data['username'] = email.strip().lower()
         
         return cleaned_data
@@ -106,8 +113,9 @@ class RegistroUsuarioForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         email = (self.cleaned_data.get('email') or '').strip().lower()
+        username = (self.cleaned_data.get('username') or '').strip()
         user.email = email
-        user.username = email
+        user.username = username if username else email
         user.nombre = self.cleaned_data['nombre']
         user.identificacion = self.cleaned_data['identificacion']
         user.rol = self.cleaned_data['rol']

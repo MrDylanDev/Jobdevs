@@ -27,6 +27,54 @@ class TestLoginView:
         assert response.status_code == 302
         assert response.url == reverse('dashboard_empresa')
 
+    def test_login_con_correo_exitoso_empresa(self, client, empresa_user):
+        """SCRUM-164: Iniciar sesión usando el correo electrónico corporativo."""
+        response = client.post(reverse('login'), {
+            'username': empresa_user.email,
+            'password': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_empresa')
+
+    def test_login_con_correo_exitoso_desarrollador(self, client, desarrollador_user):
+        """SCRUM-164: Iniciar sesión usando el correo electrónico del desarrollador."""
+        response = client.post(reverse('login'), {
+            'username': desarrollador_user.email,
+            'password': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_desarrollador')
+
+    def test_login_con_correo_insensible_a_mayusculas(self, client, desarrollador_user):
+        """SCRUM-164: El login por correo es insensible a mayúsculas/minúsculas."""
+        response = client.post(reverse('login'), {
+            'username': desarrollador_user.email.upper(),
+            'password': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_desarrollador')
+
+    def test_login_con_parametro_email(self, client, empresa_user):
+        """SCRUM-164: Login enviando 'email' en lugar de 'username'."""
+        response = client.post(reverse('login'), {
+            'email': empresa_user.email,
+            'password': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_empresa')
+
+    def test_login_con_correo_incorrecto_incrementa_intentos(self, client, desarrollador_user):
+        """SCRUM-164: Intentos fallidos usando correo se acumulan correctamente en la cuenta."""
+        response = client.post(reverse('login'), {
+            'username': desarrollador_user.email,
+            'password': 'ClaveErronea!',
+        }, follow=True)
+        assert response.status_code == 200
+        desarrollador_user.refresh_from_db()
+        assert desarrollador_user.intentos_fallidos == 1
+        messages = [m.message for m in response.context['messages']]
+        assert "Correo o contraseña incorrectos." in messages
+
     def test_login_success_desarrollador(self, client, desarrollador_user):
         """Valid dev credentials redirect automatically to dashboard_desarrollador without role selection."""
         response = client.post(reverse('login'), {
