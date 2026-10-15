@@ -33,6 +33,8 @@ from .admin_dashboard import (
     marcar_notificaciones_leidas,
     admin_toggle_usuario,
     admin_reactivar_proyecto,
+    admin_crear_ficha_sena,
+    admin_toggle_ficha_sena,
 )
 
 from .admin_api import (
@@ -48,4 +50,7 @@ from .verificacion_views import (
     solicitar_verificacion_empresa,
     admin_resolver_verificacion_empresa,
     descargar_documento_soporte_empresa,
+    solicitar_verificacion_desarrollador,
+    descargar_documento_soporte_desarrollador,
+    admin_resolver_verificacion_desarrollador,
 )

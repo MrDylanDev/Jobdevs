@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from datetime import date
 
+from usuarios.models import FichaSena
+
 User = get_user_model()
 
 
@@ -108,3 +110,75 @@ class TestRegistroView:
         })
         assert response.status_code == 200
         assert not User.objects.filter(username='devnit').exists()
+
+    def test_registro_desarrollador_con_ficha_en_lista_blanca_se_verifica_automaticamente(self, client):
+        admin = User.objects.create_user(
+            username='admin_test',
+            email='admin@test.teir',
+            password='TestPass123!',
+            rol='administrador',
+            identificacion='1111111111',
+        )
+        FichaSena.objects.create(
+            numero_ficha='2670123',
+            programa_formacion='ADSO',
+            activa=True,
+            creada_por=admin,
+        )
+
+        response = client.post(reverse('registro'), {
+            'username': 'devconvalida',
+            'nombre': 'Dev Verificado',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500001',
+            'email': 'devvalida@test.teir',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'ficha': '2670123',
+            'programa_formacion': 'ADSO',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(username='devconvalida')
+        assert user.perfil_desarrollador.estado_verificacion == 'verificado'
+        assert user.perfil_desarrollador.es_verificado_sena is True
+        assert user.perfil_desarrollador.ficha == '2670123'
+
+    def test_registro_desarrollador_sin_ficha_queda_sin_verificar(self, client):
+        response = client.post(reverse('registro'), {
+            'username': 'devsinficha',
+            'nombre': 'Dev Sin Ficha',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500002',
+            'email': 'devsinficha@test.teir',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(username='devsinficha')
+        assert user.perfil_desarrollador.estado_verificacion == 'sin_verificar'
+        assert user.perfil_desarrollador.es_verificado_sena is False
+
+    def test_registro_desarrollador_con_ficha_no_en_lista_blanca_queda_sin_verificar(self, client):
+        response = client.post(reverse('registro'), {
+            'username': 'devfichano',
+            'nombre': 'Dev Ficha No',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500003',
+            'email': 'devfichano@test.teir',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'ficha': '9999999',
+            'programa_formacion': 'Desconocido',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(username='devfichano')
+        assert user.perfil_desarrollador.estado_verificacion == 'sin_verificar'
+        assert user.perfil_desarrollador.ficha == '9999999'
+        assert user.perfil_desarrollador.es_verificado_sena is False
+

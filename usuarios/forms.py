@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Usuario, PerfilEmpresa, PerfilDesarrollador
+from .models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
 from datetime import date
+from .services_sena import verificar_desarrollador_automatico
 
 class RegistroUsuarioForm(UserCreationForm):
     nombre = forms.CharField(
@@ -37,6 +38,18 @@ class RegistroUsuarioForm(UserCreationForm):
             ('empresa', 'Empresa'),
         ],
         required=True
+    )
+    ficha = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número de Ficha SENA (ej: 2670123)'}),
+        label="Ficha SENA (Opcional)"
+    )
+    programa_formacion = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Programa de formación (ADSO, etc)'}),
+        label="Programa de Formación (Opcional)"
     )
     
     class Meta:
@@ -77,7 +90,20 @@ class RegistroUsuarioForm(UserCreationForm):
             if user.rol == 'empresa':
                 PerfilEmpresa.objects.get_or_create(usuario=user)
             elif user.rol == 'desarrollador':
-                PerfilDesarrollador.objects.get_or_create(usuario=user)
+                perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
+                ficha = (self.cleaned_data.get('ficha') or '').strip()
+                programa = (self.cleaned_data.get('programa_formacion') or '').strip()
+                if ficha:
+                    perfil.ficha = ficha
+                    if programa:
+                        perfil.programa_formacion = programa
+                    perfil.save()
+                    verificar_desarrollador_automatico(
+                        perfil=perfil,
+                        numero_ficha=ficha,
+                        programa_formacion=programa,
+                        usuario_solicitante=user,
+                    )
         
         return user
 

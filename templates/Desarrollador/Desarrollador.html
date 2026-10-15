@@ -107,7 +107,14 @@
         </div>
         <div>
           <div class="user-name">{{ request.user.nombre|default:request.user.username }}</div>
-          <div class="user-role">Desarrollador</div>
+          <div class="user-role" style="display:flex; align-items:center; gap:6px;">
+            Desarrollador
+            {% if perfil %}
+              <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-testid="badge-verificacion-sena" style="font-size:10px; padding:2px 6px;">
+                <i class="fa {% if perfil.es_verificado_sena %}fa-circle-check{% elif perfil.estado_verificacion == 'en_revision' %}fa-hourglass-half{% else %}fa-id-card{% endif %}" style="margin-right:3px;"></i>{{ perfil.badge_info.label }}
+              </span>
+            {% endif %}
+          </div>
         </div>
       </div>
     </header>
@@ -123,6 +130,22 @@
             {{ message }}
           </div>
         {% endfor %}
+      {% endif %}
+
+      <!-- Alerta Verificación SENA -->
+      {% if perfil and not perfil.es_verificado_sena %}
+        <div class="alert alert-warning" data-testid="alerta-verificacion-sena" style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:14px 18px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-triangle-exclamation" style="font-size:22px; color:#d97706;"></i>
+            <div>
+              <strong style="font-size:15px;">Tu perfil no está verificado como aprendiz SENA.</strong>
+              <div style="font-size:13px; color:#78350f;">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
+            </div>
+          </div>
+          <a href="{% url 'solicitar_verificacion_desarrollador' %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:8px 14px; background:#f59e0b; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
+            <i class="fa fa-id-card"></i> Verificar mi ficha SENA
+          </a>
+        </div>
       {% endif %}
 
       <!-- Inicio -->

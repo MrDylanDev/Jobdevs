@@ -108,6 +108,41 @@ class TestPostularse:
         assert response.status_code == 302
         assert not Postulacion.objects.filter(proyecto=proyecto).exists()
 
+    def test_dev_no_verificado_no_puede_postularse(self, dev_client, desarrollador_user, empresa_user):
+        """Dev without SENA verification cannot apply to projects."""
+        desarrollador_user.perfil_desarrollador.estado_verificacion = 'sin_verificar'
+        desarrollador_user.perfil_desarrollador.save()
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Guard',
+            descripcion='DP', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = dev_client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            {'carta': 'Hola', 'experiencia': 'Mucha', 'link': 'http://example.com'}
+        )
+        assert response.status_code == 302
+        assert response.url == reverse('solicitar_verificacion_desarrollador')
+        assert not Postulacion.objects.filter(
+            proyecto=proyecto, desarrollador=desarrollador_user
+        ).exists()
+
+    @pytest.mark.parametrize('estado_invalido', ['en_revision', 'rechazado'])
+    def test_dev_estado_no_verificado_bloqueado(self, dev_client, desarrollador_user, empresa_user, estado_invalido):
+        """Dev with en_revision or rechazado verification cannot apply."""
+        desarrollador_user.perfil_desarrollador.estado_verificacion = estado_invalido
+        desarrollador_user.perfil_desarrollador.save()
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Bloqueado',
+            descripcion='DP', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = dev_client.get(reverse('postularse_a_proyecto', args=[proyecto.id]))
+        assert response.status_code == 302
+        assert response.url == reverse('solicitar_verificacion_desarrollador')
+
     def test_no_postularse_proyecto_no_publicado(self, dev_client, empresa_user):
         """Cannot apply to non-published projects."""
         proyecto = Proyecto.objects.create(

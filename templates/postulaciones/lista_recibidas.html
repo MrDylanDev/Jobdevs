@@ -121,7 +121,14 @@
                           {% endif %}
                       </div>
                       <div>
-                          <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">{{ post.desarrollador.nombre }}</h3>
+                          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">{{ post.desarrollador.nombre }}</h3>
+                            {% if post.desarrollador.badge_info %}
+                              <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' %}badge-warning{% elif post.desarrollador.badge_info.label == 'Verificación Rechazada' %}badge-danger{% else %}badge-secondary{% endif %}" data-testid="badge-sena-postulante" style="font-size: 11px; padding: 2px 7px;">
+                                <i class="fa {% if post.desarrollador.es_verificado_sena %}fa-circle-check{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' %}fa-hourglass-half{% else %}fa-id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
+                              </span>
+                            {% endif %}
+                          </div>
                           <div style="font-size: 12px; color: var(--text-secondary);">
                               {% if post.desarrollador.programa_formacion %}
                                 <i class="fa fa-graduation-cap" style="margin-right: 3px;"></i> {{ post.desarrollador.programa_formacion }}

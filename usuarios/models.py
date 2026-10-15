@@ -157,8 +157,44 @@ class PerfilEmpresa(models.Model):
     class Meta:
         db_table = 'perfil_empresa'
 
+class FichaSena(models.Model):
+    numero_ficha = models.CharField(max_length=50, unique=True, db_index=True)
+    programa_formacion = models.CharField(max_length=200)
+    regional = models.CharField(max_length=100, blank=True, null=True)
+    centro_formacion = models.CharField(max_length=200, blank=True, null=True)
+    activa = models.BooleanField(default=True, db_index=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    creada_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='fichas_creadas'
+    )
+
+    def __str__(self):
+        return f"{self.numero_ficha} - {self.programa_formacion}"
+
+    class Meta:
+        db_table = 'fichas_sena'
+        verbose_name = 'Ficha SENA'
+        verbose_name_plural = 'Fichas SENA'
+        ordering = ['numero_ficha']
+
+
 class PerfilDesarrollador(models.Model):
+    CONDICION_SENA_CHOICES = [
+        ('aprendiz', 'Aprendiz en Formación'),
+        ('egresado', 'Egresado SENA'),
+    ]
+    ESTADO_VERIFICACION_CHOICES = [
+        ('sin_verificar', 'Sin Verificar'),
+        ('en_revision', 'En Revisión'),
+        ('verificado', 'Verificado SENA'),
+        ('rechazado', 'Rechazado'),
+    ]
+
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_desarrollador', db_column='usuario_id')
+    condicion_sena = models.CharField(
+        max_length=20, choices=CONDICION_SENA_CHOICES, default='aprendiz'
+    )
     programa_formacion = models.CharField(max_length=200, blank=True, null=True)
     ficha = models.CharField(max_length=50, blank=True, null=True)
     habilidades = models.TextField(blank=True, null=True)
@@ -166,6 +202,42 @@ class PerfilDesarrollador(models.Model):
     portafolio_url = models.URLField(max_length=500, blank=True, null=True)
     calificacion_promedio = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
     num_proyectos_completados = models.IntegerField(default=0)
+
+    # Verificación de identidad SENA
+    estado_verificacion = models.CharField(
+        max_length=20, choices=ESTADO_VERIFICACION_CHOICES, default='sin_verificar'
+    )
+    ficha_sena = models.ForeignKey(
+        FichaSena, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='aprendices_verificados'
+    )
+    documento_soporte = models.FileField(upload_to='verificaciones/desarrolladores/', blank=True, null=True)
+    fecha_solicitud_verificacion = models.DateTimeField(null=True, blank=True)
+    fecha_verificacion = models.DateTimeField(null=True, blank=True)
+    verificado_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='desarrolladores_verificados'
+    )
+    notas_auditoria = models.TextField(blank=True, null=True)
+
+    @property
+    def es_verificado_sena(self):
+        return self.estado_verificacion == 'verificado'
+
+    @property
+    def badge_info(self):
+        """Etiqueta y clase CSS de la insignia según estado y condición SENA."""
+        if self.estado_verificacion == 'verificado':
+            if self.condicion_sena == 'egresado':
+                return {'label': 'Egresado SENA', 'css_class': 'badge-verificada'}
+            return {'label': 'Aprendiz SENA', 'css_class': 'badge-verificada'}
+        if self.estado_verificacion == 'en_revision':
+            if self.condicion_sena == 'egresado':
+                return {'label': 'En Revisión (Egresado)', 'css_class': 'badge-en-revision'}
+            return {'label': 'En Revisión SENA', 'css_class': 'badge-en-revision'}
+        if self.estado_verificacion == 'rechazado':
+            return {'label': 'Verificación Rechazada', 'css_class': 'badge-rechazada'}
+        return {'label': 'Sin Verificar', 'css_class': 'badge-sin-verificar'}
 
     def __str__(self):
         return f"Desarrollador {self.usuario.username}"
