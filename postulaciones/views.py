@@ -68,6 +68,8 @@ def ver_postulaciones_empresa(request, proyecto_id):
                 'foto_perfil': perfil.foto_perfil.url if perfil and perfil.foto_perfil else None,
                 'programa_formacion': perfil.programa_formacion if perfil else '',
                 'ficha': perfil.ficha if perfil else '',
+                'es_verificado_sena': perfil.es_verificado_sena if perfil else False,
+                'badge_info': perfil.badge_info if perfil else None,
             },
             'calificacion_promedio': perfil.calificacion_promedio if perfil else 0,
             'proyectos_completados': perfil.num_proyectos_completados if perfil else 0,
