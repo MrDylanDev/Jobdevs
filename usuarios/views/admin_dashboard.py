@@ -12,7 +12,7 @@ from django.utils import timezone
 from datetime import timedelta
 from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
 from ..decorators import requiere_usuario_activo
-from ..utils import get_admin_ids
+from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
@@ -249,6 +249,7 @@ def admin_toggle_usuario(request, usuario_id):
     if user.estado == 'activo':
         user.estado = 'inactivo'
         user.is_active = False
+        invalidar_sesiones_activas_usuario(user.id)
     else:
         user.estado = 'activo'
         user.is_active = True
