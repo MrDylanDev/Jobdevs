@@ -14,6 +14,8 @@ urlpatterns = [
     path('empresa/<int:perfil_id>/documento/', views.descargar_documento_soporte_empresa, name='descargar_documento_soporte_empresa'),
     path('empresa/verificacion/', views.solicitar_verificacion_empresa, name='solicitar_verificacion_empresa'),
     path('desarrollador/dashboard/', views.dashboard_desarrollador, name='dashboard_desarrollador'),
+    path('desarrollador/verificacion/', views.solicitar_verificacion_desarrollador, name='solicitar_verificacion_desarrollador'),
+    path('desarrollador/<int:perfil_id>/documento/', views.descargar_documento_soporte_desarrollador, name='descargar_documento_soporte_desarrollador'),
     
     # Gestión de Perfil
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),

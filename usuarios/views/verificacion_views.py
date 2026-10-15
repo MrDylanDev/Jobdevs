@@ -14,7 +14,12 @@ from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 
 from ..decorators import requiere_usuario_activo
-from ..models import PerfilEmpresa, Usuario
+from ..models import PerfilDesarrollador, PerfilEmpresa, Usuario
+from ..services_sena import (
+    admin_resolver_verificacion_desarrollador,
+    solicitar_verificacion_manual_desarrollador,
+    verificar_desarrollador_automatico,
+)
 from ..utils_dian import calcular_dv_dian, limpiar_documento
 
 MAX_SOPORTE_BYTES = 5 * 1024 * 1024  # 5 MB
@@ -249,3 +254,92 @@ def descargar_documento_soporte_empresa(request, perfil_id):
     except FileNotFoundError:
         raise Http404('Documento no disponible.')
     return FileResponse(archivo, content_type='application/pdf')
+
+
+@login_required
+@requiere_usuario_activo
+def solicitar_verificacion_desarrollador(request):
+    """Permite al desarrollador verificar su identidad SENA de forma automática o manual."""
+    if request.user.rol != 'desarrollador':
+        raise PermissionDenied
+
+    perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
+
+    if request.method == 'POST':
+        if perfil.estado_verificacion == 'verificado':
+            messages.info(request, 'Tu perfil ya se encuentra verificado como aprendiz SENA.')
+            return redirect('solicitar_verificacion_desarrollador')
+        if perfil.estado_verificacion == 'en_revision':
+            messages.warning(
+                request,
+                'Tu solicitud ya se encuentra en revisión administrativa. '
+                'No es posible modificarla hasta obtener una respuesta.',
+            )
+            return redirect('solicitar_verificacion_desarrollador')
+
+        metodo = request.POST.get('metodo', 'automatica').strip()
+        ficha = request.POST.get('ficha', '').strip()
+        programa = request.POST.get('programa_formacion', '').strip()
+
+        if metodo == 'automatica':
+            ok, msg = verificar_desarrollador_automatico(
+                perfil=perfil,
+                numero_ficha=ficha,
+                programa_formacion=programa,
+                usuario_solicitante=request.user,
+            )
+            if ok:
+                messages.success(request, msg)
+                return redirect('solicitar_verificacion_desarrollador')
+            errores = {'ficha': msg}
+            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo}
+            return render(request, 'desarrollador/verificacion.html', {
+                'perfil': perfil, 'errores': errores, 'valores': valores,
+            })
+
+        elif metodo == 'manual':
+            archivo = request.FILES.get('documento_soporte')
+            ok, msg, errores = solicitar_verificacion_manual_desarrollador(
+                perfil=perfil,
+                numero_ficha=ficha,
+                programa_formacion=programa,
+                documento_soporte=archivo,
+                usuario_solicitante=request.user,
+            )
+            if ok:
+                messages.success(request, msg)
+                return redirect('solicitar_verificacion_desarrollador')
+            valores = {'ficha': ficha, 'programa_formacion': programa, 'metodo': metodo}
+            return render(request, 'desarrollador/verificacion.html', {
+                'perfil': perfil, 'errores': errores, 'valores': valores,
+            })
+        else:
+            messages.error(request, 'Método de verificación no válido.')
+            return redirect('solicitar_verificacion_desarrollador')
+
+    valores = {
+        'ficha': perfil.ficha or '',
+        'programa_formacion': perfil.programa_formacion or '',
+        'metodo': 'automatica',
+    }
+    return render(request, 'desarrollador/verificacion.html', {
+        'perfil': perfil,
+        'errores': {},
+        'valores': valores,
+    })
+
+
+@login_required
+def descargar_documento_soporte_desarrollador(request, perfil_id):
+    """Sirve de forma privada el documento soporte SENA al administrador o al aprendiz titular."""
+    perfil = get_object_or_404(PerfilDesarrollador, id=perfil_id)
+    if request.user.rol != 'administrador' and request.user.pk != perfil.usuario_id:
+        raise PermissionDenied
+    if not perfil.documento_soporte:
+        raise Http404('Documento no disponible.')
+    try:
+        archivo = perfil.documento_soporte.open('rb')
+    except FileNotFoundError:
+        raise Http404('Documento no disponible.')
+    return FileResponse(archivo, content_type='application/pdf')
+

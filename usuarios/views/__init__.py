@@ -48,4 +48,6 @@ from .verificacion_views import (
     solicitar_verificacion_empresa,
     admin_resolver_verificacion_empresa,
     descargar_documento_soporte_empresa,
+    solicitar_verificacion_desarrollador,
+    descargar_documento_soporte_desarrollador,
 )

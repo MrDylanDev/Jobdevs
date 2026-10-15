@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}TEIR | Verificación de Aprendiz SENA{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 820px;">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_desarrollador' %}">Panel de talento</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Verificación SENA</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0">Verificación de identidad SENA</h1>
+    <span class="badge fs-6
+      {% if perfil.estado_verificacion == 'verificado' %}text-bg-success
+      {% elif perfil.estado_verificacion == 'en_revision' %}text-bg-warning
+      {% elif perfil.estado_verificacion == 'rechazado' %}text-bg-danger
+      {% else %}text-bg-secondary{% endif %}">
+      {{ perfil.badge_info.label }}
+    </span>
+  </div>
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  {% endfor %}
+
+  {% if perfil.estado_verificacion == 'verificado' %}
+    <div class="card border-success">
+      <div class="card-body">
+        <h2 class="h5 text-success"><i class="fa fa-circle-check me-2"></i>Identidad SENA verificada</h2>
+        <p class="mb-1">Tu perfil como aprendiz SENA está completamente verificado y habilitado para postularte a proyectos.</p>
+        <p class="mb-0 text-muted"><strong>Ficha:</strong> {{ perfil.ficha }} | <strong>Programa:</strong> {{ perfil.programa_formacion|default:"No especificado" }}</p>
+      </div>
+    </div>
+  {% else %}
+    {% if perfil.estado_verificacion == 'en_revision' %}
+      <div class="card border-warning">
+        <div class="card-body">
+          <h2 class="h5 text-warning-emphasis"><i class="fa fa-hourglass-half me-2"></i>Solicitud en revisión</h2>
+          <p class="mb-1">Tu solicitud de verificación manual se encuentra en revisión por el equipo administrativo del SENA.</p>
+          <p class="mb-1 text-muted"><strong>Ficha:</strong> {{ perfil.ficha }} | <strong>Programa:</strong> {{ perfil.programa_formacion|default:"No especificado" }}</p>
+          {% if perfil.documento_soporte %}
+            <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mt-2">
+              <i class="fa fa-file-pdf me-1"></i> Ver documento enviado
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% elif perfil.estado_verificacion == 'rechazado' %}
+      <div class="alert alert-danger" role="alert">
+        <i class="fa fa-triangle-exclamation me-1"></i> Tu solicitud anterior fue rechazada.
+        {% if perfil.notas_auditoria %}<br><strong>Motivo:</strong> {{ perfil.notas_auditoria }}{% endif %}
+        <br>Por favor verifica tu ficha o adjunta un documento legible y vuelve a enviarla.
+      </div>
+    {% else %}
+      <div class="alert alert-info" role="alert">
+        <i class="fa fa-info-circle me-1"></i> Verifica tu condición de aprendiz SENA para poder postularte a proyectos reales y obtener la insignia oficial.
+      </div>
+    {% endif %}
+
+    {% if perfil.estado_verificacion != 'en_revision' %}
+      {% if errores %}
+        <div class="alert alert-danger" role="alert">Por favor revisa los campos marcados a continuación.</div>
+      {% endif %}
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <ul class="nav nav-tabs card-header-tabs" id="metodoTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if valores.metodo != 'manual' %}active{% endif %}" id="auto-tab" data-bs-toggle="tab" data-bs-target="#auto-pane" type="button" role="tab" aria-controls="auto-pane" aria-selected="{% if valores.metodo != 'manual' %}true{% else %}false{% endif %}">
+                <i class="fa fa-bolt me-1 text-warning"></i> Verificación Instantánea (Lista Blanca)
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if valores.metodo == 'manual' %}active{% endif %}" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' %}true{% else %}false{% endif %}">
+                <i class="fa fa-file-upload me-1 text-primary"></i> Solicitud Manual con Soporte (PDF)
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content" id="metodoTabContent">
+            <!-- PESTAÑA AUTOMÁTICA -->
+            <div class="tab-pane fade {% if valores.metodo != 'manual' %}show active{% endif %}" id="auto-pane" role="tabpanel" aria-labelledby="auto-tab">
+              <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="metodo" value="automatica">
+
+                <div class="mb-3">
+                  <label for="id_ficha_auto" class="form-label fw-bold">Número de Ficha SENA <span class="text-danger">*</span></label>
+                  <input type="text" name="ficha" id="id_ficha_auto" class="form-control {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+                  {% if errores.ficha %}
+                    <div class="invalid-feedback">{{ errores.ficha }}</div>
+                  {% else %}
+                    <div class="form-text">Se verificará automáticamente contra el catálogo oficial de fichas activas registradas en la plataforma.</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_programa_auto" class="form-label fw-bold">Programa de Formación (Opcional)</label>
+                  <input type="text" name="programa_formacion" id="id_programa_auto" class="form-control" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)">
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                  <i class="fa fa-circle-check me-1"></i> Verificar Ficha Ahora
+                </button>
+              </form>
+            </div>
+
+            <!-- PESTAÑA MANUAL -->
+            <div class="tab-pane fade {% if valores.metodo == 'manual' %}show active{% endif %}" id="manual-pane" role="tabpanel" aria-labelledby="manual-tab">
+              <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="metodo" value="manual">
+
+                <div class="mb-3">
+                  <label for="id_ficha_manual" class="form-label fw-bold">Número de Ficha SENA <span class="text-danger">*</span></label>
+                  <input type="text" name="ficha" id="id_ficha_manual" class="form-control {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+                  {% if errores.ficha %}
+                    <div class="invalid-feedback">{{ errores.ficha }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_programa_manual" class="form-label fw-bold">Programa de Formación <span class="text-danger">*</span></label>
+                  <input type="text" name="programa_formacion" id="id_programa_manual" class="form-control {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)" required>
+                  {% if errores.programa_formacion %}
+                    <div class="invalid-feedback">{{ errores.programa_formacion }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label for="id_documento_soporte" class="form-label fw-bold">Documento de Soporte (PDF) <span class="text-danger">*</span></label>
+                  <input type="file" name="documento_soporte" id="id_documento_soporte" class="form-control {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+                  {% if errores.documento_soporte %}
+                    <div class="invalid-feedback">{{ errores.documento_soporte }}</div>
+                  {% else %}
+                    <div class="form-text">Adjunta tu carnet de aprendiz o certificado de matrícula/estudio en formato PDF (máximo 5 MB).</div>
+                  {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa fa-paper-plane me-1"></i> Enviar Solicitud a Revisión
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
