@@ -29,3 +29,36 @@ def get_admin_ids():
     # Cacheamos la lista por 5 minutos
     cache.set('admin_ids_list', ids, timeout=300)
     return ids
+
+
+def invalidar_sesiones_activas_usuario(usuario_id_o_ids):
+    """
+    Invalida y elimina inmediatamente todas las sesiones activas en base de datos
+    para el usuario o lista de usuarios especificados (RF 1.3.2 / SCRUM-44).
+    Retorna el número de sesiones eliminadas.
+    """
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+
+    if isinstance(usuario_id_o_ids, (int, str)):
+        target_ids = {str(usuario_id_o_ids)}
+    else:
+        target_ids = {str(uid) for uid in usuario_id_o_ids}
+
+    if not target_ids:
+        return 0
+
+    sesiones_a_eliminar = []
+    for session in Session.objects.filter(expire_date__gte=timezone.now()):
+        try:
+            data = session.get_decoded()
+            if str(data.get('_auth_user_id', '')) in target_ids:
+                sesiones_a_eliminar.append(session.session_key)
+        except Exception:
+            pass
+
+    if sesiones_a_eliminar:
+        Session.objects.filter(session_key__in=sesiones_a_eliminar).delete()
+
+    return len(sesiones_a_eliminar)
+
