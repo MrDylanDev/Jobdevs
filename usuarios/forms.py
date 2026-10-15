@@ -66,7 +66,7 @@ class RegistroUsuarioForm(UserCreationForm):
     
     class Meta:
         model = Usuario
-        fields = ('username', 'nombre', 'identificacion', 'email', 'fecha_nacimiento', 'rol')
+        fields = ('nombre', 'identificacion', 'email', 'fecha_nacimiento', 'rol')
     
     def clean(self):
         cleaned_data = super().clean()
@@ -75,8 +75,18 @@ class RegistroUsuarioForm(UserCreationForm):
 
         if rol == 'desarrollador' and tipo_doc == 'nit':
             self.add_error('tipo_documento', "Un desarrollador solo puede registrarse con Cédula.")
+
+        email = cleaned_data.get('email')
+        if email:
+            cleaned_data['username'] = email.strip().lower()
         
         return cleaned_data
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if email and Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Este correo electrónico ya se encuentra registrado.")
+        return email
 
     def clean_identificacion(self):
         identificacion = (self.cleaned_data.get('identificacion') or '').strip()
@@ -95,7 +105,9 @@ class RegistroUsuarioForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        user.email = email
+        user.username = email
         user.nombre = self.cleaned_data['nombre']
         user.identificacion = self.cleaned_data['identificacion']
         user.rol = self.cleaned_data['rol']

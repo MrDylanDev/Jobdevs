@@ -65,17 +65,7 @@
           {% endif %}
         </div>
 
-        <div class="form-group {% if form.username.errors %}error{% endif %}">
-          <label>NOMBRE DE USUARIO</label>
-          <input type="text" name="username" value="{{ form.username.value|default:'' }}" placeholder="Ej: alejandro123" required autocomplete="off">
-          {% if form.username.errors %}
-            <ul class="errorlist">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-          {% else %}
-            <small>Solo letras, números y (@/./+/-/_).</small>
-          {% endif %}
-        </div>
-
-        <div class="form-group {% if form.email.errors %}error{% endif %}">
+        <div class="form-group full-width {% if form.email.errors %}error{% endif %}">
           <label>CORREO ELECTRÓNICO</label>
           <input type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="ejemplo@correo.com" required autocomplete="off">
           {% if form.email.errors %}

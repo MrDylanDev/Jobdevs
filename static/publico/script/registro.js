@@ -38,15 +38,9 @@ const rolSelect = document.getElementById('id_rol');
     window.addEventListener('load', updateDocFields);
 
     document.querySelector('form').addEventListener('submit', function(e) {
-      const username = document.querySelector('input[name="username"]').value;
       const password1 = document.querySelector('input[name="password1"]').value;
       const password2 = document.querySelector('input[name="password2"]').value;
 
-      if (username.trim().includes(' ')) {
-        e.preventDefault();
-        alert('El nombre de usuario no puede contener espacios obligatorios.');
-        return;
-      }
       if (password1 !== password2) {
         e.preventDefault();
         alert('Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar.');
