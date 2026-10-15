@@ -296,7 +296,13 @@
                   {{ proyecto.fecha_fin|date:"d M"|default:"Sin fecha" }}
                 </span>
               </div>
-              <div class="project-card-sub" style="margin-bottom:16px;">Empresa: {{ proyecto.empresa_nombre }}</div>
+              <div class="project-card-sub" style="margin-bottom:16px;">Empresa: {{ proyecto.empresa_nombre }}
+                {% if proyecto.empresa_badge %}
+                  <span class="badge {% if proyecto.empresa_verificada %}{% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}{% elif proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">
+                    <i class="fa {% if proyecto.empresa_verificada %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
+                  </span>
+                {% endif %}
+              </div>
 
               <!-- Hitos -->
               <div style="margin-bottom:16px;">
@@ -359,6 +365,11 @@
               </div>
               <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
                 Empresa: {{ contratacion.empresa.username }}
+                {% with perfil_emp=contratacion.empresa.perfil_empresa %}
+                  {% if perfil_emp %}
+                    <span class="badge {% if perfil_emp.es_verificada %}{% if perfil_emp.tipo_persona == 'natural' %}badge-info{% else %}badge-success{% endif %}{% elif perfil_emp.estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">{{ perfil_emp.badge_info.label }}</span>
+                  {% endif %}
+                {% endwith %}
               </p>
               {% if contratacion.valoracion %}
                 <div style="background:var(--page-bg);border-radius:var(--radius-sm);padding:14px;font-style:italic;font-size:13px;color:var(--text-secondary);border-left:3px solid #e5e7eb;">

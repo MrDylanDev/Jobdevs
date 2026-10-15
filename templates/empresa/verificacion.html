@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}TEIR | Verificación de empresa{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 820px;">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dashboard_empresa' %}">Panel corporativo</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Verificación de empresa</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0">Verificación de identidad</h1>
+    <span class="badge fs-6
+      {% if perfil.estado_verificacion == 'verificada' %}text-bg-success
+      {% elif perfil.estado_verificacion == 'en_revision' %}text-bg-warning
+      {% elif perfil.estado_verificacion == 'rechazada' %}text-bg-danger
+      {% else %}text-bg-secondary{% endif %}">
+      {{ perfil.badge_info.label }}
+    </span>
+  </div>
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+  {% endfor %}
+
+  {% if perfil.estado_verificacion == 'verificada' %}
+    <div class="card border-success">
+      <div class="card-body">
+        <h2 class="h5 text-success"><i class="fa fa-circle-check me-2"></i>Verificación exitosa</h2>
+        <p class="mb-1">Tu empresa <strong>{{ perfil.razon_social }}</strong> ya fue verificada.</p>
+        <p class="mb-0 text-muted">Documento: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</p>
+      </div>
+    </div>
+  {% else %}
+    {% if perfil.estado_verificacion == 'en_revision' %}
+      <div class="card border-warning">
+        <div class="card-body">
+          <h2 class="h5 text-warning-emphasis"><i class="fa fa-hourglass-half me-2"></i>Solicitud en revisión</h2>
+          <p class="mb-1">Tu solicitud ya se encuentra en revisión por el equipo del SENA. No es posible modificarla hasta obtener una respuesta.</p>
+          <p class="mb-1 text-muted">Documento: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</p>
+          {% if perfil.documento_soporte %}
+            <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver documento enviado</a>
+          {% endif %}
+        </div>
+      </div>
+    {% elif perfil.estado_verificacion == 'rechazada' %}
+      <div class="alert alert-danger">
+        Tu solicitud anterior fue rechazada.
+        {% if perfil.notas_auditoria %}<br><strong>Motivo:</strong> {{ perfil.notas_auditoria }}{% endif %}
+        <br>Corrige la información y vuelve a enviarla.
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        Verifica tu empresa adjuntando tu Cámara de Comercio o RUT en formato PDF (máx. 5 MB).
+      </div>
+    {% endif %}
+
+    {% if perfil.estado_verificacion != 'en_revision' %}
+    {% if errores %}
+      <div class="alert alert-danger" role="alert">Revisa los campos marcados: la solicitud no fue enviada.</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="card card-body" novalidate>
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="tipo_persona" class="form-label">Tipo de persona</label>
+          <select id="tipo_persona" name="tipo_persona" class="form-select{% if errores.tipo_persona %} is-invalid{% endif %}" required>
+            {% for value, label in tipos_persona %}
+              <option value="{{ value }}"{% if valores.tipo_persona == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if errores.tipo_persona %}<div class="invalid-feedback">{{ errores.tipo_persona }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="tipo_documento" class="form-label">Tipo de documento</label>
+          <select id="tipo_documento" name="tipo_documento" class="form-select{% if errores.tipo_documento %} is-invalid{% endif %}" required>
+            {% for value, label in tipos_documento %}
+              <option value="{{ value }}"{% if valores.tipo_documento == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if errores.tipo_documento %}<div class="invalid-feedback">{{ errores.tipo_documento }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="numero_documento" class="form-label">Número de documento (sin dígito de verificación)</label>
+          <input type="text" id="numero_documento" name="numero_documento" inputmode="numeric"
+                 class="form-control{% if errores.numero_documento %} is-invalid{% endif %}"
+                 value="{{ valores.numero_documento }}" placeholder="900123456" required>
+          {% if errores.numero_documento %}
+            <div class="invalid-feedback">{{ errores.numero_documento }}</div>
+          {% else %}
+            <div class="form-text">El dígito de verificación se calcula automáticamente.</div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label for="razon_social" class="form-label">Razón social</label>
+          <input type="text" id="razon_social" name="razon_social" maxlength="255"
+                 class="form-control{% if errores.razon_social %} is-invalid{% endif %}"
+                 value="{{ valores.razon_social }}" required>
+          {% if errores.razon_social %}<div class="invalid-feedback">{{ errores.razon_social }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label for="documento_soporte" class="form-label">Documento de soporte (Cámara de Comercio o RUT, PDF)</label>
+          <input type="file" id="documento_soporte" name="documento_soporte" accept="application/pdf,.pdf"
+                 class="form-control{% if errores.documento_soporte %} is-invalid{% endif %}">
+          {% if errores.documento_soporte %}<div class="invalid-feedback">{{ errores.documento_soporte }}</div>{% endif %}
+          {% if perfil.documento_soporte %}
+            <div class="form-text">Ya hay un documento cargado; adjunta uno nuevo solo si deseas reemplazarlo.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a href="{% url 'dashboard_empresa' %}" class="btn btn-outline-secondary">Volver</a>
+        <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+      </div>
+    </form>
+    {% endif %}
+  {% endif %}
+</div>
+<script>
+  (function () {
+    var persona = document.getElementById('tipo_persona');
+    var documento = document.getElementById('tipo_documento');
+    if (!persona || !documento) return;
+    function sync() {
+      var juridica = persona.value === 'juridica';
+      if (juridica) documento.value = 'NIT';
+      Array.prototype.forEach.call(documento.options, function (o) {
+        o.disabled = juridica && o.value !== 'NIT';
+      });
+    }
+    persona.addEventListener('change', sync);
+    sync();
+  })();
+</script>
+{% endblock %}

@@ -123,6 +123,19 @@
                             <div style="font-size:13px; font-weight:600; color:var(--text-primary);">
                               {{ proyecto.empresa_nombre }}
                             </div>
+                            {% if proyecto.empresa_badge %}
+                              <div style="margin-top:4px;">
+                                {% if proyecto.empresa_verificada %}
+                                  <span class="badge {% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}" data-testid="badge-verificacion" title="{{ proyecto.empresa_badge.label }}">
+                                    <i class="fa fa-circle-check" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
+                                  </span>
+                                {% else %}
+                                  <span class="badge {% if proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" title="{{ proyecto.empresa_badge.label }}">
+                                    <i class="fa fa-triangle-exclamation" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
+                                  </span>
+                                {% endif %}
+                              </div>
+                            {% endif %}
                             <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
                               {% if proyecto.empresa_reputacion > 0 %}
                                 <i class="fa fa-star" style="color:#f59e0b; margin-right:3px;"></i>{{ proyecto.empresa_reputacion|floatformat:1 }} reputación

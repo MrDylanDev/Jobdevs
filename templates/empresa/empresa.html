@@ -70,6 +70,10 @@
         <i class="fa fa-building"></i>
         <span>Perfil Empresa</span>
       </button>
+      <a class="nav-item" href="{% url 'solicitar_verificacion_empresa' %}">
+        <i class="fa fa-shield-halved"></i>
+        <span>Verificación NIT / Identidad</span>
+      </a>
     </div>
 
     <hr class="sidebar-sep" style="margin-top:auto;">
@@ -96,6 +100,11 @@
           <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
+      {% with badge=perfil.badge_info %}
+      <a href="{% url 'solicitar_verificacion_empresa' %}" class="badge {% if perfil.estado_verificacion == 'verificada' %}{% if perfil.tipo_persona == 'natural' %}badge-info{% else %}badge-success{% endif %}{% elif perfil.estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion-header" style="text-decoration:none;" title="Estado de verificación">
+        <i class="fa {% if perfil.estado_verificacion == 'verificada' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ badge.label }}
+      </a>
+      {% endwith %}
       <button class="btn btn-primary btn-sm" onclick="abrirModal()">
         <i class="fa fa-plus"></i> Nuevo Proyecto
       </button>

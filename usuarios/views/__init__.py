@@ -43,3 +43,9 @@ from .admin_api import (
     api_eliminar_usuario,
     api_bulk_toggle,
 )
+
+from .verificacion_views import (
+    solicitar_verificacion_empresa,
+    admin_resolver_verificacion_empresa,
+    descargar_documento_soporte_empresa,
+)

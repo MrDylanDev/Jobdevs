@@ -10,6 +10,9 @@ urlpatterns = [
     path('admin/usuario/toggle/<int:usuario_id>/', views.admin_toggle_usuario, name='admin_toggle_usuario'),
     path('admin/proyecto/reactivar/<int:proyecto_id>/', views.admin_reactivar_proyecto, name='admin_reactivar_proyecto'),
     path('empresa/dashboard/', views.dashboard_empresa, name='dashboard_empresa'),
+    path('admin/empresa/<int:perfil_id>/verificar/', views.admin_resolver_verificacion_empresa, name='admin_resolver_verificacion_empresa'),
+    path('empresa/<int:perfil_id>/documento/', views.descargar_documento_soporte_empresa, name='descargar_documento_soporte_empresa'),
+    path('empresa/verificacion/', views.solicitar_verificacion_empresa, name='solicitar_verificacion_empresa'),
     path('desarrollador/dashboard/', views.dashboard_desarrollador, name='dashboard_desarrollador'),
     
     # Gestión de Perfil

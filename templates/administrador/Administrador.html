@@ -59,6 +59,11 @@
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
       </button>
+      <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
+        <i class="fa fa-building-circle-check"></i>
+        <span>Verificación Empresas</span>
+        {% if total_empresas_en_revision %}<span class="badge bg-danger ms-auto">{{ total_empresas_en_revision }}</span>{% endif %}
+      </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i class="fa fa-file-shield"></i>
         <span>Auditoría</span>
@@ -861,6 +866,58 @@
           </table>
           {% else %}
           <p style="margin:0;">No hay disputas activas.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Verificación de Empresas -->
+      <section id="verificacionEmpresasSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">
+              Verificación de Empresas
+              <span class="badge bg-danger">{{ total_empresas_en_revision }}</span>
+            </div>
+            <div class="page-subtitle">Solicitudes de verificación de identidad pendientes de revisión</div>
+          </div>
+        </div>
+        <div class="card">
+          {% if empresas_en_revision %}
+          <table style="width:100%;">
+            <thead>
+              <tr><th>Empresa</th><th>Tipo</th><th>Documento</th><th>Razón Social</th><th>Soporte</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              {% for e in empresas_en_revision %}
+              <tr>
+                <td>{{ e.usuario.nombre|default:e.usuario.username }}</td>
+                <td>{% if e.tipo_persona == 'juridica' %}Jurídica{% else %}Natural{% endif %}</td>
+                <td>{{ e.tipo_documento }} {{ e.documento_completo }}</td>
+                <td>{{ e.razon_social|default:"—" }}</td>
+                <td>
+                  {% if e.documento_soporte %}
+                  <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver PDF</a>
+                  {% else %}Sin documento{% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" style="display:inline-block;margin-bottom:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="aprobar">
+                    <button type="submit" class="btn btn-primary">Aprobar</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="rechazar">
+                    <textarea name="notas" required rows="2" aria-label="Motivo del rechazo de verificación" placeholder="Motivo del rechazo" style="width:100%;margin-bottom:4px;"></textarea>
+                    <button type="submit" class="btn btn-danger">Rechazar</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="margin:0;">No hay solicitudes de verificación en revisión.</p>
           {% endif %}
         </div>
       </section>
