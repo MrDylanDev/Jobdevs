@@ -120,9 +120,11 @@
                           {% endif %}
                         </div>
                         <div>
-                            <div style="font-size:13px; font-weight:600; color:var(--text-primary);">
-                              {{ proyecto.empresa_nombre }}
-                            </div>
+                            <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="text-decoration:none; color:inherit;" title="Ver perfil institucional y reseñas">
+                              <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:inline-flex; align-items:center; gap:4px;">
+                                {{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i>
+                              </div>
+                            </a>
                             {% if proyecto.empresa_badge %}
                               <div style="margin-top:4px;">
                                 {% if proyecto.empresa_verificada %}
