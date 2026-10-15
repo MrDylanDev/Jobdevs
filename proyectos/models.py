@@ -3,6 +3,11 @@ from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+# RNF-10: cache en proceso slug→nombre de CategoriaSolucion. Las categorías
+# son datos maestros prácticamente estáticos; el cache evita un query por
+# proyecto en listados (N+1). Se invalida al guardar/eliminar una categoría.
+_CATEGORIA_SLUG_CACHE: dict = {}
+
 class CategoriaSolucion(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
@@ -18,6 +23,17 @@ class CategoriaSolucion(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalida todo el cache slug→nombre (ediciones de categorías son raras
+        # y el slug anterior quedaría huérfano si solo limpiamos el nuevo)
+        _CATEGORIA_SLUG_CACHE.clear()
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        _CATEGORIA_SLUG_CACHE.clear()
+        return result
 
 
 class Proyecto(models.Model):
@@ -73,10 +89,18 @@ class Proyecto(models.Model):
     def get_tipo_solucion_display(self):
         if self.categoria_id:
             return self.categoria.nombre
-        categoria = CategoriaSolucion.objects.filter(slug=self.tipo_solucion).first()
+        # RNF-10: cache en proceso para el fallback por slug — evita un
+        # query por proyecto en listados (N+1 con +10.000 registros).
+        slug = self.tipo_solucion
+        if slug in _CATEGORIA_SLUG_CACHE:
+            return _CATEGORIA_SLUG_CACHE[slug]
+        categoria = CategoriaSolucion.objects.filter(slug=slug).first()
         if categoria:
+            _CATEGORIA_SLUG_CACHE[slug] = categoria.nombre
             return categoria.nombre
-        return dict(self.TIPO_SOLUCION).get(self.tipo_solucion, self.tipo_solucion)
+        nombre = dict(self.TIPO_SOLUCION).get(slug, slug)
+        _CATEGORIA_SLUG_CACHE[slug] = nombre
+        return nombre
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):
         """Registra una entrada en el historial de estados."""
@@ -94,6 +118,10 @@ class Proyecto(models.Model):
             models.Index(fields=['tipo_solucion'], name='idx_proy_tipo'),
             models.Index(fields=['prioridad'], name='idx_proy_prio'),
             models.Index(fields=['fecha_publicacion'], name='idx_fecha_publicacion'),
+            # RNF-10: consultas de dashboards (empresa + estado) y listados
+            # (estado + orden por fecha_publicacion) eficientes con >10.000 filas
+            models.Index(fields=['empresa', 'estado'], name='idx_proy_empresa_estado'),
+            models.Index(fields=['estado', 'fecha_publicacion'], name='idx_proy_estado_fecha'),
         ]
 
 class Valoracion(models.Model):
@@ -143,6 +171,8 @@ class Entregable(models.Model):
         indexes = [
             models.Index(fields=['estado'], name='idx_entregables_estado'),
             models.Index(fields=['fecha_creacion'], name='idx_entregables_fecha'),
+            # RNF-10: progreso de hitos por proyecto (Count con filtro por estado)
+            models.Index(fields=['proyecto', 'estado'], name='idx_entregables_proy_estado'),
         ]
 
     def __str__(self):

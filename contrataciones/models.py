@@ -24,6 +24,8 @@ class Contratacion(models.Model):
         indexes = [
             models.Index(fields=['proyecto', 'desarrollador', 'estado'], name='idx_proy_dev_est'),
             models.Index(fields=['empresa'], name='idx_empresa_contratos'),
+            # RNF-10: dashboards por empresa filtrando contratos activos
+            models.Index(fields=['empresa', 'estado'], name='idx_contratos_empresa_estado'),
         ]
 
     def __str__(self):

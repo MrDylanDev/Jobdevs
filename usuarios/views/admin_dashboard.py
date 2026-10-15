@@ -20,7 +20,7 @@ from disputas.models import Disputa
 from notificaciones.models import Notificacion
 from mensajes.models import Mensaje
 from logs.models import LogAuditoria
-from ._helpers import get_notificaciones_context
+from ._helpers import get_notificaciones_context, cached_or_compute
 
 
 @login_required
@@ -28,20 +28,28 @@ from ._helpers import get_notificaciones_context
 def dashboard_admin(request):
     if request.user.rol != 'administrador': return redirect('inicio')
     
-    user_stats = Usuario.objects.aggregate(
-        total_empresas=Count('id', filter=Q(rol='empresa', is_active=True)),
-        total_devs=Count('id', filter=Q(rol='desarrollador', is_active=True)),
+    # RNF-10: agregados globales cacheados (TTL 60s) — son consultas de solo
+    # lectura sobre tablas completas, las más costosas con +10.000 registros.
+    def _global_stats():
+        user_stats = Usuario.objects.aggregate(
+            total_empresas=Count('id', filter=Q(rol='empresa', is_active=True)),
+            total_devs=Count('id', filter=Q(rol='desarrollador', is_active=True)),
+        )
+        proy_stats = Proyecto.objects.aggregate(
+            p_pub=Count('id', filter=Q(estado='publicado')),
+            p_des=Count('id', filter=Q(estado='en_desarrollo')),
+            p_fin=Count('id', filter=Q(estado='finalizado')),
+        )
+        post_pen = Postulacion.objects.filter(estado='pendiente').count()
+        promedio_global = Valoracion.objects.aggregate(avg=Avg('puntuacion'))['avg'] or 0
+        p_ret = Proyecto.objects.filter(
+            estado='en_desarrollo', fecha_limite__lt=timezone.now()
+        ).count()
+        return user_stats, proy_stats, post_pen, promedio_global, p_ret
+
+    user_stats, proy_stats, post_pen, promedio_global, p_ret = cached_or_compute(
+        'admin:global_stats', 60, _global_stats
     )
-    proy_stats = Proyecto.objects.aggregate(
-        p_pub=Count('id', filter=Q(estado='publicado')),
-        p_des=Count('id', filter=Q(estado='en_desarrollo')),
-        p_fin=Count('id', filter=Q(estado='finalizado')),
-    )
-    post_pen = Postulacion.objects.filter(estado='pendiente').count()
-    promedio_global = Valoracion.objects.aggregate(avg=Avg('puntuacion'))['avg'] or 0
-    p_ret = Proyecto.objects.filter(
-        estado='en_desarrollo', fecha_limite__lt=timezone.now()
-    ).count()
 
     total_empresas = user_stats['total_empresas']
     total_devs = user_stats['total_devs']
