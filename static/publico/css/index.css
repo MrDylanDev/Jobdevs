@@ -264,25 +264,36 @@ body {
 .nav-tech {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 40px; height: 60px;
-  background: rgba(0,0,0,0.60); border-bottom: 1px solid var(--border-dim);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 0 40px; height: 70px;
+  background: transparent !important; border: none !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  transition: background 0.3s ease;
+}
+.nav-tech.scrolled {
+  background: rgba(0,0,0,0.80) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
 }
 .nav-brand {
   font-family: var(--font-main); font-weight: 700; font-size: 1.15rem;
   letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px;
   text-decoration: none; color: var(--fg); z-index: 1001;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
 .brand-square { width: 13px; height: 13px; background: var(--accent); }
 .brand-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 2s step-end infinite; margin-left: 4px; }
 
 .nav-links { display: flex; list-style: none; height: 100%; margin: 0; }
-.nav-links li { border-left: 1px solid var(--border-dim); height: 100%; }
+.nav-links li { border: none !important; height: 100%; }
+.nav-tech.scrolled .nav-links li { border-left: 1px solid rgba(255,255,255,0.05) !important; }
 .nav-links a {
   display: flex; align-items: center; height: 100%; padding: 0 22px;
   color: var(--fg-dim); text-decoration: none;
   font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase;
   transition: background 0.2s, color 0.2s; position: relative;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
 .nav-links a::before {
   content: ''; position: absolute; left: 8px; top: 50%;
@@ -293,16 +304,18 @@ body {
 .nav-links a:hover { background: rgba(var(--accent-rgb), 0.05); color: var(--fg); }
 .nav-links a:hover::before { transform: translateY(-50%) scaleY(1); }
 
-.nav-right { display: flex; height: 100%; border-left: 1px solid var(--border-dim); z-index: 1001; }
+.nav-right { display: flex; height: 100%; border: none !important; z-index: 1001; align-items: center; }
+.nav-tech.scrolled .nav-right { border-left: 1px solid rgba(255,255,255,0.05) !important; }
 .nav-cta {
-  height: 100%; display: flex; align-items: center; padding: 0 22px;
+  height: 38px; display: flex; align-items: center; padding: 0 20px;
   font-family: var(--font-mono); font-size: 0.75rem; color: var(--fg);
-  text-decoration: none; cursor: pointer; background: transparent; border: none;
+  text-decoration: none; cursor: pointer; background: rgba(0,0,0,0.40);
+  border: 1px solid rgba(255,255,255,0.20) !important;
   text-transform: uppercase; transition: all 0.25s;
-  border-bottom: 2px solid transparent;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
-.nav-cta.border-right { border-right: 1px solid var(--border-dim); }
-.nav-cta:hover { border-bottom-color: var(--fg); color: var(--fg); }
+.nav-cta.border-right { border-right: 1px solid rgba(255,255,255,0.20) !important; }
+.nav-cta:hover { background: var(--fg); color: var(--bg); border-color: var(--fg) !important; }
 .btn-mobile-menu {
   display: none; background: transparent; border: none; color: var(--accent);
   font-family: var(--font-mono); font-size: 0.75rem; padding: 0 20px; cursor: pointer;
@@ -331,8 +344,8 @@ body {
 .hero-overlay {
   position: absolute; inset: 0; z-index: 2;
   background:
-    linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.30) 65%, rgba(0,0,0,0.75) 100%),
-    linear-gradient(90deg, rgba(0,0,0,0.50) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.35) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.30) 65%, rgba(0,0,0,0.85) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.30) 100%),
     radial-gradient(ellipse at 25% 60%, rgba(var(--accent-rgb), 0.10) 0%, transparent 50%);
 }
 

@@ -160,17 +160,23 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     HERO REEL PARALLAX
+     HERO REEL PARALLAX & NAVBAR SCROLL
      ============================ */
   const reelContainer = document.getElementById('reelContainer');
-  if (reelContainer) {
-    window.addEventListener('scroll', () => {
-      const scrolled = window.scrollY;
-      if (scrolled < window.innerHeight) {
-        reelContainer.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+  const navbarEl = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    if (navbarEl) {
+      if (scrolled > 20) {
+        navbarEl.classList.add('scrolled');
+      } else {
+        navbarEl.classList.remove('scrolled');
       }
-    }, { passive: true });
-  }
+    }
+    if (reelContainer && scrolled < window.innerHeight) {
+      reelContainer.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+    }
+  }, { passive: true });
 
   /* ============================
      STORIES CAROUSEL — drag/snap
