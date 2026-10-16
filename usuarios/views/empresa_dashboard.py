@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q, Count, Prefetch
 from ..models import Usuario, PerfilEmpresa
@@ -105,3 +105,64 @@ def dashboard_empresa(request):
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     }
     return render(request, 'empresa/empresa.html', context)
+
+
+@login_required
+@requiere_usuario_activo
+def detalle_empresa(request, empresa_id):
+    """
+    Vista de perfil público institucional y reputación de la empresa (RF 3.1.2 / SCRUM-56).
+    Permite a desarrolladores y usuarios consultar:
+    - Información corporativa (razón social / nombre, sector, ciudad, descripción, logo).
+    - Estado e insignia de verificación oficial (Empresa Verificada / Negocio Verificado / Sin Verificar).
+    - Métricas de proyectos (publicados disponibles, en desarrollo, finalizados).
+    - Resumen y desglose de reputación por estrellas.
+    - Historial de comentarios previos y valoraciones realizadas por desarrolladores.
+    - Proyectos abiertos actualmente disponibles para postulación.
+    """
+    empresa = get_object_or_404(Usuario, id=empresa_id, rol='empresa')
+    perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa)
+
+    # Reseñas dejadas por desarrolladores a esta empresa
+    resenas = list(
+        Valoracion.objects.filter(empresa=empresa, rol_evaluador='desarrollador')
+        .select_related('desarrollador', 'desarrollador__perfil_desarrollador', 'proyecto')
+        .order_by('-fecha')
+    )
+
+    total_resenas = len(resenas)
+    promedio = (
+        Valoracion.objects.filter(empresa=empresa, rol_evaluador='desarrollador')
+        .aggregate(Avg('puntuacion'))['puntuacion__avg']
+        or 0.0
+    )
+
+    # Desglose de estrellas para barra de distribución
+    conteo_estrellas = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for r in resenas:
+        if r.puntuacion in conteo_estrellas:
+            conteo_estrellas[r.puntuacion] += 1
+
+    # Proyectos publicados abiertos de esta empresa
+    proyectos_abiertos = list(
+        Proyecto.objects.filter(empresa=empresa, estado='publicado')
+        .select_related('categoria')
+        .order_by('-fecha_publicacion')
+    )
+    proyectos_finalizados_count = Proyecto.objects.filter(empresa=empresa, estado='finalizado').count()
+    proyectos_activos_count = Proyecto.objects.filter(empresa=empresa, estado='en_desarrollo').count()
+
+    context = {
+        'empresa': empresa,
+        'perfil': perfil,
+        'resenas': resenas,
+        'total_resenas': total_resenas,
+        'promedio_reputacion': round(float(promedio), 1),
+        'conteo_estrellas': conteo_estrellas,
+        'proyectos_abiertos': proyectos_abiertos,
+        'total_proyectos_abiertos': len(proyectos_abiertos),
+        'proyectos_finalizados_count': proyectos_finalizados_count,
+        'proyectos_activos_count': proyectos_activos_count,
+    }
+    return render(request, 'empresa/detalle_publico.html', context)
+

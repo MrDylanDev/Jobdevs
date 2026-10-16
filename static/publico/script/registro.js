@@ -5,11 +5,17 @@ const rolSelect = document.getElementById('id_rol');
 
     function updateDocFields() {
       const rol = rolSelect.value;
+      const sectorCont = document.getElementById('container_empresa_sector');
+      const ciudadCont = document.getElementById('container_empresa_ciudad');
       if (rol === 'empresa') {
         typeDocContainer.style.display = 'block';
+        if (sectorCont) sectorCont.style.display = 'block';
+        if (ciudadCont) ciudadCont.style.display = 'block';
         labelCedula.innerText = 'NIT O NÚMERO DE IDENTIFICACIÓN';
       } else {
         typeDocContainer.style.display = 'none';
+        if (sectorCont) sectorCont.style.display = 'none';
+        if (ciudadCont) ciudadCont.style.display = 'none';
         if (typeDocSelect) typeDocSelect.value = 'cedula';
         labelCedula.innerText = 'NÚMERO DE IDENTIFICACIÓN';
       }
@@ -32,15 +38,9 @@ const rolSelect = document.getElementById('id_rol');
     window.addEventListener('load', updateDocFields);
 
     document.querySelector('form').addEventListener('submit', function(e) {
-      const username = document.querySelector('input[name="username"]').value;
       const password1 = document.querySelector('input[name="password1"]').value;
       const password2 = document.querySelector('input[name="password2"]').value;
 
-      if (username.trim().includes(' ')) {
-        e.preventDefault();
-        alert('El nombre de usuario no puede contener espacios obligatorios.');
-        return;
-      }
       if (password1 !== password2) {
         e.preventDefault();
         alert('Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar.');

@@ -51,10 +51,28 @@ class RegistroUsuarioForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Programa de formación (ADSO, etc)'}),
         label="Programa de Formación (Opcional)"
     )
+    sector = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Sector (ej: Tecnología, Salud)'}),
+        label="Sector Empresarial (Opcional)"
+    )
+    ciudad = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad (ej: Bogotá, Medellín)'}),
+        label="Ciudad de Operación (Opcional)"
+    )
+    username = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.HiddenInput(),
+        label="Nombre de Usuario (Opcional)"
+    )
     
     class Meta:
         model = Usuario
-        fields = ('username', 'nombre', 'identificacion', 'email', 'fecha_nacimiento', 'rol')
+        fields = ('nombre', 'identificacion', 'email', 'fecha_nacimiento', 'rol')
     
     def clean(self):
         cleaned_data = super().clean()
@@ -63,8 +81,25 @@ class RegistroUsuarioForm(UserCreationForm):
 
         if rol == 'desarrollador' and tipo_doc == 'nit':
             self.add_error('tipo_documento', "Un desarrollador solo puede registrarse con Cédula.")
+
+        email = cleaned_data.get('email')
+        username = (cleaned_data.get('username') or '').strip()
+        if not username and email:
+            cleaned_data['username'] = email.strip().lower()
         
         return cleaned_data
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if email and Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Este correo electrónico ya se encuentra registrado.")
+        return email
+
+    def clean_identificacion(self):
+        identificacion = (self.cleaned_data.get('identificacion') or '').strip()
+        if identificacion and Usuario.objects.filter(identificacion=identificacion).exists():
+            raise forms.ValidationError("Este número de identificación/NIT ya se encuentra registrado.")
+        return identificacion
 
     def clean_fecha_nacimiento(self):
         fecha = self.cleaned_data.get('fecha_nacimiento')
@@ -77,7 +112,10 @@ class RegistroUsuarioForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        username = (self.cleaned_data.get('username') or '').strip()
+        user.email = email
+        user.username = username if username else email
         user.nombre = self.cleaned_data['nombre']
         user.identificacion = self.cleaned_data['identificacion']
         user.rol = self.cleaned_data['rol']
@@ -88,7 +126,16 @@ class RegistroUsuarioForm(UserCreationForm):
             
             # Crear perfil según el rol seleccionado
             if user.rol == 'empresa':
-                PerfilEmpresa.objects.get_or_create(usuario=user)
+                perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=user)
+                sector = (self.cleaned_data.get('sector') or '').strip()
+                ciudad = (self.cleaned_data.get('ciudad') or '').strip()
+                if sector:
+                    perfil.sector = sector
+                if ciudad:
+                    perfil.ciudad = ciudad
+                if not perfil.nombre_empresa:
+                    perfil.nombre_empresa = user.nombre
+                perfil.save()
             elif user.rol == 'desarrollador':
                 perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
                 ficha = (self.cleaned_data.get('ficha') or '').strip()

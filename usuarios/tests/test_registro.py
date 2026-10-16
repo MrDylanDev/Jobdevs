@@ -37,12 +37,14 @@ class TestRegistroView:
         assert user.estado == 'activo'
 
     def test_registro_empresa_success(self, client):
-        """Valid empresa registration creates user and logs in."""
+        """Valid empresa registration creates user and logs in with sector and ciudad (SCRUM-37)."""
         response = client.post(reverse('registro'), {
             'username': 'nuevaempresa',
             'nombre': 'Nueva Empresa',
             'tipo_documento': 'nit',
             'identificacion': '900123456-7',
+            'sector': 'Fintech y Banca Digital',
+            'ciudad': 'Bogotá D.C.',
             'email': 'empresanueva@test.teir',
             'fecha_nacimiento': '1990-06-15',
             'rol': 'empresa',
@@ -52,6 +54,10 @@ class TestRegistroView:
         assert response.status_code == 302
         assert response.url == reverse('dashboard_empresa')
         assert User.objects.filter(username='nuevaempresa').exists()
+        user = User.objects.get(username='nuevaempresa')
+        assert user.perfil_empresa.sector == 'Fintech y Banca Digital'
+        assert user.perfil_empresa.ciudad == 'Bogotá D.C.'
+        assert user.perfil_empresa.nombre_empresa == 'Nueva Empresa'
 
     def test_registro_missing_required_fields(self, client):
         """Missing required fields return form with errors."""
@@ -181,4 +187,74 @@ class TestRegistroView:
         assert user.perfil_desarrollador.estado_verificacion == 'sin_verificar'
         assert user.perfil_desarrollador.ficha == '9999999'
         assert user.perfil_desarrollador.es_verificado_sena is False
+
+    def test_registro_identificacion_duplicada_muestra_error(self, client):
+        """RF 1.1.1 (SCRUM-37): El NIT o número de identificación debe ser único en el sistema."""
+        User.objects.create_user(
+            username='existente',
+            email='existente@test.teir',
+            identificacion='900999888-1',
+            password='TestPassword123!',
+        )
+        response = client.post(reverse('registro'), {
+            'username': 'intento_duplicado',
+            'nombre': 'Empresa Clon',
+            'tipo_documento': 'nit',
+            'identificacion': '900999888-1',
+            'sector': 'Servicios',
+            'ciudad': 'Cali',
+            'email': 'clon@test.teir',
+            'fecha_nacimiento': '1995-01-01',
+            'rol': 'empresa',
+            'password1': 'TestPassword123!',
+            'password2': 'TestPassword123!',
+        })
+        assert response.status_code == 200
+        assert not User.objects.filter(username='intento_duplicado').exists()
+        assert 'form' in response.context
+        assert 'identificacion' in response.context['form'].errors
+        assert 'ya se encuentra registrado' in response.context['form'].errors['identificacion'][0]
+
+    def test_registro_sin_campo_username_autoasigna_email_como_username(self, client):
+        """SCRUM-164: Registro sin campo username autoasigna el correo como username en BD."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Registro Solo Email',
+            'tipo_documento': 'cedula',
+            'identificacion': '1040506070',
+            'email': 'soloemail@test.teir',
+            'fecha_nacimiento': '2001-08-10',
+            'rol': 'desarrollador',
+            'password1': 'EmailPass123!',
+            'password2': 'EmailPass123!',
+        })
+        assert response.status_code == 302
+        assert User.objects.filter(email='soloemail@test.teir').exists()
+        user = User.objects.get(email='soloemail@test.teir')
+        assert user.username == 'soloemail@test.teir'
+        assert user.nombre == 'Registro Solo Email'
+
+    def test_registro_email_duplicado_rechazado(self, client):
+        """SCRUM-164: El correo electrónico debe ser único al registrarse."""
+        User.objects.create_user(
+            username='existente_email@test.teir',
+            email='existente_email@test.teir',
+            identificacion='1040506099',
+            password='TestPassword123!',
+        )
+        response = client.post(reverse('registro'), {
+            'nombre': 'Otro Usuario',
+            'tipo_documento': 'cedula',
+            'identificacion': '1040506088',
+            'email': 'existente_email@test.teir',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPassword123!',
+            'password2': 'TestPassword123!',
+        })
+        assert response.status_code == 200
+        assert 'form' in response.context
+        assert 'email' in response.context['form'].errors
+        assert 'ya se encuentra registrado' in response.context['form'].errors['email'][0]
+
+
 

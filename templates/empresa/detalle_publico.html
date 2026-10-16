@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TEIR | {{ empresa.nombre|default:empresa.username }} - Perfil y Reputación{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 980px;">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'listar_proyectos' %}"><i class="fa fa-arrow-left me-1"></i> Explorar Proyectos</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Perfil de Empresa</li>
+    </ol>
+  </nav>
+
+  <!-- Tarjeta Principal de la Empresa -->
+  <div class="card shadow-sm border-0 mb-4 p-4" style="border-radius: 12px; background: #fff;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div style="width: 72px; height: 72px; border-radius: 12px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; overflow: hidden; flex-shrink: 0;">
+          {% if perfil.logo %}
+            <img src="{{ perfil.logo.url }}" alt="{{ empresa.nombre }}" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+            {{ empresa.nombre|default:empresa.username|slice:":1"|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h1 class="h3 mb-0 fw-bold text-dark">{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}</h1>
+            {% with badge=perfil.badge_info %}
+              <span class="badge {{ badge.css_class }}" data-testid="badge-empresa" style="font-size: 12px; padding: 4px 10px;">
+                <i class="fa {% if perfil.es_verificada %}fa-circle-check{% elif perfil.estado_verificacion == 'rechazada' %}fa-circle-xmark{% else %}fa-triangle-exclamation{% endif %} me-1"></i>
+                {{ badge.label }}
+              </span>
+            {% endwith %}
+          </div>
+          <div class="text-muted mt-1" style="font-size: 14px;">
+            {% if perfil.sector %}<i class="fa fa-briefcase me-1 text-secondary"></i> {{ perfil.sector }} &nbsp;·&nbsp; {% endif %}
+            {% if perfil.ciudad %}<i class="fa fa-location-dot me-1 text-secondary"></i> {{ perfil.ciudad }} &nbsp;·&nbsp; {% endif %}
+            <i class="fa fa-user me-1 text-secondary"></i> Contacto: {{ empresa.nombre|default:empresa.username }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Resumen rápido de estrellas -->
+      <div class="text-end text-sm-start d-flex flex-column align-items-sm-end">
+        <div class="d-flex align-items-center gap-2">
+          <span class="display-6 fw-bold text-dark">{{ promedio_reputacion }}</span>
+          <div>
+            <div class="text-warning fs-5">
+              {% for i in "12345" %}
+                {% if forloop.counter <= promedio_reputacion %}
+                  <i class="fa fa-star"></i>
+                {% else %}
+                  <i class="fa-regular fa-star text-muted"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <small class="text-muted">({{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }})</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if perfil.descripcion %}
+      <hr class="my-3">
+      <div>
+        <h2 class="h6 text-uppercase text-muted fw-bold mb-2" style="letter-spacing: 0.5px;">Acerca de la Empresa</h2>
+        <p class="mb-0 text-secondary" style="line-height: 1.6; font-size: 14.5px;">{{ perfil.descripcion }}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Métricas de Cumplimiento -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
+        <div class="text-muted small fw-semibold text-uppercase">Proyectos Publicados</div>
+        <div class="fs-3 fw-bold text-primary mt-1">{{ total_proyectos_abiertos }}</div>
+        <div class="small text-muted">Con vacantes abiertas</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
+        <div class="text-muted small fw-semibold text-uppercase">Proyectos Finalizados</div>
+        <div class="fs-3 fw-bold text-success mt-1">{{ proyectos_finalizados_count }}</div>
+        <div class="small text-muted">Culminados con éxito</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
+        <div class="text-muted small fw-semibold text-uppercase">Tasa de Aprobación</div>
+        <div class="fs-3 fw-bold text-dark mt-1">
+          {% if total_resenas > 0 %}
+            {{ promedio_reputacion|floatformat:1 }} / 5.0
+          {% else %}
+            Nueva
+          {% endif %}
+        </div>
+        <div class="small text-muted">Historial de cumplimiento</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Columna de Reseñas y Comentarios Previos -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h2 class="h5 fw-bold mb-0 text-dark"><i class="fa fa-comments me-2 text-primary"></i>Opiniones de Desarrolladores</h2>
+          <span class="badge bg-light text-dark border">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
+        </div>
+
+        {% if resenas %}
+          <div class="d-flex flex-column gap-3" data-testid="lista-resenas">
+            {% for r in resenas %}
+              <div class="p-3 border rounded bg-light" style="border-radius: 8px;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+                      {{ r.desarrollador.nombre|default:r.desarrollador.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark" style="font-size: 14px;">{{ r.desarrollador.nombre|default:r.desarrollador.username }}</div>
+                      {% if r.desarrollador.perfil_desarrollador %}
+                        {% with b=r.desarrollador.perfil_desarrollador.badge_info %}
+                          <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 10px;">{{ b.label }}</span>
+                        {% endwith %}
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="text-end">
+                    <div class="text-warning" style="font-size: 13px;">
+                      {% for i in "12345" %}
+                        {% if forloop.counter <= r.puntuacion %}
+                          <i class="fa fa-star"></i>
+                        {% else %}
+                          <i class="fa-regular fa-star text-muted"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <small class="text-muted" style="font-size: 11px;">{{ r.fecha|date:"d M Y" }}</small>
+                  </div>
+                </div>
+
+                {% if r.proyecto %}
+                  <div class="small text-muted mb-2">
+                    <i class="fa fa-folder-closed me-1"></i> Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
+                  </div>
+                {% endif %}
+
+                <p class="mb-0 text-secondary" style="font-size: 13.5px; line-height: 1.5;">
+                  {{ r.comentario|default:"Sin comentario escrito." }}
+                </p>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="fa fa-comment-slash fa-3x mb-3 text-secondary opacity-50"></i>
+            <p class="mb-0">Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Columna de Proyectos Abiertos para Postularse -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
+        <h2 class="h5 fw-bold mb-3 text-dark"><i class="fa fa-briefcase me-2 text-success"></i>Oportunidades Abiertas</h2>
+        
+        {% if proyectos_abiertos %}
+          <div class="d-flex flex-column gap-3">
+            {% for p in proyectos_abiertos %}
+              <div class="p-3 border rounded" style="border-radius: 8px;">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <h3 class="h6 fw-bold mb-0 text-dark">{{ p.titulo }}</h3>
+                  <span class="badge bg-info-subtle text-info border" style="font-size: 11px;">{{ p.get_tipo_solucion_display }}</span>
+                </div>
+                <p class="text-muted small mb-2" style="line-height: 1.4;">{{ p.descripcion|truncatewords:18 }}</p>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                  <small class="text-muted"><i class="fa fa-users me-1"></i> {{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</small>
+                  <a href="{% url 'postularse_a_proyecto' p.id %}" class="btn btn-sm btn-outline-primary" style="font-size: 12px; padding: 4px 10px;">
+                    Postularme <i class="fa fa-chevron-right ms-1"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="fa fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i>
+            <p class="mb-0">No hay convocatorias abiertas en este momento.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
