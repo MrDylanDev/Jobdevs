@@ -21,7 +21,7 @@ def dashboard_empresa(request):
 
     en_desarrollo_qs = Proyecto.objects.filter(
         empresa=request.user, estado__in=['en_desarrollo', 'en_revision']
-    ).annotate(
+    ).select_related('categoria').annotate(
         hitos_completados=Count('entregables', filter=Q(entregables__estado='completado')),
         hitos_totales=Count('entregables'),
     ).prefetch_related(
@@ -29,11 +29,20 @@ def dashboard_empresa(request):
             queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador'),
             to_attr='contratos_activos')
     )
+    # RNF-10: precarga los conteos de postulaciones 'en_negociacion' en una
+    # sola query en lugar de una consulta por proyecto (evita N+1).
+    en_desarrollo_list = list(en_desarrollo_qs)
+    negociacion_counts = dict(
+        Postulacion.objects.filter(
+            proyecto_id__in=[p.id for p in en_desarrollo_list],
+            estado='en_negociacion',
+        ).values('proyecto_id').annotate(c=Count('id')).values_list('proyecto_id', 'c')
+    )
     en_desarrollo_v = []
-    for p in en_desarrollo_qs:
+    for p in en_desarrollo_list:
         dev_ids = [c.desarrollador_id for c in p.contratos_activos]
         dev_nombres = ', '.join([c.desarrollador.nombre for c in p.contratos_activos])
-        cupos_comprometidos = len(dev_ids) + Postulacion.objects.filter(proyecto=p, estado='en_negociacion').count()
+        cupos_comprometidos = len(dev_ids) + negociacion_counts.get(p.id, 0)
         vacantes_disponibles = max(0, p.vacantes - cupos_comprometidos) if p.estado == 'en_desarrollo' else 0
         en_desarrollo_v.append({
             'proyecto_id': p.id,
@@ -51,7 +60,7 @@ def dashboard_empresa(request):
             'vacantes_disponibles': vacantes_disponibles,
         })
     perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=request.user)
-    mis_ofertas = Proyecto.objects.filter(empresa=request.user, estado='publicado').order_by('-fecha_publicacion')
+    mis_ofertas = Proyecto.objects.filter(empresa=request.user, estado='publicado').select_related('categoria').order_by('-fecha_publicacion')
     
     postulaciones_pendientes_obj = Postulacion.objects.filter(
         proyecto__empresa=request.user, 
@@ -75,7 +84,7 @@ def dashboard_empresa(request):
     historial_v = Proyecto.objects.filter(
         empresa=request.user, 
         estado='finalizado'
-    ).annotate(num_desarrolladores=Count('contrataciones')).prefetch_related('contrataciones__desarrollador').order_by('-fecha_publicacion')
+    ).select_related('categoria').annotate(num_desarrolladores=Count('contrataciones')).prefetch_related('contrataciones__desarrollador').order_by('-fecha_publicacion')
 
     context = {
         'total_proyectos': p_pub,

@@ -38,7 +38,7 @@ def dashboard_desarrollador(request):
     mis_favoritos = Favorito.objects.filter(
         desarrollador=request.user, 
         proyecto__estado='publicado'
-    ).exclude(proyecto_id__in=proyectos_con_accion).select_related('proyecto')
+    ).exclude(proyecto_id__in=proyectos_con_accion).select_related('proyecto', 'proyecto__categoria')
 
     valoraciones_queryset = Valoracion.objects.filter(desarrollador=request.user, rol_evaluador='empresa')
     mis_proyectos_finalizados = mis_proyectos_finalizados.prefetch_related(

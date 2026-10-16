@@ -20,7 +20,7 @@ def reporte_proyectos_csv(request):
     writer.writerow(['Título', 'Empresa', 'Tipo', 'Prioridad', 'Estado', 'Desarrolladores', 'Vacantes Totales', 'Fecha Publicación'])
 
     # Traemos proyectos con su empresa y calculamos métricas en una sola ráfaga SQL
-    proyectos = Proyecto.objects.select_related('empresa').annotate(
+    proyectos = Proyecto.objects.select_related('empresa', 'categoria').annotate(
         num_devs=Count('contrataciones', filter=Q(contrataciones__estado='activa'))
     ).order_by('-fecha_publicacion')
 
@@ -75,7 +75,7 @@ def reporte_vista_impresion(request):
         return redirect('inicio')
     
     context = {
-        'proyectos': Proyecto.objects.all().order_by('-fecha_publicacion'),
+        'proyectos': Proyecto.objects.select_related('empresa', 'categoria').order_by('-fecha_publicacion'),
         'aprendices': PerfilDesarrollador.objects.all().order_by('-calificacion_promedio'),
         'total_usuarios': Usuario.objects.count(),
         'total_proyectos': Proyecto.objects.count(),

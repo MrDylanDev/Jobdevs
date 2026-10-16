@@ -2,6 +2,7 @@ from django.db import models
 from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.cache import cache
 
 class CategoriaSolucion(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -18,6 +19,22 @@ class CategoriaSolucion(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        try:
+            cache.delete(f'categoria_nombre:{self.slug}')
+        except Exception:
+            pass
+
+    def delete(self, *args, **kwargs):
+        slug = self.slug
+        result = super().delete(*args, **kwargs)
+        try:
+            cache.delete(f'categoria_nombre:{slug}')
+        except Exception:
+            pass
+        return result
 
 
 class Proyecto(models.Model):
@@ -72,11 +89,29 @@ class Proyecto(models.Model):
 
     def get_tipo_solucion_display(self):
         if self.categoria_id:
-            return self.categoria.nombre
-        categoria = CategoriaSolucion.objects.filter(slug=self.tipo_solucion).first()
+            try:
+                return self.categoria.nombre
+            except Exception:
+                pass
+        slug = self.tipo_solucion
+        key = f'categoria_nombre:{slug}'
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+        categoria = CategoriaSolucion.objects.filter(slug=slug).first()
         if categoria:
-            return categoria.nombre
-        return dict(self.TIPO_SOLUCION).get(self.tipo_solucion, self.tipo_solucion)
+            nombre = categoria.nombre
+            try:
+                cache.set(key, nombre, 300)
+            except Exception:
+                pass
+            return nombre
+        nombre = dict(self.TIPO_SOLUCION).get(slug, slug)
+        try:
+            cache.set(key, nombre, 300)
+        except Exception:
+            pass
+        return nombre
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):
         """Registra una entrada en el historial de estados."""
@@ -94,6 +129,10 @@ class Proyecto(models.Model):
             models.Index(fields=['tipo_solucion'], name='idx_proy_tipo'),
             models.Index(fields=['prioridad'], name='idx_proy_prio'),
             models.Index(fields=['fecha_publicacion'], name='idx_fecha_publicacion'),
+            # RNF-10: consultas de dashboards (empresa + estado) y listados
+            # (estado + orden por fecha_publicacion) eficientes con >10.000 filas
+            models.Index(fields=['empresa', 'estado'], name='idx_proy_empresa_estado'),
+            models.Index(fields=['estado', 'fecha_publicacion'], name='idx_proy_estado_fecha'),
         ]
 
 class Valoracion(models.Model):
@@ -143,6 +182,8 @@ class Entregable(models.Model):
         indexes = [
             models.Index(fields=['estado'], name='idx_entregables_estado'),
             models.Index(fields=['fecha_creacion'], name='idx_entregables_fecha'),
+            # RNF-10: progreso de hitos por proyecto (Count con filtro por estado)
+            models.Index(fields=['proyecto', 'estado'], name='idx_entregables_proy_estado'),
         ]
 
     def __str__(self):
