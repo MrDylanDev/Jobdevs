@@ -2,11 +2,7 @@ from django.db import models
 from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
-
-# RNF-10: cache en proceso slug→nombre de CategoriaSolucion. Las categorías
-# son datos maestros prácticamente estáticos; el cache evita un query por
-# proyecto en listados (N+1). Se invalida al guardar/eliminar una categoría.
-_CATEGORIA_SLUG_CACHE: dict = {}
+from django.core.cache import cache
 
 class CategoriaSolucion(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -26,13 +22,18 @@ class CategoriaSolucion(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalida todo el cache slug→nombre (ediciones de categorías son raras
-        # y el slug anterior quedaría huérfano si solo limpiamos el nuevo)
-        _CATEGORIA_SLUG_CACHE.clear()
+        try:
+            cache.delete(f'categoria_nombre:{self.slug}')
+        except Exception:
+            pass
 
     def delete(self, *args, **kwargs):
+        slug = self.slug
         result = super().delete(*args, **kwargs)
-        _CATEGORIA_SLUG_CACHE.clear()
+        try:
+            cache.delete(f'categoria_nombre:{slug}')
+        except Exception:
+            pass
         return result
 
 
@@ -88,18 +89,28 @@ class Proyecto(models.Model):
 
     def get_tipo_solucion_display(self):
         if self.categoria_id:
-            return self.categoria.nombre
-        # RNF-10: cache en proceso para el fallback por slug — evita un
-        # query por proyecto en listados (N+1 con +10.000 registros).
+            try:
+                return self.categoria.nombre
+            except Exception:
+                pass
         slug = self.tipo_solucion
-        if slug in _CATEGORIA_SLUG_CACHE:
-            return _CATEGORIA_SLUG_CACHE[slug]
+        key = f'categoria_nombre:{slug}'
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
         categoria = CategoriaSolucion.objects.filter(slug=slug).first()
         if categoria:
-            _CATEGORIA_SLUG_CACHE[slug] = categoria.nombre
-            return categoria.nombre
+            nombre = categoria.nombre
+            try:
+                cache.set(key, nombre, 300)
+            except Exception:
+                pass
+            return nombre
         nombre = dict(self.TIPO_SOLUCION).get(slug, slug)
-        _CATEGORIA_SLUG_CACHE[slug] = nombre
+        try:
+            cache.set(key, nombre, 300)
+        except Exception:
+            pass
         return nombre
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):

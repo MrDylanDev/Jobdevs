@@ -85,7 +85,8 @@ class TestPlanDeIndices:
 
     def _plan(self, sql, params=()):
         with connection.cursor() as cur:
-            cur.execute(f'EXPLAIN QUERY PLAN {sql}', params)
+            prefix = 'EXPLAIN' if connection.vendor == 'postgresql' else 'EXPLAIN QUERY PLAN'
+            cur.execute(f'{prefix} {sql}', params)
             return ' | '.join(str(r[-1]) for r in cur.fetchall())
 
     def test_listado_publicados_usa_idx_estado_fecha(self, db_masivo):
@@ -133,12 +134,6 @@ class TestNumeroDeQueries:
         # Con los fixes N+1 (conteo agregado de postulaciones + cache de
         # categorías) el dashboard se mantiene por debajo de 40 queries
         # con 10.001 proyectos y 10 proyectos en desarrollo.
-        total = self._count(auth_client, reverse('dashboard_empresa'))
-        assert total <= 40, f'{total} queries emitidas (máx esperado 40)'
-
-    def test_dashboard_empresa_escala_con_proyectos(self, db_masivo, auth_client):
-        # El número de queries NO debe crecer linealmente con los proyectos:
-        # medimos con 10 en desarrollo y debemos mantener el mismo techo.
         total = self._count(auth_client, reverse('dashboard_empresa'))
         assert total <= 40, f'{total} queries emitidas (máx esperado 40)'
 
