@@ -45,13 +45,19 @@ LICENSE
 # ===== Pruebas y Cobertura =====
 tests/
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 test-results/
 playwright-report/
+.playwright/
 
 # ===== User Media (montado via volumen) =====
 media/
+
+# ===== Editores e IDEs =====
+.vscode/
+.idea/
 
 # ===== OS =====
 .DS_Store

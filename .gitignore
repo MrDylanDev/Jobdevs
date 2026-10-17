@@ -39,6 +39,7 @@ scratch/
 
 # Cache y Tests
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 test-results/
@@ -57,6 +58,12 @@ mysql_data/
 
 # User uploads
 media/
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # AI Tools
 .atl/

@@ -25,17 +25,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13" # TODO: bump a 3.14 cuando esté GA en setup-python@v5 / ubuntu-latest
-          cache: pip
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: uv sync --frozen --extra dev
+
+      - name: Run linter (Ruff)
+        run: uv run ruff check .
 
       - name: Run tests (SQLite, ignore E2E)
-        run: pytest . --ignore=tests/e2e -v
+        run: uv run pytest . --ignore=tests/e2e -v
 
   test-postgres:
     name: Test (PostgreSQL 16)
@@ -68,14 +73,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13" # TODO: bump a 3.14 cuando esté GA en setup-python@v5 / ubuntu-latest
-          cache: pip
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: uv sync --frozen --extra dev
 
       - name: Wait for PostgreSQL service
         run: |
@@ -91,10 +98,10 @@ jobs:
           exit 1
 
       - name: Run migrations
-        run: python manage.py migrate --noinput
+        run: uv run python manage.py migrate --noinput
 
       - name: Run tests with coverage (PostgreSQL, ignore E2E)
-        run: pytest --cov --cov-report=term-missing --cov-report=xml --junitxml=junit.xml --ignore=tests/e2e -v
+        run: uv run pytest --cov --cov-report=term-missing --cov-report=xml --junitxml=junit.xml --ignore=tests/e2e -v
 
       - name: Upload coverage and JUnit artifacts
         uses: actions/upload-artifact@v4

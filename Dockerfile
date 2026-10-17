@@ -6,8 +6,13 @@
 # -------------------- STAGE 1: Builder --------------------
 FROM python:3.14-slim AS builder
 
-# Evitar prompts interactivos
-ENV DEBIAN_FRONTEND=noninteractive
+# Instalar binario oficial de uv desde su imagen
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Evitar prompts interactivos y optimizaciones de uv
+ENV DEBIAN_FRONTEND=noninteractive \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
 # Instalar dependencias del sistema necesarias para compilar paquetes Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,12 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Crear directorio de trabajo
 WORKDIR /build
 
-# Copiar e instalar dependencias Python en un venv aislado
-COPY requirements.txt .
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copiar archivos de dependencias e instalar con uv en /opt/venv
+COPY pyproject.toml uv.lock ./
+RUN uv venv /opt/venv && \
+    uv sync --frozen --no-dev --no-install-project
 
 
 # -------------------- STAGE 2: Production --------------------
