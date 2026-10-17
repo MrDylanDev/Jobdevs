@@ -180,7 +180,7 @@ def revisar_avance(request, avance_id):
                             tipo='alerta',
                             mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido RECHAZADO. Revisa los comentarios."
                         )
-                        messages.warning(request, f"Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+                        messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
                 
                 return redirect('ver_avances', proyecto_id=avance.proyecto.id)
             except Exception as e:
