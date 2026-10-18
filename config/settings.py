@@ -101,6 +101,18 @@ DATABASES = {
     }
 }
 
+# ---------------------------------------------------------------------------
+# RNF-14 (Disponibilidad): respaldos y recuperación de la base de datos
+# ---------------------------------------------------------------------------
+# Directorio donde se escriben los respaldos (fuera de control de versiones).
+BACKUP_DIR = Path(os.environ.get('DJANGO_BACKUP_DIR', BASE_DIR / 'backups'))
+# Política de retención: capa diaria (se conservan todos), capa semanal
+# (el más reciente de cada semana) y purga de lo más antiguo que el total.
+BACKUP_RETENTION_DAILY_DAYS = int(os.environ.get('BACKUP_RETENTION_DAILY_DAYS', '7'))
+BACKUP_RETENTION_TOTAL_DAYS = int(os.environ.get('BACKUP_RETENTION_TOTAL_DAYS', '30'))
+# Objetivo del RNF-14: reconstruir el esquema en un servidor nuevo en < 5 minutos.
+DB_RECOVERY_TARGET_SECONDS = int(os.environ.get('DB_RECOVERY_TARGET_SECONDS', '300'))
+
 AUTHENTICATION_BACKENDS = [
     'usuarios.backends.UsuarioAuthBackend',
 ]

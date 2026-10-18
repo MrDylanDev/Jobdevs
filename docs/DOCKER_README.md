@@ -122,15 +122,43 @@ docker compose exec db psql -U teir_user -d teir_db
 ### Base de Datos
 
 ```bash
-# Crear backup de la base de datos
-docker compose exec db pg_dump -U teir_user teir_db > backup_$(date +%Y%m%d).sql
-
-# Restaurar backup
-docker compose exec -T db psql -U teir_user -d teir_db < backup.sql
+# Acceder a la consola de PostgreSQL
+docker compose exec db psql -U teir_user -d teir_db
 
 # Reiniciar solo la base de datos
 docker compose restart db
 ```
+
+### Respaldos automáticos (RNF-14)
+
+El servicio `backup` respalda la base de datos a diario (03:00 UTC por defecto),
+verifica la integridad del archivo, aplica la política de retención y registra el
+resultado en la tabla `copias_seguridad`. Los archivos quedan en el volumen
+`teir_backup_files`.
+
+```bash
+# Ver el estado del respaldo automático
+docker compose logs -f backup
+
+# Ejecutar un respaldo ahora (sin esperar la hora programada)
+docker compose exec backup python manage.py backup_db
+
+# Listar los respaldos disponibles
+docker compose exec backup ls -lh /app/backups
+
+# Verificar que un respaldo se pueda restaurar en un servidor nuevo
+docker compose exec backup python manage.py verify_db_recovery \
+  --desde-dump /app/backups/<archivo>.dump
+
+# Verificar que el esquema se reconstruya desde cero en menos de 5 minutos
+docker compose exec backup python manage.py verify_db_recovery
+```
+
+Configuración por variables de entorno en `.env`: `BACKUP_HOUR`, `BACKUP_MINUTE`,
+`BACKUP_ON_START`, `BACKUP_RETENTION_DAILY_DAYS`, `BACKUP_RETENTION_TOTAL_DAYS`.
+
+Procedimiento completo y evidencia de las mediciones:
+[`docs/RNF-14_RESPALDO_Y_RECUPERACION.md`](RNF-14_RESPALDO_Y_RECUPERACION.md).
 
 ---
 

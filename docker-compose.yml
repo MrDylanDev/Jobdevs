@@ -54,6 +54,43 @@ services:
     networks:
       - teir_network
 
+  # -------------------- Respaldos automáticos (RNF-14) --------------------
+  # Contenedor de un solo propósito: respalda la base de datos a diario en el
+  # volumen `backup_files`, verifica la integridad del archivo, aplica la
+  # política de retención y registra el resultado en la tabla copias_seguridad.
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: teir_backup
+    restart: unless-stopped
+    # Se invoca con bash para no depender del permiso de ejecución del archivo.
+    entrypoint: ["bash", "/app/docker/backup/scheduler.sh"]
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-teir_user}
+      - DB_PASSWORD=${DB_PASSWORD:-teir_password}
+      - DB_NAME=${DB_NAME:-teir_db}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - DJANGO_BACKUP_DIR=/app/backups
+      - BACKUP_HOUR=${BACKUP_HOUR:-3}
+      - BACKUP_MINUTE=${BACKUP_MINUTE:-0}
+      - BACKUP_ON_START=${BACKUP_ON_START:-0}
+      - BACKUP_RETENTION_DAILY_DAYS=${BACKUP_RETENTION_DAILY_DAYS:-7}
+      - BACKUP_RETENTION_TOTAL_DAYS=${BACKUP_RETENTION_TOTAL_DAYS:-30}
+      - DB_RECOVERY_TARGET_SECONDS=${DB_RECOVERY_TARGET_SECONDS:-300}
+    volumes:
+      - backup_files:/app/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - teir_network
+
   # -------------------- Nginx Reverse Proxy --------------------
   nginx:
     image: nginx:alpine
@@ -86,6 +123,9 @@ volumes:
   media_files:
     driver: local
     name: teir_media_files
+  backup_files:
+    driver: local
+    name: teir_backup_files
 
 # -------------------- Red Interna --------------------
 networks:

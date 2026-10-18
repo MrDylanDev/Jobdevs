@@ -268,9 +268,10 @@ El sistema verificará la existencia de triggers al iniciar mediante `usuarios/c
 
 ```yaml
 services:
-  db:      # MySQL 8.0, puerto 3307:3306
+  db:      # PostgreSQL 16, puerto 5432 (interno)
   web:     # Django + Gunicorn, puerto 8000 (interno)
   nginx:   # Nginx Alpine, puerto 80
+  backup:  # Respaldo diario de la base de datos (RNF-14), sin puertos publicados
 ```
 
 ### 5.3 Inicio rápido
