@@ -57,6 +57,14 @@ def cancelar_contratacion(request, contratacion_id):
                 proy.save()
                 proy.registrar_cambio_estado('publicado', request.user, estado_anterior=estado_anterior)
 
+            # Notificar al desarrollador sobre la cancelación del contrato
+            Notificacion.objects.create(
+                usuario=contrato.desarrollador,
+                proyecto=contrato.proyecto,
+                tipo='alerta',
+                mensaje=f"Tu contratación para el proyecto '{contrato.proyecto.titulo}' ha sido cancelada por la empresa.",
+            )
+
             LogAuditoria.objects.create(
                 usuario=request.user,
                 accion=f"Canceló contratación en {contrato.proyecto.titulo}",
