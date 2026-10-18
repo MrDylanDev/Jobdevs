@@ -495,6 +495,18 @@ def editar_proyecto(request, proyecto_id):
             messages.error(request, "Las vacantes deben ser un número mayor o igual a 1.")
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
 
+        # Hallazgo 9: Validar que fecha_limite no sea en el pasado
+        fecha_limite = request.POST.get('fecha_limite') or None
+        if fecha_limite:
+            try:
+                fecha_limite_dt = datetime.strptime(fecha_limite, '%Y-%m-%d').date()
+                if fecha_limite_dt < timezone.now().date():
+                    messages.error(request, "La fecha límite no puede ser anterior a la fecha actual.")
+                    return redirect('editar_proyecto', proyecto_id=proyecto.id)
+            except ValueError:
+                messages.error(request, "Formato de fecha límite inválido.")
+                return redirect('editar_proyecto', proyecto_id=proyecto.id)
+
         try:
             proyecto.titulo = request.POST.get('titulo')
             proyecto.descripcion = request.POST.get('descripcion')
@@ -507,11 +519,16 @@ def editar_proyecto(request, proyecto_id):
             proyecto.tipo_solucion = categoria.slug if categoria else tipo_solucion
             proyecto.prioridad = request.POST.get('prioridad', 'media')
             proyecto.vacantes = vacantes
-            proyecto.fecha_limite = request.POST.get('fecha_limite') or None
+            proyecto.fecha_limite = fecha_limite
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia
+            proyecto.full_clean()
             proyecto.save()
 
             messages.success(request, f"Proyecto '{proyecto.titulo}' actualizado exitosamente.")
             return redirect('dashboard_empresa')
+        except ValidationError as ve:
+            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
+            return redirect('editar_proyecto', proyecto_id=proyecto.id)
         except Exception as e:
             messages.error(request, f"Error: {e}")
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
