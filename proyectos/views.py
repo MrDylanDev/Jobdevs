@@ -124,8 +124,10 @@ def crear_proyecto(request):
                 fecha_limite=fecha_limite,
                 estado='publicado'
             )
-            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia
-            proyecto.full_clean()
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
+            # tipo_solucion se excluye porque admite slugs dinamicos de CategoriaSolucion
+            # (ya validado contra TIPO_SOLUCION por la vista cuando no hay categoria).
+            proyecto.full_clean(exclude=['tipo_solucion'])
             proyecto.save()
             proyecto.registrar_cambio_estado('publicado', request.user, estado_anterior=None)
             messages.success(request, f"¡Proyecto '{proyecto.titulo}' publicado exitosamente!")
@@ -520,8 +522,10 @@ def editar_proyecto(request, proyecto_id):
             proyecto.prioridad = request.POST.get('prioridad', 'media')
             proyecto.vacantes = vacantes
             proyecto.fecha_limite = fecha_limite
-            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia
-            proyecto.full_clean()
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
+            # tipo_solucion se excluye porque admite slugs dinamicos de CategoriaSolucion
+            # (ya validado contra TIPO_SOLUCION por la vista cuando no hay categoria).
+            proyecto.full_clean(exclude=['tipo_solucion'])
             proyecto.save()
 
             messages.success(request, f"Proyecto '{proyecto.titulo}' actualizado exitosamente.")
