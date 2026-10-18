@@ -15,12 +15,12 @@ class TestMensajeModel:
     def test_crear_mensaje(self, db):
         """Mensaje links sender and receiver."""
         dev1 = User.objects.create_user(
-            username='msg1', email='msg1@test.teir',
+            username='msg1', email='msg1@test.jobdevs',
             nombre='Msg1', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
         dev2 = User.objects.create_user(
-            username='msg2', email='msg2@test.teir',
+            username='msg2', email='msg2@test.jobdevs',
             nombre='Msg2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -36,12 +36,12 @@ class TestMensajeModel:
     def test_mensaje_str(self, db):
         """__str__ includes sender and receiver."""
         dev1 = User.objects.create_user(
-            username='m1', email='m1@test.teir',
+            username='m1', email='m1@test.jobdevs',
             nombre='M1', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
         dev2 = User.objects.create_user(
-            username='m2', email='m2@test.teir',
+            username='m2', email='m2@test.jobdevs',
             nombre='M2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -55,7 +55,7 @@ class TestMensajeModel:
     def test_mensaje_sin_receptor(self, db):
         """Mensaje without receptor shows GRUPO."""
         dev1 = User.objects.create_user(
-            username='m3', email='m3@test.teir',
+            username='m3', email='m3@test.jobdevs',
             nombre='M3', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -66,8 +66,8 @@ class TestMensajeModel:
 
     def test_eliminacion_usuario_remitente_preserva_mensaje_set_null(self, db):
         """Auditoría SCRUM-160: Si se elimina el remitente, el mensaje no se destruye en cascada."""
-        u1 = User.objects.create_user(username='u_rem', email='u_rem@test.teir', password='Password123!')
-        u2 = User.objects.create_user(username='u_rec', email='u_rec@test.teir', password='Password123!')
+        u1 = User.objects.create_user(username='u_rem', email='u_rem@test.jobdevs', password='Password123!')
+        u2 = User.objects.create_user(username='u_rec', email='u_rec@test.jobdevs', password='Password123!')
         msg = Mensaje.objects.create(remitente=u1, receptor=u2, contenido='Mensaje persistente')
         msg_id = msg.id
 
@@ -79,8 +79,8 @@ class TestMensajeModel:
 
     def test_eliminacion_usuario_receptor_preserva_mensaje_set_null(self, db):
         """Auditoría SCRUM-160: Si se elimina el receptor, el remitente conserva su historial enviado."""
-        u1 = User.objects.create_user(username='u_rem2', email='u_rem2@test.teir', password='Password123!')
-        u2 = User.objects.create_user(username='u_rec2', email='u_rec2@test.teir', password='Password123!')
+        u1 = User.objects.create_user(username='u_rem2', email='u_rem2@test.jobdevs', password='Password123!')
+        u2 = User.objects.create_user(username='u_rec2', email='u_rec2@test.jobdevs', password='Password123!')
         msg = Mensaje.objects.create(remitente=u1, receptor=u2, contenido='Mensaje enviado persistente')
 
         u2.delete()
@@ -145,22 +145,22 @@ class TestAutorizacionMensajeria:
     @pytest.fixture
     def escenario(self, db):
         empresa = User.objects.create_user(
-            username='empresa_chat', email='emp_chat@test.teir',
+            username='empresa_chat', email='emp_chat@test.jobdevs',
             nombre='Empresa Chat', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='dev_chat', email='dev_chat@test.teir',
+            username='dev_chat', email='dev_chat@test.jobdevs',
             nombre='Dev Chat', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
         dev_ajeno = User.objects.create_user(
-            username='dev_ajeno', email='dev_ajeno@test.teir',
+            username='dev_ajeno', email='dev_ajeno@test.jobdevs',
             nombre='Dev Ajeno', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
         admin = User.objects.create_user(
-            username='admin_chat', email='admin_chat@test.teir',
+            username='admin_chat', email='admin_chat@test.jobdevs',
             nombre='Admin Chat', rol='administrador', estado='activo',
             password='TestPass123!',
         )

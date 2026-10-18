@@ -46,7 +46,7 @@ def ensure_admin_exists(db):
     if not User.objects.filter(rol='administrador').exists():
         User.objects.create_user(
             username='system_admin',
-            email='system@teir.edu.co',
+            email='system@jobdevs.edu.co',
             nombre='System Admin',
             rol='administrador',
             estado='activo',
@@ -65,7 +65,7 @@ def admin_user(db):
     """Create an active admin user."""
     user = User.objects.create_user(
         username='admin_test',
-        email='admin@test.teir',
+        email='admin@test.jobdevs',
         nombre='Admin Test',
         rol='administrador',
         estado='activo',
@@ -79,7 +79,7 @@ def empresa_user(db):
     """Create an active empresa user."""
     user = User.objects.create_user(
         username='empresa_test',
-        email='empresa@test.teir',
+        email='empresa@test.jobdevs',
         nombre='Empresa Test',
         rol='empresa',
         estado='activo',
@@ -93,7 +93,7 @@ def desarrollador_user(db):
     """Create an active desarrollador user."""
     user = User.objects.create_user(
         username='dev_test',
-        email='dev@test.teir',
+        email='dev@test.jobdevs',
         nombre='Dev Test',
         rol='desarrollador',
         estado='activo',
@@ -132,7 +132,7 @@ def suspended_user(db):
     """Create a suspended user."""
     return User.objects.create_user(
         username='suspended_test',
-        email='suspended@test.teir',
+        email='suspended@test.jobdevs',
         nombre='Suspended Test',
         rol='desarrollador',
         estado='suspendido',

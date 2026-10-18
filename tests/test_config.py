@@ -28,9 +28,9 @@ def test_csrf_trusted_origins_not_hardcoding_zero_ip_and_loads_from_env(monkeypa
     importlib.reload(config.settings)
     assert not any('0.0.0.0' in origin for origin in config.settings.CSRF_TRUSTED_ORIGINS)
 
-    monkeypatch.setenv('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://teir.sena.edu.co, https://app.teir.co ')
+    monkeypatch.setenv('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://jobdevs.sena.edu.co, https://app.jobdevs.co ')
     importlib.reload(config.settings)
-    assert config.settings.CSRF_TRUSTED_ORIGINS == ['https://teir.sena.edu.co', 'https://app.teir.co']
+    assert config.settings.CSRF_TRUSTED_ORIGINS == ['https://jobdevs.sena.edu.co', 'https://app.jobdevs.co']
 
 
 def test_settings_test_fails_loudly_outside_pytest():

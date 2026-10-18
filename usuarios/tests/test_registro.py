@@ -23,7 +23,7 @@ class TestRegistroView:
             'nombre': 'Nuevo Dev',
             'tipo_documento': 'cedula',
             'identificacion': '1234567890',
-            'email': 'nuevodev@test.teir',
+            'email': 'nuevodev@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
@@ -45,7 +45,7 @@ class TestRegistroView:
             'identificacion': '900123456-7',
             'sector': 'Fintech y Banca Digital',
             'ciudad': 'Bogotá D.C.',
-            'email': 'empresanueva@test.teir',
+            'email': 'empresanueva@test.jobdevs',
             'fecha_nacimiento': '1990-06-15',
             'rol': 'empresa',
             'password1': 'TestPass123!',
@@ -77,7 +77,7 @@ class TestRegistroView:
             'nombre': 'Fallido',
             'tipo_documento': 'cedula',
             'identificacion': '1111111111',
-            'email': 'fallido@test.teir',
+            'email': 'fallido@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
@@ -92,7 +92,7 @@ class TestRegistroView:
             'nombre': 'Menor Edad',
             'tipo_documento': 'cedula',
             'identificacion': '2222222222',
-            'email': 'menor@test.teir',
+            'email': 'menor@test.jobdevs',
             'fecha_nacimiento': str(date.today().year - 16) + '-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
@@ -108,7 +108,7 @@ class TestRegistroView:
             'nombre': 'Dev con NIT',
             'tipo_documento': 'nit',
             'identificacion': '800123456-1',
-            'email': 'devnit@test.teir',
+            'email': 'devnit@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
@@ -120,7 +120,7 @@ class TestRegistroView:
     def test_registro_desarrollador_con_ficha_en_lista_blanca_se_verifica_automaticamente(self, client):
         admin = User.objects.create_user(
             username='admin_test',
-            email='admin@test.teir',
+            email='admin@test.jobdevs',
             password='TestPass123!',
             rol='administrador',
             identificacion='1111111111',
@@ -137,7 +137,7 @@ class TestRegistroView:
             'nombre': 'Dev Verificado',
             'tipo_documento': 'cedula',
             'identificacion': '1234500001',
-            'email': 'devvalida@test.teir',
+            'email': 'devvalida@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'ficha': '2670123',
@@ -157,7 +157,7 @@ class TestRegistroView:
             'nombre': 'Dev Sin Ficha',
             'tipo_documento': 'cedula',
             'identificacion': '1234500002',
-            'email': 'devsinficha@test.teir',
+            'email': 'devsinficha@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
@@ -174,7 +174,7 @@ class TestRegistroView:
             'nombre': 'Dev Ficha No',
             'tipo_documento': 'cedula',
             'identificacion': '1234500003',
-            'email': 'devfichano@test.teir',
+            'email': 'devfichano@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'ficha': '9999999',
@@ -192,7 +192,7 @@ class TestRegistroView:
         """RF 1.1.1 (SCRUM-37): El NIT o número de identificación debe ser único en el sistema."""
         User.objects.create_user(
             username='existente',
-            email='existente@test.teir',
+            email='existente@test.jobdevs',
             identificacion='900999888-1',
             password='TestPassword123!',
         )
@@ -203,7 +203,7 @@ class TestRegistroView:
             'identificacion': '900999888-1',
             'sector': 'Servicios',
             'ciudad': 'Cali',
-            'email': 'clon@test.teir',
+            'email': 'clon@test.jobdevs',
             'fecha_nacimiento': '1995-01-01',
             'rol': 'empresa',
             'password1': 'TestPassword123!',
@@ -221,23 +221,23 @@ class TestRegistroView:
             'nombre': 'Registro Solo Email',
             'tipo_documento': 'cedula',
             'identificacion': '1040506070',
-            'email': 'soloemail@test.teir',
+            'email': 'soloemail@test.jobdevs',
             'fecha_nacimiento': '2001-08-10',
             'rol': 'desarrollador',
             'password1': 'EmailPass123!',
             'password2': 'EmailPass123!',
         })
         assert response.status_code == 302
-        assert User.objects.filter(email='soloemail@test.teir').exists()
-        user = User.objects.get(email='soloemail@test.teir')
-        assert user.username == 'soloemail@test.teir'
+        assert User.objects.filter(email='soloemail@test.jobdevs').exists()
+        user = User.objects.get(email='soloemail@test.jobdevs')
+        assert user.username == 'soloemail@test.jobdevs'
         assert user.nombre == 'Registro Solo Email'
 
     def test_registro_email_duplicado_rechazado(self, client):
         """SCRUM-164: El correo electrónico debe ser único al registrarse."""
         User.objects.create_user(
-            username='existente_email@test.teir',
-            email='existente_email@test.teir',
+            username='existente_email@test.jobdevs',
+            email='existente_email@test.jobdevs',
             identificacion='1040506099',
             password='TestPassword123!',
         )
@@ -245,7 +245,7 @@ class TestRegistroView:
             'nombre': 'Otro Usuario',
             'tipo_documento': 'cedula',
             'identificacion': '1040506088',
-            'email': 'existente_email@test.teir',
+            'email': 'existente_email@test.jobdevs',
             'fecha_nacimiento': '2000-01-01',
             'rol': 'desarrollador',
             'password1': 'TestPassword123!',

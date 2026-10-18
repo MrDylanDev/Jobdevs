@@ -13,12 +13,12 @@ class TestPostulacionModel:
     def test_crear_postulacion(self, db):
         """Postulacion links dev to proyecto."""
         empresa = User.objects.create_user(
-            username='pe', email='pe@test.teir',
+            username='pe', email='pe@test.jobdevs',
             nombre='PE', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='pd', email='pd@test.teir',
+            username='pd', email='pd@test.jobdevs',
             nombre='PD', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -37,12 +37,12 @@ class TestPostulacionModel:
     def test_unique_postulacion(self, db):
         """Same dev can't apply twice to the same proyecto."""
         empresa = User.objects.create_user(
-            username='pe2', email='pe2@test.teir',
+            username='pe2', email='pe2@test.jobdevs',
             nombre='PE2', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='pd2', email='pd2@test.teir',
+            username='pd2', email='pd2@test.jobdevs',
             nombre='PD2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -57,12 +57,12 @@ class TestPostulacionModel:
     def test_postulacion_str(self, db):
         """__str__ shows dev and proyecto."""
         empresa = User.objects.create_user(
-            username='pe3', email='pe3@test.teir',
+            username='pe3', email='pe3@test.jobdevs',
             nombre='PE3', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='pd3', email='pd3@test.teir',
+            username='pd3', email='pd3@test.jobdevs',
             nombre='PD3', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -221,7 +221,7 @@ class TestAceptarPostulacion:
             proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
         )
         dev2 = User.objects.create_user(
-            username='dev2_cupos', email='dev2_cupos@test.teir',
+            username='dev2_cupos', email='dev2_cupos@test.jobdevs',
             nombre='Dev 2 Cupos', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -291,7 +291,7 @@ class TestPostulacionEnNegociacion:
             tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=vacantes,
         )
         dev_activo = User.objects.create_user(
-            username='dev_activo_neg', email='dev_activo_neg@test.teir',
+            username='dev_activo_neg', email='dev_activo_neg@test.jobdevs',
             nombre='Dev Activo', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -337,7 +337,7 @@ class TestPostulacionEnNegociacion:
             proyecto=proyecto, desarrollador=desarrollador_user, estado='en_negociacion',
         )
         dev2 = User.objects.create_user(
-            username='dev2_neg', email='dev2_neg@test.teir',
+            username='dev2_neg', email='dev2_neg@test.jobdevs',
             nombre='Dev 2 Neg', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -360,7 +360,7 @@ class TestVerPostulacionesEmpresaFiltros:
     def _crear_candidato(proyecto, username, programa, ficha, habilidades):
         from usuarios.models import PerfilDesarrollador
         dev = User.objects.create_user(
-            username=username, email=f'{username}@test.teir',
+            username=username, email=f'{username}@test.jobdevs',
             nombre=username.upper(), rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -432,7 +432,7 @@ class TestVerPostulacionesEmpresaFiltros:
 
     def test_otra_empresa_no_puede_ver_postulaciones(self, client, escenario):
         User.objects.create_user(
-            username='otra_empresa', email='otra@test.teir',
+            username='otra_empresa', email='otra@test.jobdevs',
             nombre='Otra', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -495,7 +495,7 @@ class TestIniciarNegociacion:
     def test_otra_empresa_recibe_404(self, client, escenario):
         _, post = escenario
         User.objects.create_user(
-            username='otra_emp', email='otra_emp@test.teir', nombre='Otra',
+            username='otra_emp', email='otra_emp@test.jobdevs', nombre='Otra',
             rol='empresa', estado='activo', password='TestPass123!',
         )
         client.login(username='otra_emp', password='TestPass123!')
@@ -518,7 +518,7 @@ class TestIniciarNegociacion:
         from contrataciones.models import ContratoDigital
         proyecto, post = escenario
         dev2 = User.objects.create_user(
-            username='dev_neg2', email='dev_neg2@test.teir', nombre='Dev N2',
+            username='dev_neg2', email='dev_neg2@test.jobdevs', nombre='Dev N2',
             rol='desarrollador', estado='activo', password='TestPass123!',
         )
         Postulacion.objects.create(proyecto=proyecto, desarrollador=dev2, estado='en_negociacion')

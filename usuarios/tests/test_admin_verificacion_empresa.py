@@ -186,7 +186,7 @@ def test_dashboard_limita_a_50_y_cuenta_total(admin_client, perfil):
     from usuarios.models import Usuario
     for i in range(55):
         u = Usuario.objects.create_user(
-            username=f'emp_extra_{i}', email=f'extra{i}@test.teir', nombre=f'Extra {i}',
+            username=f'emp_extra_{i}', email=f'extra{i}@test.jobdevs', nombre=f'Extra {i}',
             rol='empresa', estado='activo', password='x',
         )
         PerfilEmpresa.objects.create(

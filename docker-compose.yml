@@ -1,5 +1,5 @@
 # ============================================================
-# TEIR - Docker Compose
+# JobDevs - Docker Compose
 # Orquestación: PostgreSQL 16 + Django/Gunicorn + Nginx
 # ============================================================
 

@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="static/IMG/TEIR.png" alt="TEIR" width="800">
+  <img src="static/IMG/JobDevs.png" alt="JobDevs" width="800">
 </p>
 
 **Plataforma de vinculación entre empresas y talento SENA.**
 
-[![CI](https://github.com/MrDylanDev/TEIR/actions/workflows/ci.yml/badge.svg)](https://github.com/MrDylanDev/TEIR/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)](https://github.com/MrDylanDev/TEIR)
+[![CI](https://github.com/MrDylanDev/JobDevs/actions/workflows/ci.yml/badge.svg)](https://github.com/MrDylanDev/JobDevs/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)](https://github.com/MrDylanDev/JobDevs)
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://python.org)
 [![Django](https://img.shields.io/badge/django-5.0-092e20)](https://djangoproject.com)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-16-blue)](https://postgresql.org)
@@ -13,9 +13,9 @@
 
 ---
 
-## ¿Qué es TEIR?
+## ¿Qué es JobDevs?
 
-TEIR conecta empresas con aprendices y egresados del SENA para desarrollar proyectos reales. Las empresas publican requerimientos, los desarrolladores se postulan, y la plataforma gestiona todo el ciclo: contratación, hitos, avances, revisión, finalización y calificación mutua.
+JobDevs conecta empresas con aprendices y egresados del SENA para desarrollar proyectos reales. Las empresas publican requerimientos, los desarrolladores se postulan, y la plataforma gestiona todo el ciclo: contratación, hitos, avances, revisión, finalización y calificación mutua.
 
 |---
 
@@ -94,8 +94,8 @@ Empresa publica proyecto → Dev se postula → Empresa acepta
 ## Inicio rápido (Docker)
 
 ```bash
-git clone https://github.com/MrDylanDev/TEIR.git
-cd TEIR
+git clone https://github.com/MrDylanDev/JobDevs.git
+cd JobDevs
 
 # Configurar variables de entorno (obligatorio)
 cp docker/.env.docker.example .env
@@ -153,10 +153,31 @@ python manage.py runserver
 
 ---
 
+## Tailwind CSS
+
+El proyecto usa [django-tailwind](https://github.com/timonweb/django-tailwind) en modo **standalone** (binario de Tailwind CSS, sin Node.js) con la app `theme`.
+
+```bash
+# Compilar el CSS (obligatorio antes de collectstatic / deploy)
+python manage.py tailwind build
+
+# Desarrollo: watcher de Tailwind (en otra terminal, junto a runserver)
+python manage.py tailwind start
+
+# Desarrollo: Django + watcher de Tailwind juntos (requiere honcho)
+python manage.py tailwind dev
+```
+
+- Fuente de estilos: `theme/static_src/src/styles.css` → compilado: `theme/static/css/dist/styles.css` (versionado).
+- En plantillas: `{% load tailwind_tags %}` + `{% tailwind_css %}` (ya incluido en `templates/base.html`).
+- Nunca editar el CSS compilado: se sobrescribe en cada `tailwind build`.
+
+---
+
 ## Estructura del proyecto
 
 ```
-TEIR/
+JobDevs/
 ├── avances/           # Registro y revisión de avances
 ├── config/            # Configuración de Django (settings, urls, wsgi)
 ├── contrataciones/    # Gestión de contratos
@@ -178,6 +199,7 @@ TEIR/
 ├── proyectos/         # Proyectos, hitos, equipos, valoraciones
 ├── static/            # CSS, JS, imágenes
 ├── templates/         # Templates Django por módulo
+├── theme/             # App de Tailwind CSS (fuentes en static_src/, CSS compilado en static/css/dist/)
 ├── tests/             # Tests E2E con Playwright
 ├── usuarios/          # Autenticación, perfiles, dashboard admin
 ├── docker-compose.yml

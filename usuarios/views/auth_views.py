@@ -108,7 +108,7 @@ def recuperar_view(request):
             mensaje = f"""
 Hola {usuario.nombre},
 
-Recibimos una solicitud para restablecer tu contraseña en TEIR.
+Recibimos una solicitud para restablecer tu contraseña en JobDevs.
 Para elegir una nueva contraseña, haz clic en el siguiente enlace:
 
 {enlace}
@@ -116,10 +116,10 @@ Para elegir una nueva contraseña, haz clic en el siguiente enlace:
 Este enlace expirará en 1 hora. Si no solicitaste este cambio, puedes ignorar este correo.
 
 Saludos,
-El equipo de TEIR
+El equipo de JobDevs
 """
             send_mail(
-                'Restablecer tu contraseña en TEIR',
+                'Restablecer tu contraseña en JobDevs',
                 mensaje,
                 settings.DEFAULT_FROM_EMAIL,
                 [email],

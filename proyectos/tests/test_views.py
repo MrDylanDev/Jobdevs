@@ -178,7 +178,7 @@ class TestEditarProyecto:
     def test_otra_empresa_no_puede(self, db, empresa_user):
         """Another empresa cannot edit (404 via get_object_or_404)."""
         otra = User.objects.create_user(
-            username='otra_edit', email='otra2@test.teir',
+            username='otra_edit', email='otra2@test.jobdevs',
             nombre='Otra', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -216,7 +216,7 @@ class TestEditarProyecto:
         proyecto = self._proyecto_publicado(empresa_user)
         from contrataciones.models import Contratacion
         dev = User.objects.create_user(
-            username='dev_contratado', email='devc@test.teir',
+            username='dev_contratado', email='devc@test.jobdevs',
             nombre='Dev', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -266,7 +266,7 @@ class TestFinalizarProyecto:
     def test_otra_empresa_no_puede(self, db, empresa_user):
         """Empresa cannot finalize another empresa's project."""
         otra = User.objects.create_user(
-            username='otra_emp', email='otra@test.teir',
+            username='otra_emp', email='otra@test.jobdevs',
             nombre='Otra', rol='empresa', estado='activo',
             password='TestPass123!',
         )

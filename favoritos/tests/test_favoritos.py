@@ -13,12 +13,12 @@ class TestFavoritoModel:
     def test_crear_favorito(self, db):
         """Favorito links dev to proyecto."""
         empresa = User.objects.create_user(
-            username='fe', email='fe@test.teir',
+            username='fe', email='fe@test.jobdevs',
             nombre='FE', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='fd', email='fd@test.teir',
+            username='fd', email='fd@test.jobdevs',
             nombre='FD', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -35,12 +35,12 @@ class TestFavoritoModel:
     def test_favorito_unique(self, db):
         """Same dev can't favorite the same proyecto twice."""
         empresa = User.objects.create_user(
-            username='fe2', email='fe2@test.teir',
+            username='fe2', email='fe2@test.jobdevs',
             nombre='FE2', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='fd2', email='fd2@test.teir',
+            username='fd2', email='fd2@test.jobdevs',
             nombre='FD2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -56,12 +56,12 @@ class TestFavoritoModel:
     def test_favorito_str(self, db):
         """__str__ shows dev and proyecto."""
         empresa = User.objects.create_user(
-            username='fe3', email='fe3@test.teir',
+            username='fe3', email='fe3@test.jobdevs',
             nombre='FE3', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='fd3', email='fd3@test.teir',
+            username='fd3', email='fd3@test.jobdevs',
             nombre='FD3', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )

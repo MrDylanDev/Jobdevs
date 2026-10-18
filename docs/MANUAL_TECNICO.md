@@ -1,4 +1,4 @@
-# Manual Técnico — TEIR
+# Manual Técnico — JobDevs
 
 > Documentación técnica para desarrolladores y operadores del sistema.
 > Última actualización: 30 de junio de 2026.
@@ -44,7 +44,7 @@
 
 ### 2.1 Patrón general
 
-TEIR sigue una arquitectura **Django MTV (Model-Template-View)** modularizada en 9 aplicaciones independientes:
+JobDevs sigue una arquitectura **Django MTV (Model-Template-View)** modularizada en 9 aplicaciones independientes:
 
 ```
 config/          → settings, urls raíz, wsgi/asgi
@@ -219,8 +219,8 @@ CopiaSeguridad:
 ### 4.2 Setup
 
 ```bash
-git clone https://github.com/MrDylanDev/TEIR.git
-cd TEIR
+git clone https://github.com/MrDylanDev/JobDevs.git
+cd JobDevs
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -354,7 +354,7 @@ Todas las rutas requieren:
 POST /api/crear/
 {
   "username": "nuevo_dev",
-  "email": "dev@teir.edu.co",
+  "email": "dev@jobdevs.edu.co",
   "password": "SecurePass123!",
   "rol": "desarrollador"
 }
@@ -628,7 +628,7 @@ usuarios/views/
 | `EMAIL_USE_TLS` | Usar TLS | `True` |
 | `EMAIL_HOST_USER` | Usuario SMTP | — |
 | `EMAIL_HOST_PASSWORD` | Contraseña SMTP | — |
-| `DEFAULT_FROM_EMAIL` | Remitente default | `TEIR <noreply@teir.edu.co>` |
+| `DEFAULT_FROM_EMAIL` | Remitente default | `JobDevs <noreply@jobdevs.edu.co>` |
 | `MYSQL_ROOT_PASSWORD` | Root MySQL (Docker) | — |
 
 ---
@@ -636,7 +636,7 @@ usuarios/views/
 ## 12. Estructura del proyecto
 
 ```
-TEIR/
+JobDevs/
 ├── avances/              # App: registro y revisión de avances
 │   ├── models.py         #   Avance
 │   ├── views.py          #   registrar_avance, revisar_avance, ver_avances

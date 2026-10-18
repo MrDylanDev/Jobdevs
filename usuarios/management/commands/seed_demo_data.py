@@ -11,8 +11,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--password',
             type=str,
-            default='Teir2026*',
-            help='Contraseña asignada a las cuentas de prueba (default: Teir2026*)'
+            default='Jobdevs2026*',
+            help='Contraseña asignada a las cuentas de prueba (default: Jobdevs2026*)'
         )
 
     def handle(self, *args, **options):
@@ -24,8 +24,8 @@ class Command(BaseCommand):
             admin, created = Usuario.objects.get_or_create(
                 username='admin_demo',
                 defaults={
-                    'nombre': 'Administrador TEIR',
-                    'email': 'admin@teir.local',
+                    'nombre': 'Administrador JobDevs',
+                    'email': 'admin@jobdevs.local',
                     'rol': 'administrador',
                     'estado': 'activo',
                     'identificacion': '990001001',
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                         'sector': 'Tecnología e Innovación',
                         'telefono': '3001234567',
                         'ciudad': 'Bogotá',
-                        'descripcion': 'Empresa de prueba para evaluación de talento SENA en TEIR.'
+                        'descripcion': 'Empresa de prueba para evaluación de talento SENA en JobDevs.'
                     }
                 )
                 self.stdout.write(self.style.SUCCESS("✓ Creada empresa: empresa_demo"))
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 username='dev_demo',
                 defaults={
                     'nombre': 'Aprendiz SENA Demo',
-                    'email': 'dev@teir.local',
+                    'email': 'dev@jobdevs.local',
                     'rol': 'desarrollador',
                     'estado': 'activo',
                     'identificacion': '1001234567',

@@ -98,13 +98,13 @@ class TestRecoveryE2E:
         page.wait_for_selector('#recoveryForm:not([style*="display: none"])', timeout=3000)
 
         # Fill email
-        page.fill('input[name="email"]', 'e2e_empresa@test.teir')
+        page.fill('input[name="email"]', 'e2e_empresa@test.jobdevs')
         page.locator('#recoveryForm button:has-text("ENVIAR")').click(force=True)
 
         # Wait for the toast or success indicator
         page.wait_for_timeout(2000)
         # Toast should appear or we should still be on the landing page
-        assert 'teir' in page.url.lower() or 'localhost' in page.url
+        assert 'jobdevs' in page.url.lower() or 'localhost' in page.url
 
     def test_back_to_login_from_recovery(self, page, live_server):
         """BACK TO LOGIN link returns to login form."""
@@ -141,7 +141,7 @@ class TestRegistroE2E:
         page.fill('input[name="username"]', 'e2e_newdev')
         page.fill('input[name="nombre"]', 'E2E New Dev')
         page.fill('input[name="identificacion"]', '9876543210')
-        page.fill('input[name="email"]', 'e2e_newdev@test.teir')
+        page.fill('input[name="email"]', 'e2e_newdev@test.jobdevs')
         page.fill('input[name="fecha_nacimiento"]', '2000-05-15')
         page.fill('input[name="password1"]', 'E2ETest123!')
         page.fill('input[name="password2"]', 'E2ETest123!')

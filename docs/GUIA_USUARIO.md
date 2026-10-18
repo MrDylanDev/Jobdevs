@@ -1,4 +1,4 @@
-# Guía de Usuario — TEIR
+# Guía de Usuario — JobDevs
 
 > Plataforma de vinculación entre empresas y talento SENA.
 > Última actualización: 30 de junio de 2026.
@@ -22,7 +22,7 @@
 
 ## 1. Roles y acceso
 
-TEIR tiene 3 tipos de usuario:
+JobDevs tiene 3 tipos de usuario:
 
 | Rol | ¿Quién es? | ¿Qué puede hacer? |
 |-----|-----------|-------------------|
@@ -489,7 +489,7 @@ El administrador puede ver proyectos con más de 7 días sin actividad en el das
 No desde la plataforma. Contactá al administrador.
 
 **¿La plataforma maneja pagos?**
-No. TEIR facilita la conexión entre empresas y desarrolladores, pero no procesa pagos. El acuerdo económico es entre las partes.
+No. JobDevs facilita la conexión entre empresas y desarrolladores, pero no procesa pagos. El acuerdo económico es entre las partes.
 
 **¿Qué navegadores son compatibles?**
 Chrome, Firefox y Edge en sus últimas versiones. La interfaz está en español.

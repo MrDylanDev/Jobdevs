@@ -10,7 +10,7 @@ User = get_user_model()
 @pytest.fixture
 def empresa(db):
     return User.objects.create_user(
-        username='cat_empresa', email='cat@test.teir',
+        username='cat_empresa', email='cat@test.jobdevs',
         nombre='Cat Empresa', rol='empresa', estado='activo',
         password='TestPass123!',
     )
@@ -139,7 +139,7 @@ def _limpiar_cache_ratelimit():
 @pytest.fixture
 def admin_client(db, client):
     admin = User.objects.create_user(
-        username='cat_admin', email='catadmin@test.teir',
+        username='cat_admin', email='catadmin@test.jobdevs',
         nombre='Cat Admin', rol='administrador', estado='activo',
         password='TestPass123!',
     )

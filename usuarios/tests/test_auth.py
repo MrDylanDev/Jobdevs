@@ -167,7 +167,7 @@ class TestLoginView:
         backend = UsuarioAuthBackend()
         user = User.objects.create_user(
             username='inactive_sess',
-            email='inactive_sess@test.teir',
+            email='inactive_sess@test.jobdevs',
             nombre='Inactive Sess',
             rol='desarrollador',
             estado='suspendido',
@@ -209,7 +209,7 @@ class TestLoginView:
         """Entering wrong password for an inactive user must NOT reveal status (anti-enumeration)."""
         User.objects.create_user(
             username='inactive_enum_test',
-            email='inactive_enum@test.teir',
+            email='inactive_enum@test.jobdevs',
             nombre='Inactive Enum',
             rol='desarrollador',
             estado='inactivo',
@@ -227,7 +227,7 @@ class TestLoginView:
         """Inactive user cannot log in."""
         user = User.objects.create_user(
             username='inactive_test',
-            email='inactive@test.teir',
+            email='inactive@test.jobdevs',
             nombre='Inactive',
             rol='desarrollador',
             estado='inactivo',
@@ -289,7 +289,7 @@ class TestRecoveryView:
     def test_recovery_post_valid_email(self, client, empresa_user):
         """POST with valid email sends recovery email and redirects."""
         response = client.post(reverse('recuperar'), {
-            'email': 'empresa@test.teir',
+            'email': 'empresa@test.jobdevs',
         })
         assert response.status_code == 302
         assert response.url == '/?login=1'
@@ -299,7 +299,7 @@ class TestRecoveryView:
     def test_recovery_post_sets_token(self, client, empresa_user):
         """Valid recovery request sets token and expiration."""
         client.post(reverse('recuperar'), {
-            'email': 'empresa@test.teir',
+            'email': 'empresa@test.jobdevs',
         })
         empresa_user.refresh_from_db()
         assert empresa_user.token_recuperacion is not None
@@ -308,7 +308,7 @@ class TestRecoveryView:
     def test_recovery_post_unknown_email_no_leak(self, client):
         """POST with unknown email still shows success (security)."""
         response = client.post(reverse('recuperar'), {
-            'email': 'no_existe@test.teir',
+            'email': 'no_existe@test.jobdevs',
         })
         assert response.status_code == 302
         assert len(mail.outbox) == 0

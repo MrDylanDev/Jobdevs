@@ -18,6 +18,10 @@ sdist/
 var/
 wheels/
 *.egg-info/
+
+# El CSS compilado de Tailwind (theme/static/css/dist/) SÍ se versiona:
+# se genera con `python manage.py tailwind build` y lo necesita collectstatic.
+!theme/static/css/dist/
 .installed.cfg
 *.egg
 # Entorno Virtual

@@ -123,7 +123,7 @@ def test_post_exitoso_registra_log_y_mensaje(auth_client, perfil, empresa_user):
 
 def test_post_exitoso_notifica_a_todos_los_administradores(auth_client, perfil, admin_user):
     otro = Usuario.objects.create_user(
-        username='admin2', email='a2@test.teir', nombre='Admin 2',
+        username='admin2', email='a2@test.jobdevs', nombre='Admin 2',
         rol='administrador', estado='activo', password='x',
     )
     auth_client.post(reverse(URL_NAME), _payload())

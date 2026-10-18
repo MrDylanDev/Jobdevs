@@ -34,7 +34,7 @@ class TestDashboardAccess:
             proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa'
         )
         dev2 = Usuario.objects.create_user(
-            username='dev_cand_2', email='dev_cand_2@test.teir',
+            username='dev_cand_2', email='dev_cand_2@test.jobdevs',
             nombre='Dev Cand 2', rol='desarrollador', estado='activo', password='Password123*'
         )
         Postulacion.objects.create(

@@ -13,12 +13,12 @@ class TestContratacionModel:
     def test_crear_contratacion(self, db):
         """Contratacion links empresa, dev, and proyecto."""
         empresa = User.objects.create_user(
-            username='ce', email='ce@test.teir',
+            username='ce', email='ce@test.jobdevs',
             nombre='CE', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='cd', email='cd@test.teir',
+            username='cd', email='cd@test.jobdevs',
             nombre='CD', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -39,12 +39,12 @@ class TestContratacionModel:
     def test_contratacion_str(self, db):
         """__str__ shows proyecto title."""
         empresa = User.objects.create_user(
-            username='ce2', email='ce2@test.teir',
+            username='ce2', email='ce2@test.jobdevs',
             nombre='CE2', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='cd2', email='cd2@test.teir',
+            username='cd2', email='cd2@test.jobdevs',
             nombre='CD2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
