@@ -94,9 +94,14 @@
             <div class="project-card">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <span class="tag-solucion">{{ proyecto.tipo_solucion }}</span>
-                    <a href="{% url 'toggle_favorito' proyecto.id %}" style="text-decoration: none; font-size: 18px; line-height: 1; transition: transform 0.2s;">
-                        {% if proyecto.id in favoritos_ids %}<i class="fa-solid fa-heart" style="color:var(--danger)"></i>{% else %}<i class="fa-regular fa-heart" style="color:var(--text-muted)"></i>{% endif %}
-                    </a>
+                    {% if request.user.rol == 'desarrollador' %}
+                    <form method="post" action="{% url 'toggle_favorito' proyecto.id %}" style="display:inline; margin:0; padding:0;">
+                        {% csrf_token %}
+                        <button type="submit" title="Guardar en favoritos" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
+                            {% if proyecto.id in favoritos_ids %}<i class="fa-solid fa-heart" style="color:var(--danger)"></i>{% else %}<i class="fa-regular fa-heart" style="color:var(--text-muted)"></i>{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
                 
                 <h3 class="project-card-title">{{ proyecto.titulo }}</h3>
