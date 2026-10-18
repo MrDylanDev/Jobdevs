@@ -100,7 +100,7 @@
                   {% endif %}
                 </div>
                 <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ hito.descripcion|default:"Sin descripción adicional." }}</p>
-                {% if proyecto.contrataciones.all.count >= 2 %}
+                {% if tiene_multiples_contratos %}
                   <div style="margin-top:8px; font-size:11px;">
                     {% if hito.equipo %}
                       <span style="color:var(--info); font-weight:600;"><i class="fa fa-users" style="margin-right:4px;"></i>{{ hito.equipo.nombre }}</span>

@@ -391,6 +391,11 @@ def gestionar_hitos(request, proyecto_id):
     hitos = Entregable.objects.filter(proyecto=proyecto).order_by('fecha_creacion')
 
     if request.method == 'POST':
+        # Hallazgo 16: No permitir crear hitos en proyectos finalizados, inactivos o rechazados
+        if proyecto.estado in ('finalizado', 'inactivo', 'rechazado'):
+            messages.error(request, f"No se pueden agregar hitos a un proyecto {proyecto.get_estado_display().lower()}.")
+            return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+
         titulo = request.POST.get('titulo')
         descripcion = request.POST.get('descripcion')
         equipo_id = request.POST.get('equipo_id')
@@ -422,9 +427,8 @@ def gestionar_hitos(request, proyecto_id):
                     )
             else:
                 # Avisar a todos los contratados en el proyecto (Hito General)
-                desarrolladores = Usuario.objects.filter(
-                    id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-                )
+                # Hallazgo 19: Usar helper del manager Contratacion
+                desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
                 for dev in desarrolladores:
                     Notificacion.objects.create(
                         usuario=dev,
@@ -436,11 +440,13 @@ def gestionar_hitos(request, proyecto_id):
             return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
     equipos = proyecto.equipos.all()
+    tiene_multiples_contratos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() >= 2
 
     return render(request, 'proyectos/gestionar_hitos.html', {
         'proyecto': proyecto, 
         'hitos': hitos,
-        'equipos': equipos
+        'equipos': equipos,
+        'tiene_multiples_contratos': tiene_multiples_contratos,
     })
 
 @login_required
