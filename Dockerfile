@@ -45,9 +45,25 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DJANGO_SETTINGS_MODULE=config.settings
 
 # Instalar dependencias mínimas de runtime
+#
+# RNF-14: se instala el cliente de PostgreSQL 16 (pg_dump/pg_restore) desde PGDG
+# para que su versión coincida con el servidor del stack (postgres:16-alpine).
+# Un cliente de versión mayor genera respaldos que un servidor 16 no puede
+# restaurar (por ejemplo el parámetro "transaction_timeout", que existe desde
+# PostgreSQL 17), y eso rompería la recuperación.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     curl \
+    ca-certificates \
+    gnupg \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo $VERSION_CODENAME)-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client-16 \
+    && apt-get purge -y --auto-remove gnupg \
     && rm -rf /var/lib/apt/lists/*
 
 # Crear usuario no-root para seguridad
@@ -67,7 +83,9 @@ COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Crear directorios necesarios con permisos correctos
-RUN mkdir -p /app/staticfiles /app/media/perfiles && \
+# /app/backups es el punto de montaje del volumen de respaldos (RNF-14); se crea
+# con el propietario del usuario de la aplicación para que el volumen lo herede.
+RUN mkdir -p /app/staticfiles /app/media/perfiles /app/backups && \
     chown -R appuser:appuser /app
 
 # Asegurar permisos en directorios de runtime
