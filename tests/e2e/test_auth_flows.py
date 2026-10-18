@@ -138,7 +138,7 @@ class TestRegistroE2E:
         """Register as desarrollador and get redirected to dashboard."""
         page.goto(live_server.url + reverse('registro'))
 
-        page.fill('input[name="username"]', 'e2e_newdev')
+        # 'username' es un input oculto (se deriva del email), por eso no se rellena.
         page.fill('input[name="nombre"]', 'E2E New Dev')
         page.fill('input[name="identificacion"]', '9876543210')
         page.fill('input[name="email"]', 'e2e_newdev@test.jobdevs')

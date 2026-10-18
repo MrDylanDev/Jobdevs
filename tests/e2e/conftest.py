@@ -40,9 +40,13 @@ def page(browser, live_server):
     context.close()
 
 
-@pytest.fixture(scope='session')
+# Los fixtures de datos son de alcance 'function': los tests E2E usan
+# django_db(transaction=True), que vacía la base de datos al terminar cada test.
+# Un fixture de sesión quedaría obsoleto (el usuario ya no existiría en la BD) y
+# el login fallaría.
+@pytest.fixture
 def test_empresa(django_db_setup, django_db_blocker):
-    """Create a test empresa user for E2E login tests (session-scoped)."""
+    """Create a test empresa user for E2E login tests."""
     with django_db_blocker.unblock():
         return User.objects.create_user(
             username='e2e_empresa',
@@ -54,9 +58,9 @@ def test_empresa(django_db_setup, django_db_blocker):
         )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def test_dev(django_db_setup, django_db_blocker):
-    """Create a test desarrollador user for E2E login tests (session-scoped)."""
+    """Create a test desarrollador user for E2E login tests."""
     with django_db_blocker.unblock():
         return User.objects.create_user(
             username='e2e_dev',
@@ -68,9 +72,9 @@ def test_dev(django_db_setup, django_db_blocker):
         )
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(autouse=True)
 def ensure_admin_exists(django_db_setup, django_db_blocker):
-    """Ensure admin exists for dashboard templates (session-scoped)."""
+    """Ensure admin exists for dashboard templates."""
     with django_db_blocker.unblock():
         if not User.objects.filter(rol='administrador').exists():
             User.objects.create_user(
