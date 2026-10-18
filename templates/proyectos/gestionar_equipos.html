@@ -71,9 +71,12 @@
               <div style="font-size:15px; font-weight:600; color:var(--text-primary);">
                 <i class="fa fa-users" style="margin-right:8px; color:var(--info);"></i>{{ equipo.nombre }}
               </div>
-              <a href="{% url 'eliminar_equipo' equipo.id %}" onclick="return confirm('¿Eliminar este grupo? Los hitos asignados quedarán sin equipo.')" class="btn btn-danger btn-sm">
-                <i class="fa fa-trash"></i>
-              </a>
+              <form method="post" action="{% url 'eliminar_equipo' equipo.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este grupo? Los hitos asignados quedarán sin equipo.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar grupo">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </form>
             </div>
             <ul style="padding:0; display:flex; flex-direction:column; gap:8px;">
               {% for miembro in equipo.miembros.all %}
