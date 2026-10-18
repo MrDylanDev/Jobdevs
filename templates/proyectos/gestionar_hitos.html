@@ -111,9 +111,12 @@
                 {% endif %}
               </div>
               {% if hito.estado == 'pendiente' %}
-                <a href="{% url 'eliminar_hito' hito.id %}" class="btn btn-danger btn-sm">
-                  <i class="fa fa-trash"></i>
-                </a>
+                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este hito?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm" title="Eliminar hito">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </form>
               {% endif %}
             </div>
           </div>
