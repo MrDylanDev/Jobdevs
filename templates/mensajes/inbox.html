@@ -58,7 +58,7 @@
                     <span style="{% if not msg.leido %}font-weight:700;{% endif %}">{{ msg.remitente.nombre|default:msg.remitente.username }}</span>
                   </div>
                 </td>
-                <td style="{% if not msg.leido %}font-weight:700;{% endif %}">{{ msg.asunto|default:"(Sin asunto)" }}</td>
+                <td style="{% if not msg.leido %}font-weight:700;{% endif %}">{{ msg.titulo|default:"(Sin asunto)" }}</td>
                 <td style="color:var(--text-muted);">{{ msg.fecha_envio|date:"d M, H:i" }}</td>
                 <td style="text-align:center;">
                   {% if not msg.leido %}

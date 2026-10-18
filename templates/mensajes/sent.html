@@ -56,7 +56,7 @@
                     {{ msg.receptor.nombre|default:msg.receptor.username }}
                   </div>
                 </td>
-                <td>{{ msg.asunto|default:"(Sin asunto)" }}</td>
+                <td>{{ msg.titulo|default:"(Sin asunto)" }}</td>
                 <td style="color:var(--text-muted);">{{ msg.fecha_envio|date:"d M, H:i" }}</td>
               </tr>
             {% empty %}
