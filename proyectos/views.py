@@ -2,11 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField, F
 from django.db.models.functions import Coalesce
+from datetime import datetime
 import json
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
 from logs.models import LogAuditoria
@@ -97,6 +100,19 @@ def crear_proyecto(request):
             if categoria is None and tipo_solucion not in dict(Proyecto.TIPO_SOLUCION):
                 messages.error(request, "Error: el tipo de solución seleccionado no es válido.")
                 return redirect('dashboard_empresa')
+
+            # Hallazgo 9: Validar que fecha_limite no sea en el pasado
+            fecha_limite = request.POST.get('fecha_limite') or None
+            if fecha_limite:
+                try:
+                    fecha_limite_dt = datetime.strptime(fecha_limite, '%Y-%m-%d').date()
+                    if fecha_limite_dt < timezone.now().date():
+                        messages.error(request, "La fecha límite no puede ser anterior a la fecha actual.")
+                        return redirect('dashboard_empresa')
+                except ValueError:
+                    messages.error(request, "Formato de fecha límite inválido.")
+                    return redirect('dashboard_empresa')
+
             proyecto = Proyecto(
                 empresa=request.user,
                 titulo=request.POST.get('titulo'),
@@ -105,13 +121,17 @@ def crear_proyecto(request):
                 tipo_solucion=categoria.slug if categoria else tipo_solucion,
                 prioridad=request.POST.get('prioridad', 'media'),
                 vacantes=vacantes,
-                fecha_limite=request.POST.get('fecha_limite') or None,
+                fecha_limite=fecha_limite,
                 estado='publicado'
             )
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia
+            proyecto.full_clean()
             proyecto.save()
             proyecto.registrar_cambio_estado('publicado', request.user, estado_anterior=None)
             messages.success(request, f"¡Proyecto '{proyecto.titulo}' publicado exitosamente!")
             return redirect('dashboard_empresa')
+        except ValidationError as ve:
+            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
         except Exception as e:
             messages.error(request, f"Error: {e}")
             
