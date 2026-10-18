@@ -74,6 +74,11 @@ ul { list-style: none; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
 .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
+/* Firefox no soporta ::-webkit-scrollbar: equivalentes estándar (RNF-12). */
+@supports not selector(::-webkit-scrollbar) {
+  .sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+}
+
 /* Logo / Brand */
 .sidebar-brand {
   display: flex;
@@ -296,6 +301,11 @@ ul { list-style: none; }
 .main-content::-webkit-scrollbar { width: 5px; }
 .main-content::-webkit-scrollbar-track { background: transparent; }
 .main-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+
+/* Firefox no soporta ::-webkit-scrollbar: equivalentes estándar (RNF-12). */
+@supports not selector(::-webkit-scrollbar) {
+  .main-content { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.12) transparent; }
+}
 
 /* Secciones */
 .seccion-v, .section-v {

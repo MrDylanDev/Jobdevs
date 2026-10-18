@@ -1,5 +1,7 @@
 name: CI
 # Required checks for branch protection on main: test-sqlite, test-postgres (both must pass)
+# test-e2e (RNF-12) verifica la interfaz en Chrome, Firefox y Edge. Para que bloquee
+# merges debe añadirse a la branch protection (requiere permisos de admin del repo).
 
 on:
   push:
@@ -117,3 +119,47 @@ jobs:
           files: coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+  test-e2e:
+    name: E2E (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # Un fallo en un navegador no debe ocultar el resultado de los demás.
+      fail-fast: false
+      matrix:
+        include:
+          # Chrome y Edge corren con los binarios del sistema que ya traen los
+          # runners de GitHub (channel 'chrome' / 'msedge').
+          - browser: chrome
+            playwright_install: ''
+          # Firefox se instala con Playwright (--with-deps trae las librerías del sistema).
+          - browser: firefox
+            playwright_install: firefox
+          - browser: edge
+            playwright_install: ''
+    env:
+      DJANGO_SECRET_KEY: test-secret-key-ci
+      DJANGO_DEBUG: "True"
+      E2E_BROWSERS: ${{ matrix.browser }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Install Playwright browsers
+        if: matrix.playwright_install != ''
+        run: uv run playwright install --with-deps ${{ matrix.playwright_install }}
+
+      - name: Run E2E tests (${{ matrix.browser }})
+        run: uv run pytest tests/e2e -v

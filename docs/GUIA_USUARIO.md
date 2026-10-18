@@ -492,7 +492,7 @@ No desde la plataforma. Contactá al administrador.
 No. JobDevs facilita la conexión entre empresas y desarrolladores, pero no procesa pagos. El acuerdo económico es entre las partes.
 
 **¿Qué navegadores son compatibles?**
-Chrome, Firefox y Edge en sus últimas versiones. La interfaz está en español.
+Chrome, Firefox y Edge en sus últimas versiones (y las dos anteriores). En versiones más antiguas puede haber diferencias de estilo. La interfaz está en español.
 
 **¿Cómo reporto un problema o comportamiento inadecuado?**
 Usá el chat para contactar al administrador directamente desde tu dashboard.
