@@ -49,6 +49,16 @@ def registrar_avance(request, proyecto_id):
                 messages.error(request, "Debes proporcionar una URL o adjuntar un archivo de evidencia.")
                 return redirect('registrar_avance', proyecto_id=proyecto.id)
 
+            if archivo_url:
+                from django.core.validators import URLValidator
+                from django.core.exceptions import ValidationError
+                url_val = URLValidator(schemes=['http', 'https'])
+                try:
+                    url_val(archivo_url)
+                except ValidationError:
+                    messages.error(request, "La URL de evidencia debe ser una dirección web válida (iniciando con http:// o https://).")
+                    return redirect('registrar_avance', proyecto_id=proyecto.id)
+
             if archivo_adjunto and archivo_adjunto.size > 10 * 1024 * 1024:
                 messages.error(request, "El archivo adjunto no puede superar los 10 MB.")
                 return redirect('registrar_avance', proyecto_id=proyecto.id)
