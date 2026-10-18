@@ -243,14 +243,39 @@ def finalizar_proyecto(request, proyecto_id):
                 messages.error(request, "Ya has calificado a este desarrollador para este proyecto.")
                 return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
-            Valoracion.objects.create(
-                proyecto=proyecto,
-                empresa=request.user,
-                desarrollador=desarrollador,
-                puntuacion=int(puntuacion),
-                comentario=comentario,
-                rol_evaluador='empresa'
-            )
+            with transaction.atomic():
+                Valoracion.objects.create(
+                    proyecto=proyecto,
+                    empresa=request.user,
+                    desarrollador=desarrollador,
+                    puntuacion=int(puntuacion),
+                    comentario=comentario,
+                    rol_evaluador='empresa'
+                )
+
+                # Si este era el último colaborador pendiente, finalizar el proyecto en la misma acción POST
+                if restantes == 0:
+                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
+                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
+                    notificaciones = [
+                        Notificacion(
+                            usuario=c.desarrollador,
+                            proyecto=proyecto_locked,
+                            tipo='aprobacion',
+                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
+                        ) for c in contratos
+                    ]
+                    if notificaciones:
+                        Notificacion.objects.bulk_create(notificaciones)
+
+                    contratos.update(estado='finalizada')
+                    estado_anterior = proyecto_locked.estado
+                    proyecto_locked.estado = 'finalizado'
+                    proyecto_locked.save()
+                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
+
+                    messages.success(request, f"¡Excelente! Has calificado a todo el equipo y el proyecto '{proyecto.titulo}' ha finalizado.")
+                    return redirect('dashboard_empresa')
 
             messages.success(request, f"Calificación registrada para {desarrollador.username}. " + 
                              (f"Quedan {restantes} por calificar." if restantes > 0 else "Era el último colaborador."))
