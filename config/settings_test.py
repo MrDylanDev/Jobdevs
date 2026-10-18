@@ -11,14 +11,17 @@ os.environ.setdefault('DJANGO_DEBUG', 'True')
 
 from .settings import *
 
-# Env-driven DB selection: use PostgreSQL when explicitly requested via
-# DB_ENGINE=postgresql or USE_POSTGRES=1 (or DB_HOST defined with engine postgresql),
-# otherwise fall back to fast SQLite in-memory.
-_DB_ENGINE = os.environ.get("DB_ENGINE", "").lower()
-_USE_POSTGRES = os.environ.get("USE_POSTGRES", "") == "1" or os.environ.get("USE_POSTGRESQL", "") == "1"
-_DB_HOST = os.environ.get("DB_HOST")
+# Env-driven DB selection: use PostgreSQL ONLY when explicitly requested via
+# USE_POSTGRES=1 / USE_POSTGRESQL=1 or TEST_DB=postgres / TEST_DB=postgresql.
+# In all other cases (including local dev where .env has DB_ENGINE=postgresql/DB_HOST=db
+# for Docker), default to fast SQLite in-memory so test suites run isolated and zero-config.
+_USE_POSTGRES = (
+    os.environ.get("USE_POSTGRES", "") == "1"
+    or os.environ.get("USE_POSTGRESQL", "") == "1"
+    or os.environ.get("TEST_DB", "").lower() in ("postgres", "postgresql")
+)
 
-if _USE_POSTGRES or "postgres" in _DB_ENGINE or (_DB_HOST is not None and "postgres" in _DB_ENGINE):
+if _USE_POSTGRES:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -30,7 +33,7 @@ if _USE_POSTGRES or "postgres" in _DB_ENGINE or (_DB_HOST is not None and "postg
         }
     }
 else:
-    # Use SQLite in-memory for fast, isolated tests (default for test-sqlite)
+    # Use SQLite in-memory for fast, isolated tests (default for local & CI test-sqlite)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
