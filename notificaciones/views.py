@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from .models import Notificacion
 from django.contrib import messages
@@ -20,6 +21,7 @@ def lista_notificaciones(request):
     })
 
 @login_required
+@require_POST
 def marcar_leida(request, notificacion_id):
     """Marca una notificación específica como leída."""
     notificacion = get_object_or_404(Notificacion, id=notificacion_id, usuario=request.user)
@@ -28,6 +30,7 @@ def marcar_leida(request, notificacion_id):
     return redirect('notificaciones_lista')
 
 @login_required
+@require_POST
 def marcar_todas_leidas(request):
     """Marca todas las notificaciones pendientes del usuario como leídas."""
     Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
