@@ -19,7 +19,7 @@ Formativo (JobDevs / TEIR).
 | Comando de verificación | `logs/management/commands/verify_db_recovery.py` | Reconstruye el esquema desde cero y/o restaura un respaldo en una base de datos nueva, midiendo el tiempo |
 | Respaldos automáticos | `docker/backup/scheduler.sh`, servicio `backup` en `docker-compose.yml` | Respaldo diario automático con retención GFS |
 | Verificación continua | `.github/workflows/ci.yml` (job `test-postgres`) | Bloquea el merge si el esquema no se reconstruye en menos de 5 minutos |
-| Pruebas | `logs/tests/test_backups.py`, `logs/tests/test_backup_commands.py` | 35 pruebas de la política de retención y de los dos comandos |
+| Pruebas | `logs/tests/test_backups.py`, `logs/tests/test_backup_commands.py` | 36 pruebas: política de retención, comandos y contenido del volcado |
 
 ### Fuente de verdad del esquema
 
@@ -131,7 +131,7 @@ la aplicación):
 | Integridad del volcado (`pg_restore --list`) | 307 objetos | sin error | ✅ |
 | Generación del respaldo | 1,1 s / 0,12 MB | — | ✅ |
 | Eliminación de la base temporal tras la verificación | sin residuos | — | ✅ |
-| Pruebas automatizadas | 35 pasaron | sin fallos | ✅ |
+| Pruebas automatizadas | 36 pasaron, sin fallos | ✅ |
 
 La comprobación se repite en cada ejecución de la integración continua (job
 `test-postgres`), cuyos resultados quedan como artefactos

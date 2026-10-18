@@ -13,6 +13,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import shutil
 import subprocess
 import sys
 from io import StringIO
@@ -22,6 +23,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import connection
 from django.test import override_settings
 from django.utils import timezone
 
@@ -74,9 +76,33 @@ class TestComandoBackupDb:
     def test_respaldo_contiene_el_esquema(self, db, tmp_path):
         call_command("backup_db", output_dir=str(tmp_path))
         respaldo = next(tmp_path.glob(f"{backups.BACKUP_PREFIX}*{backups.BACKUP_SUFFIX}"))
-        contenido = respaldo.read_text(encoding="utf-8")
-        assert "CREATE TABLE" in contenido
-        assert "COMMIT;" in contenido
+        if connection.vendor == "postgresql":
+            # En PostgreSQL el volcado usa el formato personalizado de pg_dump,
+            # que es binario: comienza con el número mágico "PGDMP" y su
+            # contenido se consulta con `pg_restore --list`, no leyéndolo como
+            # texto. La comprobación de que el esquema esté dentro se hace en
+            # test_volcado_postgresql_incluye_las_tablas.
+            assert respaldo.read_bytes()[:5] == b"PGDMP"
+        else:
+            contenido = respaldo.read_text(encoding="utf-8")
+            assert "CREATE TABLE" in contenido
+            assert "COMMIT;" in contenido
+
+    @pytest.mark.skipif(
+        connection.vendor != "postgresql" or not shutil.which("pg_restore"),
+        reason="Requiere PostgreSQL y el cliente pg_restore",
+    )
+    def test_volcado_postgresql_incluye_las_tablas(self, db, tmp_path):
+        """El volcado binario contiene realmente el esquema de la aplicación."""
+        call_command("backup_db", output_dir=str(tmp_path))
+        respaldo = next(tmp_path.glob(f"{backups.BACKUP_PREFIX}*{backups.BACKUP_SUFFIX}"))
+        tablas = subprocess.run(
+            ["pg_restore", "--list", str(respaldo)],
+            capture_output=True, text=True, check=True,
+        ).stdout
+        assert "TABLE" in tablas
+        # Una tabla propia de la aplicación, no solo del esquema interno.
+        assert "copias_seguridad" in tablas
 
     def test_registra_usuario_ejecutor(self, db, tmp_path):
         User.objects.create_user(
