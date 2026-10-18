@@ -119,7 +119,7 @@
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div class="user-avatar" style="width: 32px; height: 32px; font-size: 11px; background: var(--page-bg); border: 1px solid var(--border);">
                           {% if proyecto.empresa_logo %}
-                            <img src="/media/{{ proyecto.empresa_logo }}" alt="Logo">
+                            <img src="{{ proyecto.empresa_logo }}" alt="Logo">
                           {% else %}
                             <i class="fa fa-building" style="color: var(--text-muted);"></i>
                           {% endif %}
