@@ -25,9 +25,9 @@ class TestDashboardAdmin:
     def test_dashboard_shows_stats(self, admin_client):
         """Admin dashboard includes statistics."""
         response = admin_client.get(reverse('dashboard_admin'))
-        content = response.content.decode()
-        assert 'Panel Administrador' in content or 'JobDevs' in content
         assert response.status_code == 200
+        assert 'total_usuarios' in response.context
+        assert response.context['total_usuarios'] >= 1
 
     def test_dashboard_lists_users(self, admin_client, empresa_user, desarrollador_user):
         """Admin dashboard lists all users."""
