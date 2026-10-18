@@ -45,10 +45,12 @@
           <div class="project-card" style="display:flex; flex-direction:column; justify-content:space-between;">
             <div>
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                <span class="badge badge-info">{{ fav.proyecto.get_tipo_solucion_display }}</span>
-                <a href="{% url 'toggle_favorito' fav.proyecto.id %}" title="Quitar de favoritos" style="color:#ef4444; font-size:18px; line-height:1;" class="btn btn-secondary btn-sm" style="border-color:#fee2e2;">
-                  <i class="fa fa-heart"></i>
-                </a>
+                <form method="post" action="{% url 'toggle_favorito' fav.proyecto.id %}" style="display:inline; margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" title="Quitar de favoritos" class="btn btn-secondary btn-sm" style="color:#ef4444; border-color:#fee2e2;">
+                    <i class="fa fa-heart"></i>
+                  </button>
+                </form>
               </div>
               <div class="project-card-title" style="margin-bottom:8px;">{{ fav.proyecto.titulo }}</div>
               <p class="project-card-sub" style="line-height:1.6;">{{ fav.proyecto.descripcion|truncatewords:22 }}</p>
