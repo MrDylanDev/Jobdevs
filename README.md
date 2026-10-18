@@ -153,6 +153,27 @@ python manage.py runserver
 
 ---
 
+## Tailwind CSS
+
+El proyecto usa [django-tailwind](https://github.com/timonweb/django-tailwind) en modo **standalone** (binario de Tailwind CSS, sin Node.js) con la app `theme`.
+
+```bash
+# Compilar el CSS (obligatorio antes de collectstatic / deploy)
+python manage.py tailwind build
+
+# Desarrollo: watcher de Tailwind (en otra terminal, junto a runserver)
+python manage.py tailwind start
+
+# Desarrollo: Django + watcher de Tailwind juntos (requiere honcho)
+python manage.py tailwind dev
+```
+
+- Fuente de estilos: `theme/static_src/src/styles.css` → compilado: `theme/static/css/dist/styles.css` (versionado).
+- En plantillas: `{% load tailwind_tags %}` + `{% tailwind_css %}` (ya incluido en `templates/base.html`).
+- Nunca editar el CSS compilado: se sobrescribe en cada `tailwind build`.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -178,6 +199,7 @@ JobDevs/
 ├── proyectos/         # Proyectos, hitos, equipos, valoraciones
 ├── static/            # CSS, JS, imágenes
 ├── templates/         # Templates Django por módulo
+├── theme/             # App de Tailwind CSS (fuentes en static_src/, CSS compilado en static/css/dist/)
 ├── tests/             # Tests E2E con Playwright
 ├── usuarios/          # Autenticación, perfiles, dashboard admin
 ├── docker-compose.yml

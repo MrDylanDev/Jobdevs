@@ -10,6 +10,7 @@ dependencies = [
     "python-dotenv",
     "pillow",
     "gunicorn>=22.0.0",
+    "django-tailwind>=4.6.0",
 ]
 
 [project.optional-dependencies]
@@ -19,6 +20,7 @@ dev = [
     "pytest-cov",
     "playwright",
     "ruff",
+    "django-tailwind[cookiecutter,honcho,reload]>=4.6.0",
 ]
 
 [build-system]
