@@ -22,12 +22,13 @@ class TestDashboardAdmin:
             response = c.get(reverse('dashboard_admin'))
             assert response.status_code == 302
 
-    def test_dashboard_shows_stats(self, admin_client):
+    def test_dashboard_shows_stats(self, admin_client, empresa_user, desarrollador_user):
         """Admin dashboard includes statistics."""
         response = admin_client.get(reverse('dashboard_admin'))
         assert response.status_code == 200
         assert 'total_usuarios' in response.context
-        assert response.context['total_usuarios'] >= 1
+        # total_usuarios cuenta empresas + desarrolladores activos (el rol admin no suma)
+        assert response.context['total_usuarios'] == 2
 
     def test_dashboard_lists_users(self, admin_client, empresa_user, desarrollador_user):
         """Admin dashboard lists all users."""
