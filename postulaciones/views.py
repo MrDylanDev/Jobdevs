@@ -228,6 +228,14 @@ def aceptar_postulacion(request, postulacion_id):
                 proyecto.save()
                 proyecto.registrar_cambio_estado('en_desarrollo', request.user, estado_anterior=estado_anterior)
 
+            # Hallazgo 11: Notificar al desarrollador sobre su aceptación/contratación
+            Notificacion.objects.create(
+                usuario=postulacion.desarrollador,
+                proyecto=proyecto,
+                tipo='aprobacion',
+                mensaje=f"¡Felicidades! Tu postulación al proyecto '{proyecto.titulo}' ha sido aceptada y tu contratación está activa.",
+            )
+
             LogAuditoria.objects.create(
                 usuario=request.user,
                 accion=f"Aceptó postulación de {postulacion.desarrollador.nombre} en {proyecto.titulo}",
