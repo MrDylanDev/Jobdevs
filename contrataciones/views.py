@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 from .models import Contratacion, ContratoDigital
+from . import services
 from postulaciones.models import Postulacion
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto, Equipo
@@ -35,47 +36,22 @@ def ver_detalle_contrato(request, contratacion_id):
 @login_required
 @require_POST
 def cancelar_contratacion(request, contratacion_id):
-    """Permitir a la empresa cancelar un contrato activo"""
+    """Delega la cancelación del contrato en contrataciones/services.py"""
     if request.user.rol != 'empresa':
         return redirect('inicio')
-        
-    contrato = get_object_or_404(Contratacion, id=contratacion_id, empresa=request.user)
-    
+
+    get_object_or_404(Contratacion, id=contratacion_id, empresa=request.user)
+
     try:
-        with transaction.atomic():
-            contrato = Contratacion.objects.select_for_update().get(
-                id=contratacion_id, empresa=request.user, estado='activa')
-            contrato.estado = 'cancelada'
-            contrato.save()
-
-            if Contratacion.objects.filter(
-                proyecto=contrato.proyecto, estado='activa'
-            ).count() == 0 and contrato.proyecto.estado == 'en_desarrollo':
-                proy = contrato.proyecto
-                estado_anterior = proy.estado
-                proy.estado = 'publicado'
-                proy.save()
-                proy.registrar_cambio_estado('publicado', request.user, estado_anterior=estado_anterior)
-
-            # Notificar al desarrollador sobre la cancelación del contrato
-            Notificacion.objects.create(
-                usuario=contrato.desarrollador,
-                proyecto=contrato.proyecto,
-                tipo='alerta',
-                mensaje=f"Tu contratación para el proyecto '{contrato.proyecto.titulo}' ha sido cancelada por la empresa.",
-            )
-
-            LogAuditoria.objects.create(
-                usuario=request.user,
-                accion=f"Canceló contratación en {contrato.proyecto.titulo}",
-                tabla_afectada='contrataciones',
-                registro_id=contrato.id,
-            )
-
+        services.cancelar_contratacion(contratacion_id, request.user)
         messages.warning(request, "Contrato cancelado exitosamente.")
+    except PermissionDenied as exc:
+        messages.error(request, str(exc))
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
     except Exception as e:
         messages.error(request, f"Error al cancelar contrato: {str(e)}")
-        
+
     return redirect('dashboard_empresa')
 
 
