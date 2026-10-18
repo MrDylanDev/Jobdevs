@@ -145,6 +145,11 @@ def finalizar_proyecto(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     
+    # Hallazgo 5: Validar estado actual del proyecto
+    if proyecto.estado not in ('en_desarrollo', 'en_revision'):
+        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto.get_estado_display()}'.")
+        return redirect('dashboard_empresa')
+
     # NUEVA VALIDACIÓN ESTRICTA: Todos los hitos deben estar COMPLETADOS
     hitos_totales = proyecto.entregables.count()
     hitos_completados = proyecto.entregables.filter(estado='completado').count()
@@ -158,56 +163,64 @@ def finalizar_proyecto(request, proyecto_id):
         messages.error(request, f"No puedes finalizar el proyecto. Aún quedan {pendientes} hitos sin completar o validar.")
         return redirect('ver_avances', proyecto_id=proyecto.id)
     
-    # Buscamos quiénes faltan por calificar (Empresa califica a Desarrolladores)
-    desarrolladores_pendientes = Usuario.objects.filter(
-        id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-    ).exclude(
+    # Hallazgo 19: Usar helper del manager Contratacion.objects.desarrolladores_activos
+    desarrolladores_pendientes = Contratacion.objects.desarrolladores_activos(proyecto).exclude(
         id__in=Valoracion.objects.filter(proyecto=proyecto, rol_evaluador='empresa').values_list('desarrollador_id', flat=True)
     )
     
-    # Si ya no hay nadie más que calificar, cerramos el proyecto oficialmente
+    # Si ya no hay desarrolladores pendientes de calificar
     if not desarrolladores_pendientes.exists():
-        try:
-            with transaction.atomic():
-                # Bloqueo pesimista: Bloqueamos la fila para asegurar que el cambio de estado sea único
-                proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
-                
-                if proyecto_locked.estado == 'finalizado':
-                    messages.info(request, f"El proyecto '{proyecto_locked.titulo}' ya ha sido finalizado anteriormente.")
-                    return redirect('dashboard_empresa')
+        # Hallazgo 1: Separar render (GET) de acción de finalización (POST)
+        if request.method == 'POST':
+            try:
+                with transaction.atomic():
+                    # Bloqueo pesimista: Bloqueamos la fila para asegurar que el cambio de estado sea único
+                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
+                    
+                    if proyecto_locked.estado == 'finalizado':
+                        messages.info(request, f"El proyecto '{proyecto_locked.titulo}' ya ha sido finalizado anteriormente.")
+                        return redirect('dashboard_empresa')
 
-                # 1. Finalizar todas las contrataciones asociadas (Bulk Update)
-                contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
-                
-                # 2. Preparar notificaciones para todo el equipo (Bulk Create)
-                notificaciones = [
-                    Notificacion(
-                        usuario=c.desarrollador,
-                        proyecto=proyecto_locked,
-                        tipo='aprobacion',
-                        mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
-                    ) for c in contratos
-                ]
-                
-                if notificaciones:
-                    Notificacion.objects.bulk_create(notificaciones)
-                
-                # 3. Actualizar contratos a 'finalizada'
-                # IMPORTANTE: Se hace antes de guardar el proyecto para que el Trigger SQL funcione correctamente.
-                contratos.update(estado='finalizada')
+                    if proyecto_locked.estado not in ('en_desarrollo', 'en_revision'):
+                        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto_locked.get_estado_display()}'.")
+                        return redirect('dashboard_empresa')
 
-                # 4. Finalizar el proyecto oficialmente
-                proyecto_locked.estado = 'finalizado'
-                proyecto_locked.save()
-                
-                # Actualización de estadísticas: Eliminada lógica redundante. 
-                # El conteo se calcula en tiempo real vía Vistas SQL.
+                    # 1. Finalizar todas las contrataciones asociadas (Bulk Update)
+                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
+                    
+                    # 2. Preparar notificaciones para todo el equipo (Bulk Create)
+                    notificaciones = [
+                        Notificacion(
+                            usuario=c.desarrollador,
+                            proyecto=proyecto_locked,
+                            tipo='aprobacion',
+                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
+                        ) for c in contratos
+                    ]
+                    
+                    if notificaciones:
+                        Notificacion.objects.bulk_create(notificaciones)
+                    
+                    # 3. Actualizar contratos a 'finalizada'
+                    contratos.update(estado='finalizada')
 
-            messages.success(request, f"¡Excelente! Has calificado a todo el equipo y el proyecto '{proyecto.titulo}' ha finalizado.")
-            return redirect('dashboard_empresa')
-        except Exception as e:
-            messages.error(request, f"Error crítico al finalizar: {str(e)}")
-            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
+                    # 4. Finalizar el proyecto oficialmente y registrar cambio de estado
+                    estado_anterior = proyecto_locked.estado
+                    proyecto_locked.estado = 'finalizado'
+                    proyecto_locked.save()
+                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
+
+                messages.success(request, f"¡Excelente! El proyecto '{proyecto.titulo}' ha sido finalizado exitosamente.")
+                return redirect('dashboard_empresa')
+            except Exception as e:
+                messages.error(request, f"Error crítico al finalizar: {str(e)}")
+                return redirect('dashboard_empresa')
+        else:
+            return render(request, 'proyectos/finalizar.html', {
+                'proyecto': proyecto,
+                'desarrollador': None,
+                'restantes': 0
+            })
 
     # Tomamos el primero de la lista para evaluarlo
     desarrollador = desarrolladores_pendientes.first()
