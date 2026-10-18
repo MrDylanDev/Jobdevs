@@ -546,7 +546,8 @@ def desactivar_proyecto(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     
-    if proyecto.estado == 'publicado' or proyecto.estado == 'en_desarrollo':
+    # Hallazgo 7: Permitir retirar proyectos en_revision además de publicado y en_desarrollo
+    if proyecto.estado in ('publicado', 'en_desarrollo', 'en_revision'):
         with transaction.atomic():
             estado_anterior = proyecto.estado
             proyecto.estado = 'inactivo'
@@ -556,7 +557,11 @@ def desactivar_proyecto(request, proyecto_id):
             proyecto.registrar_cambio_estado('inactivo', request.user, estado_anterior=estado_anterior)
             
             # 2. Gestionar Postulaciones y Notificaciones en bloque
-            postulaciones = Postulacion.objects.filter(proyecto=proyecto).select_related('desarrollador')
+            # Hallazgo 6: Filtrar solo postulaciones pendientes o en negociación
+            postulaciones = Postulacion.objects.filter(
+                proyecto=proyecto,
+                estado__in=['pendiente', 'en_negociacion']
+            ).select_related('desarrollador')
             
             if postulaciones.exists():
                 # Notificaciones masivas para postulantes
