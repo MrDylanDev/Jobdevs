@@ -479,22 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  /* ============================
-     PROJECT FORM
-     ============================ */
-  var projectForm = document.getElementById('projectForm');
-  var toast = document.getElementById('toast');
-  if (projectForm && toast) {
-    projectForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      document.getElementById('toastTitle').textContent = 'Solicitud recibida';
-      document.getElementById('toastMsg').textContent = 'Recibimos tu solicitud. Te contactaremos pronto.';
-      toast.classList.add('visible');
-      setTimeout(function() { toast.classList.remove('visible'); }, 4500);
-      projectForm.reset();
-      document.querySelectorAll('#projectTypeSelector .goal-pill').forEach(function(p, i) { p.classList.toggle('active', i === 0); });
-    });
-  }
+
 
   /* ============================
      Auto-open login modal via ?login=1
