@@ -100,6 +100,29 @@ jobs:
       - name: Run migrations
         run: uv run python manage.py migrate --noinput
 
+      # -------------------- RNF-14: respaldo y recuperación --------------------
+      - name: Verificar que las migraciones reflejen los modelos (RNF-14)
+        run: uv run python manage.py makemigrations --check --dry-run
+
+      - name: Verificar respaldo y restauración en servidor nuevo (RNF-14)
+        run: |
+          echo "Cliente PostgreSQL disponible:"
+          pg_dump --version
+          pg_restore --version
+          mkdir -p /tmp/respaldos
+          uv run python manage.py backup_db --output-dir /tmp/respaldos
+          RESPALDO=$(ls /tmp/respaldos/*.dump | head -1)
+          echo "Restaurando $RESPALDO en una base de datos nueva..."
+          uv run python manage.py verify_db_recovery \
+            --desde-dump "$RESPALDO" \
+            --json-out recuperacion-respaldo.json
+
+      - name: Verificar reconstrucción del esquema desde cero < 5 min (RNF-14)
+        run: |
+          uv run python manage.py verify_db_recovery \
+            --objetivo 300 \
+            --json-out recuperacion-esquema.json
+
       - name: Run tests with coverage (PostgreSQL, ignore E2E)
         run: uv run pytest --cov --cov-report=term-missing --cov-report=xml --junitxml=junit.xml --ignore=tests/e2e -v
 
@@ -110,6 +133,7 @@ jobs:
           path: |
             coverage.xml
             junit.xml
+            recuperacion-*.json
 
       - name: Upload to Codecov (optional)
         uses: codecov/codecov-action@v4
