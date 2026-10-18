@@ -39,6 +39,11 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--accent-dim); }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+/* Firefox no soporta ::-webkit-scrollbar: equivalentes estándar (RNF-12). */
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-width: thin; scrollbar-color: var(--accent-dim) var(--bg-darker); }
+}
+
 /* ========== GRAIN OVERLAY ========== */
 .grain {
   position: fixed; inset: -10%; pointer-events: none; z-index: 200;

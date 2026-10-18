@@ -49,7 +49,7 @@ class TestAvanceWorkflowE2E:
         )
         return empresa, dev, proyecto
 
-    def _login_as(self, page, live_server, username, password, rol):
+    def _login_as(self, page, live_server, username, password):
         """Login helper - handles redirect to landing with modal."""
         page.goto(live_server.url + reverse('login'))
         page.wait_for_timeout(2000)
@@ -64,11 +64,6 @@ class TestAvanceWorkflowE2E:
             # Force via JS
             page.evaluate('() => new bootstrap.Modal(document.getElementById("loginModal")).show()')
             page.wait_for_timeout(1000)
-        if rol == 'empresa':
-            try:
-                page.locator('button[data-role="empresa"]').click()
-            except:
-                pass
         page.fill('#username', username)
         page.fill('#password', password)
         page.locator('.btn-submit-tech:has-text("INGRESAR")').click(force=True)
@@ -78,7 +73,7 @@ class TestAvanceWorkflowE2E:
         """Dev submits an avance with archivo_url, hito moves to en_revision."""
         empresa, dev, proyecto = self._setup_data()
 
-        self._login_as(page, live_server, 'e2e_av_dev', 'E2ETest123!', 'desarrollador')
+        self._login_as(page, live_server, 'e2e_av_dev', 'E2ETest123!')
 
         url = live_server.url + reverse('registrar_avance', args=[proyecto.id])
         page.goto(url)
@@ -112,7 +107,7 @@ class TestAvanceWorkflowE2E:
         })
 
         # Empresa accepts via browser
-        self._login_as(page, live_server, 'e2e_av_emp', 'E2ETest123!', 'empresa')
+        self._login_as(page, live_server, 'e2e_av_emp', 'E2ETest123!')
 
         url = live_server.url + reverse('ver_avances', args=[proyecto.id])
         page.goto(url)
@@ -144,7 +139,7 @@ class TestAvanceWorkflowE2E:
         })
 
         # Empresa rejects via browser
-        self._login_as(page, live_server, 'e2e_av_emp', 'E2ETest123!', 'empresa')
+        self._login_as(page, live_server, 'e2e_av_emp', 'E2ETest123!')
 
         url = live_server.url + reverse('ver_avances', args=[proyecto.id])
         page.goto(url)

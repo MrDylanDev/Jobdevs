@@ -6,6 +6,7 @@ from proyectos.models import Proyecto, Entregable, Equipo, Valoracion
 from contrataciones.models import Contratacion
 from avances.models import Avance
 from mensajes.models import Mensaje
+from usuarios.models import PerfilDesarrollador
 
 User = get_user_model()
 
@@ -49,6 +50,12 @@ class TestFullWorkflowE2E:
             nombre='Full Dev 2', rol='desarrollador', estado='activo',
             password='FullPass123!',
         )
+
+        # Un desarrollador debe tener la identidad SENA verificada para postularse.
+        for dev in [dev1, dev2]:
+            perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=dev)
+            perfil.estado_verificacion = 'verificado'
+            perfil.save(update_fields=['estado_verificacion'])
 
         # ── Empresa publishes ──
         client.login(username='full_emp', password='FullPass123!')
@@ -191,7 +198,6 @@ class TestFullWorkflowE2E:
         page.goto(live_server.url + reverse('login'))
         page.wait_for_timeout(2000)
         page.locator('#username').wait_for(state='visible', timeout=5000)
-        page.locator('button[data-role="empresa"]').click()
         page.fill('#username', 'full_emp')
         page.fill('#password', 'FullPass123!')
         page.locator('.btn-submit-tech:has-text("INGRESAR")').click(force=True)

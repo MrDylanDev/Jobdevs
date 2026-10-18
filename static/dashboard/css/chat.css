@@ -88,6 +88,11 @@
 .chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
 
+/* Firefox no soporta ::-webkit-scrollbar: equivalentes estándar (RNF-12). */
+@supports not selector(::-webkit-scrollbar) {
+  .chat-messages { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent; }
+}
+
 .message-bubble {
   max-width: 65%;
   padding: 12px 16px;

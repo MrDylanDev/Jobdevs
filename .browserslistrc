@@ -1,0 +1,14 @@
+# Política de compatibilidad de navegadores (RNF-12).
+#
+# Declarativa: hoy el proyecto no tiene pipeline de Node (Tailwind se usa en modo
+# standalone), por lo que este archivo no lo consume ninguna herramienta todavía.
+# Sirve de referencia para futuras herramientas de build (Autoprefixer, Lightning
+# CSS, etc.) y documenta el objetivo de soporte.
+#
+# La verificación real se hace en CI con Playwright sobre Chrome, Firefox y Edge
+# (job `test-e2e`). Ver docs/MANUAL_TECNICO.md, sección 7.6.
+
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Edge versions
+not dead

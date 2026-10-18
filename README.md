@@ -5,7 +5,7 @@
 **Plataforma de vinculación entre empresas y talento SENA.**
 
 [![CI](https://github.com/MrDylanDev/JobDevs/actions/workflows/ci.yml/badge.svg)](https://github.com/MrDylanDev/JobDevs/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-124%20passed-brightgreen)](https://github.com/MrDylanDev/JobDevs)
+[![Tests](https://img.shields.io/badge/tests-602%20passed-brightgreen)](https://github.com/MrDylanDev/JobDevs)
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://python.org)
 [![Django](https://img.shields.io/badge/django-5.0-092e20)](https://djangoproject.com)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-16-blue)](https://postgresql.org)
@@ -208,6 +208,7 @@ JobDevs/
 ├── requirements.txt
 ├── conftest.py        # Fixtures de pytest
 ├── pytest.ini         # Configuración de tests
+├── .browserslistrc    # Política de compatibilidad de navegadores (RNF-12)
 ├── README.md
 └── LICENSE
 ```
@@ -223,11 +224,14 @@ pytest . --ignore=tests/e2e -v
 # Tests E2E (requiere Playwright)
 pytest tests/e2e/ -v -m e2e
 
+# Tests E2E en un navegador concreto (chromium, chrome, firefox, edge)
+E2E_BROWSERS=firefox pytest tests/e2e/ -v
+
 # Todos los tests
 pytest -v
 ```
 
-**124 tests** (111 unit/integration + 13 E2E) cubriendo todas las apps: usuarios, proyectos, postulaciones, contrataciones, avances, mensajes, favoritos, logs, notificaciones y tests end-to-end con navegador real.
+**602 tests** (589 unit/integration + 13 E2E por navegador) cubriendo todas las apps: usuarios, proyectos, postulaciones, contrataciones, avances, mensajes, favoritos, logs, notificaciones y tests end-to-end con navegador real. En CI los E2E corren en Chrome, Firefox y Edge (ver [compatibilidad multi-navegador](docs/MANUAL_TECNICO.md#76-compatibilidad-multi-navegador-rnf-12)).
 
 ---
 

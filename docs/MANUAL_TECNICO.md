@@ -441,6 +441,9 @@ pytest . --ignore=tests/e2e -v
 # Solo E2E (requiere Playwright y navegador)
 pytest tests/e2e/ -v -m e2e
 
+# E2E en un navegador concreto (ver sección 7.6)
+E2E_BROWSERS=firefox pytest tests/e2e/ -v
+
 # Todos
 pytest -v
 ```
@@ -460,8 +463,80 @@ apps con tests:
   notificaciones/ → test_notificaciones.py
   tests/e2e/      → test_full_workflow.py, test_auth_flows.py, test_avance_workflow.py
 
-Total: 117 tests recolectados
+Total: 602 tests recolectados (589 unitarios/integración + 13 E2E por navegador)
 ```
+
+---
+
+### 7.6 Compatibilidad multi-navegador (RNF-12)
+
+La plataforma se usa desde las **últimas versiones estables de Chrome, Firefox y Edge**.
+No se da soporte a navegadores con más de dos versiones de antigüedad, a Internet
+Explorer ni a navegadores móviles (el diseño es responsive, pero no se verifica con E2E).
+
+### Navegadores soportados
+
+| Navegador | Soporte | Verificación automática en CI |
+|---|---|---|
+| Google Chrome | Últimas 2 versiones estables | Job `E2E (chrome)` — canal `chrome` del runner |
+| Microsoft Edge | Últimas 2 versiones estables | Job `E2E (edge)` — canal `msedge` del runner |
+| Mozilla Firefox | Últimas 2 versiones estables | Job `E2E (firefox)` — Firefox instalado por Playwright |
+| Chromium | Soportado (motor de Chrome y Edge) | Local / opcional: `E2E_BROWSERS=chromium` |
+| Safari (WebKit) | Fuera de alcance | — |
+
+El workflow `.github/workflows/ci.yml` (job `test-e2e`) ejecuta los 13 tests E2E en una
+matriz de 3 navegadores, con `fail-fast: false` para que un fallo en un navegador no
+oculte el resultado de los demás. Chrome y Edge se toman de los binarios que ya traen
+los runners de GitHub (`channel='chrome'` / `channel='msedge'`); Firefox lo instala
+Playwright (`playwright install --with-deps firefox`).
+
+### Ejecutar los E2E en local
+
+La variable de entorno `E2E_BROWSERS` selecciona el navegador (por defecto `chromium`):
+
+```bash
+# Navegador por defecto (Chromium de Playwright)
+pytest tests/e2e -v
+
+# Un navegador concreto
+E2E_BROWSERS=firefox pytest tests/e2e -v
+
+# Varios navegadores en una misma sesión
+E2E_BROWSERS=chrome,firefox,edge pytest tests/e2e -v
+```
+
+Valores admitidos: `chromium`, `chrome`, `firefox`, `edge`. Los canales `chrome` y
+`edge` usan los navegadores instalados en el sistema; los motores propios de Playwright
+se instalan una vez con:
+
+```bash
+playwright install --with-deps chromium firefox
+```
+
+Al iniciar cada sesión se registra la versión realmente usada, lo que sirve como
+evidencia de la verificación:
+
+```
+[E2E] navegador firefox: versión 157.0
+```
+
+### Restricciones de compatibilidad
+
+- **JavaScript**: no hay SPA ni jQuery. El único JS externo es el bundle de Bootstrap;
+  el resto es JS propio sin transpilar, que no depende de APIs experimentales.
+- **Dependencias por CDN**: Bootstrap 5.3.3 y Font Awesome 6.5.0 (ambos con soporte
+  amplio) y Google Fonts. Si un CDN falla, la página sigue siendo usable; sólo se pierde
+  el estilo.
+- **Scrollbars**: los estilos propios usan `::-webkit-scrollbar`. Cada bloque incluye su
+  equivalente estándar (`scrollbar-width` / `scrollbar-color`) dentro de
+  `@supports not selector(::-webkit-scrollbar)`: Chromium conserva su estilo actual y
+  Firefox obtiene la scrollbar equivalente.
+- **CSS moderno**: si se incorpora una herramienta que emita sintaxis como `@property`,
+  `color-mix()`, `oklch()` o `@layer` (por ejemplo, las utilidades de Tailwind CSS v4),
+  el mínimo técnico sube a **Chrome/Edge 111+, Firefox 128+ y Safari 16.4+**. En ese caso
+  hay que actualizar esta matriz.
+- La política se declara también en `.browserslistrc` (referencia para futuras
+  herramientas de build; hoy no hay pipeline de Node).
 
 ---
 
