@@ -11,7 +11,7 @@ from contrataciones.models import Contratacion, ContratoDigital
 from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
 from proyectos.models import Equipo
-from usuarios.models import PerfilDesarrollador
+from usuarios.models import Usuario, PerfilDesarrollador
 
 @login_required
 def ver_postulaciones_empresa(request, proyecto_id):
@@ -127,26 +127,30 @@ def postularse_a_proyecto(request, proyecto_id):
         mensaje = f"CARTA DE PRESENTACIÓN:\n{carta}\n\nEXPERIENCIA:\n{experiencia}\n\nPORTAFOLIO/ENLACE:\n{link}"
         
         try:
-            # Validar duplicado
-            if Postulacion.objects.filter(proyecto=proyecto, desarrollador=request.user).exists():
-                messages.warning(request, "Ya te habías postulado a este proyecto anteriormente.")
-                return redirect('dashboard_desarrollador')
-            
-            # Validar límite de 3 postulaciones/proyectos activos
-            active_count = (
-                Postulacion.objects.filter(desarrollador=request.user, estado='pendiente').count() +
-                Contratacion.objects.filter(desarrollador=request.user, estado='activa').count()
-            )
-            if active_count >= 3:
-                messages.error(request, "Límite alcanzado: No puedes tener más de 3 postulaciones o proyectos activos.")
-                return redirect('dashboard_desarrollador')
-            
-            Postulacion.objects.create(
-                proyecto=proyecto,
-                desarrollador=request.user,
-                mensaje=mensaje,
-                estado='pendiente'
-            )
+            with transaction.atomic():
+                # Hallazgo 12: Bloquear el registro del usuario para prevenir race condition en el límite de postulaciones
+                Usuario.objects.select_for_update().get(id=request.user.id)
+
+                # Validar duplicado
+                if Postulacion.objects.filter(proyecto=proyecto, desarrollador=request.user).exists():
+                    messages.warning(request, "Ya te habías postulado a este proyecto anteriormente.")
+                    return redirect('dashboard_desarrollador')
+                
+                # Validar límite de 3 postulaciones/proyectos activos
+                active_count = (
+                    Postulacion.objects.filter(desarrollador=request.user, estado='pendiente').count() +
+                    Contratacion.objects.filter(desarrollador=request.user, estado='activa').count()
+                )
+                if active_count >= 3:
+                    messages.error(request, "Límite alcanzado: No puedes tener más de 3 postulaciones o proyectos activos.")
+                    return redirect('dashboard_desarrollador')
+                
+                Postulacion.objects.create(
+                    proyecto=proyecto,
+                    desarrollador=request.user,
+                    mensaje=mensaje,
+                    estado='pendiente'
+                )
             
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")
             return redirect('dashboard_desarrollador')
