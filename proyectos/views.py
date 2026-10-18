@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
@@ -12,6 +12,7 @@ from django.db.models.functions import Coalesce
 from datetime import datetime
 import json
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
+from . import services
 from logs.models import LogAuditoria
 from usuarios.decorators import api_ratelimit
 from usuarios.models import Usuario, PerfilDesarrollador
@@ -141,159 +142,100 @@ def crear_proyecto(request):
 
 @login_required
 def finalizar_proyecto(request, proyecto_id):
+    """Muestra la confirmación o delega finalización/valoración en los servicios.
+
+    La vista se queda con permisos, parseo del input y mensajes; las reglas de
+    negocio (estado, hitos, cupos, transiciones) viven en proyectos/services.py.
+    """
     if request.user.rol != 'empresa':
         messages.error(request, "Acceso denegado.")
         return redirect('inicio')
-    
+
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
-    
-    # Hallazgo 5: Validar estado actual del proyecto
-    if proyecto.estado not in ('en_desarrollo', 'en_revision'):
-        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto.get_estado_display()}'.")
+
+    # Prevalidación de UX: conserva los destinos de redirección específicos
+    # (hitos sin definir -> gestión de hitos; hitos pendientes -> avances).
+    try:
+        services.validar_finalizacion(proyecto)
+    except ValidationError as exc:
+        motivo = ' '.join(exc.messages)
+        messages.error(request, motivo)
+        if 'hitos definidos' in motivo:
+            return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+        if 'hitos sin completar' in motivo:
+            return redirect('ver_avances', proyecto_id=proyecto.id)
         return redirect('dashboard_empresa')
 
-    # NUEVA VALIDACIÓN ESTRICTA: Todos los hitos deben estar COMPLETADOS
-    hitos_totales = proyecto.entregables.count()
-    hitos_completados = proyecto.entregables.filter(estado='completado').count()
-    
-    if hitos_totales == 0:
-        messages.error(request, "No puedes finalizar un proyecto que no tiene hitos definidos.")
-        return redirect('gestionar_hitos', proyecto_id=proyecto.id)
-        
-    if hitos_completados < hitos_totales:
-        pendientes = hitos_totales - hitos_completados
-        messages.error(request, f"No puedes finalizar el proyecto. Aún quedan {pendientes} hitos sin completar o validar.")
-        return redirect('ver_avances', proyecto_id=proyecto.id)
-    
-    # Hallazgo 19: Usar helper del manager Contratacion.objects.desarrolladores_activos
-    desarrolladores_pendientes = Contratacion.objects.desarrolladores_activos(proyecto).exclude(
-        id__in=Valoracion.objects.filter(proyecto=proyecto, rol_evaluador='empresa').values_list('desarrollador_id', flat=True)
-    )
-    
-    # Si ya no hay desarrolladores pendientes de calificar
-    if not desarrolladores_pendientes.exists():
-        # Hallazgo 1: Separar render (GET) de acción de finalización (POST)
+    pendientes = services.desarrolladores_pendientes(proyecto)
+
+    # ── Caso A: ya todos valorados → solo falta confirmar el cierre ──
+    if not pendientes.exists():
         if request.method == 'POST':
             try:
-                with transaction.atomic():
-                    # Bloqueo pesimista: Bloqueamos la fila para asegurar que el cambio de estado sea único
-                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
-                    
-                    if proyecto_locked.estado == 'finalizado':
-                        messages.info(request, f"El proyecto '{proyecto_locked.titulo}' ya ha sido finalizado anteriormente.")
-                        return redirect('dashboard_empresa')
-
-                    if proyecto_locked.estado not in ('en_desarrollo', 'en_revision'):
-                        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto_locked.get_estado_display()}'.")
-                        return redirect('dashboard_empresa')
-
-                    # 1. Finalizar todas las contrataciones asociadas (Bulk Update)
-                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
-                    
-                    # 2. Preparar notificaciones para todo el equipo (Bulk Create)
-                    notificaciones = [
-                        Notificacion(
-                            usuario=c.desarrollador,
-                            proyecto=proyecto_locked,
-                            tipo='aprobacion',
-                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
-                        ) for c in contratos
-                    ]
-                    
-                    if notificaciones:
-                        Notificacion.objects.bulk_create(notificaciones)
-                    
-                    # 3. Actualizar contratos a 'finalizada'
-                    contratos.update(estado='finalizada')
-
-                    # 4. Finalizar el proyecto oficialmente y registrar cambio de estado
-                    estado_anterior = proyecto_locked.estado
-                    proyecto_locked.estado = 'finalizado'
-                    proyecto_locked.save()
-                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
-
-                messages.success(request, f"¡Excelente! El proyecto '{proyecto.titulo}' ha sido finalizado exitosamente.")
-                return redirect('dashboard_empresa')
+                services.finalizar_proyecto(proyecto.id, request.user)
+                messages.success(
+                    request,
+                    f"¡Excelente! El proyecto '{proyecto.titulo}' ha sido finalizado exitosamente."
+                )
+            except PermissionDenied as exc:
+                messages.error(request, str(exc))
+            except ValidationError as exc:
+                messages.error(request, ' '.join(exc.messages))
             except Exception as e:
                 messages.error(request, f"Error crítico al finalizar: {str(e)}")
-                return redirect('dashboard_empresa')
-        else:
-            return render(request, 'proyectos/finalizar.html', {
-                'proyecto': proyecto,
-                'desarrollador': None,
-                'restantes': 0
-            })
+            return redirect('dashboard_empresa')
 
-    # Tomamos el primero de la lista para evaluarlo
-    desarrollador = desarrolladores_pendientes.first()
-    restantes = desarrolladores_pendientes.count() - 1
+        return render(request, 'proyectos/finalizar.html', {
+            'proyecto': proyecto,
+            'desarrollador': None,
+            'restantes': 0
+        })
+
+    # ── Caso B: quedan colaboradores por calificar ──
+    desarrollador = pendientes.first()
+    restantes = pendientes.count() - 1
 
     if request.method == 'POST':
         try:
-            puntuacion = request.POST.get('puntuacion')
-            comentario = request.POST.get('comentario', '')
-            
-            if not puntuacion:
-                messages.error(request, "Debes seleccionar una puntuación.")
-                return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
-
-            if not 1 <= int(puntuacion) <= 5:
-                messages.error(request, "La puntuación debe estar entre 1 y 5.")
-                return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
-
-            if Valoracion.objects.filter(proyecto=proyecto, desarrollador=desarrollador, rol_evaluador='empresa').exists():
-                messages.error(request, "Ya has calificado a este desarrollador para este proyecto.")
-                return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
-
-            with transaction.atomic():
-                Valoracion.objects.create(
-                    proyecto=proyecto,
-                    empresa=request.user,
-                    desarrollador=desarrollador,
-                    puntuacion=int(puntuacion),
-                    comentario=comentario,
-                    rol_evaluador='empresa'
-                )
-
-                # Si este era el último colaborador pendiente, finalizar el proyecto en la misma acción POST
-                if restantes == 0:
-                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
-                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
-                    notificaciones = [
-                        Notificacion(
-                            usuario=c.desarrollador,
-                            proyecto=proyecto_locked,
-                            tipo='aprobacion',
-                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
-                        ) for c in contratos
-                    ]
-                    if notificaciones:
-                        Notificacion.objects.bulk_create(notificaciones)
-
-                    contratos.update(estado='finalizada')
-                    estado_anterior = proyecto_locked.estado
-                    proyecto_locked.estado = 'finalizado'
-                    proyecto_locked.save()
-                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
-
-                    messages.success(request, f"¡Excelente! Has calificado a todo el equipo y el proyecto '{proyecto.titulo}' ha finalizado.")
-                    return redirect('dashboard_empresa')
-
-            messages.success(request, f"Calificación registrada para {desarrollador.username}. " + 
-                             (f"Quedan {restantes} por calificar." if restantes > 0 else "Era el último colaborador."))
-            
-            # Recargamos la misma vista para el siguiente desarrollador
+            finalizado, restantes = services.valorar_y_finalizar_si_ultima(
+                proyecto_id=proyecto.id,
+                desarrollador_id=desarrollador.id,
+                puntuacion=request.POST.get('puntuacion'),
+                comentario=request.POST.get('comentario', ''),
+                ejecutado_por=request.user,
+            )
+        except PermissionDenied as exc:
+            messages.error(request, str(exc))
             return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
-            
+        except ValidationError as exc:
+            messages.error(request, ' '.join(exc.messages))
+            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
             return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
-    
+
+        if finalizado:
+            messages.success(
+                request,
+                f"¡Excelente! Has calificado a todo el equipo y el proyecto "
+                f"'{proyecto.titulo}' ha finalizado."
+            )
+            return redirect('dashboard_empresa')
+
+        messages.success(
+            request,
+            f"Calificación registrada para {desarrollador.username}. "
+            + (f"Quedan {restantes} por calificar." if restantes > 0 else "Era el último colaborador.")
+        )
+        # Recargamos la misma vista para el siguiente desarrollador
+        return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
+
     return render(request, 'proyectos/finalizar.html', {
         'proyecto': proyecto,
         'desarrollador': desarrollador,
         'restantes': restantes
     })
+
 
 @login_required
 def calificar_empresa(request, proyecto_id):
