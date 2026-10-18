@@ -9,8 +9,8 @@ class Postulacion(models.Model):
         ('aceptada', 'Aceptada'),
         ('rechazada', 'Rechazada'),
     ]
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='postulaciones')
-    desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol': 'desarrollador'}, related_name='mis_postulaciones')
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.PROTECT, related_name='postulaciones')
+    desarrollador = models.ForeignKey(Usuario, on_delete=models.PROTECT, limit_choices_to={'rol': 'desarrollador'}, related_name='mis_postulaciones')
     mensaje = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=25, choices=ESTADO, default='pendiente')
     fecha = models.DateTimeField(auto_now_add=True)

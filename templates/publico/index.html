@@ -545,73 +545,33 @@
     <div class="booking-layout reveal">
       <div class="booking-panel">
         <div class="booking-label">// Solicitud de proyecto</div>
-        <h3 class="booking-title">REGISTRAR PROYECTO</h3>
-        <p class="booking-desc">Describe tu requerimiento. Conectamos tu necesidad con talento SENA. Sin costo de registro, sin compromiso.</p>
+        <h3 class="booking-title">PUBLICA TU PROYECTO</h3>
+        <p class="booking-desc">Conecta tu necesidad de desarrollo con talento verificado del SENA. Crea tu cuenta de empresa, define los requerimientos de tu proyecto y recibe postulaciones de desarrolladores calificados.</p>
 
-        <form id="projectForm" class="form-stack">
-          <div class="form-row">
-            <div>
-              <label class="form-label">Nombre de empresa</label>
-              <input type="text" class="form-input" placeholder="Nombre corporativo" required>
-            </div>
-            <div>
-              <label class="form-label">Email de contacto</label>
-              <input type="email" class="form-input" placeholder="cto@empresa.com" required>
-            </div>
+        <div style="margin: 28px 0; display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--text-secondary);">Publicación de vacantes sin costos ocultos</span>
           </div>
-
-          <div>
-            <label class="form-label">Tipo de proyecto</label>
-            <div class="goal-pills" id="projectTypeSelector">
-              <span class="goal-pill active" data-type="web">Desarrollo Web</span>
-              <span class="goal-pill" data-type="api">Backend / API</span>
-              <span class="goal-pill" data-type="mobile">Mobile</span>
-              <span class="goal-pill" data-type="data">Datos / IA</span>
-              <span class="goal-pill" data-type="devops">Cloud / DevOps</span>
-            </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--text-secondary);">Verificación académica y validación de aprendices SENA</span>
           </div>
-
-          <div>
-            <label class="form-label">Stack tecnológico</label>
-            <div class="goal-pills">
-              <span class="goal-pill active">Python / Django</span>
-              <span class="goal-pill">React / Node</span>
-              <span class="goal-pill">Flutter</span>
-              <span class="goal-pill">Cloud AWS</span>
-            </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--text-secondary);">Contratos digitales seguros con trazabilidad de hitos</span>
           </div>
+        </div>
 
-          <div>
-            <label class="form-label">Tamaño del equipo</label>
-            <div class="time-slots">
-              <label class="time-slot">
-                <input type="radio" name="teamSize" class="sr-only" checked>
-                <span>2-3 DEVS<br><small>Pequeño</small></span>
-              </label>
-              <label class="time-slot">
-                <input type="radio" name="teamSize" class="sr-only">
-                <span>4-6 DEVS<br><small>Estándar</small></span>
-              </label>
-              <label class="time-slot">
-                <input type="radio" name="teamSize" class="sr-only">
-                <span>7-10 DEVS<br><small>Grande</small></span>
-              </label>
-              <label class="time-slot">
-                <input type="radio" name="teamSize" class="sr-only">
-                <span>10+ DEVS<br><small>Escala</small></span>
-              </label>
-            </div>
-          </div>
-
-          <button type="submit" class="pulse-btn btn-submit-booking">
-            <span>ENVIAR SOLICITUD</span>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <a href="{% url 'registro' %}" class="pulse-btn btn-submit-booking" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <span>CREAR CUENTA DE EMPRESA</span>
             <i class="fa fa-arrow-right"></i>
-          </button>
-
+          </a>
           <p class="form-disclaimer">
-            Sin costo de registro · Sin compromiso · Presencia nacional
+            ¿Ya tienes cuenta? <a href="/?login=1" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión aquí</a>
           </p>
-        </form>
+        </div>
       </div>
 
       <!-- Info Panels -->
@@ -657,11 +617,10 @@
       <div class="foot-brand"><div class="brand-square"></div> JobDevs</div>
       <p class="foot-desc">Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia.</p>
       <div class="newsletter-box">
-        <p>Contacto</p>
-        <form class="newsletter-form">
-          <input type="email" placeholder="tu@email.com">
-          <button type="submit"><i class="fa fa-arrow-right"></i></button>
-        </form>
+        <p>Contacto y Soporte</p>
+        <p style="font-size:13px; color:var(--text-muted); margin:0;">
+          <i class="fa fa-envelope" style="margin-right:6px; color:var(--accent);"></i>contacto@jobdevs.co
+        </p>
       </div>
     </div>
 

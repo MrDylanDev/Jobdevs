@@ -129,8 +129,8 @@
                       <i class="fa fa-file-arrow-down"></i> Descargar Archivo
                     </a>
                   {% endif %}
-                  {% if avance.archivo_url %}
-                    <a href="{{ avance.archivo_url }}" target="_blank" class="btn btn-secondary btn-sm">
+                  {% if avance.archivo_url and avance.archivo_url|slice:":4" == "http" %}
+                    <a href="{{ avance.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
                       <i class="fa fa-link"></i> Ver Enlace
                     </a>
                   {% endif %}

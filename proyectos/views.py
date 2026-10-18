@@ -2,11 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField, F
 from django.db.models.functions import Coalesce
+from datetime import datetime
 import json
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
 from logs.models import LogAuditoria
@@ -25,7 +28,8 @@ def listar_proyectos(request):
     proyectos_qs = Proyecto.objects.filter(estado='publicado').select_related(
         'empresa__perfil_empresa'
     ).annotate(
-        num_postulaciones=Count('postulaciones'),
+        # Hallazgo 10: distinct=True para evitar conteos inflados por joins adicionales
+        num_postulaciones=Count('postulaciones', distinct=True),
         empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
             filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
             Value(0.0), output_field=FloatField()),
@@ -96,6 +100,19 @@ def crear_proyecto(request):
             if categoria is None and tipo_solucion not in dict(Proyecto.TIPO_SOLUCION):
                 messages.error(request, "Error: el tipo de solución seleccionado no es válido.")
                 return redirect('dashboard_empresa')
+
+            # Hallazgo 9: Validar que fecha_limite no sea en el pasado
+            fecha_limite = request.POST.get('fecha_limite') or None
+            if fecha_limite:
+                try:
+                    fecha_limite_dt = datetime.strptime(fecha_limite, '%Y-%m-%d').date()
+                    if fecha_limite_dt < timezone.now().date():
+                        messages.error(request, "La fecha límite no puede ser anterior a la fecha actual.")
+                        return redirect('dashboard_empresa')
+                except ValueError:
+                    messages.error(request, "Formato de fecha límite inválido.")
+                    return redirect('dashboard_empresa')
+
             proyecto = Proyecto(
                 empresa=request.user,
                 titulo=request.POST.get('titulo'),
@@ -104,13 +121,19 @@ def crear_proyecto(request):
                 tipo_solucion=categoria.slug if categoria else tipo_solucion,
                 prioridad=request.POST.get('prioridad', 'media'),
                 vacantes=vacantes,
-                fecha_limite=request.POST.get('fecha_limite') or None,
+                fecha_limite=fecha_limite,
                 estado='publicado'
             )
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
+            # tipo_solucion se excluye porque admite slugs dinamicos de CategoriaSolucion
+            # (ya validado contra TIPO_SOLUCION por la vista cuando no hay categoria).
+            proyecto.full_clean(exclude=['tipo_solucion'])
             proyecto.save()
             proyecto.registrar_cambio_estado('publicado', request.user, estado_anterior=None)
             messages.success(request, f"¡Proyecto '{proyecto.titulo}' publicado exitosamente!")
             return redirect('dashboard_empresa')
+        except ValidationError as ve:
+            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
         except Exception as e:
             messages.error(request, f"Error: {e}")
             
@@ -124,6 +147,11 @@ def finalizar_proyecto(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     
+    # Hallazgo 5: Validar estado actual del proyecto
+    if proyecto.estado not in ('en_desarrollo', 'en_revision'):
+        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto.get_estado_display()}'.")
+        return redirect('dashboard_empresa')
+
     # NUEVA VALIDACIÓN ESTRICTA: Todos los hitos deben estar COMPLETADOS
     hitos_totales = proyecto.entregables.count()
     hitos_completados = proyecto.entregables.filter(estado='completado').count()
@@ -137,56 +165,64 @@ def finalizar_proyecto(request, proyecto_id):
         messages.error(request, f"No puedes finalizar el proyecto. Aún quedan {pendientes} hitos sin completar o validar.")
         return redirect('ver_avances', proyecto_id=proyecto.id)
     
-    # Buscamos quiénes faltan por calificar (Empresa califica a Desarrolladores)
-    desarrolladores_pendientes = Usuario.objects.filter(
-        id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-    ).exclude(
+    # Hallazgo 19: Usar helper del manager Contratacion.objects.desarrolladores_activos
+    desarrolladores_pendientes = Contratacion.objects.desarrolladores_activos(proyecto).exclude(
         id__in=Valoracion.objects.filter(proyecto=proyecto, rol_evaluador='empresa').values_list('desarrollador_id', flat=True)
     )
     
-    # Si ya no hay nadie más que calificar, cerramos el proyecto oficialmente
+    # Si ya no hay desarrolladores pendientes de calificar
     if not desarrolladores_pendientes.exists():
-        try:
-            with transaction.atomic():
-                # Bloqueo pesimista: Bloqueamos la fila para asegurar que el cambio de estado sea único
-                proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
-                
-                if proyecto_locked.estado == 'finalizado':
-                    messages.info(request, f"El proyecto '{proyecto_locked.titulo}' ya ha sido finalizado anteriormente.")
-                    return redirect('dashboard_empresa')
+        # Hallazgo 1: Separar render (GET) de acción de finalización (POST)
+        if request.method == 'POST':
+            try:
+                with transaction.atomic():
+                    # Bloqueo pesimista: Bloqueamos la fila para asegurar que el cambio de estado sea único
+                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
+                    
+                    if proyecto_locked.estado == 'finalizado':
+                        messages.info(request, f"El proyecto '{proyecto_locked.titulo}' ya ha sido finalizado anteriormente.")
+                        return redirect('dashboard_empresa')
 
-                # 1. Finalizar todas las contrataciones asociadas (Bulk Update)
-                contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
-                
-                # 2. Preparar notificaciones para todo el equipo (Bulk Create)
-                notificaciones = [
-                    Notificacion(
-                        usuario=c.desarrollador,
-                        proyecto=proyecto_locked,
-                        tipo='aprobacion',
-                        mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
-                    ) for c in contratos
-                ]
-                
-                if notificaciones:
-                    Notificacion.objects.bulk_create(notificaciones)
-                
-                # 3. Actualizar contratos a 'finalizada'
-                # IMPORTANTE: Se hace antes de guardar el proyecto para que el Trigger SQL funcione correctamente.
-                contratos.update(estado='finalizada')
+                    if proyecto_locked.estado not in ('en_desarrollo', 'en_revision'):
+                        messages.error(request, f"No se puede finalizar un proyecto con estado '{proyecto_locked.get_estado_display()}'.")
+                        return redirect('dashboard_empresa')
 
-                # 4. Finalizar el proyecto oficialmente
-                proyecto_locked.estado = 'finalizado'
-                proyecto_locked.save()
-                
-                # Actualización de estadísticas: Eliminada lógica redundante. 
-                # El conteo se calcula en tiempo real vía Vistas SQL.
+                    # 1. Finalizar todas las contrataciones asociadas (Bulk Update)
+                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
+                    
+                    # 2. Preparar notificaciones para todo el equipo (Bulk Create)
+                    notificaciones = [
+                        Notificacion(
+                            usuario=c.desarrollador,
+                            proyecto=proyecto_locked,
+                            tipo='aprobacion',
+                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
+                        ) for c in contratos
+                    ]
+                    
+                    if notificaciones:
+                        Notificacion.objects.bulk_create(notificaciones)
+                    
+                    # 3. Actualizar contratos a 'finalizada'
+                    contratos.update(estado='finalizada')
 
-            messages.success(request, f"¡Excelente! Has calificado a todo el equipo y el proyecto '{proyecto.titulo}' ha finalizado.")
-            return redirect('dashboard_empresa')
-        except Exception as e:
-            messages.error(request, f"Error crítico al finalizar: {str(e)}")
-            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
+                    # 4. Finalizar el proyecto oficialmente y registrar cambio de estado
+                    estado_anterior = proyecto_locked.estado
+                    proyecto_locked.estado = 'finalizado'
+                    proyecto_locked.save()
+                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
+
+                messages.success(request, f"¡Excelente! El proyecto '{proyecto.titulo}' ha sido finalizado exitosamente.")
+                return redirect('dashboard_empresa')
+            except Exception as e:
+                messages.error(request, f"Error crítico al finalizar: {str(e)}")
+                return redirect('dashboard_empresa')
+        else:
+            return render(request, 'proyectos/finalizar.html', {
+                'proyecto': proyecto,
+                'desarrollador': None,
+                'restantes': 0
+            })
 
     # Tomamos el primero de la lista para evaluarlo
     desarrollador = desarrolladores_pendientes.first()
@@ -209,14 +245,39 @@ def finalizar_proyecto(request, proyecto_id):
                 messages.error(request, "Ya has calificado a este desarrollador para este proyecto.")
                 return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
-            Valoracion.objects.create(
-                proyecto=proyecto,
-                empresa=request.user,
-                desarrollador=desarrollador,
-                puntuacion=int(puntuacion),
-                comentario=comentario,
-                rol_evaluador='empresa'
-            )
+            with transaction.atomic():
+                Valoracion.objects.create(
+                    proyecto=proyecto,
+                    empresa=request.user,
+                    desarrollador=desarrollador,
+                    puntuacion=int(puntuacion),
+                    comentario=comentario,
+                    rol_evaluador='empresa'
+                )
+
+                # Si este era el último colaborador pendiente, finalizar el proyecto en la misma acción POST
+                if restantes == 0:
+                    proyecto_locked = Proyecto.objects.select_for_update().get(id=proyecto.id)
+                    contratos = Contratacion.objects.filter(proyecto=proyecto_locked, estado='activa')
+                    notificaciones = [
+                        Notificacion(
+                            usuario=c.desarrollador,
+                            proyecto=proyecto_locked,
+                            tipo='aprobacion',
+                            mensaje=f"El proyecto '{proyecto_locked.titulo}' ha finalizado. ¡Gracias por tu trabajo!"
+                        ) for c in contratos
+                    ]
+                    if notificaciones:
+                        Notificacion.objects.bulk_create(notificaciones)
+
+                    contratos.update(estado='finalizada')
+                    estado_anterior = proyecto_locked.estado
+                    proyecto_locked.estado = 'finalizado'
+                    proyecto_locked.save()
+                    proyecto_locked.registrar_cambio_estado('finalizado', request.user, estado_anterior=estado_anterior)
+
+                    messages.success(request, f"¡Excelente! Has calificado a todo el equipo y el proyecto '{proyecto.titulo}' ha finalizado.")
+                    return redirect('dashboard_empresa')
 
             messages.success(request, f"Calificación registrada para {desarrollador.username}. " + 
                              (f"Quedan {restantes} por calificar." if restantes > 0 else "Era el último colaborador."))
@@ -277,9 +338,8 @@ def gestionar_equipos(request, proyecto_id):
     if request.user.rol != 'empresa': return redirect('inicio')
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
-    desarrolladores = Usuario.objects.filter(
-        id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-    )
+    # Hallazgo 19: Usar helper del manager Contratacion
+    desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
 
     if desarrolladores.count() < 2:
         messages.warning(request, "Para crear grupos o parejas se requieren al menos 2 desarrolladores contratados.")
@@ -290,6 +350,12 @@ def gestionar_equipos(request, proyecto_id):
         miembros_ids = request.POST.getlist('miembros')
         
         if nombre and miembros_ids:
+            # Hallazgo 8: Validar que todos los miembros pertenezcan a los desarrolladores activos contratados
+            dev_ids_activos = set(str(uid) for uid in desarrolladores.values_list('id', flat=True))
+            if not all(str(m) in dev_ids_activos for m in miembros_ids):
+                messages.error(request, "Error: Solo puedes asignar desarrolladores contratados y activos en este proyecto.")
+                return redirect('gestionar_equipos', proyecto_id=proyecto.id)
+
             equipo = Equipo.objects.create(nombre=nombre, proyecto=proyecto)
             equipo.miembros.set(miembros_ids)
             
@@ -327,6 +393,11 @@ def gestionar_hitos(request, proyecto_id):
     hitos = Entregable.objects.filter(proyecto=proyecto).order_by('fecha_creacion')
 
     if request.method == 'POST':
+        # Hallazgo 16: No permitir crear hitos en proyectos finalizados, inactivos o rechazados
+        if proyecto.estado in ('finalizado', 'inactivo', 'rechazado'):
+            messages.error(request, f"No se pueden agregar hitos a un proyecto {proyecto.get_estado_display().lower()}.")
+            return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+
         titulo = request.POST.get('titulo')
         descripcion = request.POST.get('descripcion')
         equipo_id = request.POST.get('equipo_id')
@@ -358,9 +429,8 @@ def gestionar_hitos(request, proyecto_id):
                     )
             else:
                 # Avisar a todos los contratados en el proyecto (Hito General)
-                desarrolladores = Usuario.objects.filter(
-                    id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-                )
+                # Hallazgo 19: Usar helper del manager Contratacion
+                desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
                 for dev in desarrolladores:
                     Notificacion.objects.create(
                         usuario=dev,
@@ -372,11 +442,13 @@ def gestionar_hitos(request, proyecto_id):
             return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
     equipos = proyecto.equipos.all()
+    tiene_multiples_contratos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() >= 2
 
     return render(request, 'proyectos/gestionar_hitos.html', {
         'proyecto': proyecto, 
         'hitos': hitos,
-        'equipos': equipos
+        'equipos': equipos,
+        'tiene_multiples_contratos': tiene_multiples_contratos,
     })
 
 @login_required
@@ -425,6 +497,18 @@ def editar_proyecto(request, proyecto_id):
             messages.error(request, "Las vacantes deben ser un número mayor o igual a 1.")
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
 
+        # Hallazgo 9: Validar que fecha_limite no sea en el pasado
+        fecha_limite = request.POST.get('fecha_limite') or None
+        if fecha_limite:
+            try:
+                fecha_limite_dt = datetime.strptime(fecha_limite, '%Y-%m-%d').date()
+                if fecha_limite_dt < timezone.now().date():
+                    messages.error(request, "La fecha límite no puede ser anterior a la fecha actual.")
+                    return redirect('editar_proyecto', proyecto_id=proyecto.id)
+            except ValueError:
+                messages.error(request, "Formato de fecha límite inválido.")
+                return redirect('editar_proyecto', proyecto_id=proyecto.id)
+
         try:
             proyecto.titulo = request.POST.get('titulo')
             proyecto.descripcion = request.POST.get('descripcion')
@@ -437,11 +521,18 @@ def editar_proyecto(request, proyecto_id):
             proyecto.tipo_solucion = categoria.slug if categoria else tipo_solucion
             proyecto.prioridad = request.POST.get('prioridad', 'media')
             proyecto.vacantes = vacantes
-            proyecto.fecha_limite = request.POST.get('fecha_limite') or None
+            proyecto.fecha_limite = fecha_limite
+            # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
+            # tipo_solucion se excluye porque admite slugs dinamicos de CategoriaSolucion
+            # (ya validado contra TIPO_SOLUCION por la vista cuando no hay categoria).
+            proyecto.full_clean(exclude=['tipo_solucion'])
             proyecto.save()
 
             messages.success(request, f"Proyecto '{proyecto.titulo}' actualizado exitosamente.")
             return redirect('dashboard_empresa')
+        except ValidationError as ve:
+            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
+            return redirect('editar_proyecto', proyecto_id=proyecto.id)
         except Exception as e:
             messages.error(request, f"Error: {e}")
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
@@ -459,7 +550,8 @@ def desactivar_proyecto(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     
-    if proyecto.estado == 'publicado' or proyecto.estado == 'en_desarrollo':
+    # Hallazgo 7: Permitir retirar proyectos en_revision además de publicado y en_desarrollo
+    if proyecto.estado in ('publicado', 'en_desarrollo', 'en_revision'):
         with transaction.atomic():
             estado_anterior = proyecto.estado
             proyecto.estado = 'inactivo'
@@ -469,7 +561,11 @@ def desactivar_proyecto(request, proyecto_id):
             proyecto.registrar_cambio_estado('inactivo', request.user, estado_anterior=estado_anterior)
             
             # 2. Gestionar Postulaciones y Notificaciones en bloque
-            postulaciones = Postulacion.objects.filter(proyecto=proyecto).select_related('desarrollador')
+            # Hallazgo 6: Filtrar solo postulaciones pendientes o en negociación
+            postulaciones = Postulacion.objects.filter(
+                proyecto=proyecto,
+                estado__in=['pendiente', 'en_negociacion']
+            ).select_related('desarrollador')
             
             if postulaciones.exists():
                 # Notificaciones masivas para postulantes

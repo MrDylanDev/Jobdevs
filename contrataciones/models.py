@@ -5,6 +5,15 @@ from django.db import models
 from usuarios.models import Usuario
 from proyectos.models import Proyecto
 
+class ContratacionManager(models.Manager):
+    def desarrolladores_activos(self, proyecto):
+        """Retorna queryset de Usuarios con contratación activa en el proyecto."""
+        from usuarios.models import Usuario
+        return Usuario.objects.filter(
+            id__in=self.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
+        )
+
+
 class Contratacion(models.Model):
     ESTADO = [
         ('activa', 'Activa'),
@@ -12,11 +21,13 @@ class Contratacion(models.Model):
         ('cancelada', 'Cancelada'),
         ('en_disputa', 'En Disputa'),
     ]
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='contrataciones')
-    desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='contrataciones_dev')
-    empresa = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='contrataciones_emp')
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.PROTECT, related_name='contrataciones')
+    desarrollador = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='contrataciones_dev')
+    empresa = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='contrataciones_emp')
     fecha_inicio = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=25, choices=ESTADO, default='activa')
+
+    objects = ContratacionManager()
 
     class Meta:
         db_table = 'contrataciones'

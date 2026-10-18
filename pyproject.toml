@@ -11,6 +11,7 @@ dependencies = [
     "pillow",
     "gunicorn>=22.0.0",
     "django-tailwind>=4.6.0",
+    "django-browser-reload>=1.21.0",
 ]
 
 [project.optional-dependencies]

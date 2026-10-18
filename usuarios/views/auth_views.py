@@ -89,6 +89,9 @@ def login_view(request):
         return render(request, 'admin/login.html', {'form': form, 'next': next_url})
     return redirect('/?login=1')
 
+from django.views.decorators.http import require_http_methods
+
+@require_http_methods(["GET", "POST"])
 def logout_view(request):
     logout(request)
     return redirect('inicio')

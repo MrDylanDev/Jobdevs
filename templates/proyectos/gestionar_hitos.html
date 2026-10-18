@@ -100,7 +100,7 @@
                   {% endif %}
                 </div>
                 <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ hito.descripcion|default:"Sin descripción adicional." }}</p>
-                {% if proyecto.contrataciones.all.count >= 2 %}
+                {% if tiene_multiples_contratos %}
                   <div style="margin-top:8px; font-size:11px;">
                     {% if hito.equipo %}
                       <span style="color:var(--info); font-weight:600;"><i class="fa fa-users" style="margin-right:4px;"></i>{{ hito.equipo.nombre }}</span>
@@ -111,9 +111,12 @@
                 {% endif %}
               </div>
               {% if hito.estado == 'pendiente' %}
-                <a href="{% url 'eliminar_hito' hito.id %}" class="btn btn-danger btn-sm">
-                  <i class="fa fa-trash"></i>
-                </a>
+                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este hito?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm" title="Eliminar hito">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </form>
               {% endif %}
             </div>
           </div>

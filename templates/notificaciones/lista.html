@@ -8,7 +8,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center bg-white">
                     <h4 class="mb-0">Tus Notificaciones</h4>
                     <div>
-                        <a href="{% url 'notificaciones_marcar_todas_leidas' %}" class="btn btn-sm btn-outline-primary">Marcar todas como leídas</a>
+                        <form method="post" action="{% url 'notificaciones_marcar_todas_leidas' %}" style="display:inline; margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Marcar todas como leídas</button>
+                        </form>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -28,7 +31,10 @@
                                             {% endif %}
                                         </div>
                                         {% if not noti.leida %}
-                                            <a href="{% url 'notificacion_marcar_leida' noti.id %}" class="btn btn-sm btn-link text-decoration-none">Marcar como leída</a>
+                                            <form method="post" action="{% url 'notificacion_marcar_leida' noti.id %}" style="display:inline; margin:0;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-link text-decoration-none">Marcar como leída</button>
+                                            </form>
                                         {% endif %}
                                     </div>
                                 </div>

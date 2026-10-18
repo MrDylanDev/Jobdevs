@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -140,9 +140,9 @@ class Valoracion(models.Model):
         ('empresa', 'Empresa'),
         ('desarrollador', 'Desarrollador'),
     ]
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='valoraciones', db_column='proyecto_id')
-    empresa = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='valoraciones_como_empresa', db_column='empresa_id')
-    desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='valoraciones_como_dev', db_column='desarrollador_id')
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.PROTECT, related_name='valoraciones', db_column='proyecto_id')
+    empresa = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='valoraciones_como_empresa', db_column='empresa_id')
+    desarrollador = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='valoraciones_como_dev', db_column='desarrollador_id')
     rol_evaluador = models.CharField(max_length=20, choices=ROL_EVALUADOR, default='empresa')
     puntuacion = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comentario = models.TextField(blank=True, null=True)
@@ -191,16 +191,17 @@ class Entregable(models.Model):
 
     def save(self, *args, **kwargs):
         usuario = kwargs.pop('cambiado_por', None)
-        
-        if self.estado == 'pendiente' and self.proyecto.estado == 'en_revision':
-            proyecto = self.proyecto
-            estado_anterior = proyecto.estado
-            proyecto.estado = 'en_desarrollo'
-            proyecto.save()
-            # Registrar el cambio de estado para la auditoría
-            proyecto.registrar_cambio_estado('en_desarrollo', usuario, estado_anterior=estado_anterior)
-            
-        super().save(*args, **kwargs)
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            if self.estado == 'pendiente' and self.proyecto.estado == 'en_revision':
+                proyecto = self.proyecto
+                estado_anterior = proyecto.estado
+                proyecto.estado = 'en_desarrollo'
+                proyecto.save()
+                # Registrar el cambio de estado para la auditoría
+                proyecto.registrar_cambio_estado('en_desarrollo', usuario, estado_anterior=estado_anterior)
 
 class Equipo(models.Model):
     nombre = models.CharField(max_length=100)

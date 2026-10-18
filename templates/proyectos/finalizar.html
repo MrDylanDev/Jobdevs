@@ -42,14 +42,30 @@
           </div>
         </div>
 
+        {% if not desarrollador %}
+        <div class="card" style="text-align:center; padding:30px 20px;">
+          <i class="fa fa-circle-check" style="font-size:48px; color:var(--success); margin-bottom:15px; display:block;"></i>
+          <div class="card-title" style="font-size:18px; margin-bottom:8px;">Calificaciones Completadas</div>
+          <p style="font-size:14px; color:var(--text-secondary); margin-bottom:24px;">Todos los colaboradores del proyecto <strong>{{ proyecto.titulo }}</strong> han sido calificados. Presiona el botón para finalizar el proyecto oficialmente.</p>
+          <form method="post">
+            {% csrf_token %}
+            <div style="display:flex; gap:12px; justify-content:center;">
+              <a href="{% url 'dashboard_empresa' %}" class="btn btn-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-success">
+                <i class="fa fa-flag-checkered"></i> Confirmar y Finalizar Proyecto
+              </button>
+            </div>
+          </form>
+        </div>
+        {% else %}
         <div class="card" style="border-left:4px solid var(--success); margin-bottom:20px; padding:18px 22px;">
           <div class="card-title" style="font-size:17px; margin-bottom:4px;">{{ proyecto.titulo }}</div>
           <div style="font-size:13px; color:var(--text-secondary);">
             Calificando a: <strong>{{ desarrollador.nombre|default:desarrollador.username }}</strong>
           </div>
-          {% if pendientes_count > 1 %}
+          {% if restantes > 0 %}
             <div class="msg-error" style="margin-top:12px;">
-              <i class="fa fa-triangle-exclamation"></i> Faltan {{ pendientes_count }} desarrolladores por calificar.
+              <i class="fa fa-triangle-exclamation"></i> Faltan {{ restantes }} colaboradores por calificar.
             </div>
           {% endif %}
         </div>
@@ -82,6 +98,7 @@
             </div>
           </form>
         </div>
+        {% endif %}
 
       </div>
     </main>
