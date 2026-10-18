@@ -105,8 +105,18 @@ def postularse_a_proyecto(request, proyecto_id):
         messages.error(request, "El proyecto solicitado no existe.")
         return redirect('dashboard_desarrollador')
 
+    # Hallazgo 17: Evitar auto-postulación
+    if proyecto.empresa_id == request.user.id:
+        messages.error(request, "No puedes postularte a un proyecto publicado por tu propia cuenta.")
+        return redirect('dashboard_desarrollador')
+
     if proyecto.estado != 'publicado':
         messages.warning(request, f"Lo sentimos, el proyecto '{proyecto.titulo}' ya no acepta postulaciones (Estado: {proyecto.get_estado_display()}).")
+        return redirect('dashboard_desarrollador')
+
+    # Hallazgo 9: Validar si la fecha límite de postulación ya venció
+    if proyecto.fecha_limite and proyecto.fecha_limite < timezone.now().date():
+        messages.warning(request, f"El plazo de postulación para '{proyecto.titulo}' venció el {proyecto.fecha_limite}.")
         return redirect('dashboard_desarrollador')
     
     if request.method == 'POST':
