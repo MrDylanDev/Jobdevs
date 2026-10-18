@@ -336,9 +336,8 @@ def gestionar_equipos(request, proyecto_id):
     if request.user.rol != 'empresa': return redirect('inicio')
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
-    desarrolladores = Usuario.objects.filter(
-        id__in=Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-    )
+    # Hallazgo 19: Usar helper del manager Contratacion
+    desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
 
     if desarrolladores.count() < 2:
         messages.warning(request, "Para crear grupos o parejas se requieren al menos 2 desarrolladores contratados.")
@@ -349,6 +348,12 @@ def gestionar_equipos(request, proyecto_id):
         miembros_ids = request.POST.getlist('miembros')
         
         if nombre and miembros_ids:
+            # Hallazgo 8: Validar que todos los miembros pertenezcan a los desarrolladores activos contratados
+            dev_ids_activos = set(str(uid) for uid in desarrolladores.values_list('id', flat=True))
+            if not all(str(m) in dev_ids_activos for m in miembros_ids):
+                messages.error(request, "Error: Solo puedes asignar desarrolladores contratados y activos en este proyecto.")
+                return redirect('gestionar_equipos', proyecto_id=proyecto.id)
+
             equipo = Equipo.objects.create(nombre=nombre, proyecto=proyecto)
             equipo.miembros.set(miembros_ids)
             
