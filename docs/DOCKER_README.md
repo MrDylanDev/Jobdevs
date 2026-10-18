@@ -1,6 +1,6 @@
-# 🐳 TEIR - Guía de Docker
+# 🐳 JobDevs - Guía de Docker
 
-Guía completa para ejecutar el proyecto TEIR usando Docker.
+Guía completa para ejecutar el proyecto JobDevs usando Docker.
 
 ---
 
@@ -53,7 +53,7 @@ Abre tu navegador en: **http://localhost**
 ##  Estructura de Archivos Docker
 
 ```
-TEIR/
+JobDevs/
 ├── Dockerfile              # Imagen multi-stage de Django
 ├── docker-compose.yml      # Orquestación de servicios
 ├── .dockerignore           # Archivos excluidos del build

@@ -28,24 +28,24 @@ class TestFullWorkflowE2E:
         client = Client()
 
         empresa = User.objects.create_user(
-            username='full_emp', email='full_emp@t.teir',
+            username='full_emp', email='full_emp@t.jobdevs',
             nombre='Full Empresa', rol='empresa', estado='activo',
             password='FullPass123!',
         )
         # Ensure admin exists for dashboard templates
         if not User.objects.filter(rol='administrador').exists():
             User.objects.create_user(
-                username='full_admin', email='full_admin@t.teir',
+                username='full_admin', email='full_admin@t.jobdevs',
                 nombre='Full Admin', rol='administrador', estado='activo',
                 password='FullPass123!',
             )
         dev1 = User.objects.create_user(
-            username='full_dev1', email='full_dev1@t.teir',
+            username='full_dev1', email='full_dev1@t.jobdevs',
             nombre='Full Dev 1', rol='desarrollador', estado='activo',
             password='FullPass123!',
         )
         dev2 = User.objects.create_user(
-            username='full_dev2', email='full_dev2@t.teir',
+            username='full_dev2', email='full_dev2@t.jobdevs',
             nombre='Full Dev 2', rol='desarrollador', estado='activo',
             password='FullPass123!',
         )

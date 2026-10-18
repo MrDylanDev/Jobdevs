@@ -12,7 +12,7 @@ User = get_user_model()
 def notif_user(db):
     return User.objects.create_user(
         username='notif_user',
-        email='notif@test.teir',
+        email='notif@test.jobdevs',
         nombre='Notif User',
         rol='desarrollador',
         password='TestPassword123*',

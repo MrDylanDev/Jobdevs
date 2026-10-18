@@ -26,7 +26,7 @@ class TestDashboardAdmin:
         """Admin dashboard includes statistics."""
         response = admin_client.get(reverse('dashboard_admin'))
         content = response.content.decode()
-        assert 'Panel Administrador' in content or 'TEIR' in content
+        assert 'Panel Administrador' in content or 'JobDevs' in content
         assert response.status_code == 200
 
     def test_dashboard_lists_users(self, admin_client, empresa_user, desarrollador_user):
@@ -128,12 +128,12 @@ class TestApiBulkToggle:
     def test_admin_bulk_activate(self, admin_client, db):
         """Admin can bulk activate users."""
         user1 = User.objects.create_user(
-            username='bulk1', email='bulk1@t.teir', nombre='B1',
+            username='bulk1', email='bulk1@t.jobdevs', nombre='B1',
             rol='desarrollador', estado='suspendido', is_active=False,
             password='TestPass123!',
         )
         user2 = User.objects.create_user(
-            username='bulk2', email='bulk2@t.teir', nombre='B2',
+            username='bulk2', email='bulk2@t.jobdevs', nombre='B2',
             rol='desarrollador', estado='suspendido', is_active=False,
             password='TestPass123!',
         )
@@ -155,7 +155,7 @@ class TestApiBulkToggle:
         """Admin can bulk suspend users and their active sessions are deleted (SCRUM-44)."""
         import json
         user2 = User.objects.create_user(
-            username='bulk3', email='bulk3@t.teir', nombre='B3',
+            username='bulk3', email='bulk3@t.jobdevs', nombre='B3',
             rol='desarrollador', estado='activo',
             password='TestPass123!',
         )

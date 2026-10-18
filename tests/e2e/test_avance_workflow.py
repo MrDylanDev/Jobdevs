@@ -16,14 +16,14 @@ class TestAvanceWorkflowE2E:
         """Idempotent setup for avance workflow."""
         empresa, _ = User.objects.get_or_create(
             username='e2e_av_emp',
-            defaults={'email': 'e2e_av_emp@t.teir', 'nombre': 'E2E Emp',
+            defaults={'email': 'e2e_av_emp@t.jobdevs', 'nombre': 'E2E Emp',
                       'rol': 'empresa', 'estado': 'activo'},
         )
         empresa.set_password('E2ETest123!')
         empresa.save()
         dev, _ = User.objects.get_or_create(
             username='e2e_av_dev',
-            defaults={'email': 'e2e_av_dev@t.teir', 'nombre': 'E2E Dev',
+            defaults={'email': 'e2e_av_dev@t.jobdevs', 'nombre': 'E2E Dev',
                       'rol': 'desarrollador', 'estado': 'activo'},
         )
         dev.set_password('E2ETest123!')

@@ -6,7 +6,7 @@ if 'pytest' not in sys.modules and not any('pytest' in arg for arg in sys.argv):
     raise RuntimeError("config.settings_test solo debe ser importado en entornos de prueba con pytest.")
 
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'True')
-os.environ.setdefault('DJANGO_SECRET_KEY', 'django-insecure-test-key-teir-postgresql-migration')
+os.environ.setdefault('DJANGO_SECRET_KEY', 'django-insecure-test-key-jobdevs-postgresql-migration')
 os.environ.setdefault('DJANGO_DEBUG', 'True')
 
 from .settings import *

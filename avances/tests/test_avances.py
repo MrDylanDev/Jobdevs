@@ -15,12 +15,12 @@ class TestAvanceModel:
     def test_crear_avance(self, db):
         """Avance links to proyecto and entregable."""
         empresa = User.objects.create_user(
-            username='ae', email='ae@test.teir',
+            username='ae', email='ae@test.jobdevs',
             nombre='AE', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         dev = User.objects.create_user(
-            username='ad', email='ad@test.teir',
+            username='ad', email='ad@test.jobdevs',
             nombre='AD', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -42,7 +42,7 @@ class TestAvanceModel:
     def test_avance_str(self, db):
         """__str__ includes proyecto and entregable."""
         empresa = User.objects.create_user(
-            username='ae2', email='ae2@test.teir',
+            username='ae2', email='ae2@test.jobdevs',
             nombre='AE2', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -55,7 +55,7 @@ class TestAvanceModel:
             proyecto=proyecto, titulo='H2', descripcion='H2',
         )
         dev = User.objects.create_user(
-            username='ad2', email='ad2@test.teir',
+            username='ad2', email='ad2@test.jobdevs',
             nombre='AD2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -146,12 +146,12 @@ class TestRegistrarAvance:
         response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
             'entregable_id': entregable.id,
             'descripcion': 'Enlace al repo',
-            'archivo_url': 'https://github.com/mrdylan/teir',
+            'archivo_url': 'https://github.com/mrdylan/jobdevs',
         }, follow=True)
         assert response.status_code == 200
         assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
         avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
-        assert avance.archivo_url == 'https://github.com/mrdylan/teir'
+        assert avance.archivo_url == 'https://github.com/mrdylan/jobdevs'
 
     def test_registrar_avance_sin_url_ni_archivo_muestra_error(self, dev_client, desarrollador_user, escenario_avance):
         """Si no se ingresa ni URL ni archivo adjunto, se rechaza la solicitud."""

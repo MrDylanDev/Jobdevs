@@ -1,13 +1,13 @@
 #!/bin/bash
 # ============================================================
-# TEIR - Docker Entrypoint
+# JobDevs - Docker Entrypoint
 # Inicializacion automatica del contenedor web
 # ============================================================
 
 set -e
 
 echo "============================================"
-echo "  TEIR - Iniciando aplicacion..."
+echo "  JobDevs - Iniciando aplicacion..."
 echo "============================================"
 
 # ---- 1. Esperar a que PostgreSQL esté listo ----
@@ -57,7 +57,7 @@ echo "[OK] Archivos estaticos recolectados"
 # ---- 4. Iniciar Gunicorn ----
 echo ""
 echo "============================================"
-echo "  TEIR listo - Iniciando Gunicorn"
+echo "  JobDevs listo - Iniciando Gunicorn"
 echo "  Escuchando en 0.0.0.0:8000"
 echo "  Workers: 3"
 echo "============================================"

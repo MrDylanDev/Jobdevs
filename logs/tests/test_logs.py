@@ -12,7 +12,7 @@ class TestLogAuditoriaModel:
     def test_crear_log(self, db):
         """LogAuditoria records user actions."""
         user = User.objects.create_user(
-            username='lg', email='lg@test.teir',
+            username='lg', email='lg@test.jobdevs',
             nombre='LG', rol='administrador', estado='activo',
             password='TestPass123!',
         )
@@ -27,7 +27,7 @@ class TestLogAuditoriaModel:
     def test_log_str(self, db):
         """__str__ shows usuario and accion."""
         user = User.objects.create_user(
-            username='lg2', email='lg2@test.teir',
+            username='lg2', email='lg2@test.jobdevs',
             nombre='LG2', rol='administrador', estado='activo',
             password='TestPass123!',
         )

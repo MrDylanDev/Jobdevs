@@ -1,5 +1,5 @@
 # ============================================================
-# TEIR - Dockerfile Multi-Stage
+# JobDevs - Dockerfile Multi-Stage
 # Proyecto Django + MySQL (PyMySQL) + Gunicorn
 # ============================================================
 
@@ -33,8 +33,8 @@ RUN uv venv /opt/venv && \
 FROM python:3.14-slim AS production
 
 # Metadatos de la imagen
-LABEL maintainer="TEIR Team"
-LABEL description="TEIR - Plataforma de Gestión de Proyectos"
+LABEL maintainer="JobDevs Team"
+LABEL description="JobDevs - Plataforma de Gestión de Proyectos"
 LABEL version="1.0"
 
 # Evitar prompts interactivos y configurar Python

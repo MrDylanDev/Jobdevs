@@ -12,7 +12,7 @@ class TestNotificacionModel:
     def test_crear_notificacion(self, db):
         """Notificacion links to usuario."""
         user = User.objects.create_user(
-            username='nu', email='nu@test.teir',
+            username='nu', email='nu@test.jobdevs',
             nombre='NU', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -26,7 +26,7 @@ class TestNotificacionModel:
     def test_notificacion_str(self, db):
         """__str__ shows usuario and titulo."""
         user = User.objects.create_user(
-            username='nu2', email='nu2@test.teir',
+            username='nu2', email='nu2@test.jobdevs',
             nombre='NU2', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )
@@ -49,7 +49,7 @@ class TestListaNotificaciones:
         """Auditoría SCRUM-160: Lista de notificaciones usa select_related para evitar N+1 y pagina."""
         from proyectos.models import Proyecto
         empresa = User.objects.create_user(
-            username='emp_noti', email='emp_noti@test.teir',
+            username='emp_noti', email='emp_noti@test.jobdevs',
             rol='empresa', password='TestPassword123!',
         )
         proyectos = [

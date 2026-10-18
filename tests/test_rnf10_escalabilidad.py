@@ -46,7 +46,7 @@ def db_masivo(db, empresa_user):
     """10.001 proyectos + datos relacionados para la empresa bajo prueba."""
     otras = [
         User.objects.create_user(
-            username=f'otra_emp_{i}', email=f'otra{i}@teir',
+            username=f'otra_emp_{i}', email=f'otra{i}@jobdevs',
             nombre=f'Otra {i}', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -55,7 +55,7 @@ def db_masivo(db, empresa_user):
     mios = _seed_masivo(empresa_user, otras)
     devs = [
         User.objects.create_user(
-            username=f'dev_rnf_{i}', email=f'devrnf{i}@teir',
+            username=f'dev_rnf_{i}', email=f'devrnf{i}@jobdevs',
             nombre=f'Dev {i}', rol='desarrollador', estado='activo',
             password='TestPass123!',
         )

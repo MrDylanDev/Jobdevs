@@ -1,7 +1,7 @@
-# Base de Datos — TEIR
+# Base de Datos — JobDevs
 
 ## Arquitectura
-La base de datos principal de TEIR es **PostgreSQL 16**.
+La base de datos principal de JobDevs es **PostgreSQL 16**.
 
 ### Inicialización y Migraciones
 El esquema de base de datos se genera y mantiene exclusivamente a través del sistema de migraciones nativo de Django:
@@ -22,7 +22,7 @@ Esto generará:
 - **Administrador:** `admin_demo`
 - **Empresa:** `empresa_demo`
 - **Desarrollador:** `dev_demo`
-- Contraseña por defecto: `Teir2026*`
+- Contraseña por defecto: `Jobdevs2026*`
 
 ### Archivo legado `database/init.sql`
 El archivo `init.sql` se conserva únicamente como referencia histórica del esquema relacional DDL original de MySQL. No se monta en los contenedores ni contiene credenciales o datos de producción.

@@ -1,4 +1,4 @@
-# API Reference — TEIR
+# API Reference — JobDevs
 
 > Endpoints REST disponibles para el panel de administración.
 > Base URL: `http://localhost/api/`
@@ -32,7 +32,7 @@ GET /api/
     "id": 1,
     "username": "devtest",
     "nombre": "Dev Test",
-    "email": "devtest@teir.edu.co",
+    "email": "devtest@jobdevs.edu.co",
     "rol": "desarrollador",
     "identificacion": "1234567890"
   }
@@ -55,7 +55,7 @@ GET /api/<id>/
   "id": 1,
   "username": "devtest",
   "nombre": "Dev Test",
-  "email": "devtest@teir.edu.co",
+  "email": "devtest@jobdevs.edu.co",
   "rol": "desarrollador",
   "identificacion": "1234567890",
   "estado": "activo"
@@ -76,7 +76,7 @@ POST /api/crear/
 ```json
 {
   "username": "nuevo_dev",
-  "email": "nuevo@teir.edu.co",
+  "email": "nuevo@jobdevs.edu.co",
   "password": "SecurePass123!",
   "rol": "desarrollador"
 }
@@ -225,7 +225,7 @@ curl -b cookies.txt \
 curl -b cookies.txt \
   -H "Content-Type: application/json" \
   -H "X-CSRFToken: $CSRF" \
-  -d '{"username":"test","email":"test@teir.edu.co","password":"Test123!","rol":"desarrollador"}' \
+  -d '{"username":"test","email":"test@jobdevs.edu.co","password":"Test123!","rol":"desarrollador"}' \
   http://localhost/api/crear/
 
 # Suspender usuarios en lote

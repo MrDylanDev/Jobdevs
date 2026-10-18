@@ -1,5 +1,5 @@
 /* =========================================
-   TEIR // SYSTEM.ROOT — Landing Interactions
+   JobDevs // SYSTEM.ROOT — Landing Interactions
    ========================================= */
 document.addEventListener('DOMContentLoaded', function () {
 

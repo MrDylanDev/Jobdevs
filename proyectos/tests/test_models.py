@@ -11,7 +11,7 @@ class TestProyectoModel:
     def test_crear_proyecto(self, db):
         """Proyecto can be created with minimum fields."""
         empresa = User.objects.create_user(
-            username='proy_empresa', email='proy@test.teir',
+            username='proy_empresa', email='proy@test.jobdevs',
             nombre='Proy Empresa', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -32,7 +32,7 @@ class TestProyectoModel:
     def test_proyecto_str(self, db):
         """__str__ returns titulo + estado."""
         empresa = User.objects.create_user(
-            username='p2', email='p2@test.teir',
+            username='p2', email='p2@test.jobdevs',
             nombre='P2', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -46,7 +46,7 @@ class TestProyectoModel:
     def test_registrar_cambio_estado(self, db):
         """registrar_cambio_estado creates a history entry."""
         empresa = User.objects.create_user(
-            username='p3', email='p3@test.teir',
+            username='p3', email='p3@test.jobdevs',
             nombre='P3', rol='empresa', estado='activo',
             password='TestPass123!',
         )
@@ -62,7 +62,7 @@ class TestProyectoModel:
     def test_estados_disponibles(self, db):
         """Proyecto can transition through estados."""
         empresa = User.objects.create_user(
-            username='p4', email='p4@test.teir',
+            username='p4', email='p4@test.jobdevs',
             nombre='P4', rol='empresa', estado='activo',
             password='TestPass123!',
         )

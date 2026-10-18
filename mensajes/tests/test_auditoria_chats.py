@@ -12,7 +12,7 @@ URL_NAME = 'admin_auditar_mensajes'
 
 def _user(username, nombre, rol='desarrollador'):
     return User.objects.create_user(
-        username=username, email=f'{username}@test.teir', nombre=nombre,
+        username=username, email=f'{username}@test.jobdevs', nombre=nombre,
         rol=rol, estado='activo', password='TestPass123!',
     )
 

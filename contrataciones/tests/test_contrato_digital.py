@@ -13,11 +13,11 @@ User = get_user_model()
 @pytest.fixture
 def postulacion(db):
     empresa = User.objects.create_user(
-        username='cd_emp', email='cd_emp@test.teir', nombre='CD Emp',
+        username='cd_emp', email='cd_emp@test.jobdevs', nombre='CD Emp',
         rol='empresa', estado='activo', password='TestPass123!',
     )
     dev = User.objects.create_user(
-        username='cd_dev', email='cd_dev@test.teir', nombre='CD Dev',
+        username='cd_dev', email='cd_dev@test.jobdevs', nombre='CD Dev',
         rol='desarrollador', estado='activo', password='TestPass123!',
     )
     proyecto = Proyecto.objects.create(
@@ -130,7 +130,7 @@ def dev_c(contrato):
 @pytest.fixture
 def tercero_c(db):
     User.objects.create_user(
-        username='cd_ext', email='cd_ext@test.teir', nombre='Externo',
+        username='cd_ext', email='cd_ext@test.jobdevs', nombre='Externo',
         rol='desarrollador', estado='activo', password='TestPass123!',
     )
     return _login('cd_ext')
@@ -290,7 +290,7 @@ class TestFirmarContratoDigital:
     def test_activacion_rechaza_pendientes_si_se_llena_cupo(self, empresa_c, dev_c, contrato):
         proyecto = contrato.postulacion.proyecto  # vacantes por defecto = 1
         otro = User.objects.create_user(
-            username='cd_otro', email='cd_otro@test.teir', nombre='Otro',
+            username='cd_otro', email='cd_otro@test.jobdevs', nombre='Otro',
             rol='desarrollador', estado='activo', password='TestPass123!',
         )
         pendiente = Postulacion.objects.create(proyecto=proyecto, desarrollador=otro, estado='pendiente')

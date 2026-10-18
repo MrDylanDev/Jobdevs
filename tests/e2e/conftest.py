@@ -46,7 +46,7 @@ def test_empresa(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         return User.objects.create_user(
             username='e2e_empresa',
-            email='e2e_empresa@test.teir',
+            email='e2e_empresa@test.jobdevs',
             nombre='E2E Empresa',
             rol='empresa',
             estado='activo',
@@ -60,7 +60,7 @@ def test_dev(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         return User.objects.create_user(
             username='e2e_dev',
-            email='e2e_dev@test.teir',
+            email='e2e_dev@test.jobdevs',
             nombre='E2E Dev',
             rol='desarrollador',
             estado='activo',
@@ -75,7 +75,7 @@ def ensure_admin_exists(django_db_setup, django_db_blocker):
         if not User.objects.filter(rol='administrador').exists():
             User.objects.create_user(
                 username='e2e_admin',
-                email='e2e_admin@teir.edu.co',
+                email='e2e_admin@jobdevs.edu.co',
                 nombre='E2E Admin',
                 rol='administrador',
                 estado='activo',
