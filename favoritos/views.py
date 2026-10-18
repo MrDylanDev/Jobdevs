@@ -10,24 +10,18 @@ from proyectos.models import Proyecto
 @login_required
 @require_POST
 def toggle_favorito(request, proyecto_id):
-    """Añadir o quitar un proyecto de favoritos (solo proyectos en estado publicado)"""
+    """Añadir o quitar un proyecto de favoritos (permite remover favoritos de cualquier estado)"""
     if request.user.rol != 'desarrollador':
         return redirect('inicio')
         
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='publicado')
-    
-    try:
-        favorito, created = Favorito.objects.get_or_create(
-            desarrollador=request.user,
-            proyecto=proyecto
-        )
-        if not created:
-            favorito.delete()
-            messages.success(request, "Proyecto eliminado de favoritos.")
-        else:
-            messages.success(request, "Proyecto añadido a favoritos.")
-    except Exception as e:
-        messages.error(request, f"Error al procesar favorito: {e}")
+    favorito = Favorito.objects.filter(desarrollador=request.user, proyecto_id=proyecto_id).first()
+    if favorito:
+        favorito.delete()
+        messages.success(request, "Proyecto eliminado de favoritos.")
+    else:
+        proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='publicado')
+        Favorito.objects.create(desarrollador=request.user, proyecto=proyecto)
+        messages.success(request, "Proyecto añadido a favoritos.")
         
     referer = request.META.get('HTTP_REFERER')
     if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):

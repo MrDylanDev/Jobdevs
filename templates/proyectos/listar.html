@@ -97,7 +97,7 @@
                     {% if request.user.rol == 'desarrollador' %}
                     <form method="post" action="{% url 'toggle_favorito' proyecto.id %}" style="display:inline; margin:0; padding:0;">
                         {% csrf_token %}
-                        <button type="submit" title="Guardar en favoritos" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
+                        <button type="submit" aria-label="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" title="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
                             {% if proyecto.id in favoritos_ids %}<i class="fa-solid fa-heart" style="color:var(--danger)"></i>{% else %}<i class="fa-regular fa-heart" style="color:var(--text-muted)"></i>{% endif %}
                         </button>
                     </form>

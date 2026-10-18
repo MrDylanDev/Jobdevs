@@ -115,7 +115,7 @@ def postularse_a_proyecto(request, proyecto_id):
         return redirect('dashboard_desarrollador')
 
     # Hallazgo 9: Validar si la fecha límite de postulación ya venció
-    if proyecto.fecha_limite and proyecto.fecha_limite < timezone.now().date():
+    if proyecto.fecha_limite and proyecto.fecha_limite < timezone.localdate():
         messages.warning(request, f"El plazo de postulación para '{proyecto.titulo}' venció el {proyecto.fecha_limite}.")
         return redirect('dashboard_desarrollador')
     
@@ -138,7 +138,7 @@ def postularse_a_proyecto(request, proyecto_id):
                 
                 # Validar límite de 3 postulaciones/proyectos activos
                 active_count = (
-                    Postulacion.objects.filter(desarrollador=request.user, estado='pendiente').count() +
+                    Postulacion.objects.filter(desarrollador=request.user, estado__in=['pendiente', 'en_negociacion']).count() +
                     Contratacion.objects.filter(desarrollador=request.user, estado='activa').count()
                 )
                 if active_count >= 3:

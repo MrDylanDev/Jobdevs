@@ -484,7 +484,6 @@ version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "django" },
-    { name = "django-browser-reload" },
     { name = "django-tailwind" },
     { name = "gunicorn" },
     { name = "pillow" },
@@ -494,6 +493,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "django-browser-reload" },
     { name = "django-tailwind", extra = ["cookiecutter", "honcho", "reload"] },
     { name = "playwright" },
     { name = "pytest" },
@@ -505,7 +505,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "django", specifier = ">=5.0.0" },
-    { name = "django-browser-reload", specifier = ">=1.21.0" },
+    { name = "django-browser-reload", marker = "extra == 'dev'", specifier = ">=1.21.0" },
     { name = "django-tailwind", specifier = ">=4.6.0" },
     { name = "django-tailwind", extras = ["cookiecutter", "honcho", "reload"], marker = "extra == 'dev'", specifier = ">=4.6.0" },
     { name = "gunicorn", specifier = ">=22.0.0" },
