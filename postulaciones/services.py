@@ -74,10 +74,11 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
             estado='activa',
         )
 
+        nombre_equipo = f'Equipo {proyecto.titulo}'[:100]
         equipo, _ = Equipo.objects.get_or_create(
             proyecto=proyecto,
-            nombre=f'Equipo {proyecto.titulo}',
-            defaults={'nombre': f'Equipo {proyecto.titulo}'},
+            nombre=nombre_equipo,
+            defaults={'nombre': nombre_equipo},
         )
         equipo.miembros.add(postulacion.desarrollador)
 
@@ -107,7 +108,7 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
             accion=(
                 f"Aceptó postulación de {postulacion.desarrollador.nombre} "
                 f"en {proyecto.titulo}"
-            ),
+            )[:300],
             tabla_afectada='postulaciones',
             registro_id=postulacion.id,
         )

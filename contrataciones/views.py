@@ -96,10 +96,11 @@ def activar_contratacion_formal(contrato, empresa):
         proyecto=proyecto, empresa=empresa, desarrollador=desarrollador, estado='activa')
     contrato.contratacion = contratacion
 
+    nombre_equipo = f'Equipo {proyecto.titulo}'[:100]
     equipo, _ = Equipo.objects.get_or_create(
         proyecto=proyecto,
-        nombre=f'Equipo {proyecto.titulo}',
-        defaults={'nombre': f'Equipo {proyecto.titulo}'},
+        nombre=nombre_equipo,
+        defaults={'nombre': nombre_equipo},
     )
     equipo.miembros.add(desarrollador)
 
@@ -129,7 +130,7 @@ def activar_contratacion_formal(contrato, empresa):
         accion=(
             f"Contrato digital #{contrato.id} firmado por ambas partes; contratación formalizada de "
             f"{desarrollador.nombre} en {proyecto.titulo}"
-        ),
+        )[:300],
         tabla_afectada='contratos_digitales',
         registro_id=contrato.id,
     )

@@ -214,3 +214,9 @@ class Equipo(models.Model):
 
     def __str__(self):
         return f"{self.nombre} (Proyecto: {self.proyecto.titulo})"
+
+    def save(self, *args, **kwargs):
+        if self.nombre and len(self.nombre) > 100:
+            self.nombre = self.nombre[:100]
+        super().save(*args, **kwargs)
+

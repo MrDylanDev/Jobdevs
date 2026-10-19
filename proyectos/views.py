@@ -292,6 +292,11 @@ def gestionar_equipos(request, proyecto_id):
         miembros_ids = request.POST.getlist('miembros')
         
         if nombre and miembros_ids:
+            nombre = (request.POST.get('nombre') or '').strip()[:100]
+            if not nombre:
+                messages.error(request, "El nombre del equipo es obligatorio.")
+                return redirect('gestionar_equipos', proyecto_id=proyecto.id)
+
             # Hallazgo 8: Validar que todos los miembros pertenezcan a los desarrolladores activos contratados
             dev_ids_activos = set(str(uid) for uid in desarrolladores.values_list('id', flat=True))
             if not all(str(m) in dev_ids_activos for m in miembros_ids):
@@ -301,15 +306,15 @@ def gestionar_equipos(request, proyecto_id):
             equipo = Equipo.objects.create(nombre=nombre, proyecto=proyecto)
             equipo.miembros.set(miembros_ids)
             
-            # Notificación: Avisar a cada miembro
+            # Notificación: Avisar a cada miembro usando equipo.nombre consistente
             for miembro_id in miembros_ids:
                 Notificacion.objects.create(
                     usuario_id=miembro_id,
                     tipo='mensaje',
-                    mensaje=f"Has sido asignado al equipo '{nombre}' en el proyecto: {proyecto.titulo}"
+                    mensaje=f"Has sido asignado al equipo '{equipo.nombre}' en el proyecto: {proyecto.titulo}"
                 )
             
-            messages.success(request, f"Equipo '{nombre}' creado y miembros notificados.")
+            messages.success(request, f"Equipo '{equipo.nombre}' creado y miembros notificados.")
             return redirect('gestionar_equipos', proyecto_id=proyecto.id)
 
     equipos = proyecto.equipos.all().prefetch_related('miembros')
