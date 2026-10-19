@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/listar.css' %}">
 </head>
-<body>
+<body data-user-rol="{{ request.user.rol }}">
 
 <div class="app-layout">
 
@@ -61,8 +61,16 @@
       </div>
 
       <!-- Barra de Filtros -->
-      <form method="get" class="filters-bar">
-          <div class="filter-group">
+      <form method="get" class="filters-bar" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+          {% csrf_token %}
+          <div class="filter-group" style="flex:1; min-width:200px;">
+              <label class="form-label">Buscar proyecto</label>
+              <div style="position:relative;">
+                  <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="Buscar por título o palabra clave..." style="padding-left:34px;">
+                  <i class="fa fa-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px;"></i>
+              </div>
+          </div>
+          <div class="filter-group" style="min-width:180px;">
               <label class="form-label">Tipo de Solución</label>
               <select name="tipo" class="form-select">
                   <option value="">Todas las opciones</option>
@@ -71,7 +79,7 @@
                   {% endfor %}
               </select>
           </div>
-          <div class="filter-group">
+          <div class="filter-group" style="min-width:140px;">
               <label class="form-label">Prioridad</label>
               <select name="prioridad" class="form-select">
                   <option value="">Todas</option>
@@ -82,7 +90,7 @@
           </div>
           <div style="display:flex;gap:12px;height:40px;">
             <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Filtrar</button>
-            {% if request.GET.tipo or request.GET.prioridad %}
+            {% if request.GET.tipo or request.GET.prioridad or request.GET.q %}
                 <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary">Limpiar</a>
             {% endif %}
           </div>
@@ -197,5 +205,6 @@
 </div>
 
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
+<script src="{% static 'dashboard/script/catalogo_async.js' %}"></script>
 </body>
 </html>
