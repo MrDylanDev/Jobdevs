@@ -11,6 +11,7 @@ from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField, F
 from django.db.models.functions import Coalesce
 from datetime import datetime
 import json
+from django.core.paginator import Paginator
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
 from . import services
 from logs.models import LogAuditoria
@@ -48,8 +49,12 @@ def listar_proyectos(request):
         proyectos_qs = proyectos_qs.exclude(id__in=postulaciones_ids)
         favoritos_ids = list(Favorito.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True))
 
+    paginator = Paginator(proyectos_qs.order_by('-fecha_publicacion'), 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     proyectos = []
-    for p in proyectos_qs.order_by('-fecha_publicacion'):
+    for p in page_obj:
         logo = p.empresa.perfil_empresa.logo.url if (
             hasattr(p.empresa, 'perfil_empresa') and p.empresa.perfil_empresa.logo
         ) else None
@@ -73,6 +78,7 @@ def listar_proyectos(request):
 
     return render(request, 'proyectos/listar.html', {
         'proyectos': proyectos,
+        'page_obj': page_obj,
         'favoritos_ids': favoritos_ids,
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     })

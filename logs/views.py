@@ -2,7 +2,8 @@ import csv
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Value, FloatField
+from django.db.models.functions import Coalesce
 from proyectos.models import Proyecto, Valoracion
 from usuarios.models import Usuario, PerfilDesarrollador, PerfilEmpresa
 
@@ -43,7 +44,7 @@ def reporte_proyectos_csv(request):
 
 @login_required
 def reporte_aprendices_csv(request):
-    """Generar reporte de desempeño de aprendices en CSV"""
+    """Generar reporte de desempeño de aprendices en CSV (SCRUM-177 / sin N+1)"""
     if request.user.rol != 'administrador':
         return redirect('inicio')
 
@@ -53,17 +54,24 @@ def reporte_aprendices_csv(request):
     writer = csv.writer(response)
     writer.writerow(['Usuario', 'Nombre', 'Programa', 'Ficha', 'Promedio', 'Proyectos'])
 
-    aprendices = PerfilDesarrollador.objects.select_related('usuario').all()
+    aprendices = PerfilDesarrollador.objects.select_related('usuario').annotate(
+        promedio_estrellas=Coalesce(
+            Avg(
+                'usuario__valoraciones_como_dev__puntuacion',
+                filter=Q(usuario__valoraciones_como_dev__rol_evaluador='empresa')
+            ),
+            Value(0.0),
+            output_field=FloatField()
+        )
+    ).order_by('usuario__username')
+
     for a in aprendices:
-        # Calcular promedio real de estrellas recibidas de empresas
-        promedio = Valoracion.objects.filter(desarrollador=a.usuario, rol_evaluador='empresa').aggregate(Avg('puntuacion'))['puntuacion__avg'] or 0
-        
         writer.writerow([
             a.usuario.username,
             a.usuario.nombre,
             a.programa_formacion or '-',
             a.ficha or '-',
-            round(promedio, 2),
+            round(a.promedio_estrellas, 2),
             a.num_proyectos_completados
         ])
     return response
@@ -84,7 +92,7 @@ def reporte_vista_impresion(request):
 
 @login_required
 def reporte_empresas_csv(request):
-    """Generar reporte de todas las empresas en CSV (Excel)"""
+    """Generar reporte de todas las empresas en CSV (Excel) (SCRUM-177 / sin N+1)"""
     if request.user.rol != 'administrador':
         return redirect('inicio')
         
@@ -94,12 +102,19 @@ def reporte_empresas_csv(request):
     writer = csv.writer(response)
     writer.writerow(['Empresa', 'NIT', 'Sector', 'Ciudad', 'Telefono', 'Email', 'Proyectos Publicados', 'Reputación (★)'])
     
-    empresas = PerfilEmpresa.objects.select_related('usuario').all()
+    empresas = PerfilEmpresa.objects.select_related('usuario').annotate(
+        proyectos_count=Count('usuario__proyectos_empresa', distinct=True),
+        promedio_estrellas=Coalesce(
+            Avg(
+                'usuario__valoraciones_como_empresa__puntuacion',
+                filter=Q(usuario__valoraciones_como_empresa__rol_evaluador='desarrollador')
+            ),
+            Value(0.0),
+            output_field=FloatField()
+        )
+    ).order_by('usuario__username')
+
     for e in empresas:
-        proyectos_count = Proyecto.objects.filter(empresa=e.usuario).count()
-        # Calcular promedio de reputación recibida de desarrolladores
-        promedio = Valoracion.objects.filter(empresa=e.usuario, rol_evaluador='desarrollador').aggregate(Avg('puntuacion'))['puntuacion__avg'] or 0
-        
         writer.writerow([
             e.nombre_empresa or e.usuario.username,
             e.usuario.identificacion or '-',
@@ -107,8 +122,8 @@ def reporte_empresas_csv(request):
             e.ciudad or '-',
             e.telefono or '-',
             e.usuario.email,
-            proyectos_count,
-            round(promedio, 2)
+            e.proyectos_count,
+            round(e.promedio_estrellas, 2)
         ])
         
     return response

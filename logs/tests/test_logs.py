@@ -38,6 +38,21 @@ class TestLogAuditoriaModel:
         assert 'lg2' in str(log)
         assert 'LOGIN' in str(log)
 
+    def test_log_auditoria_trunca_automaticamente_accion_larga(self, db):
+        """SCRUM-179: LogAuditoria.save() trunca automáticamente strings > 300 caracteres."""
+        accion_larga = 'Accion super detallada ' * 25  # ~600 caracteres
+        tabla_larga = 'nombre_de_tabla_gigante_' * 10   # ~240 caracteres
+        log = LogAuditoria.objects.create(
+            accion=accion_larga,
+            tabla_afectada=tabla_larga,
+        )
+        assert len(log.accion) == 300
+        assert len(log.tabla_afectada) == 100
+        log.refresh_from_db()
+        assert len(log.accion) == 300
+        assert len(log.tabla_afectada) == 100
+
+
 
 class TestReportes:
     """Tests for report views (admin only)."""
@@ -51,3 +66,38 @@ class TestReportes:
         """Anonymous cannot access reports."""
         response = client.get(reverse('reporte_vista_impresion'))
         assert response.status_code == 302
+
+    def test_reporte_aprendices_csv_sin_n_mas_1(self, admin_client, db):
+        """SCRUM-177: reporte_aprendices_csv ejecuta un número acotado de consultas con .annotate()."""
+        from usuarios.models import PerfilDesarrollador
+        for i in range(5):
+            u = User.objects.create_user(
+                username=f'csv_dev_{i}', email=f'csvdev{i}@test.jobdevs',
+                nombre=f'Dev {i}', rol='desarrollador',
+            )
+            PerfilDesarrollador.objects.get_or_create(usuario=u)
+
+        response = admin_client.get(reverse('reporte_aprendices_csv'))
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'text/csv'
+        content = response.content.decode('utf-8')
+        assert 'Usuario,Nombre,Programa,Ficha,Promedio,Proyectos' in content
+        assert 'csv_dev_0' in content
+
+    def test_reporte_empresas_csv_sin_n_mas_1(self, admin_client, db):
+        """SCRUM-177: reporte_empresas_csv ejecuta una sola ráfaga SQL con .annotate()."""
+        from usuarios.models import PerfilEmpresa
+        for i in range(5):
+            u = User.objects.create_user(
+                username=f'csv_emp_{i}', email=f'csvemp{i}@test.jobdevs',
+                nombre=f'Emp {i}', rol='empresa',
+            )
+            PerfilEmpresa.objects.get_or_create(usuario=u)
+
+        response = admin_client.get(reverse('reporte_empresas_csv'))
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'text/csv'
+        content = response.content.decode('utf-8')
+        assert 'Empresa,NIT,Sector,Ciudad,Telefono,Email,Proyectos Publicados,Reputación (★)' in content
+        assert 'csv_emp_0' in content
+

@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 # Seguridad: impedir importaciones accidentales fuera de suites de pruebas con pytest
 if 'pytest' not in sys.modules and not any('pytest' in arg for arg in sys.argv):
@@ -64,5 +65,10 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+
+# SCRUM-180: Aislar MEDIA_ROOT en carpeta temporal para no ensuciar media/ local en tests
+import tempfile
+MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='jobdevs_test_media_'))
+
 
 

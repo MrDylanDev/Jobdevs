@@ -40,18 +40,20 @@ def enable_db_access_for_all_tests(db):
 @pytest.fixture(autouse=True)
 def ensure_admin_exists(db):
     """
-    Ensure at least one admin exists so dashboard templates
-    that reference admin_id don't crash with None.
+    SCRUM-185: Asegura que exista al menos un admin para que templates no fallen,
+    evitando el cómputo de hashing de contraseñas en cada test.
     """
     if not User.objects.filter(rol='administrador').exists():
-        User.objects.create_user(
+        admin = User(
             username='system_admin',
             email='system@jobdevs.edu.co',
             nombre='System Admin',
             rol='administrador',
             estado='activo',
-            password='AdminPass123!',
+            is_active=True,
+            password='!',
         )
+        admin.save()
 
 
 @pytest.fixture

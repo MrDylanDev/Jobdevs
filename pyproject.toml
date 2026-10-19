@@ -41,6 +41,7 @@ addopts = [
     "--tb=short",
     "--strict-markers",
     "-p", "no:warnings",
+    "-m", "not e2e",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
