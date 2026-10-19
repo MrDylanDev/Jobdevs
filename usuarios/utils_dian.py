@@ -64,3 +64,9 @@ def formatear_nit(numero: str | int, dv: int | str | None = None) -> str:
     if dv is None:
         dv = calcular_dv_dian(digitos)
     return f"{int(digitos):,}".replace(",", ".") + f"-{dv}"
+
+
+async def validar_nit_dian_api_async(nit_con_o_sin_dv: str | int, **kwargs):
+    """Valida un NIT de forma asíncrona contra la API externa DIAN con degradación elegante (SCRUM-190)."""
+    from .clients_external import consultar_nit_dian_api
+    return await consultar_nit_dian_api(nit_con_o_sin_dv, **kwargs)
