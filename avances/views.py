@@ -1,4 +1,6 @@
 import os
+import zipfile
+from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -16,7 +18,7 @@ MAX_AVANCE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def _validar_archivo_adjunto(archivo):
-    """Valida tamaño, extensión y cabecera mágica (magic bytes) de la evidencia (SCRUM-168)."""
+    """Valida tamaño, extensión, cabecera mágica y consistencia estructural (SCRUM-168)."""
     if not archivo:
         return None
     if archivo.size > MAX_AVANCE_BYTES:
@@ -29,14 +31,27 @@ def _validar_archivo_adjunto(archivo):
     cabecera = archivo.read(16)
     archivo.seek(0)
 
-    if ext == '.pdf' and not cabecera.startswith(b'%PDF-'):
-        return "El archivo no es un documento PDF válido."
-    if ext == '.zip' and not (cabecera.startswith(b'PK\x03\x04') or cabecera.startswith(b'PK\x05\x06')):
-        return "El archivo no es un archivo ZIP válido."
-    if ext == '.png' and not cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
-        return "El archivo no es una imagen PNG válida."
-    if ext in ('.jpg', '.jpeg') and not cabecera.startswith(b'\xff\xd8\xff'):
-        return "El archivo no es una imagen JPG válida."
+    if ext == '.pdf':
+        if not cabecera.startswith(b'%PDF-'):
+            return "El archivo no es un documento PDF válido."
+    elif ext == '.zip':
+        if not (cabecera.startswith(b'PK\x03\x04') or cabecera.startswith(b'PK\x05\x06')):
+            return "El archivo no es un archivo ZIP válido."
+        if not zipfile.is_zipfile(archivo):
+            return "El archivo no es un archivo ZIP válido o está dañado."
+        archivo.seek(0)
+    elif ext in ('.png', '.jpg', '.jpeg'):
+        if ext == '.png' and not cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
+            return "El archivo no es una imagen PNG válida."
+        if ext in ('.jpg', '.jpeg') and not cabecera.startswith(b'\xff\xd8\xff'):
+            return "El archivo no es una imagen JPG válida."
+        try:
+            with Image.open(archivo) as img:
+                img.verify()
+        except Exception:
+            return f"El archivo no es una imagen {ext[1:].upper()} válida o está dañada."
+        finally:
+            archivo.seek(0)
 
     return None
 

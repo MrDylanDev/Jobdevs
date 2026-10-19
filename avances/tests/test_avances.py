@@ -1,4 +1,7 @@
+import io
+import zipfile
 import pytest
+from PIL import Image
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -7,6 +10,21 @@ from contrataciones.models import Contratacion
 from avances.models import Avance
 
 User = get_user_model()
+
+
+def _crear_zip_valido():
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        zf.writestr('evidencia.txt', 'codigo fuente verificado')
+    return buf.getvalue()
+
+
+def _crear_png_valido():
+    buf = io.BytesIO()
+    img = Image.new('RGB', (10, 10), color='blue')
+    img.save(buf, format='PNG')
+    return buf.getvalue()
+
 
 
 class TestAvanceModel:
@@ -126,7 +144,7 @@ class TestRegistrarAvance:
     def test_registrar_avance_con_archivo_adjunto_sin_url(self, dev_client, desarrollador_user, escenario_avance):
         """RF 4.2.1 (SCRUM-64): Desarrollador puede subir archivo real de evidencia sin URL."""
         proyecto, entregable, _ = escenario_avance
-        archivo = SimpleUploadedFile("codigo.zip", b"PK\x03\x04 fake zip content", content_type="application/zip")
+        archivo = SimpleUploadedFile("codigo.zip", _crear_zip_valido(), content_type="application/zip")
 
         response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
             'entregable_id': entregable.id,
@@ -195,9 +213,9 @@ class TestRegistrarAvance:
         assert 'El archivo no es un documento PDF válido' in content
 
     def test_registrar_avance_acepta_png_con_magic_bytes_validos(self, dev_client, desarrollador_user, escenario_avance):
-        """SCRUM-168: Se aceptan imágenes PNG válidas con su cabecera mágica."""
+        """SCRUM-168: Se aceptan imágenes PNG válidas con su cabecera mágica y estructura verificada."""
         proyecto, entregable, _ = escenario_avance
-        archivo = SimpleUploadedFile("captura.png", b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR", content_type="image/png")
+        archivo = SimpleUploadedFile("captura.png", _crear_png_valido(), content_type="image/png")
         response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
             'entregable_id': entregable.id,
             'descripcion': 'Captura de pantalla como evidencia',

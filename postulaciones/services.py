@@ -108,7 +108,7 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
             accion=(
                 f"Aceptó postulación de {postulacion.desarrollador.nombre} "
                 f"en {proyecto.titulo}"
-            ),
+            )[:300],
             tabla_afectada='postulaciones',
             registro_id=postulacion.id,
         )
