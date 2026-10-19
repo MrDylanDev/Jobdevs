@@ -77,5 +77,11 @@ CHANNEL_LAYERS = {
 import tempfile
 MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='jobdevs_test_media_'))
 
+# Celery in eager mode for tests (SCRUM-197: ejecución síncrona sin workers externos)
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'cache+memory://'
+
 
 

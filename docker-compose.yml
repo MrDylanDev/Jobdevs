@@ -63,10 +63,60 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-teir_password}
       - DB_NAME=${DB_NAME:-teir_db}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      - EMAIL_HOST=mailpit
+      - EMAIL_PORT=1025
+      - EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,web}
     volumes:
       - static_files:/app/staticfiles
+      - media_files:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - teir_network
+
+  # -------------------- Mailpit (Servidor SMTP y Web UI local - SCRUM-197) --------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: teir_mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"  # SMTP
+      - "127.0.0.1:8025:8025"  # Web UI
+    networks:
+      - teir_network
+
+  # -------------------- Celery Background Worker (SCRUM-197) --------------------
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: teir_celery_worker
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "-l", "info"]
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-teir_user}
+      - DB_PASSWORD=${DB_PASSWORD:-teir_password}
+      - DB_NAME=${DB_NAME:-teir_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      - EMAIL_HOST=mailpit
+      - EMAIL_PORT=1025
+      - EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+    volumes:
       - media_files:/app/media
     depends_on:
       db:
