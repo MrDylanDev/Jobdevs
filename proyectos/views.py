@@ -26,6 +26,7 @@ from notificaciones.models import Notificacion
 def listar_proyectos(request):
     tipo = request.GET.get('tipo')
     prioridad = request.GET.get('prioridad')
+    q = request.GET.get('q', '').strip()
     
     proyectos_qs = Proyecto.objects.filter(estado='publicado').select_related(
         'empresa__perfil_empresa'
@@ -41,6 +42,10 @@ def listar_proyectos(request):
         proyectos_qs = proyectos_qs.filter(tipo_solucion=tipo)
     if prioridad:
         proyectos_qs = proyectos_qs.filter(prioridad=prioridad)
+    if q:
+        proyectos_qs = proyectos_qs.filter(
+            Q(titulo__icontains=q) | Q(descripcion__icontains=q)
+        )
 
     favoritos_ids = []
     if request.user.rol == 'desarrollador':
@@ -74,6 +79,29 @@ def listar_proyectos(request):
             'empresa_verificada': perfil.es_verificada if perfil else False,
             'empresa_badge': perfil.badge_info if perfil else None,
             'empresa_estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
+        })
+
+    is_ajax = (
+        request.headers.get('Accept') == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+    if is_ajax:
+        proyectos_json = []
+        for p in proyectos:
+            item = dict(p)
+            if item.get('fecha_publicacion'):
+                item['fecha_publicacion'] = item['fecha_publicacion'].strftime('%d/%m/%Y')
+            proyectos_json.append(item)
+
+        return JsonResponse({
+            'status': 'ok',
+            'proyectos': proyectos_json,
+            'favoritos_ids': favoritos_ids,
+            'total_proyectos': paginator.count,
+            'total_paginas': paginator.num_pages,
+            'pagina_actual': page_obj.number,
+            'tiene_siguiente': page_obj.has_next(),
+            'tiene_anterior': page_obj.has_previous(),
         })
 
     return render(request, 'proyectos/listar.html', {

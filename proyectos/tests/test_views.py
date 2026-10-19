@@ -96,6 +96,49 @@ class TestListarProyectos:
         assert response2.status_code == 200
         assert len(response2.context['proyectos']) >= 3
 
+    def test_listar_proyectos_busqueda_q(self, auth_client, empresa_user):
+        """SCRUM-195: Búsqueda por texto libre en título o descripción."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Backend Django Asincrono',
+            descripcion='Servicios REST y Channels', tipo_solucion='sitio_web', estado='publicado',
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Frontend Vue SPA',
+            descripcion='Interfaces web', tipo_solucion='sitio_web', estado='publicado',
+        )
+
+        response = auth_client.get(reverse('listar_proyectos') + '?q=django')
+        assert response.status_code == 200
+        titulos = [p['titulo'] for p in response.context['proyectos']]
+        assert 'Backend Django Asincrono' in titulos
+        assert 'Frontend Vue SPA' not in titulos
+
+    def test_listar_proyectos_ajax_retorna_json(self, auth_client, empresa_user):
+        """SCRUM-195: Petición con Accept: application/json retorna estructura JSON para Fetch."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto JSON Test',
+            descripcion='Desc', tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = auth_client.get(
+            reverse('listar_proyectos'),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert isinstance(data['proyectos'], list)
+        assert data['total_proyectos'] >= 1
+        assert 'total_paginas' in data
+        assert 'pagina_actual' in data
+
+    def test_template_listar_proyectos_incluye_buscador_y_catalogo_async(self, auth_client):
+        """SCRUM-195: El template proyectos/listar.html contiene el input de búsqueda q y carga catalogo_async.js."""
+        with open('templates/proyectos/listar.html', 'r', encoding='utf-8') as f:
+            content = f.read()
+        assert 'name="q"' in content
+        assert 'catalogo_async.js' in content
+
 
 
 class TestCrearProyecto:
