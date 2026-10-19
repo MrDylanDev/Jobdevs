@@ -207,3 +207,9 @@ def admin_resolver_verificacion_desarrollador(perfil_id, admin_user, accion, not
         )
 
     return True, f'Solicitud {accion}ada con éxito.'
+
+
+async def validar_ficha_sena_api_async(numero_ficha: str | int, **kwargs):
+    """Valida una ficha de forma asíncrona contra API externa SENA con fallback a lista blanca local (SCRUM-190)."""
+    from .clients_external import consultar_ficha_sena_api
+    return await consultar_ficha_sena_api(numero_ficha, **kwargs)
