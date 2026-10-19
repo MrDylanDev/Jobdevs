@@ -85,7 +85,11 @@ class TestPlanDeIndices:
 
     def _plan(self, sql, params=()):
         with connection.cursor() as cur:
-            prefix = 'EXPLAIN' if connection.vendor == 'postgresql' else 'EXPLAIN QUERY PLAN'
+            if connection.vendor == 'postgresql':
+                cur.execute('SET LOCAL enable_seqscan = off;')
+                prefix = 'EXPLAIN'
+            else:
+                prefix = 'EXPLAIN QUERY PLAN'
             cur.execute(f'{prefix} {sql}', params)
             return ' | '.join(str(r[-1]) for r in cur.fetchall())
 
