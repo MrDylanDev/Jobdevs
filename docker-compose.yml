@@ -99,7 +99,7 @@ services:
       dockerfile: Dockerfile
     container_name: teir_celery_worker
     restart: unless-stopped
-    command: ["celery", "-A", "config", "worker", "-l", "info"]
+    command: ["celery", "-A", "config", "worker", "-B", "-l", "info"]
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}

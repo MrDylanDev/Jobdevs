@@ -278,3 +278,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# Celery Beat Periodic Tasks (SCRUM-200)
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'purgar-notificaciones-medianoche': {
+        'task': 'notificaciones.purgar_notificaciones_antiguas',
+        'schedule': crontab(hour=0, minute=0),
+        'kwargs': {'dias': 30, 'incluir_no_leidas': False},
+    },
+}
