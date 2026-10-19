@@ -305,6 +305,22 @@ class TestRecoveryView:
         assert empresa_user.token_recuperacion is not None
         assert empresa_user.token_expiracion is not None
 
+    def test_recovery_token_almacenado_como_sha256(self, client, empresa_user):
+        """SCRUM-174: El token en la BD es el hash SHA-256 del token plano enviado en el email."""
+        import hashlib
+        import re
+        client.post(reverse('recuperar'), {'email': 'empresa@test.jobdevs'})
+        empresa_user.refresh_from_db()
+        email_body = mail.outbox[0].body
+        # Extraer token del enlace /restablecer/<token>/
+        match = re.search(r'/restablecer/([^/\s]+)/', email_body)
+        assert match is not None
+        token_plano = match.group(1)
+        expected_hash = hashlib.sha256(token_plano.encode('utf-8')).hexdigest()
+        assert empresa_user.token_recuperacion == expected_hash
+        assert empresa_user.token_recuperacion != token_plano
+
+
     def test_recovery_post_unknown_email_no_leak(self, client):
         """POST with unknown email still shows success (security)."""
         response = client.post(reverse('recuperar'), {

@@ -179,3 +179,21 @@ class PerfilDesarrolladorForm(forms.ModelForm):
             'ficha': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número de Ficha'}),
             'habilidades': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Lista tus habilidades (ej: Python, Java, SQL...)'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # SCRUM-171: Si el desarrollador ya está verificado, bloquear ficha y programa de formación
+        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+            self.fields['ficha'].disabled = True
+            self.fields['programa_formacion'].disabled = True
+
+    def clean_ficha(self):
+        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+            return self.instance.ficha
+        return (self.cleaned_data.get('ficha') or '').strip()
+
+    def clean_programa_formacion(self):
+        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+            return self.instance.programa_formacion
+        return (self.cleaned_data.get('programa_formacion') or '').strip()
+

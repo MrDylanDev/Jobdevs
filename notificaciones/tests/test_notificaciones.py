@@ -75,3 +75,23 @@ class TestListaNotificaciones:
         """Anonymous cannot view notifications."""
         response = client.get(reverse('notificaciones_lista'))
         assert response.status_code == 302
+
+    def test_marcar_todas_leidas_requiere_post(self, dev_client):
+        """SCRUM-173: marcar_todas_leidas rechaza peticiones GET con 405 Method Not Allowed."""
+        response = dev_client.get(reverse('notificaciones_marcar_todas_leidas'))
+        assert response.status_code == 405
+
+    def test_marcar_todas_leidas_actualiza_y_respeta_referer(self, dev_client, desarrollador_user):
+        """SCRUM-173: marca todas como leídas y redirige al referer de forma segura."""
+        Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N1', leida=False)
+        Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N2', leida=False)
+        assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 2
+
+        response = dev_client.post(
+            reverse('notificaciones_marcar_todas_leidas'),
+            HTTP_REFERER='/desarrollador/dashboard/'
+        )
+        assert response.status_code == 302
+        assert response.url == '/desarrollador/dashboard/'
+        assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 0
+

@@ -3,7 +3,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import IntegrityError
+from django.db.models import Q
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from ..models import Usuario
 from ..decorators import api_ratelimit
 from ..utils import invalidar_sesiones_activas_usuario
@@ -14,7 +16,42 @@ from ..utils import invalidar_sesiones_activas_usuario
 def api_usuarios(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado. Solo administradores pueden listar usuarios.'}, status=403)
-    usuarios = list(Usuario.objects.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion'))
+
+    q = request.GET.get('q', '').strip()
+    rol = request.GET.get('rol', '').strip()
+    estado = request.GET.get('estado', '').strip()
+
+    qs = Usuario.objects.all()
+    if q:
+        qs = qs.filter(
+            Q(username__icontains=q) |
+            Q(nombre__icontains=q) |
+            Q(email__icontains=q) |
+            Q(identificacion__icontains=q)
+        )
+    if rol:
+        qs = qs.filter(rol=rol)
+    if estado:
+        qs = qs.filter(estado=estado)
+
+    # Si se solicita paginación explícita
+    limit = request.GET.get('limit')
+    if limit:
+        try:
+            limit_val = min(max(int(limit), 1), 200)
+            page_val = int(request.GET.get('page', 1))
+            paginator = Paginator(qs.order_by('-date_joined'), limit_val)
+            page_obj = paginator.get_page(page_val)
+            return JsonResponse({
+                'total': paginator.count,
+                'total_pages': paginator.num_pages,
+                'page': page_obj.number,
+                'usuarios': list(page_obj.object_list.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
+            })
+        except (ValueError, TypeError):
+            pass
+
+    usuarios = list(qs.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
     return JsonResponse(usuarios, safe=False)
 
 

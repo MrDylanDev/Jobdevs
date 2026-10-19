@@ -31,7 +31,6 @@ from .dev_dashboard import (
 
 from .admin_dashboard import (
     dashboard_admin,
-    marcar_notificaciones_leidas,
     admin_toggle_usuario,
     admin_reactivar_proyecto,
     admin_crear_ficha_sena,

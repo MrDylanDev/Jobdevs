@@ -126,3 +126,32 @@ class TestPerfilDesarrolladorVerificacionModel:
         assert perfil.ficha_sena == ficha
         assert perfil.verificado_por == admin_user
         assert ficha.aprendices_verificados.filter(id=perfil.id).exists()
+
+    def test_perfil_form_bloquea_ficha_y_programa_si_verificado(self, dev_user):
+        """SCRUM-171: Desarrollador verificado no puede alterar su ficha ni programa mediante PerfilDesarrolladorForm."""
+        from usuarios.forms import PerfilDesarrolladorForm
+        perfil = dev_user.perfil_desarrollador
+        perfil.ficha = '2670123'
+        perfil.programa_formacion = 'ADSO'
+        perfil.estado_verificacion = 'verificado'
+        perfil.save()
+
+        form = PerfilDesarrolladorForm(instance=perfil)
+        assert form.fields['ficha'].disabled is True
+        assert form.fields['programa_formacion'].disabled is True
+
+        # Intento de bypass enviando POST con datos apócrifos
+        form_post = PerfilDesarrolladorForm({
+            'ficha': '9999999',
+            'programa_formacion': 'Falso',
+            'telefono': '3001112233',
+        }, instance=perfil)
+        assert form_post.is_valid()
+        perfil_guardado = form_post.save()
+        perfil_guardado.refresh_from_db()
+
+        # Debe conservar los valores originales verificados
+        assert perfil_guardado.ficha == '2670123'
+        assert perfil_guardado.programa_formacion == 'ADSO'
+        assert perfil_guardado.telefono == '3001112233'
+

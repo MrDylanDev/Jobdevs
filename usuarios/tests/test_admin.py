@@ -251,3 +251,56 @@ class TestApiRateLimit:
         )
         assert response.status_code == 429
         assert 'Demasiadas solicitudes' in response.json()['error']
+
+
+class TestAdminPaginacionYBusqueda:
+    """Tests para SCRUM-172: Búsqueda y paginación server-side en dashboard administrativo."""
+
+    def test_dashboard_admin_busqueda_usuarios(self, admin_client, db):
+        """Búsqueda por parámetro user_q filtra usuarios coincidentes."""
+        User.objects.create_user(
+            username='usuario_unico_busqueda',
+            email='unico@test.jobdevs',
+            nombre='Objetivo Busqueda',
+            rol='desarrollador',
+            password='TestPass123!',
+        )
+        response = admin_client.get(reverse('dashboard_admin') + '?user_q=unico_busqueda')
+        assert response.status_code == 200
+        usuarios = list(response.context['usuarios_todos'])
+        assert len(usuarios) == 1
+        assert usuarios[0].username == 'usuario_unico_busqueda'
+
+    def test_dashboard_admin_paginacion_usuarios(self, admin_client, db):
+        """Si hay más de 25 usuarios, se aplica paginación a 25 registros por página."""
+        usuarios_creados = [
+            User(
+                username=f'page_user_{i}',
+                email=f'page{i}@test.jobdevs',
+                nombre=f'Page User {i}',
+                rol='desarrollador',
+            ) for i in range(30)
+        ]
+        User.objects.bulk_create(usuarios_creados)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+        assert response.status_code == 200
+        assert len(response.context['usuarios_todos']) == 25
+        assert response.context['usuarios_todos'].paginator.count >= 30
+
+    def test_api_usuarios_busqueda_y_paginacion(self, admin_client, db):
+        """api_usuarios soporta parámetros q, limit y page."""
+        target = User.objects.create_user(
+            username='api_search_target',
+            email='apisearch@test.jobdevs',
+            nombre='Api Target',
+            rol='empresa',
+            password='TestPass123!',
+        )
+        response = admin_client.get(reverse('api_usuarios') + '?q=api_search_target&limit=10')
+        assert response.status_code == 200
+        data = response.json()
+        assert 'total' in data
+        assert data['total'] == 1
+        assert data['usuarios'][0]['username'] == 'api_search_target'
+

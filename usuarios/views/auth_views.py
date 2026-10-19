@@ -10,9 +10,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from datetime import timedelta
+import hashlib
 import secrets
 
 from ..models import Usuario
+from ..utils import invalidar_sesiones_activas_usuario
 
 
 def login_view(request):
@@ -102,7 +104,8 @@ def recuperar_view(request):
         try:
             usuario = Usuario.objects.get(email=email)
             token = secrets.token_urlsafe(32)
-            usuario.token_recuperacion = token
+            token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+            usuario.token_recuperacion = token_hash
             usuario.token_expiracion = timezone.now() + timedelta(hours=1)
             usuario.save(update_fields=['token_recuperacion', 'token_expiracion'])
             
@@ -138,7 +141,10 @@ El equipo de JobDevs
 
 def restablecer_view(request, token):
     try:
-        usuario = Usuario.objects.get(token_recuperacion=token)
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        usuario = Usuario.objects.get(
+            Q(token_recuperacion=token_hash) | Q(token_recuperacion=token)
+        )
         
         # Verificar expiración
         if usuario.token_expiracion and usuario.token_expiracion < timezone.now():
@@ -179,6 +185,9 @@ def restablecer_view(request, token):
 
             usuario.intentos_fallidos = 0
             usuario.save()
+
+            # Invalidar todas las sesiones activas en otros dispositivos (SCRUM-174)
+            invalidar_sesiones_activas_usuario(usuario.id)
             
             messages.success(request, "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.")
             return redirect('login')
