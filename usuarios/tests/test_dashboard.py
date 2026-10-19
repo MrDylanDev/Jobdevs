@@ -163,3 +163,33 @@ def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, de
     chat_url = reverse('sala_chat', kwargs={'receptor_id': empresa.id, 'proyecto_id': proyecto.id})
     assert chat_url in content
     assert "En Negociación" in content
+
+def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_client, desarrollador_user, db):
+    """SCRUM-203: El dashboard del desarrollador muestra el botón y enlace para firmar el contrato digital."""
+    from django.urls import reverse
+    from usuarios.models import Usuario
+    from proyectos.models import Proyecto
+    from postulaciones.models import Postulacion
+    from contrataciones.models import ContratoDigital
+
+    empresa = Usuario.objects.create_user(
+        username="emp_contrato", email="emp_contrato@test.local", rol="empresa", estado="activo"
+    )
+    proyecto = Proyecto.objects.create(
+        empresa=empresa, titulo="Proyecto Contrato Digital Test", estado="publicado"
+    )
+    post = Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado="en_negociacion"
+    )
+    contrato = ContratoDigital.objects.create(
+        postulacion=post, monto=2000000, moneda="COP"
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    contrato_url = reverse('ver_contrato_digital', args=[contrato.id])
+    assert contrato_url in content
+    assert "Firmar Contrato" in content
+
