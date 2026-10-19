@@ -307,3 +307,24 @@ class TestFirmarContratoDigital:
         empresa_c.post(url, {'acepta_terminos': 'on'})
         empresa_c.post(url, {'acepta_terminos': 'on'})
         assert Contratacion.objects.filter(proyecto=contrato.postulacion.proyecto).count() == 1
+
+    def test_segunda_firma_con_proyecto_titulo_largo_trunca_nombre_equipo(self, empresa_c, dev_c, contrato):
+        """SCRUM-169: Si el título del proyecto supera los 93 caracteres, Equipo.nombre no desborda los 100 chars."""
+        proyecto = contrato.postulacion.proyecto
+        proyecto.titulo = "Plataforma de Gestion y Monitoreo Integral de Talento SENA con Modulo de Analitica Predictiva y Machine Learning para Grandes Empresas del Sector TI"
+        assert len(proyecto.titulo) > 100
+        proyecto.save()
+
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        dev_c.post(url, {'acepta_terminos': 'on'})
+        res = empresa_c.post(url, {'acepta_terminos': 'on'})
+        assert res.status_code == 302
+
+        contrato.refresh_from_db()
+        assert contrato.esta_firmado
+        assert contrato.estado == 'firmado'
+        equipo = proyecto.equipos.first()
+        assert equipo is not None
+        assert len(equipo.nombre) <= 100
+        assert equipo.nombre == f"Equipo {proyecto.titulo}"[:100]
+

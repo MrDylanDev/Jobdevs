@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -9,6 +10,35 @@ from .models import Avance
 from proyectos.models import Proyecto, Entregable
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+
+EXTENSIONES_PERMITIDAS = {'.pdf', '.zip', '.png', '.jpg', '.jpeg'}
+MAX_AVANCE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _validar_archivo_adjunto(archivo):
+    """Valida tamaño, extensión y cabecera mágica (magic bytes) de la evidencia (SCRUM-168)."""
+    if not archivo:
+        return None
+    if archivo.size > MAX_AVANCE_BYTES:
+        return "El archivo adjunto no puede superar los 10 MB."
+
+    _, ext = os.path.splitext(archivo.name.lower())
+    if ext not in EXTENSIONES_PERMITIDAS:
+        return f"Tipo de archivo no permitido ({ext}). Solo se admiten archivos PDF, ZIP, PNG y JPG."
+
+    cabecera = archivo.read(16)
+    archivo.seek(0)
+
+    if ext == '.pdf' and not cabecera.startswith(b'%PDF-'):
+        return "El archivo no es un documento PDF válido."
+    if ext == '.zip' and not (cabecera.startswith(b'PK\x03\x04') or cabecera.startswith(b'PK\x05\x06')):
+        return "El archivo no es un archivo ZIP válido."
+    if ext == '.png' and not cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
+        return "El archivo no es una imagen PNG válida."
+    if ext in ('.jpg', '.jpeg') and not cabecera.startswith(b'\xff\xd8\xff'):
+        return "El archivo no es una imagen JPG válida."
+
+    return None
 
 @login_required
 def registrar_avance(request, proyecto_id):
@@ -59,9 +89,11 @@ def registrar_avance(request, proyecto_id):
                     messages.error(request, "La URL de evidencia debe ser una dirección web válida (iniciando con http:// o https://).")
                     return redirect('registrar_avance', proyecto_id=proyecto.id)
 
-            if archivo_adjunto and archivo_adjunto.size > 10 * 1024 * 1024:
-                messages.error(request, "El archivo adjunto no puede superar los 10 MB.")
-                return redirect('registrar_avance', proyecto_id=proyecto.id)
+            if archivo_adjunto:
+                error_adjunto = _validar_archivo_adjunto(archivo_adjunto)
+                if error_adjunto:
+                    messages.error(request, error_adjunto)
+                    return redirect('registrar_avance', proyecto_id=proyecto.id)
 
             if not entregable_id:
                 messages.error(request, "Debes seleccionar un hito para registrar el avance.")

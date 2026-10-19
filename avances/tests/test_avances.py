@@ -166,3 +166,44 @@ class TestRegistrarAvance:
         content = response.content.decode('utf-8')
         assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in content
 
+    def test_registrar_avance_rechaza_extension_no_permitida(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-168: Se rechazan archivos con extensiones no permitidas (.html, .sh, .exe)."""
+        proyecto, entregable, _ = escenario_avance
+        archivo = SimpleUploadedFile("script.html", b"<script>alert(1)</script>", content_type="text/html")
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Intento de XSS',
+            'archivo_adjunto': archivo,
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        content = response.content.decode('utf-8')
+        assert 'Tipo de archivo no permitido' in content
+
+    def test_registrar_avance_rechaza_magic_bytes_inconsistentes(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-168: Se rechaza un archivo con extensión .pdf cuyos magic bytes no coincidan."""
+        proyecto, entregable, _ = escenario_avance
+        archivo = SimpleUploadedFile("falso.pdf", b"MZ fake executable header", content_type="application/pdf")
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'PDF corrupto o ejecutable disfrazado',
+            'archivo_adjunto': archivo,
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        content = response.content.decode('utf-8')
+        assert 'El archivo no es un documento PDF válido' in content
+
+    def test_registrar_avance_acepta_png_con_magic_bytes_validos(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-168: Se aceptan imágenes PNG válidas con su cabecera mágica."""
+        proyecto, entregable, _ = escenario_avance
+        archivo = SimpleUploadedFile("captura.png", b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR", content_type="image/png")
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Captura de pantalla como evidencia',
+            'archivo_adjunto': archivo,
+        }, follow=True)
+        assert response.status_code == 200
+        assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+
+
