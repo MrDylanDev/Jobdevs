@@ -25,8 +25,8 @@ WORKDIR /build
 
 # Copiar archivos de dependencias e instalar con uv en /opt/venv
 COPY pyproject.toml uv.lock ./
-RUN uv venv /opt/venv && \
-    uv sync --frozen --no-dev --no-install-project
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN uv sync --frozen --no-dev --no-install-project
 
 
 # -------------------- STAGE 2: Production --------------------

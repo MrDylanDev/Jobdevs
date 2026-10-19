@@ -27,6 +27,25 @@ services:
     networks:
       - teir_network
 
+  # -------------------- Redis (Caché en RAM y Channel Layer) --------------------
+  redis:
+    image: redis:7-alpine
+    container_name: teir_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"  # Aislado al host local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - teir_network
+
   # -------------------- Aplicación Django --------------------
   web:
     build:
@@ -43,6 +62,7 @@ services:
       - DB_USER=${DB_USER:-teir_user}
       - DB_PASSWORD=${DB_PASSWORD:-teir_password}
       - DB_NAME=${DB_NAME:-teir_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,web}
     volumes:
@@ -50,6 +70,8 @@ services:
       - media_files:/app/media
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - teir_network
@@ -117,6 +139,9 @@ volumes:
   postgres_data:
     driver: local
     name: teir_postgres_data
+  redis_data:
+    driver: local
+    name: teir_redis_data
   static_files:
     driver: local
     name: teir_static_files

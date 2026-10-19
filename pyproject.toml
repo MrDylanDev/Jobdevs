@@ -11,6 +11,10 @@ dependencies = [
     "pillow",
     "gunicorn>=22.0.0",
     "django-tailwind>=4.6.0",
+    "channels>=4.1.0",
+    "channels-redis>=4.2.0",
+    "django-redis>=5.4.0",
+    "uvicorn[standard]>=0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +50,7 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "e2e: end-to-end browser tests (requires Playwright)",
+    "asyncio: marks tests as asynchronous (pytest-asyncio)",
 ]
 
 [tool.ruff]
@@ -63,3 +68,9 @@ exclude = [
 [tool.ruff.lint]
 select = ["F"]           # Pyflakes: errores reales (imports rotos, variables no definidas)
 ignore = ["F401", "F403", "F841"] # Ignorar re-exports y variables no usadas en tests viejos
+
+[dependency-groups]
+dev = [
+    "daphne>=4.1.0",
+    "pytest-asyncio>=1.4.0",
+]

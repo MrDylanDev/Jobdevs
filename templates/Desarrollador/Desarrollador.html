@@ -244,18 +244,21 @@
             </a>
             {% endif %}
           </div>
-          {% for contrato in mis_proyectos_activos_v %}
+          {% for conv in conversaciones_chat %}
             <div class="project-card">
               <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
                 <div class="user-avatar" style="width:44px;height:44px;font-size:16px;background:#374151;">
-                  {{ contrato.empresa_nombre|slice:":1"|upper }}
+                  {{ conv.empresa_nombre|slice:":1"|upper }}
                 </div>
                 <div>
-                  <div class="project-card-title">{{ contrato.empresa_nombre }}</div>
-                  <div class="project-card-sub">{{ contrato.titulo }}</div>
+                  <div class="project-card-title">{{ conv.empresa_nombre }}</div>
+                  <div class="project-card-sub">{{ conv.titulo }}</div>
+                  {% if conv.es_negociacion %}
+                    <span class="badge badge-info" style="margin-top:4px;font-size:10px;"><i class="fa fa-handshake"></i> En Negociación</span>
+                  {% endif %}
                 </div>
               </div>
-              <a href="{% url 'sala_chat' contrato.empresa_id contrato.proyecto_id %}" class="btn btn-secondary btn-full">
+              <a href="{% url 'sala_chat' conv.empresa_id conv.proyecto_id %}" class="btn btn-secondary btn-full">
                 <i class="fa fa-message"></i> Hablar con Empresa
               </a>
             </div>
@@ -280,19 +283,37 @@
                 <th>Proyecto</th>
                 <th>Fecha Envío</th>
                 <th>Estado</th>
+                <th style="text-align:right;">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {% for post in mis_postulaciones %}
                 <tr>
-                  <td><strong>{{ post.proyecto.titulo }}</strong></td>
+                  <td>
+                    <strong>{{ post.proyecto.titulo }}</strong>
+                    <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
+                  </td>
                   <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
                   <td>
                     <span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span>
                   </td>
+                  <td style="text-align:right;">
+                    <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
+                      {% if post.estado == 'en_negociacion' and post.contrato_digital_id %}
+                        <a href="{% url 'ver_contrato_digital' post.contrato_digital_id %}" class="btn btn-primary btn-sm" title="Revisar contrato digital">
+                          <i class="fa fa-file-signature"></i> Ver Contrato
+                        </a>
+                      {% endif %}
+                      {% if post.estado in 'pendiente,en_negociacion,aceptada' %}
+                        <a href="{% url 'sala_chat' post.proyecto.empresa_id post.proyecto.id %}" class="btn btn-secondary btn-sm" title="Conversar con la empresa">
+                          <i class="fa fa-message"></i> Chatear
+                        </a>
+                      {% endif %}
+                    </div>
+                  </td>
                 </tr>
               {% empty %}
-                <tr><td colspan="3">
+                <tr><td colspan="4">
                   <div class="empty-state"><i class="fa fa-file-circle-xmark"></i><p>Aún no te has postulado a ningún proyecto</p></div>
                 </td></tr>
               {% endfor %}

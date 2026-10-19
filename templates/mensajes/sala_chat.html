@@ -117,7 +117,11 @@
               Este proyecto ha finalizado. El chat es ahora de solo lectura.
             </div>
           {% else %}
-            <form method="post" class="chat-input-form">
+            <form method="post" class="chat-input-form"
+                  data-user-id="{{ request.user.id }}"
+                  data-es-grupal="{% if es_grupal %}true{% else %}false{% endif %}"
+                  data-proyecto-id="{% if proyecto %}{{ proyecto.id }}{% endif %}"
+                  data-receptor-id="{% if receptor %}{{ receptor.id }}{% endif %}">
               {% csrf_token %}
               <input type="text" name="contenido" class="chat-input-field" placeholder="Escribe un mensaje..." required autocomplete="off">
               <button type="submit" class="btn btn-primary chat-send-btn">

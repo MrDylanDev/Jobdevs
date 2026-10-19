@@ -138,3 +138,28 @@ class TestDashboardAccess:
         assert response.status_code == 200
         desarrollador_user.perfil_desarrollador.refresh_from_db()
         assert desarrollador_user.perfil_desarrollador.telefono == '3001234567'
+
+def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, desarrollador_user, db):
+    from django.urls import reverse
+    from usuarios.models import Usuario
+    from proyectos.models import Proyecto
+    from postulaciones.models import Postulacion
+
+    empresa = Usuario.objects.create_user(
+        username="emp_nego", email="emp_nego@test.local", rol="empresa", estado="activo"
+    )
+    proyecto = Proyecto.objects.create(
+        empresa=empresa, titulo="Proyecto Negociacion Test", estado="publicado"
+    )
+    Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado="en_negociacion"
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # Debe figurar en la tabla de postulaciones con su botón de Chatear
+    chat_url = reverse('sala_chat', kwargs={'receptor_id': empresa.id, 'proyecto_id': proyecto.id})
+    assert chat_url in content
+    assert "En Negociación" in content
