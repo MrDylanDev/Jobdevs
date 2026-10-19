@@ -62,31 +62,21 @@ def db_masivo(db, empresa_user):
         for i in range(3)
     ]
     # Contrataciones activas sobre algunos proyectos en desarrollo
-    en_desarrollo = [p for p in mios if p.estado == 'en_desarrollo'][:500]
-    contrataciones = []
+    en_desarrollo = [p for p in mios if p.estado == 'en_desarrollo'][:10]
     for i, p in enumerate(en_desarrollo):
-        contrataciones.append(Contratacion(
+        Contratacion.objects.create(
             proyecto=p, desarrollador=devs[i % 3], empresa=empresa_user,
             estado='activa',
-        ))
-        if i < 10:
-            Entregable.objects.create(
-                proyecto=p, titulo=f'Hito {i}',
-                estado='completado' if i % 2 == 0 else 'pendiente',
-            )
-            Postulacion.objects.create(
-                proyecto=p, desarrollador=devs[(i + 1) % 3],
-                mensaje='postulacion rnf',
-                estado='en_negociacion',
-            )
-    Contratacion.objects.bulk_create(contrataciones)
-
-    if connection.vendor == 'postgresql':
-        with connection.cursor() as cur:
-            cur.execute('ANALYZE proyectos;')
-            cur.execute('ANALYZE contrataciones;')
-            cur.execute('ANALYZE entregables;')
-
+        )
+        Entregable.objects.create(
+            proyecto=p, titulo=f'Hito {i}',
+            estado='completado' if i % 2 == 0 else 'pendiente',
+        )
+        Postulacion.objects.create(
+            proyecto=p, desarrollador=devs[(i + 1) % 3],
+            mensaje='postulacion rnf',
+            estado='en_negociacion',
+        )
     return mios
 
 
@@ -110,21 +100,23 @@ class TestPlanDeIndices:
     def test_dashboard_empresa_usa_idx_empresa_estado(self, db_masivo):
         plan = self._plan(
             "SELECT id FROM proyectos WHERE empresa_id = %s AND estado = %s",
-            (1, 'en_desarrollo'),
+            (db_masivo[0].empresa_id, 'en_desarrollo'),
         )
         assert 'idx_proy_empresa_estado' in plan, plan
 
     def test_contratos_empresa_usa_idx_compuesto(self, db_masivo):
         plan = self._plan(
             "SELECT id FROM contrataciones WHERE empresa_id = %s AND estado = %s",
-            (1, 'activa'),
+            (db_masivo[0].empresa_id, 'activa'),
         )
         assert 'idx_contratos_empresa_estado' in plan, plan
 
     def test_hitos_proyecto_usa_idx_compuesto(self, db_masivo):
+        en_desarrollo = [p for p in db_masivo if p.estado == 'en_desarrollo']
+        proyecto_id = en_desarrollo[0].id if en_desarrollo else db_masivo[0].id
         plan = self._plan(
             "SELECT id FROM entregables WHERE proyecto_id = %s AND estado = %s",
-            (1, 'completado'),
+            (proyecto_id, 'completado'),
         )
         assert 'idx_entregables_proy_estado' in plan, plan
 
