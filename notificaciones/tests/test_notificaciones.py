@@ -110,4 +110,40 @@ class TestListaNotificaciones:
         assert response.status_code == 302
         assert response.url == reverse('notificaciones_lista')
 
+    def test_marcar_leida_ajax_retorna_json(self, dev_client, desarrollador_user):
+        """SCRUM-193: marcar_leida con Accept: application/json retorna JSON y actualiza conteo."""
+        n1 = Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N1', leida=False)
+        Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N2', leida=False)
+
+        response = dev_client.post(
+            reverse('notificacion_marcar_leida', args=[n1.id]),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert data['notificacion_id'] == n1.id
+        assert data['unread_count'] == 1
+        n1.refresh_from_db()
+        assert n1.leida is True
+
+    def test_marcar_todas_leidas_ajax_retorna_json(self, dev_client, desarrollador_user):
+        """SCRUM-193: marcar_todas_leidas con Accept: application/json retorna unread_count=0."""
+        Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N1', leida=False)
+        Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='N2', leida=False)
+
+        response = dev_client.post(
+            reverse('notificaciones_marcar_todas_leidas'),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert data['unread_count'] == 0
+        assert data['actualizadas'] == 2
+        assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 0
+
+
 
