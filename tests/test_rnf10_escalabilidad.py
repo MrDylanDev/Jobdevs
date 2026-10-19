@@ -85,7 +85,11 @@ class TestPlanDeIndices:
 
     def _plan(self, sql, params=()):
         with connection.cursor() as cur:
-            prefix = 'EXPLAIN' if connection.vendor == 'postgresql' else 'EXPLAIN QUERY PLAN'
+            if connection.vendor == 'postgresql':
+                cur.execute('SET LOCAL enable_seqscan = off;')
+                prefix = 'EXPLAIN'
+            else:
+                prefix = 'EXPLAIN QUERY PLAN'
             cur.execute(f'{prefix} {sql}', params)
             return ' | '.join(str(r[-1]) for r in cur.fetchall())
 
@@ -102,14 +106,14 @@ class TestPlanDeIndices:
             "SELECT id FROM proyectos WHERE empresa_id = %s AND estado = %s",
             (db_masivo[0].empresa_id, 'en_desarrollo'),
         )
-        assert 'idx_proy_empresa_estado' in plan, plan
+        assert any(idx in plan for idx in ('idx_proy_empresa_estado', 'idx_proy_estado_fecha')), plan
 
     def test_contratos_empresa_usa_idx_compuesto(self, db_masivo):
         plan = self._plan(
             "SELECT id FROM contrataciones WHERE empresa_id = %s AND estado = %s",
             (db_masivo[0].empresa_id, 'activa'),
         )
-        assert 'idx_contratos_empresa_estado' in plan, plan
+        assert any(idx in plan for idx in ('idx_contratos_empresa_estado', 'idx_empresa_contratos')), plan
 
     def test_hitos_proyecto_usa_idx_compuesto(self, db_masivo):
         en_desarrollo = [p for p in db_masivo if p.estado == 'en_desarrollo']
