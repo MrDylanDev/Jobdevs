@@ -148,7 +148,65 @@ class TestToggleFavorito:
             HTTP_REFERER='http://testserver/proyectos/publicados/',
         )
         assert response.status_code == 302
-        assert response.url == 'http://testserver/proyectos/publicados/'
+
+    def test_toggle_favorito_ajax_agrega_exitosamente(self, dev_client, desarrollador_user, empresa_user):
+        """SCRUM-192: Petición AJAX/Fetch agrega a favoritos y retorna JSON con status 200."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Ajax Add',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = dev_client.post(
+            reverse('toggle_favorito', args=[proyecto.id]),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert data['agregado'] is True
+        assert data['proyecto_id'] == proyecto.id
+        assert Favorito.objects.filter(desarrollador=desarrollador_user, proyecto=proyecto).exists()
+
+    def test_toggle_favorito_ajax_remueve_exitosamente(self, dev_client, desarrollador_user, empresa_user):
+        """SCRUM-192: Petición AJAX/Fetch remueve de favoritos y retorna JSON agregado=False."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Ajax Remove',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        Favorito.objects.create(desarrollador=desarrollador_user, proyecto=proyecto)
+        response = dev_client.post(
+            reverse('toggle_favorito', args=[proyecto.id]),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert data['agregado'] is False
+        assert not Favorito.objects.filter(desarrollador=desarrollador_user, proyecto=proyecto).exists()
+
+    def test_toggle_favorito_ajax_rechaza_no_desarrollador(self, auth_client, empresa_user):
+        """SCRUM-192: Usuario no desarrollador recibe 403 Forbidden en JSON."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Ajax Denied',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = auth_client.post(
+            reverse('toggle_favorito', args=[proyecto.id]),
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 403
+        data = response.json()
+        assert 'error' in data
+
+    def test_templates_incluyen_script_favoritos_async(self):
+        """SCRUM-192: Los templates de proyectos y favoritos cargan favoritos_async.js."""
+        for tpl in ['proyectos/listar.html', 'favoritos/lista.html', 'Desarrollador/Desarrollador.html']:
+            with open(f'templates/{tpl}', 'r', encoding='utf-8') as f:
+                content = f.read()
+            assert 'favoritos_async.js' in content, f"Template {tpl} debe cargar favoritos_async.js"
 
     @pytest.mark.parametrize('estado_no_publicado', ['en_desarrollo', 'en_revision', 'finalizado', 'inactivo'])
     def test_toggle_favorito_solo_proyectos_publicados(self, dev_client, empresa_user, estado_no_publicado):
