@@ -53,7 +53,17 @@ echo "Recolectando archivos estaticos..."
 python manage.py collectstatic --noinput
 echo "[OK] Archivos estaticos recolectados"
 
-# ---- 4. Iniciar Servidor ASGI (Uvicorn Workers) ----
+# ---- 4. Iniciar Servicio ----
+if [ $# -gt 0 ]; then
+    echo ""
+    echo "============================================"
+    echo "  JobDevs listo - Ejecutando comando:"
+    echo "  $@"
+    echo "============================================"
+    echo ""
+    exec "$@"
+fi
+
 echo ""
 echo "============================================"
 echo "  JobDevs listo - Iniciando ASGI (Gunicorn + Uvicorn Workers)"

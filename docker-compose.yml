@@ -118,6 +118,12 @@ services:
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
     volumes:
       - media_files:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     depends_on:
       db:
         condition: service_healthy
@@ -157,6 +163,8 @@ services:
       - DB_RECOVERY_TARGET_SECONDS=${DB_RECOVERY_TARGET_SECONDS:-300}
     volumes:
       - backup_files:/app/backups
+    healthcheck:
+      disable: true
     depends_on:
       db:
         condition: service_healthy
