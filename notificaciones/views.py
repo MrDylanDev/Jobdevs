@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.http import StreamingHttpResponse, HttpResponse
+from django.http import StreamingHttpResponse, HttpResponse, JsonResponse
 from asgiref.sync import sync_to_async
 from .models import Notificacion
 from django.contrib import messages
@@ -127,18 +127,46 @@ def lista_notificaciones(request):
 @login_required
 @require_POST
 def marcar_leida(request, notificacion_id):
-    """Marca una notificación específica como leída."""
+    """Marca una notificación específica como leída (soporta AJAX y redirección tradicional)."""
     notificacion = get_object_or_404(Notificacion, id=notificacion_id, usuario=request.user)
     notificacion.leida = True
     notificacion.save()
+
+    is_ajax = (
+        request.headers.get('Accept') == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+    if is_ajax:
+        unread_count = Notificacion.objects.filter(usuario=request.user, leida=False).count()
+        return JsonResponse({
+            'status': 'ok',
+            'notificacion_id': notificacion_id,
+            'unread_count': unread_count,
+            'mensaje': 'Notificación marcada como leída.',
+        })
+
     return redirect('notificaciones_lista')
 
 @login_required
 @require_POST
 def marcar_todas_leidas(request):
-    """Marca todas las notificaciones pendientes del usuario como leídas (SCRUM-173)."""
-    Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
-    messages.success(request, "Todas las notificaciones han sido marcadas como leídas.")
+    """Marca todas las notificaciones pendientes del usuario como leídas (SCRUM-173 / SCRUM-193)."""
+    actualizadas = Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
+    mensaje = "Todas las notificaciones han sido marcadas como leídas."
+
+    is_ajax = (
+        request.headers.get('Accept') == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+    if is_ajax:
+        return JsonResponse({
+            'status': 'ok',
+            'unread_count': 0,
+            'actualizadas': actualizadas,
+            'mensaje': mensaje,
+        })
+
+    messages.success(request, mensaje)
     referer = request.META.get('HTTP_REFERER')
     if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
         return redirect(referer)

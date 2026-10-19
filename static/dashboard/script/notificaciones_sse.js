@@ -149,6 +149,148 @@
         setTimeout(cerrar, 6000);
     }
 
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function getCsrfToken() {
+        const inputToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        return inputToken ? inputToken.value : getCookie('csrftoken');
+    }
+
+    async function marcarTodasLeidasAsync(form) {
+        const btn = form ? form.querySelector('button[type="submit"]') || form.querySelector('button') : null;
+        if (btn) btn.disabled = true;
+
+        const url = form ? form.getAttribute('action') : '/notificaciones/marcar-todas-leidas/';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudieron marcar las notificaciones');
+            }
+
+            const data = await response.json();
+            if (data.status === 'ok') {
+                actualizarBadges(0);
+
+                // Ocultar formulario o botón "Marcar todas como leídas"
+                if (form) {
+                    form.style.transition = 'opacity 0.2s';
+                    form.style.opacity = '0';
+                    setTimeout(() => form.remove(), 200);
+                }
+
+                // Desvanecer o actualizar elementos de notificación en la página
+                const notifItems = document.querySelectorAll('.notification-item, tr[data-notif-id], .notif-row');
+                notifItems.forEach(item => {
+                    item.style.transition = 'opacity 0.3s';
+                    item.classList.remove('no-leida', 'unread');
+                    item.classList.add('leida', 'read');
+                    const badge = item.querySelector('.badge-danger, .badge-warning');
+                    if (badge && badge.textContent.toLowerCase().includes('nueva')) {
+                        badge.remove();
+                    }
+                });
+
+                // Toast confirmatorio
+                mostrarToast({
+                    tipo: 'aprobacion',
+                    mensaje: data.mensaje || 'Todas las notificaciones han sido marcadas como leídas.',
+                });
+            }
+        } catch (err) {
+            console.error('Error marcando todas las notificaciones:', err);
+            mostrarToast({
+                tipo: 'alerta',
+                mensaje: 'Error de conexión al marcar notificaciones.',
+            });
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function marcarLeidaAsync(form, notificacionId) {
+        const btn = form ? form.querySelector('button[type="submit"]') || form.querySelector('button') : null;
+        if (btn) btn.disabled = true;
+
+        const url = form ? form.getAttribute('action') : `/notificaciones/marcar-leida/${notificacionId}/`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo marcar la notificación');
+            }
+
+            const data = await response.json();
+            if (data.status === 'ok') {
+                actualizarBadges(data.unread_count);
+
+                // Desvanecer el item o botón
+                const item = form ? form.closest('.notification-item, tr, .notif-row') : null;
+                if (item) {
+                    item.style.transition = 'opacity 0.3s';
+                    item.classList.remove('no-leida', 'unread');
+                    item.classList.add('leida', 'read');
+                    if (form) form.remove();
+                }
+            }
+        } catch (err) {
+            console.error('Error marcando notificación leída:', err);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function inicializarFormulariosNotificaciones() {
+        // Interceptar formularios de marcar todas leídas
+        document.querySelectorAll('form[action*="/notificaciones/marcar-todas-leidas/"]').forEach(form => {
+            if (form.dataset.asyncBound === 'true') return;
+            form.dataset.asyncBound = 'true';
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                marcarTodasLeidasAsync(form);
+            });
+        });
+
+        // Interceptar formularios de marcar individual como leída
+        document.querySelectorAll('form[action*="/notificaciones/marcar-leida/"]').forEach(form => {
+            if (form.dataset.asyncBound === 'true') return;
+            form.dataset.asyncBound = 'true';
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                marcarLeidaAsync(form);
+            });
+        });
+    }
+
     function conectarSSE() {
         if (eventSource) {
             eventSource.close();
@@ -206,9 +348,13 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', conectarSSE);
+        document.addEventListener('DOMContentLoaded', () => {
+            conectarSSE();
+            inicializarFormulariosNotificaciones();
+        });
     } else {
         conectarSSE();
+        inicializarFormulariosNotificaciones();
     }
 
     window.addEventListener('beforeunload', () => {
@@ -221,5 +367,8 @@
         actualizarBadges: actualizarBadges,
         mostrarToast: mostrarToast,
         conectar: conectarSSE,
+        marcarTodasLeidas: marcarTodasLeidasAsync,
+        marcarLeida: marcarLeidaAsync,
+        inicializarFormularios: inicializarFormulariosNotificaciones,
     };
 })();
