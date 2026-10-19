@@ -304,3 +304,42 @@ class TestAdminPaginacionYBusqueda:
         assert data['total'] == 1
         assert data['usuarios'][0]['username'] == 'api_search_target'
 
+    def test_api_usuarios_paginacion_segunda_pagina(self, admin_client, db):
+        """api_usuarios página 2 retorna registros distintos y metadatos correctos."""
+        usuarios_creados = [
+            User(
+                username=f'api_pag_user_{i:02d}',
+                email=f'apipag{i}@test.jobdevs',
+                nombre=f'Api Pag User {i}',
+                rol='desarrollador',
+            ) for i in range(15)
+        ]
+        User.objects.bulk_create(usuarios_creados)
+
+        # Página 1 con limit=10
+        resp1 = admin_client.get(reverse('api_usuarios') + '?limit=10&page=1')
+        assert resp1.status_code == 200
+        data1 = resp1.json()
+        assert data1['page'] == 1
+        assert data1['total_pages'] >= 2
+        assert len(data1['usuarios']) == 10
+
+        # Página 2 con limit=10
+        resp2 = admin_client.get(reverse('api_usuarios') + '?limit=10&page=2')
+        assert resp2.status_code == 200
+        data2 = resp2.json()
+        assert data2['page'] == 2
+        assert len(data2['usuarios']) >= 5
+
+        # Los IDs de página 1 y página 2 deben ser disjuntos
+        p1_ids = {u['id'] for u in data1['usuarios']}
+        p2_ids = {u['id'] for u in data2['usuarios']}
+        assert p1_ids.isdisjoint(p2_ids)
+
+    def test_api_usuarios_parametros_invalidos_retorna_400(self, admin_client):
+        """api_usuarios con limit o page inválidos retorna 400."""
+        resp = admin_client.get(reverse('api_usuarios') + '?limit=invalid&page=1')
+        assert resp.status_code == 400
+        assert 'inválidos' in resp.json()['error']
+
+

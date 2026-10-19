@@ -182,18 +182,30 @@ class PerfilDesarrolladorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # SCRUM-171: Si el desarrollador ya está verificado, bloquear ficha y programa de formación
-        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+        # SCRUM-171: Si el desarrollador ya está verificado o en revisión, bloquear ficha y programa de formación
+        if self.instance and self.instance.pk and self.instance.estado_verificacion in ('verificado', 'en_revision'):
             self.fields['ficha'].disabled = True
             self.fields['programa_formacion'].disabled = True
 
     def clean_ficha(self):
-        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+        if self.instance and self.instance.pk and self.instance.estado_verificacion in ('verificado', 'en_revision'):
             return self.instance.ficha
         return (self.cleaned_data.get('ficha') or '').strip()
 
     def clean_programa_formacion(self):
-        if self.instance and self.instance.pk and self.instance.estado_verificacion == 'verificado':
+        if self.instance and self.instance.pk and self.instance.estado_verificacion in ('verificado', 'en_revision'):
             return self.instance.programa_formacion
         return (self.cleaned_data.get('programa_formacion') or '').strip()
+
+    def save(self, commit=True):
+        # Concurrencia segura: preservar ficha y programa si el registro en DB está protegido
+        if self.instance and self.instance.pk:
+            from django.db import transaction
+            with transaction.atomic():
+                actual = PerfilDesarrollador.objects.select_for_update().get(pk=self.instance.pk)
+                if actual.estado_verificacion in ('verificado', 'en_revision'):
+                    self.instance.ficha = actual.ficha
+                    self.instance.programa_formacion = actual.programa_formacion
+                    self.instance.estado_verificacion = actual.estado_verificacion
+        return super().save(commit=commit)
 

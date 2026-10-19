@@ -142,9 +142,7 @@ El equipo de JobDevs
 def restablecer_view(request, token):
     try:
         token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
-        usuario = Usuario.objects.get(
-            Q(token_recuperacion=token_hash) | Q(token_recuperacion=token)
-        )
+        usuario = Usuario.objects.get(token_recuperacion=token_hash)
         
         # Verificar expiración
         if usuario.token_expiracion and usuario.token_expiracion < timezone.now():

@@ -335,9 +335,10 @@ class TestRestablecerView:
 
     @pytest.fixture
     def user_with_token(self, empresa_user):
-        """Empresa user with a valid recovery token."""
+        """Empresa user with a valid recovery token (stored as SHA-256)."""
+        import hashlib
         token = secrets.token_urlsafe(32)
-        empresa_user.token_recuperacion = token
+        empresa_user.token_recuperacion = hashlib.sha256(token.encode('utf-8')).hexdigest()
         empresa_user.token_expiracion = timezone.now() + timedelta(hours=1)
         empresa_user.save()
         return empresa_user, token
@@ -350,13 +351,37 @@ class TestRestablecerView:
 
     def test_restablecer_expired_token_redirects(self, client, empresa_user):
         """Expired token redirects to landing."""
+        import hashlib
         token = secrets.token_urlsafe(32)
-        empresa_user.token_recuperacion = token
+        empresa_user.token_recuperacion = hashlib.sha256(token.encode('utf-8')).hexdigest()
         empresa_user.token_expiracion = timezone.now() - timedelta(hours=1)
         empresa_user.save()
         response = client.get(reverse('restablecer', args=[token]))
         assert response.status_code == 302
         assert response.url == '/?login=1'
+
+    def test_flujo_completo_recuperar_y_restablecer(self, client, empresa_user):
+        """SCRUM-174: Flujo E2E desde solicitud de correo hasta restablecimiento con hash SHA-256."""
+        import re
+        client.post(reverse('recuperar'), {'email': 'empresa@test.jobdevs'})
+        assert len(mail.outbox) == 1
+        match = re.search(r'/restablecer/([^/\s]+)/', mail.outbox[0].body)
+        assert match is not None
+        token_plano = match.group(1)
+
+        # GET al formulario con el token del email
+        resp_get = client.get(reverse('restablecer', args=[token_plano]))
+        assert resp_get.status_code == 200
+
+        # POST para cambiar contraseña
+        resp_post = client.post(
+            reverse('restablecer', args=[token_plano]),
+            {'password': 'BrandNewPass123!', 'password_confirm': 'BrandNewPass123!'}
+        )
+        assert resp_post.status_code == 302
+        empresa_user.refresh_from_db()
+        assert empresa_user.check_password('BrandNewPass123!')
+        assert empresa_user.token_recuperacion is None
 
     def test_restablecer_invalid_token_redirects(self, client):
         """Invalid/unknown token redirects to login."""

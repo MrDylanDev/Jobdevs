@@ -30,7 +30,12 @@ class UsuarioActivoMiddleware:
                 return redirect('login')
         elif request.session.get('_auth_user_id'):
             # Si el backend rechazó la autenticación (user_can_authenticate=False),
-            # limpiar inmediatamente la sesión zombi.
+            # limpiar inmediatamente la sesión zombi, notificar y redirigir a login.
             request.session.flush()
+            messages.error(
+                request,
+                "Tu cuenta ha sido suspendida o está inactiva. Contacta al administrador."
+            )
+            return redirect('login')
 
         return self.get_response(request)

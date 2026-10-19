@@ -95,3 +95,19 @@ class TestListaNotificaciones:
         assert response.url == '/desarrollador/dashboard/'
         assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 0
 
+    def test_marcar_todas_leidas_bloquea_open_redirect_externo(self, dev_client, desarrollador_user):
+        """SCRUM-173: referer malicioso externo es ignorado y redirige a notificaciones_lista."""
+        response = dev_client.post(
+            reverse('notificaciones_marcar_todas_leidas'),
+            HTTP_REFERER='https://sitio-malicioso.com/phishing'
+        )
+        assert response.status_code == 302
+        assert response.url == reverse('notificaciones_lista')
+
+    def test_marcar_todas_leidas_sin_referer_redirige_a_lista(self, dev_client, desarrollador_user):
+        """SCRUM-173: sin cabecera referer redirige a notificaciones_lista."""
+        response = dev_client.post(reverse('notificaciones_marcar_todas_leidas'))
+        assert response.status_code == 302
+        assert response.url == reverse('notificaciones_lista')
+
+

@@ -62,21 +62,31 @@ def db_masivo(db, empresa_user):
         for i in range(3)
     ]
     # Contrataciones activas sobre algunos proyectos en desarrollo
-    en_desarrollo = [p for p in mios if p.estado == 'en_desarrollo'][:10]
+    en_desarrollo = [p for p in mios if p.estado == 'en_desarrollo'][:500]
+    contrataciones = []
     for i, p in enumerate(en_desarrollo):
-        Contratacion.objects.create(
+        contrataciones.append(Contratacion(
             proyecto=p, desarrollador=devs[i % 3], empresa=empresa_user,
             estado='activa',
-        )
-        Entregable.objects.create(
-            proyecto=p, titulo=f'Hito {i}',
-            estado='completado' if i % 2 == 0 else 'pendiente',
-        )
-        Postulacion.objects.create(
-            proyecto=p, desarrollador=devs[(i + 1) % 3],
-            mensaje='postulacion rnf',
-            estado='en_negociacion',
-        )
+        ))
+        if i < 10:
+            Entregable.objects.create(
+                proyecto=p, titulo=f'Hito {i}',
+                estado='completado' if i % 2 == 0 else 'pendiente',
+            )
+            Postulacion.objects.create(
+                proyecto=p, desarrollador=devs[(i + 1) % 3],
+                mensaje='postulacion rnf',
+                estado='en_negociacion',
+            )
+    Contratacion.objects.bulk_create(contrataciones)
+
+    if connection.vendor == 'postgresql':
+        with connection.cursor() as cur:
+            cur.execute('ANALYZE proyectos;')
+            cur.execute('ANALYZE contrataciones;')
+            cur.execute('ANALYZE entregables;')
+
     return mios
 
 
@@ -85,11 +95,7 @@ class TestPlanDeIndices:
 
     def _plan(self, sql, params=()):
         with connection.cursor() as cur:
-            if connection.vendor == 'postgresql':
-                cur.execute('SET LOCAL enable_seqscan = off;')
-                prefix = 'EXPLAIN'
-            else:
-                prefix = 'EXPLAIN QUERY PLAN'
+            prefix = 'EXPLAIN' if connection.vendor == 'postgresql' else 'EXPLAIN QUERY PLAN'
             cur.execute(f'{prefix} {sql}', params)
             return ' | '.join(str(r[-1]) for r in cur.fetchall())
 

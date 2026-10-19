@@ -34,13 +34,16 @@ def api_usuarios(request):
     if estado:
         qs = qs.filter(estado=estado)
 
-    # Si se solicita paginación explícita
     limit = request.GET.get('limit')
-    if limit:
+    page = request.GET.get('page')
+    if limit or page:
         try:
-            limit_val = min(max(int(limit), 1), 200)
-            page_val = int(request.GET.get('page', 1))
-            paginator = Paginator(qs.order_by('-date_joined'), limit_val)
+            limit_val = int(limit) if limit else 25
+            page_val = int(page) if page else 1
+            if limit_val <= 0 or page_val <= 0:
+                return JsonResponse({'error': 'Los parámetros limit y page deben ser enteros positivos.'}, status=400)
+            limit_val = min(limit_val, 200)
+            paginator = Paginator(qs.order_by('-date_joined', '-id'), limit_val)
             page_obj = paginator.get_page(page_val)
             return JsonResponse({
                 'total': paginator.count,
@@ -49,9 +52,9 @@ def api_usuarios(request):
                 'usuarios': list(page_obj.object_list.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
             })
         except (ValueError, TypeError):
-            pass
+            return JsonResponse({'error': 'Parámetros de paginación inválidos.'}, status=400)
 
-    usuarios = list(qs.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
+    usuarios = list(qs.order_by('-date_joined', '-id').values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
     return JsonResponse(usuarios, safe=False)
 
 
