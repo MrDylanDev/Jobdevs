@@ -21,7 +21,9 @@ def dashboard_desarrollador(request):
     p_act = Contratacion.objects.filter(desarrollador=request.user, estado='activa').count()
     p_fav = Favorito.objects.filter(desarrollador=request.user).count()
 
-    mis_postulaciones = Postulacion.objects.filter(desarrollador=request.user).select_related('proyecto')
+    mis_postulaciones = Postulacion.objects.filter(
+        desarrollador=request.user
+    ).select_related('proyecto', 'proyecto__empresa', 'proyecto__empresa__perfil_empresa', 'contrato_digital')
     mis_proyectos_activos_q = Contratacion.objects.filter(desarrollador=request.user, estado='activa').select_related('proyecto', 'empresa', 'empresa__perfil_empresa')
     
     mis_proyectos_finalizados = Contratacion.objects.filter(
@@ -95,6 +97,22 @@ def dashboard_desarrollador(request):
                 'hitos': hitos_por_proyecto.get(p.id, []),
             })
 
+    # Incluir también conversaciones de postulaciones activas o en negociación en el Centro de Mensajes
+    conversaciones_chat = list(mis_proyectos_v)
+    proyectos_v_ids = {p['proyecto_id'] for p in mis_proyectos_v}
+
+    for post in mis_postulaciones.filter(estado__in=['pendiente', 'en_negociacion', 'aceptada']):
+        if post.proyecto_id not in proyectos_v_ids:
+            conversaciones_chat.append({
+                'proyecto_id': post.proyecto.id,
+                'titulo': post.proyecto.titulo,
+                'empresa_nombre': post.proyecto.empresa.nombre or post.proyecto.empresa.username,
+                'empresa_id': post.proyecto.empresa_id,
+                'estado_postulacion': post.estado,
+                'es_negociacion': post.estado == 'en_negociacion',
+            })
+            proyectos_v_ids.add(post.proyecto_id)
+
     admin_id = get_admin_id()
     notificaciones_recientes, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
 
@@ -108,6 +126,7 @@ def dashboard_desarrollador(request):
         'notificaciones': notificaciones_recientes,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'mis_proyectos_activos_v': mis_proyectos_v,
+        'conversaciones_chat': conversaciones_chat,
         'mis_proyectos_finalizados': mis_proyectos_finalizados,
         'mis_postulaciones': mis_postulaciones,
         'favoritos': mis_favoritos,
