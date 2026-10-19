@@ -45,7 +45,6 @@ echo "[OK] Conexión con PostgreSQL establecida"
 echo ""
 echo "Aplicando migraciones de Django..."
 python manage.py migrate --noinput
-python manage.py createcachetable
 echo "[OK] Migraciones aplicadas correctamente"
 
 # ---- 3. Recoger archivos estaticos ----
@@ -54,20 +53,19 @@ echo "Recolectando archivos estaticos..."
 python manage.py collectstatic --noinput
 echo "[OK] Archivos estaticos recolectados"
 
-# ---- 4. Iniciar Gunicorn ----
+# ---- 4. Iniciar Servidor ASGI (Uvicorn Workers) ----
 echo ""
 echo "============================================"
-echo "  JobDevs listo - Iniciando Gunicorn"
+echo "  JobDevs listo - Iniciando ASGI (Gunicorn + Uvicorn Workers)"
 echo "  Escuchando en 0.0.0.0:8000"
-echo "  Workers: 3"
+echo "  Workers: 3 (Uvicorn)"
 echo "============================================"
 echo ""
 
-exec gunicorn config.wsgi:application \
+exec gunicorn config.asgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
-    --worker-class gthread \
-    --threads 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
     --worker-tmp-dir /dev/shm \
     --timeout 120 \
     --graceful-timeout 30 \

@@ -98,7 +98,7 @@
 
   <div class="card shadow-sm">
     <div class="card-header"><i class="fa fa-comments me-2"></i>Conversación tripartita</div>
-    <div class="card-body" style="max-height: 480px; overflow-y: auto;">
+    <div class="card-body" id="disputa-chat-container" style="max-height: 480px; overflow-y: auto;">
       {% for m in mensajes %}
         <div class="mb-3 p-2 rounded border-start border-4
           {% if m.rol_emisor == 'empresa' %}border-primary bg-primary bg-opacity-10
@@ -116,12 +116,13 @@
           <div>{{ m.contenido|linebreaksbr }}</div>
         </div>
       {% empty %}
-        <p class="text-muted mb-0">Aún no hay mensajes en esta sala.</p>
+        <p class="text-muted mb-0" id="disputa-empty-msg">Aún no hay mensajes en esta sala.</p>
       {% endfor %}
     </div>
     <div class="card-footer">
       {% if puede_escribir %}
-        <form method="post" action="{% url 'disputas:enviar_mensaje_disputa' disputa.pk %}" novalidate>
+        <form id="disputa-msg-form" method="post" action="{% url 'disputas:enviar_mensaje_disputa' disputa.pk %}" novalidate
+              data-disputa-id="{{ disputa.pk }}" data-user-id="{{ request.user.pk }}">
           {% csrf_token %}
           <div class="mb-2">
             <label for="contenido" class="form-label visually-hidden">Mensaje</label>
@@ -138,4 +139,124 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('disputa-chat-container');
+  const form = document.getElementById('disputa-msg-form');
+  const textarea = form ? form.querySelector('#contenido') : null;
+
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+
+  if (!form || !textarea) return;
+
+  const disputaId = form.dataset.disputaId;
+  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+  const wsUrl = `${protocol}${window.location.host}/ws/disputas/${disputaId}/`;
+
+  let socket = null;
+  let reconnectAttempts = 0;
+
+  function connect() {
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log('[Disputa WS] Conectado a la sala de mediación #' + disputaId);
+      reconnectAttempts = 0;
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'mensaje_disputa' && data.mensaje) {
+          appendDisputaMsg(data.mensaje);
+        } else if (data.error) {
+          console.warn('[Disputa WS Error]:', data.error);
+        }
+      } catch (err) {
+        console.error('[Disputa WS] Error parseando datos', err);
+      }
+    };
+
+    socket.onclose = (event) => {
+      if (event.code === 4401 || event.code === 4403) return;
+      if (reconnectAttempts < 8) {
+        const delay = Math.min(20000, 1000 * Math.pow(1.5, reconnectAttempts));
+        reconnectAttempts++;
+        setTimeout(connect, delay);
+      }
+    };
+  }
+
+  function appendDisputaMsg(msg) {
+    if (!container) return;
+    const emptyMsg = document.getElementById('disputa-empty-msg');
+    if (emptyMsg) emptyMsg.remove();
+
+    const box = document.createElement('div');
+    box.className = 'mb-3 p-2 rounded border-start border-4 ';
+    let badgeClass = 'bg-warning text-dark';
+    let badgeText = 'Mediador Admin';
+
+    if (msg.rol_emisor === 'empresa') {
+      box.className += 'border-primary bg-primary bg-opacity-10';
+      badgeClass = 'bg-primary';
+      badgeText = 'Empresa';
+    } else if (msg.rol_emisor === 'dev') {
+      box.className += 'border-success bg-success bg-opacity-10';
+      badgeClass = 'bg-success';
+      badgeText = 'Desarrollador';
+    } else {
+      box.className += 'border-warning bg-warning bg-opacity-10';
+      badgeClass = 'badge text-white';
+    }
+
+    const header = document.createElement('div');
+    header.className = 'd-flex justify-content-between small mb-1';
+
+    const senderSpan = document.createElement('span');
+    senderSpan.className = 'fw-semibold';
+    senderSpan.textContent = msg.emisor_nombre + ' ';
+
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + badgeClass;
+    if (badgeClass.includes('text-white')) {
+      badge.style.backgroundColor = '#6f42c1';
+    }
+    badge.textContent = badgeText;
+    senderSpan.appendChild(badge);
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'text-muted';
+    timeSpan.textContent = msg.fecha_envio;
+
+    header.appendChild(senderSpan);
+    header.appendChild(timeSpan);
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.textContent = msg.contenido;
+
+    box.appendChild(header);
+    box.appendChild(bodyDiv);
+    container.appendChild(box);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  form.addEventListener('submit', (e) => {
+    const texto = textarea.value.trim();
+    if (!texto) return;
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      e.preventDefault();
+      socket.send(JSON.stringify({ contenido: texto }));
+      textarea.value = '';
+      textarea.focus();
+    }
+  });
+
+  connect();
+});
+</script>
 {% endblock %}

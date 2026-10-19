@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'tailwind',
     'theme',
     'usuarios',
@@ -54,12 +55,17 @@ MIDDLEWARE = [
 # Django Tailwind: app que contiene los estilos (ver theme/static_src/src/styles.css)
 TAILWIND_APP_NAME = 'theme'
 
-# Recarga automática del navegador solo en desarrollo
+# Recarga automática del navegador solo en desarrollo si está instalado
 if DEBUG:
-    INSTALLED_APPS += ['django_browser_reload']
-    MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
+    try:
+        import django_browser_reload
+        INSTALLED_APPS += ['django_browser_reload']
+        MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
+    except ImportError:
+        pass
 
 ROOT_URLCONF = 'config.urls'
+ASGI_APPLICATION = 'config.asgi.application'
 
 TEMPLATES = [
     {
@@ -118,9 +124,21 @@ AUTHENTICATION_BACKENDS = [
     'usuarios.backends.UsuarioAuthBackend',
 ]
 
-_cache_backend = os.environ.get('DJANGO_CACHE_BACKEND', 'db' if _db_engine == 'django.db.backends.postgresql' else 'locmem')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
+_cache_backend = os.environ.get('DJANGO_CACHE_BACKEND', 'redis' if _db_engine == 'django.db.backends.postgresql' else 'locmem')
 
-if _cache_backend == 'db':
+if _cache_backend == 'redis':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'IGNORE_EXCEPTIONS': True,
+            }
+        }
+    }
+elif _cache_backend == 'db':
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
@@ -132,6 +150,23 @@ else:
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         }
+    }
+
+# Django Channels - Channel Layer
+if os.environ.get('USE_REDIS_CHANNEL_LAYER', '1' if _cache_backend == 'redis' else '0') == '1':
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
     }
 
 AUTH_PASSWORD_VALIDATORS = [

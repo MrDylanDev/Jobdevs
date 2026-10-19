@@ -66,6 +66,13 @@ CACHES = {
     }
 }
 
+# Channels channel layer for tests (in-memory)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
 # SCRUM-180: Aislar MEDIA_ROOT en carpeta temporal para no ensuciar media/ local en tests
 import tempfile
 MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='jobdevs_test_media_'))
