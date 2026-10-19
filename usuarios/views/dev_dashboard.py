@@ -6,7 +6,7 @@ from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_id
 from proyectos.models import Proyecto, Valoracion, Entregable
 from postulaciones.models import Postulacion
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, ContratoDigital
 from favoritos.models import Favorito
 from ._helpers import get_notificaciones_context
 
@@ -113,6 +113,20 @@ def dashboard_desarrollador(request):
             })
             proyectos_v_ids.add(post.proyecto_id)
 
+    mis_contratos_digitales = ContratoDigital.objects.filter(
+        postulacion__desarrollador=request.user
+    ).select_related(
+        'postulacion__proyecto__empresa__perfil_empresa',
+        'postulacion__proyecto',
+        'contratacion',
+    ).order_by('-fecha_actualizacion')
+
+    contratos_pendientes_firma_count = mis_contratos_digitales.filter(
+        firmado_desarrollador=False,
+        estado__in=['borrador', 'pendiente_firma'],
+        postulacion__estado='en_negociacion',
+    ).count()
+
     admin_id = get_admin_id()
     notificaciones_recientes, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
 
@@ -129,6 +143,8 @@ def dashboard_desarrollador(request):
         'conversaciones_chat': conversaciones_chat,
         'mis_proyectos_finalizados': mis_proyectos_finalizados,
         'mis_postulaciones': mis_postulaciones,
+        'mis_contratos_digitales': mis_contratos_digitales,
+        'contratos_pendientes_firma_count': contratos_pendientes_firma_count,
         'favoritos': mis_favoritos,
         'perfil': perfil,
         'admin_id': admin_id
