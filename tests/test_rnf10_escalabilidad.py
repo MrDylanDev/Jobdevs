@@ -100,21 +100,23 @@ class TestPlanDeIndices:
     def test_dashboard_empresa_usa_idx_empresa_estado(self, db_masivo):
         plan = self._plan(
             "SELECT id FROM proyectos WHERE empresa_id = %s AND estado = %s",
-            (1, 'en_desarrollo'),
+            (db_masivo[0].empresa_id, 'en_desarrollo'),
         )
         assert 'idx_proy_empresa_estado' in plan, plan
 
     def test_contratos_empresa_usa_idx_compuesto(self, db_masivo):
         plan = self._plan(
             "SELECT id FROM contrataciones WHERE empresa_id = %s AND estado = %s",
-            (1, 'activa'),
+            (db_masivo[0].empresa_id, 'activa'),
         )
         assert 'idx_contratos_empresa_estado' in plan, plan
 
     def test_hitos_proyecto_usa_idx_compuesto(self, db_masivo):
+        en_desarrollo = [p for p in db_masivo if p.estado == 'en_desarrollo']
+        proyecto_id = en_desarrollo[0].id if en_desarrollo else db_masivo[0].id
         plan = self._plan(
             "SELECT id FROM entregables WHERE proyecto_id = %s AND estado = %s",
-            (1, 'completado'),
+            (proyecto_id, 'completado'),
         )
         assert 'idx_entregables_proy_estado' in plan, plan
 

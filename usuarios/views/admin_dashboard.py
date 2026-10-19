@@ -10,6 +10,7 @@ from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value,
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
+from django.core.paginator import Paginator
 from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
@@ -59,17 +60,55 @@ def dashboard_admin(request):
     total_proyectos = p_pub + p_des + p_fin
     total_usuarios = total_empresas + total_devs
     
-    usuarios_lista = Usuario.objects.all().order_by('-date_joined')[:50]
-    proyectos_lista = Proyecto.objects.all().select_related('empresa').prefetch_related(
-        Prefetch(
-            'contrataciones',
-            queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador').annotate(
-                hitos_completados=Count('proyecto__entregables', filter=Q(proyecto__entregables__estado='completado')),
-                total_hitos=Count('proyecto__entregables')
-            ),
-            to_attr='contratos_activos'
+    user_q = request.GET.get('user_q', '').strip()
+    user_rol = request.GET.get('user_rol', '').strip()
+    user_estado = request.GET.get('user_estado', '').strip()
+
+    usuarios_qs = Usuario.objects.all()
+    if user_q:
+        usuarios_qs = usuarios_qs.filter(
+            Q(username__icontains=user_q) |
+            Q(nombre__icontains=user_q) |
+            Q(email__icontains=user_q) |
+            Q(identificacion__icontains=user_q)
         )
-    ).order_by('-fecha_publicacion')[:50]
+    if user_rol:
+        usuarios_qs = usuarios_qs.filter(rol=user_rol)
+    if user_estado:
+        usuarios_qs = usuarios_qs.filter(estado=user_estado)
+
+    user_paginator = Paginator(usuarios_qs.order_by('-date_joined'), 25)
+    user_page = request.GET.get('user_page', 1)
+    usuarios_lista = user_paginator.get_page(user_page)
+
+    proy_q = request.GET.get('proy_q', '').strip()
+    proy_estado = request.GET.get('proy_estado', '').strip()
+
+    proyectos_qs = Proyecto.objects.all()
+    if proy_q:
+        proyectos_qs = proyectos_qs.filter(
+            Q(titulo__icontains=proy_q) |
+            Q(empresa__nombre__icontains=proy_q) |
+            Q(empresa__username__icontains=proy_q)
+        )
+    if proy_estado:
+        proyectos_qs = proyectos_qs.filter(estado=proy_estado)
+
+    proy_paginator = Paginator(
+        proyectos_qs.select_related('empresa').prefetch_related(
+            Prefetch(
+                'contrataciones',
+                queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador').annotate(
+                    hitos_completados=Count('proyecto__entregables', filter=Q(proyecto__entregables__estado='completado')),
+                    total_hitos=Count('proyecto__entregables')
+                ),
+                to_attr='contratos_activos'
+            )
+        ).order_by('-fecha_publicacion'),
+        25
+    )
+    proy_page = request.GET.get('proy_page', 1)
+    proyectos_lista = proy_paginator.get_page(proy_page)
     
     logs = list(LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora').values_list(
         'id', 'usuario__username', 'accion', 'tabla_afectada', 'fecha_hora'
@@ -219,6 +258,8 @@ def dashboard_admin(request):
         'p_pub': p_pub, 'p_des': p_des, 'p_fin': p_fin,
         'post_pen': post_pen, 'promedio_global': promedio_global, 'p_ret': p_ret,
         'usuarios_todos': usuarios_lista, 'proyectos_todos': proyectos_lista,
+        'user_q': user_q, 'user_rol': user_rol, 'user_estado': user_estado,
+        'proy_q': proy_q, 'proy_estado': proy_estado,
         'logs_auditoria': logs, 'conversaciones': conversaciones, 
         'mensajes_no_leidos_admin': mensajes_no_leidos_admin,
         'ranking_talento': ranking_top,
@@ -234,18 +275,6 @@ def dashboard_admin(request):
         'admin_ids': list(admin_ids)
     }
     return render(request, 'administrador/Administrador.html', context)
-
-
-@login_required
-@require_POST
-def marcar_notificaciones_leidas(request):
-    Notificacion.objects.filter(usuario_id=request.user.id, leida=False).update(leida=True)
-    if request.user.rol == 'administrador':
-        return redirect('dashboard_admin')
-    elif request.user.rol == 'empresa':
-        return redirect('dashboard_empresa')
-    else:
-        return redirect('dashboard_desarrollador')
 
 
 @login_required

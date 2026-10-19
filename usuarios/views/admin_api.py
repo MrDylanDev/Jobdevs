@@ -3,7 +3,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import IntegrityError
+from django.db.models import Q
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from ..models import Usuario
 from ..decorators import api_ratelimit
 from ..utils import invalidar_sesiones_activas_usuario
@@ -14,7 +16,45 @@ from ..utils import invalidar_sesiones_activas_usuario
 def api_usuarios(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado. Solo administradores pueden listar usuarios.'}, status=403)
-    usuarios = list(Usuario.objects.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion'))
+
+    q = request.GET.get('q', '').strip()
+    rol = request.GET.get('rol', '').strip()
+    estado = request.GET.get('estado', '').strip()
+
+    qs = Usuario.objects.all()
+    if q:
+        qs = qs.filter(
+            Q(username__icontains=q) |
+            Q(nombre__icontains=q) |
+            Q(email__icontains=q) |
+            Q(identificacion__icontains=q)
+        )
+    if rol:
+        qs = qs.filter(rol=rol)
+    if estado:
+        qs = qs.filter(estado=estado)
+
+    limit = request.GET.get('limit')
+    page = request.GET.get('page')
+    if limit or page:
+        try:
+            limit_val = int(limit) if limit else 25
+            page_val = int(page) if page else 1
+            if limit_val <= 0 or page_val <= 0:
+                return JsonResponse({'error': 'Los parámetros limit y page deben ser enteros positivos.'}, status=400)
+            limit_val = min(limit_val, 200)
+            paginator = Paginator(qs.order_by('-date_joined', '-id'), limit_val)
+            page_obj = paginator.get_page(page_val)
+            return JsonResponse({
+                'total': paginator.count,
+                'total_pages': paginator.num_pages,
+                'page': page_obj.number,
+                'usuarios': list(page_obj.object_list.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
+            })
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Parámetros de paginación inválidos.'}, status=400)
+
+    usuarios = list(qs.order_by('-date_joined', '-id').values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
     return JsonResponse(usuarios, safe=False)
 
 

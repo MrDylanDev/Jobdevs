@@ -199,7 +199,7 @@
               <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Notificaciones Recientes</div>
             </div>
             {% if notificaciones_pendientes_count > 0 %}
-              <form action="{% url 'marcar_notificaciones_leidas' %}" method="POST">
+              <form action="{% url 'notificaciones_marcar_todas_leidas' %}" method="POST">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary btn-sm">Marcar leídas</button>
               </form>

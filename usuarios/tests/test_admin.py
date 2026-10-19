@@ -251,3 +251,95 @@ class TestApiRateLimit:
         )
         assert response.status_code == 429
         assert 'Demasiadas solicitudes' in response.json()['error']
+
+
+class TestAdminPaginacionYBusqueda:
+    """Tests para SCRUM-172: Búsqueda y paginación server-side en dashboard administrativo."""
+
+    def test_dashboard_admin_busqueda_usuarios(self, admin_client, db):
+        """Búsqueda por parámetro user_q filtra usuarios coincidentes."""
+        User.objects.create_user(
+            username='usuario_unico_busqueda',
+            email='unico@test.jobdevs',
+            nombre='Objetivo Busqueda',
+            rol='desarrollador',
+            password='TestPass123!',
+        )
+        response = admin_client.get(reverse('dashboard_admin') + '?user_q=unico_busqueda')
+        assert response.status_code == 200
+        usuarios = list(response.context['usuarios_todos'])
+        assert len(usuarios) == 1
+        assert usuarios[0].username == 'usuario_unico_busqueda'
+
+    def test_dashboard_admin_paginacion_usuarios(self, admin_client, db):
+        """Si hay más de 25 usuarios, se aplica paginación a 25 registros por página."""
+        usuarios_creados = [
+            User(
+                username=f'page_user_{i}',
+                email=f'page{i}@test.jobdevs',
+                nombre=f'Page User {i}',
+                rol='desarrollador',
+            ) for i in range(30)
+        ]
+        User.objects.bulk_create(usuarios_creados)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+        assert response.status_code == 200
+        assert len(response.context['usuarios_todos']) == 25
+        assert response.context['usuarios_todos'].paginator.count >= 30
+
+    def test_api_usuarios_busqueda_y_paginacion(self, admin_client, db):
+        """api_usuarios soporta parámetros q, limit y page."""
+        target = User.objects.create_user(
+            username='api_search_target',
+            email='apisearch@test.jobdevs',
+            nombre='Api Target',
+            rol='empresa',
+            password='TestPass123!',
+        )
+        response = admin_client.get(reverse('api_usuarios') + '?q=api_search_target&limit=10')
+        assert response.status_code == 200
+        data = response.json()
+        assert 'total' in data
+        assert data['total'] == 1
+        assert data['usuarios'][0]['username'] == 'api_search_target'
+
+    def test_api_usuarios_paginacion_segunda_pagina(self, admin_client, db):
+        """api_usuarios página 2 retorna registros distintos y metadatos correctos."""
+        usuarios_creados = [
+            User(
+                username=f'api_pag_user_{i:02d}',
+                email=f'apipag{i}@test.jobdevs',
+                nombre=f'Api Pag User {i}',
+                rol='desarrollador',
+            ) for i in range(15)
+        ]
+        User.objects.bulk_create(usuarios_creados)
+
+        # Página 1 con limit=10
+        resp1 = admin_client.get(reverse('api_usuarios') + '?limit=10&page=1')
+        assert resp1.status_code == 200
+        data1 = resp1.json()
+        assert data1['page'] == 1
+        assert data1['total_pages'] >= 2
+        assert len(data1['usuarios']) == 10
+
+        # Página 2 con limit=10
+        resp2 = admin_client.get(reverse('api_usuarios') + '?limit=10&page=2')
+        assert resp2.status_code == 200
+        data2 = resp2.json()
+        assert data2['page'] == 2
+        assert len(data2['usuarios']) >= 5
+
+        # Los IDs de página 1 y página 2 deben ser disjuntos
+        p1_ids = {u['id'] for u in data1['usuarios']}
+        p2_ids = {u['id'] for u in data2['usuarios']}
+        assert p1_ids.isdisjoint(p2_ids)
+
+    def test_api_usuarios_parametros_invalidos_retorna_400(self, admin_client):
+        """api_usuarios con limit o page inválidos retorna 400."""
+        resp = admin_client.get(reverse('api_usuarios') + '?limit=invalid&page=1')
+        assert resp.status_code == 400
+        assert 'inválidos' in resp.json()['error']
+
+

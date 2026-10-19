@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Notificacion
 from django.contrib import messages
 
@@ -32,7 +33,10 @@ def marcar_leida(request, notificacion_id):
 @login_required
 @require_POST
 def marcar_todas_leidas(request):
-    """Marca todas las notificaciones pendientes del usuario como leídas."""
+    """Marca todas las notificaciones pendientes del usuario como leídas (SCRUM-173)."""
     Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
     messages.success(request, "Todas las notificaciones han sido marcadas como leídas.")
+    referer = request.META.get('HTTP_REFERER')
+    if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return redirect(referer)
     return redirect('notificaciones_lista')
