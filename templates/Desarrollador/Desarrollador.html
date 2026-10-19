@@ -148,6 +148,24 @@
         </div>
       {% endif %}
 
+      <!-- Banner Contrato Pendiente de Firma (SCRUM-203) -->
+      {% for post in mis_postulaciones %}
+        {% if post.estado == 'en_negociacion' and post.contrato_digital and not post.contrato_digital.firmado_desarrollador %}
+          <div class="alert alert-info" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; padding:14px 18px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <i class="fa fa-file-signature" style="font-size:24px; color:#2563eb;"></i>
+              <div>
+                <strong style="font-size:15px; color:#1e3a8a;">¡Tienes un contrato digital pendiente de firma!</strong>
+                <div style="font-size:13px; color:#1d4ed8; margin-top:2px;">La empresa <strong>{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</strong> inició negociación para el proyecto '{{ post.proyecto.titulo }}'{% if post.contrato_digital.monto > 0 %} ({{ post.contrato_digital.monto_formateado }}){% endif %}.</div>
+              </div>
+            </div>
+            <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:9px 18px; background:#2563eb; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">
+              <i class="fa fa-file-signature"></i> Firmar Contrato Digital
+            </a>
+          </div>
+        {% endif %}
+      {% endfor %}
+
       <!-- Inicio -->
       <div id="inicio" class="seccion-v activa">
         <div class="page-header">
@@ -299,9 +317,9 @@
                   </td>
                   <td style="text-align:right;">
                     <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
-                      {% if post.estado == 'en_negociacion' and post.contrato_digital_id %}
-                        <a href="{% url 'ver_contrato_digital' post.contrato_digital_id %}" class="btn btn-primary btn-sm" title="Revisar contrato digital">
-                          <i class="fa fa-file-signature"></i> Ver Contrato
+                      {% if post.contrato_digital %}
+                        <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" class="btn {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                          <i class="fa fa-file-signature"></i> {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}Firmar Contrato{% else %}Ver Contrato{% endif %}
                         </a>
                       {% endif %}
                       {% if post.estado in 'pendiente,en_negociacion,aceptada' %}
