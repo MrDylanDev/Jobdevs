@@ -59,3 +59,24 @@ def enviar_email_transaccional_task(
         except self.MaxRetriesExceededError:
             logger.critical("Se agotaron los reintentos para correo '%s' a %s", asunto, destinatarios)
             raise
+
+
+@shared_task(name='notificaciones.purgar_notificaciones_antiguas')
+def purgar_notificaciones_antiguas_task(dias: int = 30, incluir_no_leidas: bool = False) -> int:
+    """
+    Tarea periódica de Celery Beat (SCRUM-200).
+    Elimina notificaciones con más de N días de antigüedad para optimizar almacenamiento.
+    Por defecto elimina solo aquellas marcadas como leídas.
+    """
+    from datetime import timedelta
+    from django.utils import timezone
+    from notificaciones.models import Notificacion
+
+    cutoff = timezone.now() - timedelta(days=dias)
+    qs = Notificacion.objects.filter(fecha__lt=cutoff)
+    if not incluir_no_leidas:
+        qs = qs.filter(leida=True)
+
+    borradas, _ = qs.delete()
+    logger.info("Purga Celery Beat: eliminadas %d notificaciones con más de %d días.", borradas, dias)
+    return borradas
