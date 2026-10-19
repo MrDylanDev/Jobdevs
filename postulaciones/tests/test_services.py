@@ -75,6 +75,19 @@ class TestAceptarPostulacionServicio:
             usuario=empresa_user, tabla_afectada='postulaciones', registro_id=postulacion.id
         ).exists()
 
+    def test_aceptar_postulacion_despacha_email_transaccional_celery(self, empresa_user, desarrollador_user, postulacion):
+        """SCRUM-199: Aceptar postulación despacha email asíncrono con Celery al desarrollador."""
+        from django.core import mail
+        mail.outbox.clear()
+
+        aceptar_postulacion(postulacion.id, empresa_user)
+
+        assert len(mail.outbox) == 1
+        email_enviado = mail.outbox[0]
+        assert email_enviado.to == [desarrollador_user.email]
+        assert 'aceptada' in email_enviado.subject.lower()
+        assert postulacion.proyecto.titulo in email_enviado.body
+
     def test_rechaza_si_no_quedan_vacantes(self, empresa_user, desarrollador_user, proyecto, postulacion):
         # Otra contratación activa ya ocupa la única vacante disponible
         proyecto.vacantes = 1

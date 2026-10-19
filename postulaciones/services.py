@@ -103,6 +103,29 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
             ),
         )
 
+        # Despacho asíncrono de correo transaccional vía Celery (SCRUM-199)
+        if postulacion.desarrollador.email:
+            from notificaciones.tasks import enviar_email_transaccional_task
+            enviar_email_transaccional_task.delay(
+                asunto=f"¡Tu postulación al proyecto '{proyecto.titulo}' fue aceptada!",
+                template_name='emails/postulacion_aceptada.html',
+                contexto={
+                    'usuario': {
+                        'nombre': postulacion.desarrollador.nombre,
+                        'username': postulacion.desarrollador.username,
+                    },
+                    'empresa': {
+                        'nombre': ejecutado_por.nombre or ejecutado_por.username,
+                        'username': ejecutado_por.username,
+                    },
+                    'proyecto': {
+                        'titulo': proyecto.titulo,
+                        'tipo_solucion': proyecto.get_tipo_solucion_display(),
+                    },
+                },
+                destinatarios=[postulacion.desarrollador.email],
+            )
+
         LogAuditoria.objects.create(
             usuario=ejecutado_por,
             accion=(

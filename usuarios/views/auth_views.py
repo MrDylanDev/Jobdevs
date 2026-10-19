@@ -111,25 +111,20 @@ def recuperar_view(request):
             
             enlace = request.build_absolute_uri(reverse('restablecer', args=[token]))
             
-            mensaje = f"""
-Hola {usuario.nombre},
-
-Recibimos una solicitud para restablecer tu contraseña en JobDevs.
-Para elegir una nueva contraseña, haz clic en el siguiente enlace:
-
-{enlace}
-
-Este enlace expirará en 1 hora. Si no solicitaste este cambio, puedes ignorar este correo.
-
-Saludos,
-El equipo de JobDevs
-"""
-            send_mail(
-                'Restablecer tu contraseña en JobDevs',
-                mensaje,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
+            # Despacho asíncrono de correo transaccional con Celery y HTML (SCRUM-199)
+            from notificaciones.tasks import enviar_email_transaccional_task
+            enviar_email_transaccional_task.delay(
+                asunto='Restablecer tu contraseña en JobDevs',
+                template_name='emails/recuperar_password.html',
+                contexto={
+                    'usuario': {
+                        'nombre': usuario.nombre,
+                        'username': usuario.username,
+                        'email': usuario.email,
+                    },
+                    'reset_url': enlace,
+                },
+                destinatarios=[email],
             )
         except Usuario.DoesNotExist:
             pass # No revelamos si el email existe o no por seguridad
