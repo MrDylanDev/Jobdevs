@@ -90,9 +90,7 @@ class DisputaConsumer(AsyncJsonWebsocketConsumer):
     def _guardar_mensaje(self, texto):
         try:
             with transaction.atomic():
-                disputa = Disputa.objects.select_for_update().select_related(
-                    'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador'
-                ).get(id=self.disputa_id)
+                disputa = Disputa.objects.select_for_update().get(id=self.disputa_id)
 
                 if not _es_participante(self.user, disputa):
                     return None, "No participas en esta disputa."
