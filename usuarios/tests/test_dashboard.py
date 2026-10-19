@@ -193,3 +193,37 @@ def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_
     assert contrato_url in content
     assert "Firmar Contrato" in content
 
+def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarrollador_user, db):
+    """SCRUM-204: El dashboard incluye la sección dedicada #contratos y el ítem de menú en sidebar."""
+    from django.urls import reverse
+    from usuarios.models import Usuario
+    from proyectos.models import Proyecto
+    from postulaciones.models import Postulacion
+    from contrataciones.models import ContratoDigital
+
+    empresa = Usuario.objects.create_user(
+        username="emp_contratos_sec", email="emp_sec@test.local", rol="empresa", estado="activo"
+    )
+    proyecto = Proyecto.objects.create(
+        empresa=empresa, titulo="Proyecto Seccion Contratos", estado="publicado"
+    )
+    post = Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado="en_negociacion"
+    )
+    contrato = ContratoDigital.objects.create(
+        postulacion=post, monto=3500000, moneda="COP"
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    assert 'mis_contratos_digitales' in response.context
+    assert 'contratos_pendientes_firma_count' in response.context
+    assert response.context['contratos_pendientes_firma_count'] == 1
+
+    content = response.content.decode()
+    assert 'verSeccion(\'contratos\'' in content or 'verSeccion("contratos"' in content
+    assert 'id="contratos"' in content
+    assert 'Proyecto Seccion Contratos' in content
+    assert '$ 3.500.000 COP' in content
+
+

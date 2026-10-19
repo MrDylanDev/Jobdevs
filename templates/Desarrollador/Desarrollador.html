@@ -55,6 +55,13 @@
         <i class="fa fa-trophy"></i>
         <span>Finalizados</span>
       </button>
+      <button class="nav-item" onclick="verSeccion('contratos', this)">
+        <i class="fa fa-file-signature"></i>
+        <span>Contratos</span>
+        {% if contratos_pendientes_firma_count > 0 %}
+          <span class="nav-badge" style="background:#2563eb;">{{ contratos_pendientes_firma_count }}</span>
+        {% endif %}
+      </button>
       <button class="nav-item" onclick="verSeccion('favoritos', this)">
         <i class="fa fa-heart"></i>
         <span>Favoritos</span>
@@ -459,6 +466,79 @@
           {% empty %}
             <div class="empty-state"><i class="fa fa-trophy"></i><p>Aún no has finalizado proyectos</p></div>
           {% endfor %}
+        </div>
+      </div>
+
+      <!-- Contratos Digitales (SCRUM-204) -->
+      <div id="contratos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Contratos Digitales</div>
+            <div class="page-subtitle">Acuerdos formales, términos económicos y firmas digitales con empresas</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Proyecto y Empresa</th>
+                <th>Términos Económicos</th>
+                <th>Forma de Pago</th>
+                <th>Estado y Firmas</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contrato in mis_contratos_digitales %}
+                <tr>
+                  <td>
+                    <strong>{{ contrato.postulacion.proyecto.titulo }}</strong>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                      Empresa: <strong>{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}</strong>
+                      {% if contrato.postulacion.proyecto.empresa.perfil_empresa.es_verificada %}
+                        <span class="badge badge-success" style="font-size:10px; padding:2px 6px; margin-left:4px;"><i class="fa fa-circle-check"></i> Verificada</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <div style="font-size:15px; font-weight:700; color:var(--text-primary);">{{ contrato.monto_formateado }}</div>
+                    <div style="font-size:11.5px; color:var(--text-muted);">Moneda: {{ contrato.moneda }}</div>
+                  </td>
+                  <td>
+                    <span style="font-size:13px; color:var(--text-secondary);">{{ contrato.get_forma_pago_display }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      <span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span>
+                      <div style="font-size:11px; color:var(--text-muted);">
+                        Empresa: {% if contrato.firmado_empresa %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmó</span>{% else %}<span style="color:#f59e0b;">Pendiente</span>{% endif %}
+                        · Tú: {% if contrato.firmado_desarrollador %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmaste</span>{% else %}<span style="color:#ef4444; font-weight:600;">Por firmar</span>{% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align:right;">
+                    <div style="display:inline-flex; gap:6px; justify-content:flex-end;">
+                      <a href="{% url 'ver_contrato_digital' contrato.id %}" class="btn {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                        <i class="fa fa-file-signature"></i> {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}Firmar Contrato{% else %}Ver Contrato{% endif %}
+                      </a>
+                      <a href="{% url 'sala_chat' contrato.postulacion.proyecto.empresa_id contrato.postulacion.proyecto.id %}" class="btn btn-secondary btn-sm" title="Chatear con la empresa">
+                        <i class="fa fa-message"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5">
+                  <div class="empty-state" style="padding:40px 20px;">
+                    <i class="fa fa-file-contract" style="font-size:32px; color:var(--text-muted); margin-bottom:12px;"></i>
+                    <p style="font-weight:600; font-size:15px; margin-bottom:4px;">Aún no tienes contratos digitales</p>
+                    <p style="color:var(--text-muted); font-size:13px;">Cuando una empresa inicie negociación en tus postulaciones, tus contratos aparecerán aquí para su firma y seguimiento.</p>
+                  </div>
+                </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
 
