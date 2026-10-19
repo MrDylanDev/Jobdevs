@@ -12,6 +12,14 @@ class LogAuditoria(models.Model):
         db_table = 'logs_auditoria'
         verbose_name_plural = "Logs de Auditoría"
 
+    def save(self, *args, **kwargs):
+        # SCRUM-179: Truncado defensivo automático para evitar DataError en PostgreSQL
+        if self.accion and len(self.accion) > 300:
+            self.accion = self.accion[:300]
+        if self.tabla_afectada and len(self.tabla_afectada) > 100:
+            self.tabla_afectada = self.tabla_afectada[:100]
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.fecha_hora} - {self.usuario.username if self.usuario else 'Sistema'}: {self.accion}"
 

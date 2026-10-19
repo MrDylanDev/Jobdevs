@@ -49,7 +49,8 @@ def invalidar_sesiones_activas_usuario(usuario_id_o_ids):
         return 0
 
     sesiones_a_eliminar = []
-    for session in Session.objects.filter(expire_date__gte=timezone.now()):
+    # SCRUM-175: Usar iterator() para evitar sobrecarga de memoria al decodificar sesiones
+    for session in Session.objects.filter(expire_date__gte=timezone.now()).iterator(chunk_size=1000):
         try:
             data = session.get_decoded()
             if str(data.get('_auth_user_id', '')) in target_ids:

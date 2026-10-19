@@ -22,6 +22,18 @@ class TestDashboardAdmin:
             response = c.get(reverse('dashboard_admin'))
             assert response.status_code == 302
 
+    def test_django_admin_route_accessible(self, admin_client):
+        """SCRUM-183: Superusuario puede acceder al panel Django Admin en /django-admin/."""
+        response = admin_client.get('/django-admin/')
+        assert response.status_code == 200
+
+    def test_django_admin_route_blocked_para_usuarios_comunes(self, auth_client, dev_client, client):
+        """SCRUM-183: Usuarios no-staff son redirigidos al login de admin en /django-admin/."""
+        for c in [auth_client, dev_client, client]:
+            response = c.get('/django-admin/')
+            assert response.status_code == 302
+
+
     def test_dashboard_shows_stats(self, admin_client, empresa_user, desarrollador_user):
         """Admin dashboard includes statistics."""
         response = admin_client.get(reverse('dashboard_admin'))

@@ -72,6 +72,31 @@ class TestListarProyectos:
         sql_statements = [q['sql'] for q in captured_queries]
         assert any(('NOT' in q or 'NOT IN' in q) and 'proyectos' in q for q in sql_statements)
 
+    def test_listar_proyectos_paginacion_12_por_pagina(self, auth_client, empresa_user):
+        """SCRUM-176: El listado principal de proyectos pagina a 12 items por página."""
+        proyectos_creados = [
+            Proyecto(
+                empresa=empresa_user,
+                titulo=f'Proyecto Paginado {i:02d}',
+                descripcion='Desc',
+                tipo_solucion='sitio_web',
+                estado='publicado',
+            ) for i in range(15)
+        ]
+        Proyecto.objects.bulk_create(proyectos_creados)
+
+        response = auth_client.get(reverse('listar_proyectos') + '?page=1')
+        assert response.status_code == 200
+        assert len(response.context['proyectos']) == 12
+        assert response.context['page_obj'].paginator.count >= 15
+        assert response.context['page_obj'].paginator.num_pages >= 2
+
+        # Segunda página debe traer los 3 restantes
+        response2 = auth_client.get(reverse('listar_proyectos') + '?page=2')
+        assert response2.status_code == 200
+        assert len(response2.context['proyectos']) >= 3
+
+
 
 class TestCrearProyecto:
     """Tests for crear_proyecto view."""

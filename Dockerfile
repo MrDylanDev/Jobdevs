@@ -1,6 +1,6 @@
 # ============================================================
 # JobDevs - Dockerfile Multi-Stage
-# Proyecto Django + MySQL (PyMySQL) + Gunicorn
+# Proyecto Django + PostgreSQL 16 + Gunicorn
 # ============================================================
 
 # -------------------- STAGE 1: Builder --------------------

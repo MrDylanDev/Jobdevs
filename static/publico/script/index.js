@@ -366,11 +366,22 @@ document.addEventListener('DOMContentLoaded', function () {
   var djangoMsgs = document.getElementById('django-messages');
   if (djangoMsgs) {
     var spans = djangoMsgs.querySelectorAll('span');
-    var err = '';
-    spans.forEach(function(s) { err += '<div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15);padding:10px 14px;margin-bottom:14px;font-size:13px;color:#fca5a5;display:flex;align-items:center;gap:8px;"><i class="fa fa-circle-exclamation" style="color:#ef4444;"></i>' + s.textContent.trim() + '</div>'; });
-    if (err) {
-      var form = document.querySelector('#loginModal form');
-      if (form) { var c = document.createElement('div'); c.innerHTML = err; form.insertBefore(c, form.firstChild); }
+    var form = document.querySelector('#loginModal form');
+    if (spans.length && form) {
+      var msgContainer = document.createElement('div');
+      msgContainer.style.marginBottom = '14px';
+      spans.forEach(function(s) {
+        var msgDiv = document.createElement('div');
+        msgDiv.style.cssText = 'background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15);padding:10px 14px;margin-bottom:8px;font-size:13px;color:#fca5a5;display:flex;align-items:center;gap:8px;';
+        var icon = document.createElement('i');
+        icon.className = 'fa fa-circle-exclamation';
+        icon.style.color = '#ef4444';
+        msgDiv.appendChild(icon);
+        var textNode = document.createTextNode(' ' + s.textContent.trim());
+        msgDiv.appendChild(textNode);
+        msgContainer.appendChild(msgDiv);
+      });
+      form.insertBefore(msgContainer, form.firstChild);
       new bootstrap.Modal(document.getElementById('loginModal')).show();
     }
   }

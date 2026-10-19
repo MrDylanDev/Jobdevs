@@ -17,6 +17,9 @@ urlpatterns = [
     path('favoritos/', include('favoritos.urls')),
     path('disputas/', include('disputas.urls')),
     
+    # Django Admin nativo para superusuarios (SCRUM-183)
+    path('django-admin/', admin.site.urls),
+
     # Admin → redirige al dashboard custom
     path('admin/', RedirectView.as_view(url='/admin/dashboard/', permanent=False)),
 ]

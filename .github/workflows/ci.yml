@@ -186,4 +186,4 @@ jobs:
         run: uv run playwright install --with-deps ${{ matrix.playwright_install }}
 
       - name: Run E2E tests (${{ matrix.browser }})
-        run: uv run pytest tests/e2e -v
+        run: uv run pytest tests/e2e -m e2e -v
