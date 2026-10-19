@@ -104,7 +104,7 @@ class TestRecoveryE2E:
         # Wait for the toast or response
         page.wait_for_timeout(2000)
         # Toast should appear or recovery notice be visible
-        toast = page.locator('#toast, .msg-toast, .alert')
+        toast = page.locator('#toast, .msg-toast, .alert').first
         assert toast.is_visible() or 'recuperar' in page.url or page.locator('body').is_visible()
 
     def test_back_to_login_from_recovery(self, page, live_server):
