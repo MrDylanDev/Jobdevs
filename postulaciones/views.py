@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
 from .models import Postulacion
+from . import services
 from proyectos.models import Proyecto
 from contrataciones.models import Contratacion, ContratoDigital
 from notificaciones.models import Notificacion
@@ -163,6 +165,7 @@ def postularse_a_proyecto(request, proyecto_id):
 @login_required
 @require_POST
 def aceptar_postulacion(request, postulacion_id):
+    """Autoriza, delega la contratación en el servicio y traduce el resultado."""
     if request.user.rol != 'empresa':
         messages.error(request, "Acceso denegado.")
         return redirect('inicio')
@@ -171,83 +174,12 @@ def aceptar_postulacion(request, postulacion_id):
     proyecto_id = postulacion.proyecto.id
 
     try:
-        with transaction.atomic():
-            # Serializar decisiones de contratación bloqueando la fila del proyecto
-            proyecto = Proyecto.objects.select_for_update().get(id=proyecto_id, empresa=request.user)
-
-            if proyecto.estado not in ('publicado', 'en_desarrollo'):
-                messages.error(
-                    request,
-                    f"No se pueden aceptar postulaciones en un proyecto con estado '{proyecto.get_estado_display()}'."
-                )
-                return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
-
-            # Bloquear la postulación específica
-            postulacion = Postulacion.objects.select_for_update().get(
-                id=postulacion_id, proyecto=proyecto, estado='pendiente')
-
-            # Validar límite de vacantes según RF 3.3.2
-            contrataciones_activas = Contratacion.objects.filter(
-                proyecto=proyecto,
-                estado='activa'
-            ).count()
-
-            postulaciones_en_negociacion = Postulacion.objects.filter(
-                proyecto=proyecto,
-                estado='en_negociacion'
-            ).exclude(id=postulacion.id).count()
-
-            if contrataciones_activas + postulaciones_en_negociacion >= proyecto.vacantes:
-                messages.error(
-                    request,
-                    "El proyecto ya ha alcanzado el límite de vacantes disponibles."
-                )
-                return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
-
-            Contratacion.objects.create(
-                proyecto=proyecto,
-                desarrollador=postulacion.desarrollador,
-                empresa=request.user,
-                estado='activa',
-            )
-
-            # Agregar al desarrollador al equipo del proyecto
-            equipo, _ = Equipo.objects.get_or_create(
-                proyecto=proyecto,
-                nombre=f'Equipo {proyecto.titulo}',
-                defaults={'nombre': f'Equipo {proyecto.titulo}'},
-            )
-            equipo.miembros.add(postulacion.desarrollador)
-
-            postulacion.estado = 'aceptada'
-            postulacion.save()
-
-            if proyecto.estado == 'publicado':
-                estado_anterior = proyecto.estado
-                proyecto.estado = 'en_desarrollo'
-                proyecto.save()
-                proyecto.registrar_cambio_estado('en_desarrollo', request.user, estado_anterior=estado_anterior)
-
-            # Hallazgo 11: Notificar al desarrollador sobre su aceptación/contratación
-            Notificacion.objects.create(
-                usuario=postulacion.desarrollador,
-                proyecto=proyecto,
-                tipo='aprobacion',
-                mensaje=f"¡Felicidades! Tu postulación al proyecto '{proyecto.titulo}' ha sido aceptada y tu contratación está activa.",
-            )
-
-            LogAuditoria.objects.create(
-                usuario=request.user,
-                accion=f"Aceptó postulación de {postulacion.desarrollador.nombre} en {proyecto.titulo}",
-                tabla_afectada='postulaciones',
-                registro_id=postulacion.id,
-            )
-
+        services.aceptar_postulacion(postulacion_id, request.user)
         messages.success(request, "¡Contratación exitosa! El desarrollador ha sido vinculado al proyecto.")
-    except Postulacion.DoesNotExist:
-        messages.error(request, "La postulación ya fue procesada o no existe.")
-    except Proyecto.DoesNotExist:
-        messages.error(request, "El proyecto no existe o no pertenece a tu empresa.")
+    except PermissionDenied as exc:
+        messages.error(request, str(exc))
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
     except Exception as e:
         messages.error(request, f"Error al procesar: {str(e)}")
 
