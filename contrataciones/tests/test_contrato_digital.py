@@ -72,6 +72,28 @@ class TestContratoDigitalModel:
         c.fecha_firma_empresa = timezone.now()
         assert c.calcular_hash() != base
 
+    def test_monto_formateado_cop_entero_y_decimal(self, postulacion):
+        """SCRUM-202: COP se formatea con puntos separadores de miles y sufijo COP."""
+        c = ContratoDigital.objects.create(postulacion=postulacion, monto='2500000.00', moneda='COP')
+        assert c.monto_formateado == "$ 2.500.000 COP"
+
+        c.monto = '2500000.50'
+        assert c.monto_formateado == "$ 2.500.000,50 COP"
+
+        c.monto = '0.00'
+        assert c.monto_formateado == "$ 0 COP"
+
+    def test_monto_formateado_usd_con_decimales(self, postulacion):
+        """SCRUM-202: USD se formatea con comas y 2 decimales fijos con sufijo USD."""
+        c = ContratoDigital.objects.create(postulacion=postulacion, monto='1500.00', moneda='USD')
+        assert c.monto_formateado == "$ 1,500.00 USD"
+
+        c.monto = '1500.75'
+        assert c.monto_formateado == "$ 1,500.75 USD"
+
+        c.monto = '0.00'
+        assert c.monto_formateado == "$ 0.00 USD"
+
     @pytest.mark.parametrize('empresa,dev,esperado', [
         (False, False, False),
         (True, False, False),
@@ -152,7 +174,9 @@ class TestVerContratoDigital:
         res = dev_c.get(reverse('ver_contrato_digital', args=[contrato.id]))
         assert res.status_code == 200
         assert res.context['puede_editar'] is False
-        assert 'name="monto"' not in res.content.decode()
+        html = res.content.decode()
+        assert 'name="monto"' not in html
+        assert contrato.monto_formateado in html
 
     def test_tercero_no_participante_recibe_403(self, tercero_c, contrato):
         url = reverse('ver_contrato_digital', args=[contrato.id])

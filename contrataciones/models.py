@@ -118,3 +118,22 @@ class ContratoDigital(models.Model):
     @property
     def esta_firmado(self) -> bool:
         return self.firmado_empresa and self.firmado_desarrollador
+
+    @property
+    def monto_formateado(self) -> str:
+        """Formatea el monto según la moneda seleccionada (COP o USD) respetando las convenciones financieras (SCRUM-202)."""
+        if self.monto is None:
+            return "$ 0 COP" if self.moneda == 'COP' else "$ 0.00 USD"
+        m = Decimal(str(self.monto))
+        if self.moneda == 'COP':
+            if m % 1 == 0:
+                entero = int(m)
+                return f"$ {entero:,} COP".replace(",", ".")
+            else:
+                partes = f"{m:,.2f}".split(".")
+                entero = partes[0].replace(",", ".")
+                decimal = partes[1]
+                return f"$ {entero},{decimal} COP"
+        elif self.moneda == 'USD':
+            return f"$ {m:,.2f} USD"
+        return f"$ {m:,.2f} {self.moneda}"
