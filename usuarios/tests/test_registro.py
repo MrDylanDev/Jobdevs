@@ -256,5 +256,63 @@ class TestRegistroView:
         assert 'email' in response.context['form'].errors
         assert 'ya se encuentra registrado' in response.context['form'].errors['email'][0]
 
+    def test_registro_despacha_email_bienvenida_desarrollador(self, client):
+        """SCRUM-201: El registro de desarrollador despacha un correo de bienvenida asíncrono con Celery."""
+        from django.core import mail
+        mail.outbox.clear()
+
+        response = client.post(reverse('registro'), {
+            'username': 'bienvenida_dev',
+            'nombre': 'Aprendiz Juan',
+            'tipo_documento': 'cedula',
+            'identificacion': '1099887766',
+            'email': 'juan_bienvenida@test.jobdevs',
+            'fecha_nacimiento': '2001-05-20',
+            'rol': 'desarrollador',
+            'password1': 'BienvenidoPass123!',
+            'password2': 'BienvenidoPass123!',
+        })
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
+
+        email = mail.outbox[0]
+        assert email.to == ['juan_bienvenida@test.jobdevs']
+        assert 'Bienvenido a JobDevs' in email.subject
+        assert 'Aprendiz Juan' in email.body
+        assert 'Ir a mi Panel de Desarrollador' in email.body
+        html_body, mime = email.alternatives[0]
+        assert mime == 'text/html'
+        assert 'desarrollador/dashboard' in html_body
+
+    def test_registro_despacha_email_bienvenida_empresa(self, client):
+        """SCRUM-201: El registro de empresa despacha un correo de bienvenida con instrucciones corporativas."""
+        from django.core import mail
+        mail.outbox.clear()
+
+        response = client.post(reverse('registro'), {
+            'username': 'bienvenida_empresa',
+            'nombre': 'Empresa Digital SAS',
+            'tipo_documento': 'nit',
+            'identificacion': '901234567-1',
+            'sector': 'Software',
+            'ciudad': 'Medellín',
+            'email': 'contacto@digital.jobdevs',
+            'fecha_nacimiento': '1995-10-10',
+            'rol': 'empresa',
+            'password1': 'BienvenidoPass123!',
+            'password2': 'BienvenidoPass123!',
+        })
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
+
+        email = mail.outbox[0]
+        assert email.to == ['contacto@digital.jobdevs']
+        assert 'Empresa Digital SAS' in email.body
+        assert 'Ir a mi Panel de Empresa' in email.body
+        html_body, mime = email.alternatives[0]
+        assert mime == 'text/html'
+        assert 'empresa/dashboard' in html_body
+
+
 
 

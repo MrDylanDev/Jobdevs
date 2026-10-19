@@ -1,0 +1,53 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_preheader %}¡Te damos la bienvenida a JobDevs, la plataforma de talento y proyectos SENA!{% endblock %}
+
+{% block email_content %}
+  <div style="text-align: center; margin-bottom: 24px;">
+    <span style="display: inline-block; background-color: #e0f2fe; color: #0369a1; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 9999px;">
+      ¡Cuenta Creada con Éxito!
+    </span>
+  </div>
+
+  <h2 style="margin-top: 0; color: #0f172a; font-size: 22px; font-weight: 800; text-align: center;">
+    ¡Bienvenido a JobDevs, {% if usuario.nombre %}{{ usuario.nombre }}{% elif usuario.username %}{{ usuario.username }}{% else %}Comunidad SENA{% endif %}!
+  </h2>
+
+  <p>Nos alegra que hagas parte de <strong>JobDevs</strong>, el ecosistema oficial que conecta el talento técnico del <strong>SENA</strong> con proyectos reales de la industria tecnológica.</p>
+
+  {% if usuario.rol == 'empresa' %}
+    <div style="background-color: #f8fafc; border-left: 4px solid #0284c7; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #0f172a;">Como Empresa, en tu panel podrás:</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 1.8;">
+        <li>Publicar proyectos de software, diseño y tecnología para aprendices.</li>
+        <li>Explorar perfiles calificados con validación oficial de identidad SENA.</li>
+        <li>Formalizar acuerdos y contratos digitales protegidos por mediación institucional.</li>
+        <li>Chatear en tiempo real con los postulantes y gestionar avances por hitos.</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{ dashboard_url|default:'/empresa/dashboard/' }}" class="btn-cta" target="_blank">Ir a mi Panel de Empresa</a>
+    </div>
+  {% else %}
+    <div style="background-color: #f8fafc; border-left: 4px solid #10b981; border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #0f172a;">Como Desarrollador, en tu panel podrás:</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 1.8;">
+        <li>Explorar el catálogo de proyectos activos y postularte con un solo clic.</li>
+        <li>Validar tu número de ficha SENA para obtener tu insignia oficial verificada.</li>
+        <li>Chatear directamente con empresas interesadas en tu perfil.</li>
+        <li>Subir evidencias de avance y construir tu portafolio y reputación profesional.</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{ dashboard_url|default:'/desarrollador/dashboard/' }}" class="btn-cta" target="_blank">Ir a mi Panel de Desarrollador</a>
+    </div>
+  {% endif %}
+
+  <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 28px 0;">
+
+  <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">
+    <strong>Consejo de seguridad:</strong> Nunca compartas tus contraseñas ni datos bancarios por canales externos a JobDevs. Todas las transacciones y acuerdos quedan respaldados dentro de la plataforma.
+  </p>
+{% endblock %}
