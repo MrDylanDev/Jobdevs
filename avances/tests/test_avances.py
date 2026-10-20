@@ -274,5 +274,59 @@ class TestRegistrarAvance:
         content = response.content.decode('utf-8')
         assert 'no admite nuevos avances' in content or 'ya han sido entregados' in content
 
+    def test_registrar_avance_preserva_datos_en_error_sin_redireccion(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-206: Al fallar validación (sin URL ni archivo), no redirige (200) y preserva la descripción y el hito."""
+        proyecto, entregable, _ = escenario_avance
+        texto_largo = "Implementé toda la capa de autenticación JWT y pruebas de integración completas."
+
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': str(entregable.id),
+            'descripcion': texto_largo,
+            'archivo_url': '',
+        })
+        assert response.status_code == 200  # Render directo, NO redirect 302
+        content = response.content.decode('utf-8')
+        assert texto_largo in content
+        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in content
+        assert response.context['form_data']['descripcion'] == texto_largo
+        assert response.context['form_data']['entregable_id'] == str(entregable.id)
+
+    def test_registrar_avance_ajax_retorna_json_error_sin_recarga(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-206: Petición AJAX/Fetch sin URL ni archivo retorna JSON 400 con detalle del error."""
+        proyecto, entregable, _ = escenario_avance
+        response = dev_client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': entregable.id,
+                'descripcion': 'Avance por Fetch',
+                'archivo_url': '',
+            },
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 400
+        assert response.headers['Content-Type'] == 'application/json'
+        data = response.json()
+        assert data['status'] == 'error'
+        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in data['error']
+
+    def test_registrar_avance_ajax_exitoso_retorna_json_redirect(self, dev_client, desarrollador_user, escenario_avance):
+        """SCRUM-206: Petición AJAX/Fetch válida crea el avance y retorna JSON 200 con redirect_url."""
+        proyecto, entregable, _ = escenario_avance
+        response = dev_client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': entregable.id,
+                'descripcion': 'Avance exitoso vía Fetch',
+                'archivo_url': 'https://github.com/mrdylan/jobdevs/pull/1',
+            },
+            headers={'Accept': 'application/json'}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data['status'] == 'ok'
+        assert 'redirect_url' in data
+        assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+
+
 
 

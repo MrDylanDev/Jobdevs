@@ -2,6 +2,7 @@ import os
 import zipfile
 from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -98,16 +99,48 @@ def registrar_avance(request, proyecto_id):
             messages.info(request, f"Todos los hitos del proyecto '{proyecto.titulo}' ya han sido entregados o están en revisión.")
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
+    is_ajax = (
+        request.headers.get('Accept') == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+
+    form_data = {
+        'entregable_id': '',
+        'descripcion': '',
+        'archivo_url': '',
+    }
+
+    def _responder_error(msg_error):
+        if is_ajax:
+            return JsonResponse({'status': 'error', 'error': msg_error}, status=400)
+        messages.error(request, msg_error)
+        return render(request, 'avances/registrar.html', {
+            'proyecto': proyecto,
+            'hitos_pendientes': hitos_pendientes,
+            'form_data': form_data,
+        })
+
     if request.method == 'POST':
         try:
-            descripcion = request.POST.get('descripcion')
+            descripcion = (request.POST.get('descripcion') or '').strip()
             archivo_url = (request.POST.get('archivo_url') or '').strip()
             archivo_adjunto = request.FILES.get('archivo_adjunto')
-            entregable_id = request.POST.get('entregable_id')
+            entregable_id = (request.POST.get('entregable_id') or '').strip()
+
+            form_data = {
+                'entregable_id': entregable_id,
+                'descripcion': descripcion,
+                'archivo_url': archivo_url,
+            }
+
+            if not entregable_id:
+                return _responder_error("Debes seleccionar un hito para registrar el avance.")
+
+            if not descripcion:
+                return _responder_error("Debes ingresar una descripción detallada del progreso realizado.")
             
             if not archivo_url and not archivo_adjunto:
-                messages.error(request, "Debes proporcionar una URL o adjuntar un archivo de evidencia.")
-                return redirect('registrar_avance', proyecto_id=proyecto.id)
+                return _responder_error("Debes proporcionar una URL o adjuntar un archivo de evidencia.")
 
             if archivo_url:
                 from django.core.validators import URLValidator
@@ -116,24 +149,17 @@ def registrar_avance(request, proyecto_id):
                 try:
                     url_val(archivo_url)
                 except ValidationError:
-                    messages.error(request, "La URL de evidencia debe ser una dirección web válida (iniciando con http:// o https://).")
-                    return redirect('registrar_avance', proyecto_id=proyecto.id)
+                    return _responder_error("La URL de evidencia debe ser una dirección web válida (iniciando con http:// o https://).")
 
             if archivo_adjunto:
                 error_adjunto = _validar_archivo_adjunto(archivo_adjunto)
                 if error_adjunto:
-                    messages.error(request, error_adjunto)
-                    return redirect('registrar_avance', proyecto_id=proyecto.id)
-
-            if not entregable_id:
-                messages.error(request, "Debes seleccionar un hito para registrar el avance.")
-                return redirect('registrar_avance', proyecto_id=proyecto.id)
+                    return _responder_error(error_adjunto)
 
             entregable = get_object_or_404(Entregable, id=entregable_id, proyecto=proyecto)
 
             if entregable.estado != 'pendiente':
-                messages.error(request, f"El hito '{entregable.titulo}' ya no se encuentra pendiente y no admite nuevos avances.")
-                return redirect('registrar_avance', proyecto_id=proyecto.id)
+                return _responder_error(f"El hito '{entregable.titulo}' ya no se encuentra pendiente y no admite nuevos avances.")
 
             with transaction.atomic():
                 # Bloquear el proyecto para evitar condiciones de carrera
@@ -184,21 +210,22 @@ def registrar_avance(request, proyecto_id):
                     proyecto.registrar_cambio_estado('en_revision', request.user, estado_anterior=estado_anterior)
                     messages.info(request, "¡Felicidades! Has enviado el último hito. El proyecto ha pasado a Revisión Final.")
 
+            redirect_target = reverse('dashboard_desarrollador') + '?section=activos'
             messages.success(request, "¡Hito completado y avance registrado exitosamente!")
-            return redirect(reverse('dashboard_desarrollador') + '?section=activos')
+            if is_ajax:
+                return JsonResponse({
+                    'status': 'ok',
+                    'mensaje': '¡Hito completado y avance registrado exitosamente!',
+                    'redirect_url': redirect_target,
+                })
+            return redirect(redirect_target)
         except Exception as e:
-            messages.error(request, f"Error al registrar avance: {str(e)}")
-
-    # Obtener hitos pendientes filtrados por equipo o generales
-    hitos_pendientes = Entregable.objects.filter(
-        Q(proyecto=proyecto) & 
-        Q(estado='pendiente') & 
-        (Q(equipo__miembros=request.user) | Q(equipo__isnull=True))
-    ).distinct()
+            return _responder_error(f"Error al registrar avance: {str(e)}")
 
     return render(request, 'avances/registrar.html', {
         'proyecto': proyecto,
-        'hitos_pendientes': hitos_pendientes
+        'hitos_pendientes': hitos_pendientes,
+        'form_data': form_data,
     })
 
 @login_required

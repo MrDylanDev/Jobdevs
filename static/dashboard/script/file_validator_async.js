@@ -48,6 +48,9 @@
             case 'jpeg':
                 // JPEG -> 0xFF 0xD8 0xFF
                 return bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+            case 'zip':
+                // ZIP -> PK\x03\x04 o PK\x05\x06 (0x50 0x4B)
+                return bytes[0] === 0x50 && bytes[1] === 0x4B && (bytes[2] === 0x03 || bytes[2] === 0x05);
             default:
                 return true; // Si no hay regla estricta para el tipo, permitir
         }

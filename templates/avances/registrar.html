@@ -49,16 +49,22 @@
           {% endfor %}
         {% endif %}
 
+        <!-- Alerta dinámica client-side sin recarga (SCRUM-206) -->
+        <div id="avanceErrorAlert" class="msg-error" style="display:none; margin-bottom:16px;" role="alert">
+          <i class="fa fa-circle-exclamation"></i>
+          <span id="avanceErrorText"></span>
+        </div>
+
         <div class="card">
-          <form method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
+          <form id="formRegistrarAvance" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
             {% csrf_token %}
 
             <div class="form-group">
               <label class="form-label"><i class="fa fa-list-check" style="margin-right:6px;"></i>Hito a Completar</label>
-              <select name="entregable_id" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <select id="entregableSelect" name="entregable_id" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
                 <option value="">-- Selecciona el hito que completaste --</option>
                 {% for hito in hitos_pendientes %}
-                  <option value="{{ hito.id }}">{{ hito.titulo }}</option>
+                  <option value="{{ hito.id }}" {% if form_data.entregable_id == hito.id|stringformat:"s" %}selected{% endif %}>{{ hito.titulo }}</option>
                 {% empty %}
                   <option value="" disabled>⚠️ No hay hitos pendientes definidos.</option>
                 {% endfor %}
@@ -68,23 +74,27 @@
 
             <div class="form-group">
               <label class="form-label"><i class="fa fa-align-left" style="margin-right:6px;"></i>Descripción del Progreso</label>
-              <textarea name="descripcion" required placeholder="¿Qué implementaste? ¿Cómo lo hiciste?" style="width:100%; min-height:130px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;"></textarea>
+              <textarea id="descripcionInput" name="descripcion" required placeholder="¿Qué implementaste? ¿Cómo lo hiciste?" style="width:100%; min-height:130px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;">{{ form_data.descripcion|default:'' }}</textarea>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="grupoUrl">
               <label class="form-label"><i class="fa fa-link" style="margin-right:6px;"></i>URL de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si adjuntas archivo)</span></label>
-              <input type="url" name="archivo_url" placeholder="https://github.com/... o enlace a repositorio/demo" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <input type="url" id="archivoUrlInput" name="archivo_url" value="{{ form_data.archivo_url|default:'' }}" placeholder="https://github.com/... o enlace a repositorio/demo" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="grupoArchivo">
               <label class="form-label"><i class="fa fa-paperclip" style="margin-right:6px;"></i>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si usas URL)</span></label>
-              <input type="file" name="archivo_adjunto" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+              <div id="archivoPreviewBadge" style="display:none; margin-top:8px; padding:8px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; font-size:12.5px; color:#1e40af; align-items:center; justify-content:space-between;">
+                <span><i class="fa fa-file-circle-check" style="color:#2563eb; margin-right:6px;"></i><strong id="archivoNombreLabel"></strong> (<span id="archivoTamanoLabel"></span>)</span>
+                <button type="button" id="quitarArchivoBtn" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px; font-weight:600;">Quitar</button>
+              </div>
               <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">Puedes subir código comprimido en ZIP, capturas, diagramas o documentos PDF (máx. 10 MB).</small>
             </div>
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; gap:12px;">
               <a href="{% url 'dashboard_desarrollador' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancelar</a>
-              <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center;">
+              <button type="submit" id="btnEnviarAvance" class="btn btn-primary" style="flex:2; justify-content:center;">
                 <i class="fa fa-paper-plane"></i> Enviar Avance
               </button>
             </div>
@@ -94,5 +104,118 @@
     </main>
   </div>
 </div>
+
+<script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
+<script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
+<script>
+  (function() {
+    const form = document.getElementById('formRegistrarAvance');
+    const urlInput = document.getElementById('archivoUrlInput');
+    const fileInput = document.getElementById('archivoAdjuntoInput');
+    const errorAlert = document.getElementById('avanceErrorAlert');
+    const errorText = document.getElementById('avanceErrorText');
+    const btnEnviar = document.getElementById('btnEnviarAvance');
+    const previewBadge = document.getElementById('archivoPreviewBadge');
+    const nombreLabel = document.getElementById('archivoNombreLabel');
+    const tamanoLabel = document.getElementById('archivoTamanoLabel');
+    const quitarBtn = document.getElementById('quitarArchivoBtn');
+
+    function mostrarErrorEnVivo(mensaje) {
+      errorText.textContent = mensaje;
+      errorAlert.style.display = 'flex';
+      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+        window.JobDevsSSE.mostrarToast({ tipo: 'alerta', mensaje: mensaje });
+      }
+    }
+
+    function ocultarError() {
+      errorAlert.style.display = 'none';
+      urlInput.style.borderColor = 'var(--border)';
+      fileInput.style.borderColor = 'var(--border)';
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        ocultarError();
+        const file = fileInput.files && fileInput.files[0];
+        if (file) {
+          nombreLabel.textContent = file.name;
+          tamanoLabel.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+          previewBadge.style.display = 'flex';
+        } else {
+          previewBadge.style.display = 'none';
+        }
+      });
+    }
+
+    if (quitarBtn) {
+      quitarBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        previewBadge.style.display = 'none';
+      });
+    }
+
+    if (urlInput) {
+      urlInput.addEventListener('input', ocultarError);
+    }
+
+    if (form) {
+      form.addEventListener('submit', async function(e) {
+        ocultarError();
+
+        const urlVal = (urlInput.value || '').trim();
+        const tieneArchivo = fileInput.files && fileInput.files.length > 0;
+
+        // 1. Validación instantánea en cliente sin recargar ni perder datos
+        if (!urlVal && !tieneArchivo) {
+          e.preventDefault();
+          urlInput.style.borderColor = '#ef4444';
+          fileInput.style.borderColor = '#ef4444';
+          mostrarErrorEnVivo('Debes proporcionar una URL o adjuntar un archivo de evidencia antes de enviar el avance.');
+          return;
+        }
+
+        if (urlVal && !/^https?:\/\/.+/i.test(urlVal)) {
+          e.preventDefault();
+          urlInput.style.borderColor = '#ef4444';
+          mostrarErrorEnVivo('La URL de evidencia debe iniciar con http:// o https://');
+          return;
+        }
+
+        // 2. Envío asíncrono con Fetch + FormData (Promesas) para evitar recarga si el servidor detecta un problema
+        e.preventDefault();
+        const originalBtnHtml = btnEnviar.innerHTML;
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando avance...';
+
+        try {
+          const formData = new FormData(form);
+          const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+          });
+
+          const data = await response.json();
+          if (response.ok && data.status === 'ok') {
+            window.location.href = data.redirect_url || '/desarrollador/dashboard/?section=activos';
+          } else {
+            mostrarErrorEnVivo(data.error || 'Ocurrió un error al validar el avance.');
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = originalBtnHtml;
+          }
+        } catch (err) {
+          mostrarErrorEnVivo('Error de red al enviar el avance. Tus datos siguen intactos en el formulario.');
+          btnEnviar.disabled = false;
+          btnEnviar.innerHTML = originalBtnHtml;
+        }
+      });
+    }
+  })();
+</script>
 </body>
 </html>
