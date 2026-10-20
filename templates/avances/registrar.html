@@ -49,12 +49,6 @@
           {% endfor %}
         {% endif %}
 
-        <!-- Alerta dinámica client-side sin recarga (SCRUM-206) -->
-        <div id="avanceErrorAlert" class="msg-error" style="display:none; margin-bottom:16px;" role="alert">
-          <i class="fa fa-circle-exclamation"></i>
-          <span id="avanceErrorText"></span>
-        </div>
-
         <div class="card">
           <form id="formRegistrarAvance" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
             {% csrf_token %}
@@ -112,8 +106,6 @@
     const form = document.getElementById('formRegistrarAvance');
     const urlInput = document.getElementById('archivoUrlInput');
     const fileInput = document.getElementById('archivoAdjuntoInput');
-    const errorAlert = document.getElementById('avanceErrorAlert');
-    const errorText = document.getElementById('avanceErrorText');
     const btnEnviar = document.getElementById('btnEnviarAvance');
     const previewBadge = document.getElementById('archivoPreviewBadge');
     const nombreLabel = document.getElementById('archivoNombreLabel');
@@ -121,16 +113,14 @@
     const quitarBtn = document.getElementById('quitarArchivoBtn');
 
     function mostrarErrorEnVivo(mensaje) {
-      errorText.textContent = mensaje;
-      errorAlert.style.display = 'flex';
-      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
       if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
         window.JobDevsSSE.mostrarToast({ tipo: 'alerta', mensaje: mensaje });
+      } else {
+        alert(mensaje);
       }
     }
 
     function ocultarError() {
-      errorAlert.style.display = 'none';
       urlInput.style.borderColor = 'var(--border)';
       fileInput.style.borderColor = 'var(--border)';
     }
