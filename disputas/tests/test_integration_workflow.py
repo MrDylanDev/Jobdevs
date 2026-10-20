@@ -34,7 +34,13 @@ class TestWorkflowCompletoDisputas:
         client.force_login(desarrollador_user)
         resp_abrir = client.post(
             reverse("disputas:abrir_disputa", args=[proyecto.pk]),
-            {"motivo": "Incumplimiento de términos y falta de retroalimentación."},
+            {
+                "categoria": "incumplimiento_contractual",
+                "motivo": "Incumplimiento grave y continuado de términos contractuales y falta total de retroalimentación en el proyecto.",
+                "confirma_intento_previo": "1",
+                "confirma_gravedad": "1",
+                "acepta_sanciones": "1",
+            },
         )
         assert resp_abrir.status_code == 302
 

@@ -18,6 +18,12 @@ class Disputa(models.Model):
         ('sancionar_empresa', 'Sancionar Empresa'),
         ('sancionar_desarrollador', 'Sancionar Desarrollador'),
     ]
+    CATEGORIAS = [
+        ('incumplimiento_contractual', 'Incumplimiento contractual o abandono de actividades'),
+        ('retencion_fondos', 'Retención indebida de fondos o conflicto en liberación de hitos'),
+        ('desviacion_alcance', 'Desviación crítica de alcance (Scope Creep abusivo)'),
+        ('falta_etica_confidencialidad', 'Violación a confidencialidad, propiedad intelectual o agresión'),
+    ]
 
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='disputas')
     contratacion = models.ForeignKey(
@@ -27,7 +33,13 @@ class Disputa(models.Model):
     mediador = models.ForeignKey(
         Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='disputas_mediadas'
     )
+    categoria = models.CharField(
+        max_length=40,
+        choices=CATEGORIAS,
+        default='incumplimiento_contractual',
+    )
     motivo = models.TextField()
+    evidencia_url = models.URLField(max_length=500, blank=True, default='')
     estado = models.CharField(max_length=20, choices=ESTADO, default='abierta')
     resolucion = models.CharField(max_length=30, choices=RESOLUCION, null=True, blank=True)
     notas_resolucion = models.TextField(blank=True, default='')
