@@ -11,17 +11,49 @@ from usuarios.models import Usuario
 from .models import Disputa
 
 ESTADOS_DISPUTABLES = ('en_desarrollo', 'en_revision')
+LONGITUD_MINIMA_MOTIVO = 80
 
 
-def abrir_disputa(proyecto, usuario, motivo, contratacion=None):
+def abrir_disputa(
+    proyecto,
+    usuario,
+    motivo,
+    contratacion=None,
+    categoria='incumplimiento_contractual',
+    evidencia_url='',
+    confirma_intento_previo=True,
+    confirma_gravedad=True,
+    acepta_sanciones=True,
+):
     """Abre una disputa y congela proyecto y contratación de forma atómica.
 
     Lanza PermissionDenied si el usuario no participa en el proyecto y
-    ValidationError si el motivo está vacío o el proyecto no es disputable.
+    ValidationError si el motivo está vacío o no alcanza la longitud mínima,
+    la causal no es válida, no se confirma el checklist de gravedad o el proyecto
+    no es disputable.
     """
     motivo = (motivo or '').strip()
     if not motivo:
         raise ValidationError('Debes indicar el motivo de la disputa.')
+
+    if len(motivo) < LONGITUD_MINIMA_MOTIVO:
+        raise ValidationError(
+            f'El motivo de la disputa debe ser detallado y contar con al menos '
+            f'{LONGITUD_MINIMA_MOTIVO} caracteres explicando los antecedentes graves del conflicto.'
+        )
+
+    categorias_validas = dict(Disputa.CATEGORIAS)
+    if not categoria or categoria not in categorias_validas:
+        raise ValidationError('Debes seleccionar una causal grave válida para iniciar la disputa.')
+
+    if not (confirma_intento_previo and confirma_gravedad and acepta_sanciones):
+        raise ValidationError(
+            'Debes certificar el agotamiento de la vía previa y confirmar la gravedad del conflicto.'
+        )
+
+    evidencia_url = (evidencia_url or '').strip()
+    if evidencia_url and not (evidencia_url.startswith('http://') or evidencia_url.startswith('https://')):
+        raise ValidationError('La URL de evidencia debe iniciar con http:// o https://.')
 
     with transaction.atomic():
         proyecto = Proyecto.objects.select_for_update().get(pk=proyecto.pk)
@@ -59,8 +91,13 @@ def abrir_disputa(proyecto, usuario, motivo, contratacion=None):
             contratacion.save()
 
         disputa = Disputa.objects.create(
-            proyecto=proyecto, contratacion=contratacion, iniciado_por=usuario,
-            motivo=motivo, estado='abierta',
+            proyecto=proyecto,
+            contratacion=contratacion,
+            iniciado_por=usuario,
+            categoria=categoria,
+            motivo=motivo,
+            evidencia_url=evidencia_url,
+            estado='abierta',
         )
 
         LogAuditoria.objects.create(

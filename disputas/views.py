@@ -13,7 +13,7 @@ from proyectos.models import Proyecto
 from usuarios.models import Usuario
 
 from .models import Disputa, MensajeDisputa
-from .services import abrir_disputa, resolver_disputa
+from .services import ESTADOS_DISPUTABLES, abrir_disputa, resolver_disputa
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 
@@ -35,9 +35,26 @@ def lista_disputas_view(request):
     disputas_resueltas = qs.filter(
         estado__in=('resuelta', 'cancelada')
     ).order_by('-fecha_resolucion', '-fecha_creacion')
+
+    if user.rol == 'empresa':
+        proyectos_disputables = Proyecto.objects.filter(
+            empresa=user,
+            estado__in=ESTADOS_DISPUTABLES,
+            contrataciones__estado='activa',
+        ).distinct().order_by('-fecha_publicacion', '-id')
+    elif user.rol == 'desarrollador':
+        proyectos_disputables = Proyecto.objects.filter(
+            contrataciones__desarrollador=user,
+            contrataciones__estado='activa',
+            estado__in=ESTADOS_DISPUTABLES,
+        ).distinct().select_related('empresa').order_by('-fecha_publicacion', '-id')
+    else:
+        proyectos_disputables = Proyecto.objects.none()
+
     return render(request, 'disputas/lista_disputas.html', {
         'disputas_activas': disputas_activas,
         'disputas_resueltas': disputas_resueltas,
+        'proyectos_disputables': proyectos_disputables,
     })
 
 
@@ -54,16 +71,51 @@ def abrir_disputa_view(request, proyecto_id):
         if contratacion is None:
             raise PermissionDenied('No participas en este proyecto.')
 
-    context = {'proyecto': proyecto, 'contratacion': contratacion, 'motivo': ''}
+    context = {
+        'proyecto': proyecto,
+        'contratacion': contratacion,
+        'motivo': '',
+        'categoria': 'incumplimiento_contractual',
+        'evidencia_url': '',
+        'categorias': Disputa.CATEGORIAS,
+        'confirma_intento_previo': False,
+        'confirma_gravedad': False,
+        'acepta_sanciones': False,
+    }
 
     if request.method == 'POST':
         motivo = request.POST.get('motivo', '').strip()
-        context['motivo'] = motivo
+        categoria = request.POST.get('categoria', '').strip() or 'incumplimiento_contractual'
+        evidencia_url = request.POST.get('evidencia_url', '').strip()
+        confirma_intento_previo = bool(request.POST.get('confirma_intento_previo'))
+        confirma_gravedad = bool(request.POST.get('confirma_gravedad'))
+        acepta_sanciones = bool(request.POST.get('acepta_sanciones'))
+
+        context.update({
+            'motivo': motivo,
+            'categoria': categoria,
+            'evidencia_url': evidencia_url,
+            'confirma_intento_previo': confirma_intento_previo,
+            'confirma_gravedad': confirma_gravedad,
+            'acepta_sanciones': acepta_sanciones,
+        })
+
         if not motivo:
             messages.error(request, 'Debes indicar el motivo de la disputa.')
-            return render(request, 'disputas/abrir_disputa.html', context)
+            return render(request, 'disputas/abrir_disputa.html', context, status=200)
+
         try:
-            disputa = abrir_disputa(proyecto, user, motivo, contratacion)
+            disputa = abrir_disputa(
+                proyecto=proyecto,
+                usuario=user,
+                motivo=motivo,
+                contratacion=contratacion,
+                categoria=categoria,
+                evidencia_url=evidencia_url,
+                confirma_intento_previo=confirma_intento_previo,
+                confirma_gravedad=confirma_gravedad,
+                acepta_sanciones=acepta_sanciones,
+            )
         except ValidationError as exc:
             messages.error(request, ' '.join(exc.messages))
             return render(request, 'disputas/abrir_disputa.html', context, status=400)

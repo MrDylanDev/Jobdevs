@@ -113,6 +113,21 @@ class TestListaDisputas:
         assert extra.pk in _ids(resp.context['disputas_activas'])
         assert escenario['resuelta'].pk not in _ids(resp.context['disputas_resueltas'])
 
+    def test_boton_iniciar_disputa_y_modal_para_dev_y_empresa(self, client, escenario):
+        _login(client, escenario['dev1'])
+        resp = client.get(reverse(self.url))
+        assert resp.status_code == 200
+        html = resp.content.decode()
+        assert 'Iniciar Nueva Disputa' in html
+        assert 'id="modalNuevaDisputa"' in html
+        assert 'proyectos_disputables' in resp.context
+
+        _login(client, escenario['admin'])
+        resp_admin = client.get(reverse(self.url))
+        assert resp_admin.status_code == 200
+        html_admin = resp_admin.content.decode()
+        assert 'id="btn-iniciar-disputa"' not in html_admin
+
 
 class TestDashboardAdminDisputas:
     def test_contexto_incluye_disputas_activas(self, client, escenario):

@@ -408,6 +408,11 @@
                     <i class="fa fa-users"></i> Espacio de Trabajo
                   </a>
                 {% endif %}
+                <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+                  <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-outline-danger btn-sm" style="font-size:12px;padding:4px 10px;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:6px;border:1px solid #ef4444;color:#ef4444;background:transparent;" title="Iniciar mediación por conflicto grave">
+                    <i class="fa fa-gavel"></i> Reportar Disputa
+                  </a>
+                </div>
               </div>
             </div>
           {% empty %}

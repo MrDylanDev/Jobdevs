@@ -44,9 +44,27 @@ def _login(client, user):
     client.login(username=user.username, password='TestPass123!')
 
 
+MOTIVO_VALIDO = (
+    'Incumplimiento grave de las obligaciones contractuales pactadas sin respuesta en más de diez días continuos.'
+)
+
+
+def _payload_valido(**kwargs):
+    data = {
+        'motivo': MOTIVO_VALIDO,
+        'categoria': 'incumplimiento_contractual',
+        'evidencia_url': 'https://github.com/empresa/repo/pull/42',
+        'confirma_intento_previo': '1',
+        'confirma_gravedad': '1',
+        'acepta_sanciones': '1',
+    }
+    data.update(kwargs)
+    return data
+
+
 class TestAcceso:
     def test_anonimo_redirige_a_login(self, client, escenario):
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'x'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         assert resp.status_code == 302
         assert '/login' in resp.url or 'login' in resp.url
         assert Disputa.objects.count() == 0
@@ -58,20 +76,22 @@ class TestAcceso:
         content = resp.content.decode()
         assert 'Proyecto Disputado' in content
         assert 'name="motivo"' in content
-        assert 'Iniciar Mediación' in content
+        assert 'name="categoria"' in content
+        assert 'name="confirma_intento_previo"' in content
+        assert 'Iniciar Mediación Formal' in content
 
     def test_tercero_desarrollador_recibe_403(self, client, escenario):
         otro = _user('ap_otro_dev', 'desarrollador')
         _login(client, otro)
         assert client.get(_url(escenario['proyecto'])).status_code == 403
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'x'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         assert resp.status_code == 403
         assert Disputa.objects.count() == 0
 
     def test_otra_empresa_recibe_403(self, client, escenario):
         otra = _user('ap_otra_empresa', 'empresa')
         _login(client, otra)
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'x'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         assert resp.status_code == 403
         escenario['proyecto'].refresh_from_db()
         assert escenario['proyecto'].estado == 'en_desarrollo'
@@ -79,7 +99,7 @@ class TestAcceso:
     def test_dev_con_contratacion_no_activa_recibe_403(self, client, escenario):
         Contratacion.objects.filter(pk=escenario['contratacion'].pk).update(estado='cancelada')
         _login(client, escenario['dev'])
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'x'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         assert resp.status_code == 403
 
     def test_proyecto_inexistente_404(self, client, escenario):
@@ -90,26 +110,32 @@ class TestAcceso:
 class TestApertura:
     def test_desarrollador_abre_disputa(self, client, escenario):
         _login(client, escenario['dev'])
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'No pagan'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         disputa = Disputa.objects.get()
         assert resp.status_code == 302
         assert resp.url == reverse('disputas:detalle_disputa', args=[disputa.id])
         assert disputa.iniciado_por == escenario['dev']
-        assert disputa.motivo == 'No pagan'
+        assert disputa.motivo == MOTIVO_VALIDO
+        assert disputa.categoria == 'incumplimiento_contractual'
+        assert disputa.evidencia_url == 'https://github.com/empresa/repo/pull/42'
         assert disputa.estado == 'abierta'
         assert disputa.contratacion == escenario['contratacion']
 
     def test_empresa_abre_disputa(self, client, escenario):
         _login(client, escenario['empresa'])
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'No entrega'})
+        resp = client.post(
+            _url(escenario['proyecto']),
+            _payload_valido(categoria='desviacion_alcance'),
+        )
         disputa = Disputa.objects.get()
         assert resp.status_code == 302
         assert disputa.iniciado_por == escenario['empresa']
+        assert disputa.categoria == 'desviacion_alcance'
         assert disputa.contratacion == escenario['contratacion']
 
     def test_congelamiento_atomico(self, client, escenario):
         _login(client, escenario['dev'])
-        client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        client.post(_url(escenario['proyecto']), _payload_valido())
         escenario['proyecto'].refresh_from_db()
         escenario['contratacion'].refresh_from_db()
         assert escenario['proyecto'].estado == 'en_disputa'
@@ -117,7 +143,7 @@ class TestApertura:
 
     def test_historial_estado_registrado(self, client, escenario):
         _login(client, escenario['dev'])
-        client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        client.post(_url(escenario['proyecto']), _payload_valido())
         h = HistorialEstadoProyecto.objects.get(proyecto=escenario['proyecto'])
         assert h.estado_anterior == 'en_desarrollo'
         assert h.estado_nuevo == 'en_disputa'
@@ -125,7 +151,7 @@ class TestApertura:
 
     def test_log_auditoria_creado(self, client, escenario):
         _login(client, escenario['empresa'])
-        client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        client.post(_url(escenario['proyecto']), _payload_valido())
         disputa = Disputa.objects.get()
         log = LogAuditoria.objects.get(tabla_afectada='disputas')
         assert log.usuario == escenario['empresa']
@@ -134,7 +160,7 @@ class TestApertura:
 
     def test_notificaciones_contraparte_y_admins(self, client, escenario):
         _login(client, escenario['dev'])
-        client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        client.post(_url(escenario['proyecto']), _payload_valido())
         destinatarios = set(
             Notificacion.objects.filter(proyecto=escenario['proyecto'])
             .values_list('usuario__username', flat=True)
@@ -145,7 +171,7 @@ class TestApertura:
 
     def test_notificaciones_empresa_inicia_notifica_dev(self, client, escenario):
         _login(client, escenario['empresa'])
-        client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        client.post(_url(escenario['proyecto']), _payload_valido())
         destinatarios = set(
             Notificacion.objects.filter(proyecto=escenario['proyecto'])
             .values_list('usuario__username', flat=True)
@@ -159,17 +185,47 @@ class TestValidacion:
     @pytest.mark.parametrize('motivo', ['', '   ', '\n\t '])
     def test_motivo_vacio_rechazado(self, client, escenario, motivo):
         _login(client, escenario['dev'])
-        resp = client.post(_url(escenario['proyecto']), {'motivo': motivo})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido(motivo=motivo))
         assert resp.status_code == 200
         assert Disputa.objects.count() == 0
         escenario['proyecto'].refresh_from_db()
         assert escenario['proyecto'].estado == 'en_desarrollo'
 
+    def test_motivo_menor_a_80_caracteres_rechazado(self, client, escenario):
+        _login(client, escenario['dev'])
+        resp = client.post(_url(escenario['proyecto']), _payload_valido(motivo='Problema leve de diseño y color.'))
+        assert resp.status_code == 400
+        assert Disputa.objects.count() == 0
+        escenario['proyecto'].refresh_from_db()
+        assert escenario['proyecto'].estado == 'en_desarrollo'
+
+    def test_declaracion_jurada_incompleta_rechazada(self, client, escenario):
+        _login(client, escenario['dev'])
+        payload = _payload_valido()
+        del payload['confirma_gravedad']
+        resp = client.post(_url(escenario['proyecto']), payload)
+        assert resp.status_code == 400
+        assert Disputa.objects.count() == 0
+        escenario['proyecto'].refresh_from_db()
+        assert escenario['proyecto'].estado == 'en_desarrollo'
+
+    def test_categoria_invalida_rechazada(self, client, escenario):
+        _login(client, escenario['dev'])
+        resp = client.post(_url(escenario['proyecto']), _payload_valido(categoria='inventada'))
+        assert resp.status_code == 400
+        assert Disputa.objects.count() == 0
+
+    def test_evidencia_url_invalida_rechazada(self, client, escenario):
+        _login(client, escenario['dev'])
+        resp = client.post(_url(escenario['proyecto']), _payload_valido(evidencia_url='ftp://invalido'))
+        assert resp.status_code == 400
+        assert Disputa.objects.count() == 0
+
     @pytest.mark.parametrize('estado', ['finalizado', 'en_disputa'])
     def test_no_se_puede_abrir_en_estado_invalido(self, client, escenario, estado):
         Proyecto.objects.filter(pk=escenario['proyecto'].pk).update(estado=estado)
         _login(client, escenario['dev'])
-        resp = client.post(_url(escenario['proyecto']), {'motivo': 'Motivo'})
+        resp = client.post(_url(escenario['proyecto']), _payload_valido())
         assert resp.status_code == 400
         assert Disputa.objects.count() == 0
         escenario['proyecto'].refresh_from_db()
