@@ -80,6 +80,8 @@ def dashboard_desarrollador(request):
         for p in mis_proyectos_qs:
             perfil_empresa = getattr(p.empresa, 'perfil_empresa', None)
             dev_ids = [c.desarrollador_id for c in p.contratos_activos]
+            hitos_del_proy = hitos_por_proyecto.get(p.id, [])
+            hitos_pendientes_dev = sum(1 for h in hitos_del_proy if h.get('estado') == 'pendiente')
             mis_proyectos_v.append({
                 'proyecto_id': p.id,
                 'titulo': p.titulo,
@@ -89,12 +91,13 @@ def dashboard_desarrollador(request):
                 'empresa_estado_verificacion': perfil_empresa.estado_verificacion if perfil_empresa else 'sin_verificar',
                 'hitos_completados': p.hitos_completados,
                 'hitos_totales': p.hitos_totales,
+                'hitos_pendientes': hitos_pendientes_dev,
                 'ultimo_avance': None,
                 'fecha_fin': p.fecha_limite,
                 'estado': p.estado,
                 'empresa_id': p.empresa_id,
                 'num_desarrolladores': len(dev_ids),
-                'hitos': hitos_por_proyecto.get(p.id, []),
+                'hitos': hitos_del_proy,
             })
 
     # Incluir también conversaciones de postulaciones activas o en negociación en el Centro de Mensajes

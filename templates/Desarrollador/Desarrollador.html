@@ -390,9 +390,15 @@
 
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <div style="display:flex;gap:8px;">
-                  <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
-                    <i class="fa fa-pen"></i> Registrar Avance
-                  </a>
+                  {% if proyecto.hitos_pendientes > 0 %}
+                    <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
+                      <i class="fa fa-pen"></i> Registrar Avance
+                    </a>
+                  {% else %}
+                    <button type="button" class="btn btn-secondary" disabled style="flex:1;justify-content:center;opacity:0.6;cursor:not-allowed;" title="{% if proyecto.hitos_totales == 0 %}El proyecto aún no tiene hitos definidos por la empresa{% else %}Todos los hitos están completados o en revisión{% endif %}">
+                      <i class="fa fa-ban"></i> Sin hitos pendientes
+                    </button>
+                  {% endif %}
                   <a href="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
                     <i class="fa fa-eye"></i> Historial
                   </a>
