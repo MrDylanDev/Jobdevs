@@ -83,6 +83,21 @@ def registrar_avance(request, proyecto_id):
         messages.error(request, "No tienes un contrato activo para este proyecto.")
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
+    # 3. SCRUM-205: Verificar si hay hitos pendientes disponibles para el desarrollador
+    hitos_pendientes = Entregable.objects.filter(
+        Q(proyecto=proyecto) & 
+        Q(estado='pendiente') & 
+        (Q(equipo__miembros=request.user) | Q(equipo__isnull=True))
+    ).distinct()
+
+    if not hitos_pendientes.exists():
+        total_hitos = Entregable.objects.filter(proyecto=proyecto).count()
+        if total_hitos == 0:
+            messages.warning(request, f"El proyecto '{proyecto.titulo}' aún no tiene hitos definidos por la empresa.")
+        else:
+            messages.info(request, f"Todos los hitos del proyecto '{proyecto.titulo}' ya han sido entregados o están en revisión.")
+        return redirect(reverse('dashboard_desarrollador') + '?section=activos')
+
     if request.method == 'POST':
         try:
             descripcion = request.POST.get('descripcion')
@@ -115,6 +130,10 @@ def registrar_avance(request, proyecto_id):
                 return redirect('registrar_avance', proyecto_id=proyecto.id)
 
             entregable = get_object_or_404(Entregable, id=entregable_id, proyecto=proyecto)
+
+            if entregable.estado != 'pendiente':
+                messages.error(request, f"El hito '{entregable.titulo}' ya no se encuentra pendiente y no admite nuevos avances.")
+                return redirect('registrar_avance', proyecto_id=proyecto.id)
 
             with transaction.atomic():
                 # Bloquear el proyecto para evitar condiciones de carrera

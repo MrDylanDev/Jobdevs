@@ -224,4 +224,55 @@ class TestRegistrarAvance:
         assert response.status_code == 200
         assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
 
+    def test_registrar_avance_bloquea_si_proyecto_no_tiene_hitos(self, dev_client, empresa_user, desarrollador_user):
+        """SCRUM-205: Si un proyecto no tiene hitos definidos, registrar_avance redirige con advertencia."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Sin Hitos',
+            descripcion='D', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa',
+        )
+        response = dev_client.get(reverse('registrar_avance', args=[proyecto.id]))
+        assert response.status_code == 302
+        assert reverse('dashboard_desarrollador') in response.url
+        res_follow = dev_client.get(reverse('registrar_avance', args=[proyecto.id]), follow=True)
+        content = res_follow.content.decode('utf-8')
+        assert 'aún no tiene hitos definidos' in content
+
+    def test_registrar_avance_bloquea_si_todos_los_hitos_entregados_o_en_revision(self, dev_client, empresa_user, desarrollador_user):
+        """SCRUM-205: Si todos los hitos ya fueron entregados, registrar_avance redirige con aviso."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Hitos Completos',
+            descripcion='D', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito 1', descripcion='D', estado='en_revision'
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa',
+        )
+        response = dev_client.get(reverse('registrar_avance', args=[proyecto.id]))
+        assert response.status_code == 302
+        res_follow = dev_client.get(reverse('registrar_avance', args=[proyecto.id]), follow=True)
+        content = res_follow.content.decode('utf-8')
+        assert 'ya han sido entregados o están en revisión' in content
+
+    def test_registrar_avance_post_rechaza_hito_no_pendiente(self, dev_client, empresa_user, desarrollador_user, escenario_avance):
+        """SCRUM-205: POST rechazado si el hito seleccionado no se encuentra en estado pendiente."""
+        proyecto, entregable, _ = escenario_avance
+        entregable.estado = 'completado'
+        entregable.save()
+
+        response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
+            'entregable_id': entregable.id,
+            'descripcion': 'Intento de avance sobre hito completado',
+            'archivo_url': 'https://github.com/mrdylan/jobdevs',
+        }, follow=True)
+        assert response.status_code == 200
+        assert not Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+        content = response.content.decode('utf-8')
+        assert 'no admite nuevos avances' in content or 'ya han sido entregados' in content
+
+
 
