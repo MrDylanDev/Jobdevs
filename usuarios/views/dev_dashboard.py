@@ -7,6 +7,7 @@ from ..utils import get_admin_id
 from proyectos.models import Proyecto, Valoracion, Entregable
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion, ContratoDigital
+from disputas.services import datos_dashboard_disputas
 from favoritos.models import Favorito
 from ._helpers import get_notificaciones_context
 
@@ -152,4 +153,6 @@ def dashboard_desarrollador(request):
         'perfil': perfil,
         'admin_id': admin_id
     }
+    context.update(datos_dashboard_disputas(request.user))
+    context['disputas_activas_count'] = len(context['disputas_activas'])
     return render(request, 'Desarrollador/Desarrollador.html', context)

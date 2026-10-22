@@ -84,19 +84,34 @@ class TestListaDisputas:
         assert 'Centro de Mediación y Resolución de Disputas' in html
         assert reverse('disputas:detalle_disputa', args=[escenario['abierta'].pk]) in html
 
+    @pytest.mark.parametrize('clave,destino', [
+        ('empresa1', 'dashboard_empresa'),
+        ('dev1', 'dashboard_desarrollador'),
+    ])
+    def test_empresa_y_dev_son_redirigidos_a_su_dashboard(self, client, escenario, clave, destino):
+        _login(client, escenario[clave])
+        resp = client.get(reverse(self.url))
+        assert resp.status_code == 302
+        assert resp.url == f"{reverse(destino)}?section=disputas"
+
+
+class TestPestanaDisputasEnDashboard:
     def test_empresa_solo_ve_sus_proyectos(self, client, escenario):
         _login(client, escenario['empresa1'])
-        resp = client.get(reverse(self.url))
+        resp = client.get(reverse('dashboard_empresa'))
         assert resp.status_code == 200
         assert _ids(resp.context['disputas_activas']) == {
             escenario['abierta'].pk, escenario['mediacion'].pk}
         assert _ids(resp.context['disputas_resueltas']) == set()
+        assert resp.context['disputas_activas_count'] == 2
         html = resp.content.decode()
+        assert 'id="disputas"' in html
+        assert 'ProyAbierta' in html
         assert 'ProyResuelta' not in html
 
     def test_desarrollador_solo_ve_las_suyas(self, client, escenario):
         _login(client, escenario['dev2'])
-        resp = client.get(reverse(self.url))
+        resp = client.get(reverse('dashboard_desarrollador'))
         assert resp.status_code == 200
         assert _ids(resp.context['disputas_activas']) == set()
         assert _ids(resp.context['disputas_resueltas']) == {
@@ -109,24 +124,60 @@ class TestListaDisputas:
             iniciado_por=escenario['dev1'], con_contratacion=False,
         )
         _login(client, escenario['dev1'])
-        resp = client.get(reverse(self.url))
+        resp = client.get(reverse('dashboard_desarrollador'))
         assert extra.pk in _ids(resp.context['disputas_activas'])
         assert escenario['resuelta'].pk not in _ids(resp.context['disputas_resueltas'])
 
-    def test_boton_iniciar_disputa_y_modal_para_dev_y_empresa(self, client, escenario):
-        _login(client, escenario['dev1'])
-        resp = client.get(reverse(self.url))
-        assert resp.status_code == 200
+    @pytest.mark.parametrize('clave,destino,funcion', [
+        ('empresa1', 'dashboard_empresa', "switchTab('disputas'"),
+        ('dev1', 'dashboard_desarrollador', "verSeccion('disputas'"),
+    ])
+    def test_sidebar_abre_la_pestana_sin_salir_del_dashboard(
+        self, client, escenario, clave, destino, funcion,
+    ):
+        _login(client, escenario[clave])
+        html = client.get(reverse(destino)).content.decode()
+        assert funcion in html
+        assert f'href="{reverse("disputas:lista_disputas")}"' not in html
+
+    @pytest.mark.parametrize('clave,destino', [
+        ('empresa1', 'dashboard_empresa'),
+        ('dev1', 'dashboard_desarrollador'),
+    ])
+    def test_boton_iniciar_disputa_y_selector_de_proyectos_elegibles(
+        self, client, escenario, clave, destino,
+    ):
+        elegible = Proyecto.objects.create(
+            empresa=escenario['empresa1'], titulo='ProyElegible', descripcion='D',
+            tipo_solucion='sitio_web', prioridad='alta', vacantes=1, estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=elegible, desarrollador=escenario['dev1'], empresa=escenario['empresa1'],
+        )
+        _login(client, escenario[clave])
+        resp = client.get(reverse(destino))
         html = resp.content.decode()
         assert 'Iniciar Nueva Disputa' in html
         assert 'id="modalNuevaDisputa"' in html
-        assert 'proyectos_disputables' in resp.context
+        assert [p.pk for p in resp.context['proyectos_disputables']] == [elegible.pk]
+        assert reverse('disputas:abrir_disputa', args=[elegible.pk]) in html
 
+    def test_no_se_usa_bootstrap_en_la_pestana(self, client, escenario):
+        _login(client, escenario['empresa1'])
+        html = client.get(reverse('dashboard_empresa')).content.decode()
+        assert 'data-bs-toggle' not in html
+        assert 'btn-outline-danger' not in html
+
+
+class TestListaAdministrador:
+    def test_admin_ve_lista_con_layout_propio_y_sin_boton_de_apertura(self, client, escenario):
         _login(client, escenario['admin'])
-        resp_admin = client.get(reverse(self.url))
-        assert resp_admin.status_code == 200
-        html_admin = resp_admin.content.decode()
-        assert 'id="btn-iniciar-disputa"' not in html_admin
+        resp = client.get(reverse('disputas:lista_disputas'))
+        assert resp.status_code == 200
+        assert 'disputas/layout.html' in [t.name for t in resp.templates]
+        html = resp.content.decode()
+        assert 'id="btn-iniciar-disputa"' not in html
+        assert 'bootstrap' not in html.lower()
 
 
 class TestDashboardAdminDisputas:

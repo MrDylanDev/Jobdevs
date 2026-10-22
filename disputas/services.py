@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from contrataciones.models import Contratacion
@@ -11,6 +12,7 @@ from usuarios.models import Usuario
 from .models import Disputa
 
 ESTADOS_DISPUTABLES = ('en_desarrollo', 'en_revision')
+ESTADOS_ACTIVOS = ('abierta', 'en_mediacion')
 LONGITUD_MINIMA_MOTIVO = 80
 
 
@@ -234,3 +236,40 @@ def resolver_disputa(disputa, admin_user, resolucion, dictamen):
         ])
 
     return disputa
+
+
+def datos_dashboard_disputas(usuario):
+    """Datos de la pestaña/lista de disputas para un usuario según su rol.
+
+    Devuelve disputas activas, historial y los proyectos sobre los que el
+    usuario puede abrir una disputa (solo empresa y desarrollador).
+    """
+    qs = Disputa.objects.select_related(
+        'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador',
+    )
+    if usuario.rol == 'administrador':
+        proyectos = Proyecto.objects.none()
+    elif usuario.rol == 'empresa':
+        qs = qs.filter(proyecto__empresa=usuario)
+        proyectos = Proyecto.objects.filter(
+            empresa=usuario,
+            estado__in=ESTADOS_DISPUTABLES,
+            contrataciones__estado='activa',
+        )
+    else:
+        qs = qs.filter(Q(contratacion__desarrollador=usuario) | Q(iniciado_por=usuario))
+        proyectos = Proyecto.objects.filter(
+            contrataciones__desarrollador=usuario,
+            contrataciones__estado='activa',
+            estado__in=ESTADOS_DISPUTABLES,
+        ).select_related('empresa')
+
+    activas = qs.filter(estado__in=ESTADOS_ACTIVOS).order_by('-fecha_creacion')
+    resueltas = qs.filter(estado__in=('resuelta', 'cancelada')).order_by(
+        '-fecha_resolucion', '-fecha_creacion',
+    )
+    return {
+        'disputas_activas': activas,
+        'disputas_resueltas': resueltas,
+        'proyectos_disputables': proyectos.distinct().order_by('-fecha_publicacion', '-id'),
+    }

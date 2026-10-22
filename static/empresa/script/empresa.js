@@ -20,6 +20,9 @@ function switchTab(id, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   const target = document.getElementById(id);
   if (target) target.classList.add('activa');
+  if (!btn) {
+    btn = Array.from(document.querySelectorAll('.nav-item[onclick]')).find(b => (b.getAttribute('onclick') || '').indexOf("('" + id + "'") !== -1);
+  }
   if (btn) btn.classList.add('active');
 }
 

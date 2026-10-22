@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from contrataciones.models import Contratacion
@@ -13,7 +14,7 @@ from proyectos.models import Proyecto
 from usuarios.models import Usuario
 
 from .models import Disputa, MensajeDisputa
-from .services import ESTADOS_DISPUTABLES, abrir_disputa, resolver_disputa
+from .services import abrir_disputa, datos_dashboard_disputas, resolver_disputa
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 
@@ -21,41 +22,11 @@ ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 @login_required
 def lista_disputas_view(request):
     user = request.user
-    qs = Disputa.objects.select_related(
-        'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador',
-    )
-    if user.rol == 'administrador':
-        pass
-    elif user.rol == 'empresa':
-        qs = qs.filter(proyecto__empresa=user)
-    else:
-        qs = qs.filter(Q(contratacion__desarrollador=user) | Q(iniciado_por=user))
-
-    disputas_activas = qs.filter(estado__in=ESTADOS_MENSAJERIA).order_by('-fecha_creacion')
-    disputas_resueltas = qs.filter(
-        estado__in=('resuelta', 'cancelada')
-    ).order_by('-fecha_resolucion', '-fecha_creacion')
-
     if user.rol == 'empresa':
-        proyectos_disputables = Proyecto.objects.filter(
-            empresa=user,
-            estado__in=ESTADOS_DISPUTABLES,
-            contrataciones__estado='activa',
-        ).distinct().order_by('-fecha_publicacion', '-id')
-    elif user.rol == 'desarrollador':
-        proyectos_disputables = Proyecto.objects.filter(
-            contrataciones__desarrollador=user,
-            contrataciones__estado='activa',
-            estado__in=ESTADOS_DISPUTABLES,
-        ).distinct().select_related('empresa').order_by('-fecha_publicacion', '-id')
-    else:
-        proyectos_disputables = Proyecto.objects.none()
-
-    return render(request, 'disputas/lista_disputas.html', {
-        'disputas_activas': disputas_activas,
-        'disputas_resueltas': disputas_resueltas,
-        'proyectos_disputables': proyectos_disputables,
-    })
+        return redirect(f"{reverse('dashboard_empresa')}?section=disputas")
+    if user.rol == 'desarrollador':
+        return redirect(f"{reverse('dashboard_desarrollador')}?section=disputas")
+    return render(request, 'disputas/lista_disputas.html', datos_dashboard_disputas(user))
 
 
 @login_required
