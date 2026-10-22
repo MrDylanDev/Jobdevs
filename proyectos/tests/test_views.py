@@ -10,21 +10,42 @@ User = get_user_model()
 class TestListarProyectos:
     """Tests for listar_proyectos view."""
 
-    def test_listar_publicados(self, auth_client, empresa_user):
-        """Public listing shows only 'publicado' projects."""
+    def test_listar_publicados(self, auth_client, empresa_user, desarrollador_user):
+        """La vitrina oculta proyectos en desarrollo que ya no tienen cupo (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
         Proyecto.objects.create(
             empresa=empresa_user, titulo='Public', descripcion='P',
             tipo_solucion='sitio_web', estado='publicado',
         )
-        Proyecto.objects.create(
+        cerrado = Proyecto.objects.create(
             empresa=empresa_user, titulo='Hidden', descripcion='H',
-            tipo_solucion='sitio_web', estado='en_desarrollo',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=1,
+        )
+        Contratacion.objects.create(
+            proyecto=cerrado, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
         )
         response = auth_client.get(reverse('listar_proyectos'))
         assert response.status_code == 200
         content = response.content.decode()
         assert 'Public' in content
         assert 'Hidden' not in content
+
+    def test_listar_proyecto_en_desarrollo_con_cupo(self, auth_client, empresa_user, desarrollador_user):
+        """Un proyecto en desarrollo con vacantes libres sigue visible (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='CupoAbierto', descripcion='C',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=2,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
+        )
+        response = auth_client.get(reverse('listar_proyectos'))
+        content = response.content.decode()
+        assert 'CupoAbierto' in content
+        assert '1 de 2 cupos libres' in content
 
     def test_filtrar_por_tipo(self, auth_client, empresa_user):
         """Filter by tipo_solucion works."""

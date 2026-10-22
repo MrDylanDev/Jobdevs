@@ -7,7 +7,9 @@ from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField, F
+from django.db.models import (
+    Avg, Q, Count, Prefetch, Value, FloatField, F, IntegerField, OuterRef, Subquery,
+)
 from django.db.models.functions import Coalesce
 from datetime import datetime
 import json
@@ -28,7 +30,18 @@ def listar_proyectos(request):
     prioridad = request.GET.get('prioridad')
     q = request.GET.get('q', '').strip()
     
-    proyectos_qs = Proyecto.objects.filter(estado='publicado').select_related(
+    # Subconsultas para el cupo real: evitan joins extra que inflarían el Avg
+    # de reputación y permiten filtrar por cupo antes de paginar.
+    contratos_activos_sq = (
+        Contratacion.objects.filter(proyecto=OuterRef('pk'), estado='activa')
+        .values('proyecto').annotate(total=Count('*')).values('total')
+    )
+    negociaciones_sq = (
+        Postulacion.objects.filter(proyecto=OuterRef('pk'), estado='en_negociacion')
+        .values('proyecto').annotate(total=Count('*')).values('total')
+    )
+
+    proyectos_qs = Proyecto.objects.select_related(
         'empresa__perfil_empresa'
     ).annotate(
         # Hallazgo 10: distinct=True para evitar conteos inflados por joins adicionales
@@ -36,6 +49,17 @@ def listar_proyectos(request):
         empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
             filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
             Value(0.0), output_field=FloatField()),
+        contratos_activos=Coalesce(
+            Subquery(contratos_activos_sq, output_field=IntegerField()), Value(0)
+        ),
+        negociaciones_abiertas=Coalesce(
+            Subquery(negociaciones_sq, output_field=IntegerField()), Value(0)
+        ),
+    ).annotate(
+        disponibles_anotadas=F('vacantes') - F('contratos_activos') - F('negociaciones_abiertas'),
+    ).filter(
+        # RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres.
+        Q(estado='publicado') | Q(estado='en_desarrollo', disponibles_anotadas__gt=0)
     )
     
     if tipo:
@@ -79,6 +103,8 @@ def listar_proyectos(request):
             'empresa_verificada': perfil.es_verificada if perfil else False,
             'empresa_badge': perfil.badge_info if perfil else None,
             'empresa_estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
+            'vacantes': p.vacantes,
+            'vacantes_disponibles': p.vacantes_disponibles,
         })
 
     is_ajax = (

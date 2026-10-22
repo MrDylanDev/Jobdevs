@@ -87,6 +87,28 @@ class Proyecto(models.Model):
                 self.categoria = categoria
         super().save(*args, **kwargs)
 
+    @property
+    def vacantes_disponibles(self):
+        """Cupos libres reales (RF 2.1.2 / 3.1.1).
+
+        Descuenta contratos activos y negociaciones en curso, que también
+        comprometen la vacante. Si la vista anotó el valor, se reutiliza para
+        evitar N+1 en los listados.
+        """
+        anotadas = getattr(self, 'disponibles_anotadas', None)
+        if anotadas is not None:
+            return max(anotadas, 0)
+        ocupadas = self.contrataciones.filter(estado='activa').count()
+        negociando = self.postulaciones.filter(estado='en_negociacion').count()
+        return max(self.vacantes - ocupadas - negociando, 0)
+
+    @property
+    def acepta_postulaciones(self):
+        """RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres."""
+        return self.estado == 'publicado' or (
+            self.estado == 'en_desarrollo' and self.vacantes_disponibles > 0
+        )
+
     def get_tipo_solucion_display(self):
         if self.categoria_id:
             try:

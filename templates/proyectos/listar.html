@@ -119,6 +119,9 @@
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">
                         <i class="fa fa-users" style="margin-right:4px;"></i>{{ proyecto.num_postulaciones }} postulantes
                     </span>
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">
+                        <i class="fa fa-door-open" style="margin-right:4px;"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
+                    </span>
                 </div>
                 
                 <p class="project-desc">{{ proyecto.descripcion|truncatewords:20 }}</p>

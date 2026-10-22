@@ -64,6 +64,25 @@ class TestCancelarContratacion:
         proyecto.refresh_from_db()
         assert proyecto.estado == 'en_desarrollo'
 
+    def test_libera_la_vacante_si_quedan_cupos(self, empresa_user, proyecto, contrato):
+        """RF 3.4.1: con vacantes libres el proyecto vuelve a la vitrina."""
+        proyecto.vacantes = 2
+        proyecto.save()
+        otro_dev = User.objects.create_user(
+            username='dev_segundo_c', email='dev_segundo_c@test.jobdevs',
+            nombre='Dev Segundo', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=otro_dev, empresa=empresa_user, estado='activa',
+        )
+
+        cancelar_contratacion(contrato.id, empresa_user)
+
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+        assert proyecto.vacantes_disponibles == 1
+
     def test_rechaza_contrato_ya_cancelado(self, empresa_user, contrato):
         contrato.estado = 'cancelada'
         contrato.save()
