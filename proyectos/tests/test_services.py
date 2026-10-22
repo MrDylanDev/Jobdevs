@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
 from proyectos.models import Entregable, HistorialEstadoProyecto, Proyecto, Valoracion
+from usuarios.models import PerfilDesarrollador
 from proyectos.services import (
     desarrolladores_pendientes,
     finalizar_proyecto,
@@ -143,7 +144,8 @@ class TestValorarYFinalizar:
         )
 
         finalizado, restantes = valorar_y_finalizar_si_ultima(
-            proyecto.id, contratacion.desarrollador_id, 5, 'Excelente', empresa_user,
+            proyecto.id, contratacion.desarrollador_id, 5,
+            'Excelente trabajo, muy profesional y puntual', empresa_user,
         )
 
         assert finalizado is False
@@ -156,7 +158,8 @@ class TestValorarYFinalizar:
         self, empresa_user, proyecto, contratacion, hitos_completos
     ):
         finalizado, restantes = valorar_y_finalizar_si_ultima(
-            proyecto.id, contratacion.desarrollador_id, 4, 'Bien', empresa_user,
+            proyecto.id, contratacion.desarrollador_id, 4,
+            'Buen trabajo, cumplió con todos los hitos', empresa_user,
         )
 
         assert finalizado is True
@@ -166,7 +169,8 @@ class TestValorarYFinalizar:
 
     def test_rechaza_valoracion_duplicada(self, empresa_user, proyecto, contratacion, hitos_completos):
         valorar_y_finalizar_si_ultima(
-            proyecto.id, contratacion.desarrollador_id, 5, 'Primera', empresa_user,
+            proyecto.id, contratacion.desarrollador_id, 5,
+            'Primera entrega impecable y bien documentada', empresa_user,
         )
 
         # El proyecto ya quedó finalizado, así que recreamos uno en desarrollo
@@ -175,7 +179,8 @@ class TestValorarYFinalizar:
 
         with pytest.raises(ValidationError) as exc:
             valorar_y_finalizar_si_ultima(
-                proyecto.id, contratacion.desarrollador_id, 3, 'Segunda', empresa_user,
+                proyecto.id, contratacion.desarrollador_id, 3,
+                'Segunda valoración de prueba con texto válido', empresa_user,
             )
 
         assert 'Ya has calificado' in str(exc.value)
@@ -195,3 +200,70 @@ class TestValorarYFinalizar:
             )
 
         assert 'Debes seleccionar una puntuación' in str(exc.value)
+
+
+    def test_rechaza_comentario_vacio(self, empresa_user, proyecto, contratacion, hitos_completos):
+        """RF 5.2.1: sin comentario no hay valoración."""
+        with pytest.raises(ValidationError) as exc:
+            valorar_y_finalizar_si_ultima(
+                proyecto.id, contratacion.desarrollador_id, 5, '   ', empresa_user,
+            )
+
+        assert 'comentario es obligatorio' in str(exc.value)
+        assert not Valoracion.objects.filter(proyecto=proyecto).exists()
+
+    def test_rechaza_comentario_corto(self, empresa_user, proyecto, contratacion, hitos_completos):
+        """RF 5.2.1: un comentario de dos palabras no justifica la nota."""
+        with pytest.raises(ValidationError) as exc:
+            valorar_y_finalizar_si_ultima(
+                proyecto.id, contratacion.desarrollador_id, 1, 'Muy malo', empresa_user,
+            )
+
+        assert 'al menos 20 caracteres' in str(exc.value)
+        assert not Valoracion.objects.filter(proyecto=proyecto).exists()
+
+    def test_actualiza_reputacion_del_desarrollador(
+        self, empresa_user, proyecto, contratacion, hitos_completos
+    ):
+        """RF 5.3.1: el campo denormalizado queda en sincronía al calificar."""
+        valorar_y_finalizar_si_ultima(
+            proyecto.id, contratacion.desarrollador_id, 4,
+            'Trabajo sólido, buena comunicación y entregas a tiempo', empresa_user,
+        )
+
+        perfil = PerfilDesarrollador.objects.get(usuario=contratacion.desarrollador)
+        assert perfil.calificacion_promedio == 4
+
+    def test_reputacion_promedia_varias_valoraciones(
+        self, empresa_user, proyecto, contratacion, hitos_completos
+    ):
+        """RF 5.3.1: el promedio se recalcula, no se sobrescribe con la última nota."""
+        valorar_y_finalizar_si_ultima(
+            proyecto.id, contratacion.desarrollador_id, 5,
+            'Excelente desempeño durante todo el proyecto', empresa_user,
+        )
+        segundo = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Segundo proyecto', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Entregable.objects.create(proyecto=segundo, titulo='Hito', estado='completado')
+        Contratacion.objects.create(
+            proyecto=segundo, desarrollador=contratacion.desarrollador,
+            empresa=empresa_user, estado='activa',
+        )
+        valorar_y_finalizar_si_ultima(
+            segundo.id, contratacion.desarrollador_id, 3,
+            'Cumplió, aunque con retrasos en la última entrega', empresa_user,
+        )
+
+        perfil = PerfilDesarrollador.objects.get(usuario=contratacion.desarrollador)
+        assert perfil.calificacion_promedio == 4
+
+    def test_actualiza_proyectos_completados_al_finalizar(
+        self, empresa_user, proyecto, contratacion, hitos_completos
+    ):
+        """RF 7.2.1: el contador sale de las contrataciones finalizadas."""
+        finalizar_proyecto(proyecto.id, empresa_user)
+
+        perfil = PerfilDesarrollador.objects.get(usuario=contratacion.desarrollador)
+        assert perfil.num_proyectos_completados == 1

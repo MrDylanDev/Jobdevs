@@ -283,30 +283,54 @@ def calificar_empresa(request, proyecto_id):
     if request.method == 'POST':
         try:
             puntuacion = int(request.POST.get('puntuacion'))
-            comentario = request.POST.get('comentario')
-            
-            if not 1 <= int(puntuacion) <= 5:
-                messages.error(request, "La puntuación debe estar entre 1 y 5.")
-                return redirect('calificar_empresa', proyecto_id=proyecto.id)
+        except (TypeError, ValueError):
+            messages.error(request, "Debes seleccionar una puntuación.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
-            if Valoracion.objects.filter(proyecto=proyecto, empresa=proyecto.empresa, desarrollador=request.user, rol_evaluador='desarrollador').exists():
-                messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
-                return redirect('dashboard_desarrollador')
+        if not 1 <= puntuacion <= 5:
+            messages.error(request, "La puntuación debe estar entre 1 y 5.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
-            Valoracion.objects.create(
-                proyecto=proyecto,
-                empresa=proyecto.empresa,
-                desarrollador=request.user,
-                puntuacion=int(puntuacion),
-                comentario=comentario,
-                rol_evaluador='desarrollador'
+        # RF 5.2.2: puntuación + comentario cualitativo obligatorio.
+        comentario = (request.POST.get('comentario') or '').strip()
+        if len(comentario) < services.MIN_COMENTARIO:
+            messages.error(
+                request,
+                f"El comentario es obligatorio y debe tener al menos "
+                f"{services.MIN_COMENTARIO} caracteres."
             )
-                
-            messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
+
+        try:
+            with transaction.atomic():
+                if Valoracion.objects.filter(
+                    proyecto=proyecto,
+                    empresa=proyecto.empresa,
+                    desarrollador=request.user,
+                    rol_evaluador='desarrollador',
+                ).exists():
+                    messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
+                    return redirect('dashboard_desarrollador')
+
+                Valoracion.objects.create(
+                    proyecto=proyecto,
+                    empresa=proyecto.empresa,
+                    desarrollador=request.user,
+                    puntuacion=puntuacion,
+                    comentario=comentario,
+                    rol_evaluador='desarrollador'
+                )
+
+                # RF 5.3.1: reflejar la nueva valoración en la reputación pública.
+                services.recalcular_reputacion_empresa(proyecto.empresa_id)
+        except IntegrityError:
+            # Dos POST simultáneos: la unicidad del modelo gana la carrera.
+            messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
             return redirect('dashboard_desarrollador')
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-            
+
+        messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
+        return redirect('dashboard_desarrollador')
+
     return render(request, 'proyectos/calificar_empresa.html', {'proyecto': proyecto})
 
 @login_required

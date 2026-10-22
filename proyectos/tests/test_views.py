@@ -349,3 +349,63 @@ class TestFinalizarProyecto:
             reverse('finalizar_proyecto', args=[proyecto.id])
         )
         assert response.status_code == 404
+
+
+class TestCalificarEmpresa:
+    """RF 5.2.2: el desarrollador califica a la empresa con comentario obligatorio."""
+
+    @pytest.fixture
+    def proyecto_finalizado(self, empresa_user, desarrollador_user):
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto terminado', descripcion='P',
+            tipo_solucion='sitio_web', estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='finalizada',
+        )
+        return proyecto
+
+    def test_rechaza_comentario_vacio(self, dev_client, proyecto_finalizado, desarrollador_user):
+        from proyectos.models import Valoracion
+        response = dev_client.post(
+            reverse('calificar_empresa', args=[proyecto_finalizado.id]),
+            {'puntuacion': '5', 'comentario': '   '},
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        assert not Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).exists()
+
+    def test_califica_y_actualiza_reputacion_empresa(
+        self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
+    ):
+        from proyectos.models import Valoracion
+        from usuarios.models import PerfilEmpresa
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+
+        response = dev_client.post(
+            reverse('calificar_empresa', args=[proyecto_finalizado.id]),
+            {'puntuacion': '5', 'comentario': 'Buena comunicación y pagos puntuales'},
+        )
+
+        assert response.status_code == 302
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador', puntuacion=5,
+        ).exists()
+        perfil.refresh_from_db()
+        assert perfil.calificacion_promedio == 5
+
+    def test_doble_post_concurrente_no_duplica(self, dev_client, proyecto_finalizado, desarrollador_user):
+        from proyectos.models import Valoracion
+        datos = {'puntuacion': '4', 'comentario': 'Trabajo claro y bien coordinado'}
+        dev_client.post(reverse('calificar_empresa', args=[proyecto_finalizado.id]), datos)
+        dev_client.post(reverse('calificar_empresa', args=[proyecto_finalizado.id]), datos)
+
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).count() == 1
