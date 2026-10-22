@@ -11,6 +11,16 @@ from ..decorators import api_ratelimit
 from ..utils import invalidar_sesiones_activas_usuario
 
 
+def invalidar_cache_administradores():
+    """RNF-21: mantiene coherente la caché de administradores ante cualquier alta, baja o cambio de rol.
+
+    Un solo punto para las tres rutas (crear, actualizar, eliminar) evita que se
+    repita el defecto de SCRUM-397: crear y actualizar invalidaban, eliminar no.
+    """
+    cache.delete('admin_id')
+    cache.delete('admin_ids_list')
+
+
 @login_required
 @api_ratelimit(max_requests=60, window_seconds=60)
 def api_usuarios(request):
@@ -102,8 +112,7 @@ def api_crear_usuario(request):
         )
         
         if user.rol == 'administrador':
-            cache.delete('admin_id')
-            cache.delete('admin_ids_list')
+            invalidar_cache_administradores()
             
         return JsonResponse({'id': user.id, 'status': 'created'}, status=201)
     except IntegrityError:
@@ -150,8 +159,7 @@ def api_actualizar_usuario(request, usuario_id):
         )
 
         if rol_anterior == 'administrador' or user.rol == 'administrador':
-            cache.delete('admin_id')
-            cache.delete('admin_ids_list')
+            invalidar_cache_administradores()
 
         return JsonResponse({'status': 'updated'})
     except IntegrityError:
@@ -172,8 +180,11 @@ def api_eliminar_usuario(request, usuario_id):
     user = get_object_or_404(Usuario, id=usuario_id)
     if user.id == request.user.id:
         return JsonResponse({'error': 'No puedes eliminarte a ti mismo.'}, status=400)
-        
+
+    era_administrador = user.rol == 'administrador'
     user.delete()
+    if era_administrador:
+        invalidar_cache_administradores()
     return JsonResponse({'status': 'deleted'})
 
 
