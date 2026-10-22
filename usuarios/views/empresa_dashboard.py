@@ -7,6 +7,7 @@ from ..utils import get_admin_id
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
+from disputas.services import datos_dashboard_disputas
 from ._helpers import get_notificaciones_context
 
 
@@ -104,6 +105,8 @@ def dashboard_empresa(request):
         'admin_id': admin_id,
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     }
+    context.update(datos_dashboard_disputas(request.user))
+    context['disputas_activas_count'] = len(context['disputas_activas'])
     return render(request, 'empresa/empresa.html', context)
 
 

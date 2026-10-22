@@ -66,10 +66,13 @@
         <i class="fa fa-heart"></i>
         <span>Favoritos</span>
       </button>
-      <a class="nav-item" href="{% url 'disputas:lista_disputas' %}">
+      <button class="nav-item" onclick="verSeccion('disputas', this)">
         <i class="fa fa-scale-balanced"></i>
         <span>Disputas</span>
-      </a>
+        {% if disputas_activas_count > 0 %}
+          <span class="nav-badge">{{ disputas_activas_count }}</span>
+        {% endif %}
+      </button>
     </div>
 
     <div class="sidebar-group">
@@ -408,17 +411,20 @@
                     <i class="fa fa-users"></i> Espacio de Trabajo
                   </a>
                 {% endif %}
-                <div style="display:flex;justify-content:flex-end;margin-top:2px;">
-                  <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-outline-danger btn-sm" style="font-size:12px;padding:4px 10px;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:6px;border:1px solid #ef4444;color:#ef4444;background:transparent;" title="Iniciar mediación por conflicto grave">
-                    <i class="fa fa-gavel"></i> Reportar Disputa
-                  </a>
-                </div>
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-full" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
+                  <i class="fa fa-gavel"></i> Reportar Disputa
+                </a>
               </div>
             </div>
           {% empty %}
             <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-rocket"></i><p>No tienes proyectos activos</p></div>
           {% endfor %}
         </div>
+      </div>
+
+      <!-- Disputas -->
+      <div id="disputas" class="seccion-v">
+        {% include 'disputas/_seccion_disputas.html' %}
       </div>
 
       <!-- Historial -->

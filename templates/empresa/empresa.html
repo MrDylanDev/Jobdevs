@@ -58,10 +58,13 @@
         <i class="fa fa-clock-rotate-left"></i>
         <span>Historial</span>
       </button>
-      <a class="nav-item" href="{% url 'disputas:lista_disputas' %}">
+      <button class="nav-item" onclick="switchTab('disputas', this)">
         <i class="fa fa-scale-balanced"></i>
         <span>Disputas</span>
-      </a>
+        {% if disputas_activas_count > 0 %}
+          <span class="nav-badge">{{ disputas_activas_count }}</span>
+        {% endif %}
+      </button>
     </div>
 
     <div class="sidebar-group">
@@ -360,7 +363,7 @@
                     <i class="fa fa-users"></i> Espacio de Trabajo
                   </a>
                 {% endif %}
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-outline-danger btn-sm" title="Iniciar mediación por conflicto grave">
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
                   <i class="fa fa-gavel"></i> Reportar Disputa
                 </a>
               </div>
@@ -369,6 +372,11 @@
             <div class="empty-state"><i class="fa fa-diagram-project"></i><p>No hay proyectos en desarrollo actualmente</p></div>
           {% endfor %}
         </div>
+      </section>
+
+      <!-- Disputas -->
+      <section id="disputas" class="seccion-v">
+        {% include 'disputas/_seccion_disputas.html' %}
       </section>
 
       <!-- Reputación -->
