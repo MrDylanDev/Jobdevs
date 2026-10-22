@@ -144,11 +144,21 @@ class TestPostularse:
         assert response.url == reverse('solicitar_verificacion_desarrollador')
 
     def test_no_postularse_proyecto_no_publicado(self, dev_client, empresa_user):
-        """Cannot apply to non-published projects."""
+        """Un proyecto en desarrollo sin cupo libre no acepta postulaciones (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
+        otro_dev = User.objects.create_user(
+            username='dev_ocupado', email='dev_ocupado@test.jobdevs',
+            nombre='Dev Ocupado', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='Cerrado',
             descripcion='C', tipo_solucion='sitio_web',
-            estado='en_desarrollo',
+            estado='en_desarrollo', vacantes=1,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=otro_dev,
+            empresa=empresa_user, estado='activa',
         )
         response = dev_client.post(
             reverse('postularse_a_proyecto', args=[proyecto.id]),
@@ -156,6 +166,44 @@ class TestPostularse:
         )
         assert response.status_code == 302
         assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+
+    def test_postularse_a_proyecto_en_desarrollo_con_cupo(self, dev_client, empresa_user):
+        """Con cupo libre, un proyecto en desarrollo sigue recibiendo postulaciones (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
+        otro_dev = User.objects.create_user(
+            username='dev_activo', email='dev_activo@test.jobdevs',
+            nombre='Dev Activo', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Abierto', descripcion='A',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=2,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=otro_dev,
+            empresa=empresa_user, estado='activa',
+        )
+        response = dev_client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            {'carta': 'H', 'experiencia': 'E', 'link': 'L'}
+        )
+        assert response.status_code == 302
+        assert Postulacion.objects.filter(proyecto=proyecto, desarrollador__username='dev_test').exists()
+
+    def test_postularse_notifica_a_la_empresa(self, dev_client, empresa_user):
+        """RF 6.2.2: la empresa recibe una Notificacion al recibir la postulación."""
+        from notificaciones.models import Notificacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Notifica', descripcion='N',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        dev_client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            {'carta': 'Hola', 'experiencia': 'E', 'link': 'L'}
+        )
+        assert Notificacion.objects.filter(
+            usuario=empresa_user, proyecto=proyecto, tipo='postulacion'
+        ).exists()
 
 
 class TestAceptarPostulacion:

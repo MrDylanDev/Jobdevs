@@ -10,21 +10,42 @@ User = get_user_model()
 class TestListarProyectos:
     """Tests for listar_proyectos view."""
 
-    def test_listar_publicados(self, auth_client, empresa_user):
-        """Public listing shows only 'publicado' projects."""
+    def test_listar_publicados(self, auth_client, empresa_user, desarrollador_user):
+        """La vitrina oculta proyectos en desarrollo que ya no tienen cupo (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
         Proyecto.objects.create(
             empresa=empresa_user, titulo='Public', descripcion='P',
             tipo_solucion='sitio_web', estado='publicado',
         )
-        Proyecto.objects.create(
+        cerrado = Proyecto.objects.create(
             empresa=empresa_user, titulo='Hidden', descripcion='H',
-            tipo_solucion='sitio_web', estado='en_desarrollo',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=1,
+        )
+        Contratacion.objects.create(
+            proyecto=cerrado, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
         )
         response = auth_client.get(reverse('listar_proyectos'))
         assert response.status_code == 200
         content = response.content.decode()
         assert 'Public' in content
         assert 'Hidden' not in content
+
+    def test_listar_proyecto_en_desarrollo_con_cupo(self, auth_client, empresa_user, desarrollador_user):
+        """Un proyecto en desarrollo con vacantes libres sigue visible (RF 3.1.1)."""
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='CupoAbierto', descripcion='C',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=2,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
+        )
+        response = auth_client.get(reverse('listar_proyectos'))
+        content = response.content.decode()
+        assert 'CupoAbierto' in content
+        assert '1 de 2 cupos libres' in content
 
     def test_filtrar_por_tipo(self, auth_client, empresa_user):
         """Filter by tipo_solucion works."""
@@ -349,3 +370,63 @@ class TestFinalizarProyecto:
             reverse('finalizar_proyecto', args=[proyecto.id])
         )
         assert response.status_code == 404
+
+
+class TestCalificarEmpresa:
+    """RF 5.2.2: el desarrollador califica a la empresa con comentario obligatorio."""
+
+    @pytest.fixture
+    def proyecto_finalizado(self, empresa_user, desarrollador_user):
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto terminado', descripcion='P',
+            tipo_solucion='sitio_web', estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='finalizada',
+        )
+        return proyecto
+
+    def test_rechaza_comentario_vacio(self, dev_client, proyecto_finalizado, desarrollador_user):
+        from proyectos.models import Valoracion
+        response = dev_client.post(
+            reverse('calificar_empresa', args=[proyecto_finalizado.id]),
+            {'puntuacion': '5', 'comentario': '   '},
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        assert not Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).exists()
+
+    def test_califica_y_actualiza_reputacion_empresa(
+        self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
+    ):
+        from proyectos.models import Valoracion
+        from usuarios.models import PerfilEmpresa
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+
+        response = dev_client.post(
+            reverse('calificar_empresa', args=[proyecto_finalizado.id]),
+            {'puntuacion': '5', 'comentario': 'Buena comunicación y pagos puntuales'},
+        )
+
+        assert response.status_code == 302
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador', puntuacion=5,
+        ).exists()
+        perfil.refresh_from_db()
+        assert perfil.calificacion_promedio == 5
+
+    def test_doble_post_concurrente_no_duplica(self, dev_client, proyecto_finalizado, desarrollador_user):
+        from proyectos.models import Valoracion
+        datos = {'puntuacion': '4', 'comentario': 'Trabajo claro y bien coordinado'}
+        dev_client.post(reverse('calificar_empresa', args=[proyecto_finalizado.id]), datos)
+        dev_client.post(reverse('calificar_empresa', args=[proyecto_finalizado.id]), datos)
+
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).count() == 1

@@ -12,12 +12,63 @@ llamada al servicio y traducción de la excepción en un mensaje + redirect.
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Avg
 
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+from usuarios.models import PerfilDesarrollador, PerfilEmpresa
 
 from .models import Proyecto, Valoracion
 from .policies import ESTADOS_FINALIZABLES, puede_finalizar_proyecto
+
+# RF 5.2.1 / 5.2.2: mínimo exigido al comentario cualitativo de una valoración.
+MIN_COMENTARIO = 20
+
+
+def recalcular_reputacion_desarrollador(usuario_id):
+    """RF 5.3.1: persiste el promedio de valoraciones recibidas por el dev.
+
+    Los campos denormalizados son la fuente que leen el listado de postulantes
+    y el ranking del administrador; sin este escritor quedaban siempre en 0.00.
+    """
+    promedio = (
+        Valoracion.objects.filter(
+            desarrollador_id=usuario_id, rol_evaluador='empresa'
+        ).aggregate(valor=Avg('puntuacion'))['valor']
+        or 0
+    )
+    PerfilDesarrollador.objects.filter(usuario_id=usuario_id).update(
+        calificacion_promedio=round(promedio, 2)
+    )
+
+
+def recalcular_reputacion_empresa(usuario_id):
+    """RF 5.3.1: persiste el promedio de valoraciones recibidas por la empresa."""
+    promedio = (
+        Valoracion.objects.filter(
+            empresa_id=usuario_id, rol_evaluador='desarrollador'
+        ).aggregate(valor=Avg('puntuacion'))['valor']
+        or 0
+    )
+    PerfilEmpresa.objects.filter(usuario_id=usuario_id).update(
+        calificacion_promedio=round(promedio, 2)
+    )
+
+
+def recalcular_proyectos_completados(usuario_id):
+    """RF 7.2.1: proyectos distintos con contratación finalizada para el dev.
+
+    Se recalcula desde las contrataciones en lugar de incrementar un contador:
+    así no se desincroniza con cancelaciones ni con la reactivación admin.
+    """
+    total = (
+        Contratacion.objects.filter(
+            desarrollador_id=usuario_id, estado='finalizada'
+        ).values('proyecto_id').distinct().count()
+    )
+    PerfilDesarrollador.objects.filter(usuario_id=usuario_id).update(
+        num_proyectos_completados=total
+    )
 
 
 def desarrolladores_pendientes(proyecto):
@@ -71,7 +122,12 @@ def _finalizar_bloque(proyecto, ejecutado_por):
     if notificaciones:
         Notificacion.objects.bulk_create(notificaciones)
 
+    desarrolladores = list(contratos.values_list('desarrollador_id', flat=True))
+
     contratos.update(estado='finalizada')
+
+    for desarrollador_id in desarrolladores:
+        recalcular_proyectos_completados(desarrollador_id)
 
     estado_anterior = proyecto.estado
     proyecto.estado = 'finalizado'
@@ -126,6 +182,13 @@ def valorar_y_finalizar_si_ultima(
     if not 1 <= puntuacion <= 5:
         raise ValidationError('La puntuación debe estar entre 1 y 5.')
 
+    # RF 5.2.1: el comentario cualitativo es obligatorio.
+    comentario = (comentario or '').strip()
+    if len(comentario) < MIN_COMENTARIO:
+        raise ValidationError(
+            f'El comentario es obligatorio y debe tener al menos {MIN_COMENTARIO} caracteres.'
+        )
+
     with transaction.atomic():
         proyecto = Proyecto.objects.select_for_update().get(id=proyecto_id)
 
@@ -145,9 +208,12 @@ def valorar_y_finalizar_si_ultima(
             empresa=ejecutado_por,
             desarrollador_id=desarrollador_id,
             puntuacion=puntuacion,
-            comentario=comentario or '',
+            comentario=comentario,
             rol_evaluador='empresa',
         )
+
+        # RF 5.3.1: mantener el campo denormalizado en sincronía al calificar.
+        recalcular_reputacion_desarrollador(desarrollador_id)
 
         restantes = desarrolladores_pendientes(proyecto).count()
         if restantes == 0:

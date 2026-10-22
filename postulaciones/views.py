@@ -112,8 +112,13 @@ def postularse_a_proyecto(request, proyecto_id):
         messages.error(request, "No puedes postularte a un proyecto publicado por tu propia cuenta.")
         return redirect('dashboard_desarrollador')
 
-    if proyecto.estado != 'publicado':
+    if not proyecto.acepta_postulaciones:
         messages.warning(request, f"Lo sentimos, el proyecto '{proyecto.titulo}' ya no acepta postulaciones (Estado: {proyecto.get_estado_display()}).")
+        return redirect('dashboard_desarrollador')
+
+    # RF 3.3.2: no aceptar postulaciones sin cupo, aunque el proyecto siga abierto.
+    if proyecto.vacantes_disponibles <= 0:
+        messages.warning(request, f"El proyecto '{proyecto.titulo}' ya no tiene vacantes disponibles.")
         return redirect('dashboard_desarrollador')
 
     # Hallazgo 9: Validar si la fecha límite de postulación ya venció
@@ -152,6 +157,17 @@ def postularse_a_proyecto(request, proyecto_id):
                     desarrollador=request.user,
                     mensaje=mensaje,
                     estado='pendiente'
+                )
+
+                # RF 6.2.2: la empresa debe enterarse de inmediato de la postulación.
+                Notificacion.objects.create(
+                    usuario=proyecto.empresa,
+                    proyecto=proyecto,
+                    tipo='postulacion',
+                    mensaje=(
+                        f"{request.user.nombre} se postuló a tu proyecto "
+                        f"'{proyecto.titulo}'."
+                    ),
                 )
             
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")

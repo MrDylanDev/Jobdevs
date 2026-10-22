@@ -49,12 +49,13 @@ def cancelar_contratacion(contratacion_id, ejecutado_por):
         contrato.estado = 'cancelada'
         contrato.save()
 
-        # Si queda sin contrataciones activas, el proyecto vuelve a publicarse
-        if (
-            not Contratacion.objects.filter(proyecto=contrato.proyecto, estado='activa').exists()
-            and contrato.proyecto.estado == 'en_desarrollo'
-        ):
-            proyecto = Proyecto.objects.select_for_update().get(id=contrato.proyecto_id)
+        # RF 3.4.1: la vacante se libera al cancelar. Si el proyecto seguía en
+        # desarrollo pero ya tiene cupo libre, vuelve a la vitrina.
+        proyecto = Proyecto.objects.select_for_update().get(id=contrato.proyecto_id)
+        contratos_restantes = Contratacion.objects.filter(
+            proyecto=proyecto, estado='activa'
+        ).count()
+        if proyecto.estado == 'en_desarrollo' and contratos_restantes < proyecto.vacantes:
             estado_anterior = proyecto.estado
             proyecto.estado = 'publicado'
             proyecto.save()

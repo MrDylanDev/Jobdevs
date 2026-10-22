@@ -7,7 +7,9 @@ from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField, F
+from django.db.models import (
+    Avg, Q, Count, Prefetch, Value, FloatField, F, IntegerField, OuterRef, Subquery,
+)
 from django.db.models.functions import Coalesce
 from datetime import datetime
 import json
@@ -28,7 +30,18 @@ def listar_proyectos(request):
     prioridad = request.GET.get('prioridad')
     q = request.GET.get('q', '').strip()
     
-    proyectos_qs = Proyecto.objects.filter(estado='publicado').select_related(
+    # Subconsultas para el cupo real: evitan joins extra que inflarían el Avg
+    # de reputación y permiten filtrar por cupo antes de paginar.
+    contratos_activos_sq = (
+        Contratacion.objects.filter(proyecto=OuterRef('pk'), estado='activa')
+        .values('proyecto').annotate(total=Count('*')).values('total')
+    )
+    negociaciones_sq = (
+        Postulacion.objects.filter(proyecto=OuterRef('pk'), estado='en_negociacion')
+        .values('proyecto').annotate(total=Count('*')).values('total')
+    )
+
+    proyectos_qs = Proyecto.objects.select_related(
         'empresa__perfil_empresa'
     ).annotate(
         # Hallazgo 10: distinct=True para evitar conteos inflados por joins adicionales
@@ -36,6 +49,17 @@ def listar_proyectos(request):
         empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
             filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
             Value(0.0), output_field=FloatField()),
+        contratos_activos=Coalesce(
+            Subquery(contratos_activos_sq, output_field=IntegerField()), Value(0)
+        ),
+        negociaciones_abiertas=Coalesce(
+            Subquery(negociaciones_sq, output_field=IntegerField()), Value(0)
+        ),
+    ).annotate(
+        disponibles_anotadas=F('vacantes') - F('contratos_activos') - F('negociaciones_abiertas'),
+    ).filter(
+        # RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres.
+        Q(estado='publicado') | Q(estado='en_desarrollo', disponibles_anotadas__gt=0)
     )
     
     if tipo:
@@ -79,6 +103,8 @@ def listar_proyectos(request):
             'empresa_verificada': perfil.es_verificada if perfil else False,
             'empresa_badge': perfil.badge_info if perfil else None,
             'empresa_estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
+            'vacantes': p.vacantes,
+            'vacantes_disponibles': p.vacantes_disponibles,
         })
 
     is_ajax = (
@@ -283,30 +309,54 @@ def calificar_empresa(request, proyecto_id):
     if request.method == 'POST':
         try:
             puntuacion = int(request.POST.get('puntuacion'))
-            comentario = request.POST.get('comentario')
-            
-            if not 1 <= int(puntuacion) <= 5:
-                messages.error(request, "La puntuación debe estar entre 1 y 5.")
-                return redirect('calificar_empresa', proyecto_id=proyecto.id)
+        except (TypeError, ValueError):
+            messages.error(request, "Debes seleccionar una puntuación.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
-            if Valoracion.objects.filter(proyecto=proyecto, empresa=proyecto.empresa, desarrollador=request.user, rol_evaluador='desarrollador').exists():
-                messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
-                return redirect('dashboard_desarrollador')
+        if not 1 <= puntuacion <= 5:
+            messages.error(request, "La puntuación debe estar entre 1 y 5.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
-            Valoracion.objects.create(
-                proyecto=proyecto,
-                empresa=proyecto.empresa,
-                desarrollador=request.user,
-                puntuacion=int(puntuacion),
-                comentario=comentario,
-                rol_evaluador='desarrollador'
+        # RF 5.2.2: puntuación + comentario cualitativo obligatorio.
+        comentario = (request.POST.get('comentario') or '').strip()
+        if len(comentario) < services.MIN_COMENTARIO:
+            messages.error(
+                request,
+                f"El comentario es obligatorio y debe tener al menos "
+                f"{services.MIN_COMENTARIO} caracteres."
             )
-                
-            messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
+            return redirect('calificar_empresa', proyecto_id=proyecto.id)
+
+        try:
+            with transaction.atomic():
+                if Valoracion.objects.filter(
+                    proyecto=proyecto,
+                    empresa=proyecto.empresa,
+                    desarrollador=request.user,
+                    rol_evaluador='desarrollador',
+                ).exists():
+                    messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
+                    return redirect('dashboard_desarrollador')
+
+                Valoracion.objects.create(
+                    proyecto=proyecto,
+                    empresa=proyecto.empresa,
+                    desarrollador=request.user,
+                    puntuacion=puntuacion,
+                    comentario=comentario,
+                    rol_evaluador='desarrollador'
+                )
+
+                # RF 5.3.1: reflejar la nueva valoración en la reputación pública.
+                services.recalcular_reputacion_empresa(proyecto.empresa_id)
+        except IntegrityError:
+            # Dos POST simultáneos: la unicidad del modelo gana la carrera.
+            messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
             return redirect('dashboard_desarrollador')
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-            
+
+        messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
+        return redirect('dashboard_desarrollador')
+
     return render(request, 'proyectos/calificar_empresa.html', {'proyecto': proyecto})
 
 @login_required
