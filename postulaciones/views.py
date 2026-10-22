@@ -158,6 +158,17 @@ def postularse_a_proyecto(request, proyecto_id):
                     mensaje=mensaje,
                     estado='pendiente'
                 )
+
+                # RF 6.2.2: la empresa debe enterarse de inmediato de la postulación.
+                Notificacion.objects.create(
+                    usuario=proyecto.empresa,
+                    proyecto=proyecto,
+                    tipo='postulacion',
+                    mensaje=(
+                        f"{request.user.nombre} se postuló a tu proyecto "
+                        f"'{proyecto.titulo}'."
+                    ),
+                )
             
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")
             return redirect('dashboard_desarrollador')

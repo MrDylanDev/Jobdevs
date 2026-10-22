@@ -190,6 +190,22 @@ class TestPostularse:
         assert response.status_code == 302
         assert Postulacion.objects.filter(proyecto=proyecto, desarrollador__username='dev_test').exists()
 
+    def test_postularse_notifica_a_la_empresa(self, dev_client, empresa_user):
+        """RF 6.2.2: la empresa recibe una Notificacion al recibir la postulación."""
+        from notificaciones.models import Notificacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Notifica', descripcion='N',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        dev_client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            {'carta': 'Hola', 'experiencia': 'E', 'link': 'L'}
+        )
+        assert Notificacion.objects.filter(
+            usuario=empresa_user, proyecto=proyecto, tipo='postulacion'
+        ).exists()
+
+
 class TestAceptarPostulacion:
     """Tests for aceptar_postulacion view."""
 
