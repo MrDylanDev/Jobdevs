@@ -49,6 +49,15 @@
     </header>
 
     <main class="main-content">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
+            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
       <!-- Resumen del Proyecto -->
       <div class="card" style="margin-bottom:20px; border-left:4px solid var(--accent);">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">

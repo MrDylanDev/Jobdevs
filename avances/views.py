@@ -236,61 +236,81 @@ def revisar_avance(request, avance_id):
         return redirect('inicio')
     
     avance = get_object_or_404(Avance, id=avance_id, proyecto__empresa=request.user)
+
+    if avance.estado != 'pendiente':
+        messages.error(
+            request,
+            f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
+        )
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+
+    accion = request.POST.get('accion') 
+    comentario = request.POST.get('comentario', '') 
     
-    if request.method == 'POST':
-        accion = request.POST.get('accion') 
-        comentario = request.POST.get('comentario', '') 
-        
-        if accion in ['aceptar', 'rechazar']:
-            if accion == 'rechazar' and not comentario.strip():
-                messages.error(request, "Debes escribir un comentario explicando por qué rechazas el avance.")
+    if accion not in ['aceptar', 'rechazar']:
+        messages.error(request, "Acción de revisión no válida.")
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+
+    if accion == 'rechazar' and not comentario.strip():
+        messages.error(request, "Debes escribir un comentario explicando por qué rechazas el avance.")
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+
+    try:
+        with transaction.atomic():
+            avance = (
+                Avance.objects.select_for_update()
+                .select_related('proyecto', 'entregable', 'desarrollador')
+                .get(id=avance_id, proyecto__empresa=request.user)
+            )
+            if avance.estado != 'pendiente':
+                messages.error(
+                    request,
+                    f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
+                )
                 return redirect('ver_avances', proyecto_id=avance.proyecto.id)
-            try:
-                with transaction.atomic():
-                    if accion == 'aceptar':
-                        avance.estado = 'aceptado'
-                        avance.comentario_revision = comentario
-                        avance.save()
-                        
-                        # Marcar hito como COMPLETADO
-                        avance.entregable.estado = 'completado'
-                        avance.entregable.save()
-                        
-                        # Notificar al desarrollador
-                        Notificacion.objects.create(
-                            usuario=avance.desarrollador,
-                            proyecto=avance.proyecto,
-                            tipo='aprobacion',
-                            mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido ACEPTADO."
-                        )
-                        messages.success(request, f"Hito '{avance.entregable.titulo}' aceptado.")
-                    else:
-                        avance.estado = 'rechazado'
-                        avance.comentario_revision = comentario
-                        avance.save()
 
-                        # Devolver hito a PENDIENTE
-                        # El método save() de Entregable se encargará de devolver el proyecto 
-                        # a 'en_desarrollo' si estaba 'en_revision' y registrar la auditoría.
-                        avance.entregable.estado = 'pendiente'
-                        avance.entregable.save(cambiado_por=request.user)
-
-                        messages.warning(request, f"Hito '{avance.entregable.titulo}' rechazado.")
-
-                        Notificacion.objects.create(
-                            usuario=avance.desarrollador,
-                            proyecto=avance.proyecto,
-                            tipo='alerta',
-                            mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido RECHAZADO. Revisa los comentarios."
-                        )
-                        messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+            if accion == 'aceptar':
+                avance.estado = 'aceptado'
+                avance.comentario_revision = comentario
+                avance.save()
                 
-                return redirect('ver_avances', proyecto_id=avance.proyecto.id)
-            except Exception as e:
-                messages.error(request, f"Error: {str(e)}")
-                return redirect('ver_avances', proyecto_id=avance.proyecto.id)
-    
-    return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+                # Marcar hito como COMPLETADO
+                avance.entregable.estado = 'completado'
+                avance.entregable.save()
+                
+                # Notificar al desarrollador
+                Notificacion.objects.create(
+                    usuario=avance.desarrollador,
+                    proyecto=avance.proyecto,
+                    tipo='aprobacion',
+                    mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido ACEPTADO."
+                )
+                messages.success(request, f"Hito '{avance.entregable.titulo}' aceptado.")
+            else:
+                avance.estado = 'rechazado'
+                avance.comentario_revision = comentario
+                avance.save()
+
+                # Devolver hito a PENDIENTE
+                # El método save() de Entregable se encargará de devolver el proyecto 
+                # a 'en_desarrollo' si estaba 'en_revision' y registrar la auditoría.
+                avance.entregable.estado = 'pendiente'
+                avance.entregable.save(cambiado_por=request.user)
+
+                messages.warning(request, f"Hito '{avance.entregable.titulo}' rechazado.")
+
+                Notificacion.objects.create(
+                    usuario=avance.desarrollador,
+                    proyecto=avance.proyecto,
+                    tipo='alerta',
+                    mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido RECHAZADO. Revisa los comentarios."
+                )
+                messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
 @login_required
 def ver_avances(request, proyecto_id):

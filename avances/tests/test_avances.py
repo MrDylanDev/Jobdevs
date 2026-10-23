@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from proyectos.models import Proyecto, Entregable
 from contrataciones.models import Contratacion
 from avances.models import Avance
+from notificaciones.models import Notificacion
 
 User = get_user_model()
 
@@ -326,6 +327,148 @@ class TestRegistrarAvance:
         assert data['status'] == 'ok'
         assert 'redirect_url' in data
         assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
+
+
+class TestRevisarAvance:
+    """Tests for revisar_avance view (SCRUM-308)."""
+
+    @pytest.fixture
+    def escenario_revision(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Revisión',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        entregable = Entregable.objects.create(
+            proyecto=proyecto,
+            titulo='Hito Entrega',
+            descripcion='Desc',
+            estado='en_revision',
+        )
+        avance = Avance.objects.create(
+            proyecto=proyecto,
+            entregable=entregable,
+            desarrollador=desarrollador_user,
+            descripcion='Avance para revisar',
+            archivo_url='https://github.com/mrdylan/jobdevs',
+            estado='pendiente',
+        )
+        return proyecto, entregable, avance
+
+    def test_empresa_acepta_avance_pendiente_exitosamente(self, auth_client, escenario_revision):
+        """Empresa puede aceptar un avance en estado pendiente."""
+        proyecto, entregable, avance = escenario_revision
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Excelente trabajo'},
+            follow=True,
+        )
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        assert avance.estado == 'aceptado'
+        assert avance.comentario_revision == 'Excelente trabajo'
+        assert entregable.estado == 'completado'
+
+    def test_empresa_rechaza_avance_pendiente_con_comentario(self, auth_client, escenario_revision):
+        """Empresa puede rechazar un avance pendiente proporcionando justificación."""
+        proyecto, entregable, avance = escenario_revision
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'rechazar', 'comentario': 'Falta documentación de la API'},
+            follow=True,
+        )
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        assert avance.estado == 'rechazado'
+        assert avance.comentario_revision == 'Falta documentación de la API'
+        assert entregable.estado == 'pendiente'
+
+    def test_revisar_avance_bloquea_si_avance_ya_fue_aceptado(self, auth_client, escenario_revision):
+        """SCRUM-308: Un avance ya aceptado no puede ser modificado ni rechazado posteriormente."""
+        proyecto, entregable, avance = escenario_revision
+        avance.estado = 'aceptado'
+        avance.comentario_revision = 'Aprobado originalmente'
+        avance.save()
+        entregable.estado = 'completado'
+        entregable.save()
+
+        notificaciones_previas = Notificacion.objects.count()
+
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'rechazar', 'comentario': 'Intento de revertir aprobación previa'},
+            follow=True,
+        )
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        # El estado no debe haber mutado
+        assert avance.estado == 'aceptado'
+        assert avance.comentario_revision == 'Aprobado originalmente'
+        assert entregable.estado == 'completado'
+        # No deben generarse notificaciones espurias
+        assert Notificacion.objects.count() == notificaciones_previas
+        content = response.content.decode('utf-8')
+        assert 'ya fue' in content.lower() or 'ya se encuentra' in content.lower() or 'no puede' in content.lower()
+
+    def test_revisar_avance_bloquea_si_avance_ya_fue_rechazado(self, auth_client, escenario_revision):
+        """SCRUM-308: Un avance ya rechazado no puede ser aceptado nuevamente de forma extemporánea."""
+        proyecto, entregable, avance = escenario_revision
+        avance.estado = 'rechazado'
+        avance.comentario_revision = 'Rechazado originalmente'
+        avance.save()
+        entregable.estado = 'pendiente'
+        entregable.save()
+
+        notificaciones_previas = Notificacion.objects.count()
+
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Intento de aceptar avance previamente rechazado'},
+            follow=True,
+        )
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        assert avance.estado == 'rechazado'
+        assert entregable.estado == 'pendiente'
+        assert Notificacion.objects.count() == notificaciones_previas
+        content = response.content.decode('utf-8')
+        assert 'ya fue' in content.lower() or 'ya se encuentra' in content.lower() or 'no puede' in content.lower()
+
+    def test_desarrollador_no_puede_revisar_avance(self, dev_client, escenario_revision):
+        """Solo las empresas pueden revisar avances; desarrollador es redirigido con error."""
+        _, _, avance = escenario_revision
+        response = dev_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar'},
+            follow=True,
+        )
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'Solo las empresas pueden revisar avances' in content
+
+    def test_otra_empresa_no_puede_revisar_avance_ajeno(self, client, escenario_revision):
+        """Una empresa no puede revisar avances de proyectos que no le pertenecen (404)."""
+        _, _, avance = escenario_revision
+        otra_empresa = User.objects.create_user(
+            username='otra_empresa',
+            email='otra@test.jobdevs',
+            nombre='Otra Empresa',
+            rol='empresa',
+            estado='activo',
+            password='TestPass123!',
+        )
+        client.login(username='otra_empresa', password='TestPass123!')
+        response = client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar'},
+        )
+        assert response.status_code == 404
 
 
 
