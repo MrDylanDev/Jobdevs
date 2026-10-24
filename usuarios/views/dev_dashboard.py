@@ -9,6 +9,7 @@ from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion, ContratoDigital
 from disputas.services import datos_dashboard_disputas
 from favoritos.models import Favorito
+from mensajes.models import Mensaje
 from ._helpers import get_notificaciones_context
 
 
@@ -143,6 +144,7 @@ def dashboard_desarrollador(request):
         'nuevos_proyectos': Proyecto.objects.filter(estado='publicado').count(),
         'notificaciones': notificaciones_recientes,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
+        'mensajes_no_leidos': Mensaje.objects.filter(receptor=request.user, leido=False).count(),
         'mis_proyectos_activos_v': mis_proyectos_v,
         'conversaciones_chat': conversaciones_chat,
         'mis_proyectos_finalizados': mis_proyectos_finalizados,

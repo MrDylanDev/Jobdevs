@@ -34,6 +34,9 @@
       <button class="nav-item" onclick="verSeccion('centro-chat', this)">
         <i class="fa fa-comments"></i>
         <span>Mensajes</span>
+        {% if mensajes_no_leidos > 0 %}
+          <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
+        {% endif %}
       </button>
     </div>
 

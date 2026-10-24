@@ -240,3 +240,55 @@ class TestAutorizacionMensajeria:
         content = response.content.decode('utf-8')
         assert 'No tienes autorización' in content or 'no válido' in content
 
+
+class TestIndicadorMensajesNoLeidos:
+    """Pruebas del indicador visual y conteo de mensajes no leídos (SCRUM-313 / HU-D19)."""
+
+    def test_dashboard_empresa_muestra_badge_mensajes_no_leidos(self, auth_client, empresa_user, desarrollador_user):
+        """Si la empresa tiene mensajes no leídos, el dashboard muestra el badge con el conteo."""
+        # Inicialmente 0
+        res = auth_client.get(reverse('dashboard_empresa'))
+        assert res.status_code == 200
+        assert 'badge-mensajes-no-leidos' not in res.content.decode()
+
+        # Enviar 2 mensajes sin leer
+        Mensaje.objects.create(
+            remitente=desarrollador_user, receptor=empresa_user, contenido='Hola 1', leido=False
+        )
+        Mensaje.objects.create(
+            remitente=desarrollador_user, receptor=empresa_user, contenido='Hola 2', leido=False
+        )
+
+        res = auth_client.get(reverse('dashboard_empresa'))
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert 'badge-mensajes-no-leidos' in html
+
+    def test_dashboard_dev_muestra_badge_mensajes_no_leidos(self, dev_client, empresa_user, desarrollador_user):
+        """Si el desarrollador tiene mensajes no leídos, su dashboard muestra el badge."""
+        Mensaje.objects.create(
+            remitente=empresa_user, receptor=desarrollador_user, contenido='Hola Dev', leido=False
+        )
+        res = dev_client.get(reverse('dashboard_desarrollador'))
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert 'badge-mensajes-no-leidos' in html
+
+    def test_abrir_chat_marca_leido_y_limpia_badge(self, auth_client, empresa_user, admin_user):
+        """Al abrir la sala de chat con el admin, los mensajes se marcan leídos y el badge se limpia."""
+        Mensaje.objects.create(
+            remitente=admin_user, receptor=empresa_user, contenido='Hola Empresa', leido=False
+        )
+        res_antes = auth_client.get(reverse('dashboard_empresa'))
+        assert 'badge-mensajes-no-leidos' in res_antes.content.decode()
+
+        url_chat = reverse('sala_chat_general', args=[admin_user.id])
+        res_chat = auth_client.get(url_chat)
+        assert res_chat.status_code == 200
+
+        res_despues = auth_client.get(reverse('dashboard_empresa'))
+        assert 'badge-mensajes-no-leidos' not in res_despues.content.decode()
+
+
+
+
