@@ -204,6 +204,44 @@ def resolver_disputa(disputa, admin_user, resolucion, dictamen):
             contratacion.estado = nuevo_estado_contrato
             contratacion.save()
 
+        # Efectos colaterales sobre hitos y avances (SCRUM-218)
+        if resolucion in ('cancelar_contrato', 'sancionar_desarrollador'):
+            from avances.models import Avance
+            from proyectos.models import Entregable
+
+            if desarrollador is not None:
+                avances_pendientes = Avance.objects.select_for_update().filter(
+                    proyecto=proyecto,
+                    desarrollador=desarrollador,
+                    estado='pendiente',
+                )
+                for av in avances_pendientes:
+                    av.estado = 'rechazado'
+                    av.comentario_revision = (
+                        f"Rechazado automáticamente por resolución de disputa #{disputa.pk}: {dictamen}"
+                    )[:500]
+                    av.save(update_fields=['estado', 'comentario_revision'])
+                    if av.entregable and av.entregable.estado == 'en_revision':
+                        av.entregable.estado = 'pendiente'
+                        av.entregable.save(update_fields=['estado'])
+
+            entregables_en_revision = Entregable.objects.select_for_update().filter(
+                proyecto=proyecto,
+                estado='en_revision',
+            )
+            for ent in entregables_en_revision:
+                ent.estado = 'pendiente'
+                ent.save(update_fields=['estado'])
+        elif resolucion == 'sancionar_empresa':
+            from proyectos.models import Entregable
+            entregables_en_revision = Entregable.objects.select_for_update().filter(
+                proyecto=proyecto,
+                estado='en_revision',
+            )
+            for ent in entregables_en_revision:
+                ent.estado = 'pendiente'
+                ent.save(update_fields=['estado'])
+
         disputa.estado = 'resuelta'
         disputa.resolucion = resolucion
         disputa.notas_resolucion = dictamen

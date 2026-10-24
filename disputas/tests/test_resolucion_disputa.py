@@ -11,7 +11,8 @@ from disputas.models import Disputa
 from disputas.services import resolver_disputa
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from proyectos.models import HistorialEstadoProyecto, Proyecto
+from proyectos.models import HistorialEstadoProyecto, Proyecto, Entregable
+from avances.models import Avance
 
 User = get_user_model()
 
@@ -260,3 +261,64 @@ class TestTemplate:
         _login(client, caso['admin'])
         content = client.get(reverse('disputas:detalle_disputa', args=[caso['disputa'].id])).content.decode()
         assert 'Emitir Resolución Vinculante' not in content
+
+
+class TestEfectosColateralesResolucion:
+    """Pruebas de efectos colaterales de resolución de disputas sobre avances e hitos (SCRUM-218)."""
+
+    def test_cancelar_contrato_limpia_avances_y_hitos_en_revision(self, caso):
+        """Al cancelar contrato, los avances pendientes se rechazan y los hitos en revisión vuelven a pendiente."""
+        hito = Entregable.objects.create(
+            proyecto=caso['proyecto'], titulo='Hito Disputado', estado='en_revision'
+        )
+        avance = Avance.objects.create(
+            proyecto=caso['proyecto'], entregable=hito, desarrollador=caso['dev'],
+            estado='pendiente', descripcion='Avance en conflicto',
+        )
+
+        resolver_disputa(caso['disputa'], caso['admin'], 'cancelar_contrato', DICTAMEN)
+
+        avance.refresh_from_db()
+        hito.refresh_from_db()
+
+        assert avance.estado == 'rechazado'
+        assert 'resolución de disputa' in avance.comentario_revision.lower()
+        assert hito.estado == 'pendiente'
+
+    def test_sancionar_desarrollador_limpia_avances_y_hitos_en_revision(self, caso):
+        """Al sancionar desarrollador, los avances pendientes se rechazan y los hitos vuelven a pendiente."""
+        hito = Entregable.objects.create(
+            proyecto=caso['proyecto'], titulo='Hito Sanción', estado='en_revision'
+        )
+        avance = Avance.objects.create(
+            proyecto=caso['proyecto'], entregable=hito, desarrollador=caso['dev'],
+            estado='pendiente', descripcion='Avance no completado',
+        )
+
+        resolver_disputa(caso['disputa'], caso['admin'], 'sancionar_desarrollador', DICTAMEN)
+
+        avance.refresh_from_db()
+        hito.refresh_from_db()
+
+        assert avance.estado == 'rechazado'
+        assert hito.estado == 'pendiente'
+        assert caso['dev'].refresh_from_db() or caso['dev'].estado == 'suspendido'
+
+    def test_reanudar_proyecto_conserva_avances_pendientes(self, caso):
+        """Al reanudar proyecto, los avances pendientes se conservan intactos."""
+        hito = Entregable.objects.create(
+            proyecto=caso['proyecto'], titulo='Hito Reanudado', estado='en_revision'
+        )
+        avance = Avance.objects.create(
+            proyecto=caso['proyecto'], entregable=hito, desarrollador=caso['dev'],
+            estado='pendiente', descripcion='Avance preservado',
+        )
+
+        resolver_disputa(caso['disputa'], caso['admin'], 'reanudar_proyecto', DICTAMEN)
+
+        avance.refresh_from_db()
+        hito.refresh_from_db()
+
+        assert avance.estado == 'pendiente'
+        assert hito.estado == 'en_revision'
+
