@@ -268,6 +268,13 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'JobDevs <noreply@jobdevs.edu.co>')
 
 # ==============================================================================
+# Reglas de negocio del panel administrador
+# ==============================================================================
+# SCRUM-315 (HU-A07): días sin avances tras los cuales un proyecto en desarrollo
+# se marca como inactivo en las alertas del panel de administración.
+PROYECTO_DIAS_ALERTA_RETRASO = int(os.environ.get('PROYECTO_DIAS_ALERTA_RETRASO', '15'))
+
+# ==============================================================================
 # Celery Configuration (SCRUM-196 / SCRUM-197)
 # ==============================================================================
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', REDIS_URL)

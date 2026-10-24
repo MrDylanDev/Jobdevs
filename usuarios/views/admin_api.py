@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
 from ..models import Usuario
 from ..decorators import api_ratelimit
 from ..utils import invalidar_sesiones_activas_usuario
@@ -30,6 +31,8 @@ def api_usuarios(request):
     q = request.GET.get('q', '').strip()
     rol = request.GET.get('rol', '').strip()
     estado = request.GET.get('estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
     qs = Usuario.objects.all()
     if q:
@@ -43,6 +46,14 @@ def api_usuarios(request):
         qs = qs.filter(rol=rol)
     if estado:
         qs = qs.filter(estado=estado)
+
+    # SCRUM-226 (RF 1.3.3): filtro por rango de fecha de registro.
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        qs = qs.filter(date_joined__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        qs = qs.filter(date_joined__date__lte=fecha_hasta_parsed)
 
     limit = request.GET.get('limit')
     page = request.GET.get('page')

@@ -1,8 +1,10 @@
 import pytest
+from datetime import timedelta
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
-from django.test import Client
+from django.test import Client, override_settings
+from django.utils import timezone
 from proyectos.models import Proyecto
 
 User = get_user_model()
@@ -355,3 +357,342 @@ class TestAdminPaginacionYBusqueda:
         assert 'inválidos' in resp.json()['error']
 
 
+class TestAdminDepurarNotificaciones:
+    """Tests para SCRUM-316 (HU-A16): depuración de notificaciones desde UI admin."""
+
+    def _crear_notificaciones(self, usuario):
+        from notificaciones.models import Notificacion
+
+        ahora = timezone.now()
+        vieja_leida = Notificacion.objects.create(
+            usuario=usuario, tipo='alerta', mensaje='Vieja leída', leida=True,
+        )
+        Notificacion.objects.filter(id=vieja_leida.id).update(fecha=ahora - timedelta(days=120))
+
+        vieja_no_leida = Notificacion.objects.create(
+            usuario=usuario, tipo='alerta', mensaje='Vieja no leída', leida=False,
+        )
+        Notificacion.objects.filter(id=vieja_no_leida.id).update(fecha=ahora - timedelta(days=120))
+
+        reciente_leida = Notificacion.objects.create(
+            usuario=usuario, tipo='alerta', mensaje='Reciente leída', leida=True,
+        )
+        Notificacion.objects.filter(id=reciente_leida.id).update(fecha=ahora - timedelta(days=5))
+
+        return vieja_leida, vieja_no_leida, reciente_leida
+
+    def test_no_administrador_recibe_403(self, dev_client, desarrollador_user):
+        """Un usuario autenticado que no es administrador recibe 403."""
+        self._crear_notificaciones(desarrollador_user)
+
+        response = dev_client.post(reverse('admin_depurar_notificaciones'), {'dias': 90})
+
+        assert response.status_code == 403
+
+    def test_get_no_permitido_recibe_405(self, admin_client):
+        """El endpoint solo acepta POST; GET responde 405."""
+        response = admin_client.get(reverse('admin_depurar_notificaciones'))
+
+        assert response.status_code == 405
+
+    def test_administrador_ejecuta_depuracion_y_audita(self, admin_client, admin_user, desarrollador_user):
+        """Admin POST borra notificaciones antiguas leídas, audita y redirige al dashboard."""
+        from django.contrib.messages import get_messages
+        from logs.models import LogAuditoria
+        from notificaciones.models import Notificacion
+
+        vieja_leida, vieja_no_leida, reciente_leida = self._crear_notificaciones(desarrollador_user)
+
+        response = admin_client.post(
+            reverse('admin_depurar_notificaciones'), {'dias': 90},
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_admin') + '?section=reportsSection'
+
+        assert not Notificacion.objects.filter(id=vieja_leida.id).exists()
+        assert Notificacion.objects.filter(id=vieja_no_leida.id).exists()
+        assert Notificacion.objects.filter(id=reciente_leida.id).exists()
+
+        log = LogAuditoria.objects.get(tabla_afectada='notificaciones')
+        assert log.usuario == admin_user
+        assert '1 eliminadas' in log.accion
+        assert '> 90 días' in log.accion
+
+        mensajes = [str(m) for m in get_messages(response.wsgi_request)]
+        assert any('Se depuraron 1 notificaciones antiguas exitosamente.' in m for m in mensajes)
+
+    def test_dias_invalidos_y_negativos_se_normalizan(self, admin_client, desarrollador_user):
+        """Un valor no numérico cae al default 90 y un negativo se normaliza a 0."""
+        from logs.models import LogAuditoria
+        from notificaciones.models import Notificacion
+
+        vieja_leida, _, _ = self._crear_notificaciones(desarrollador_user)
+
+        response_invalido = admin_client.post(
+            reverse('admin_depurar_notificaciones'), {'dias': 'abc'},
+        )
+        assert response_invalido.status_code == 302
+        # Default 90 días: la notificación de 120 días se elimina
+        assert not Notificacion.objects.filter(id=vieja_leida.id).exists()
+
+        response_negativo = admin_client.post(
+            reverse('admin_depurar_notificaciones'), {'dias': '-5'},
+        )
+        assert response_negativo.status_code == 302
+        # Cada ejecución queda auditada, incluso cuando no hay nada que borrar
+        assert LogAuditoria.objects.filter(tabla_afectada='notificaciones').count() == 2
+
+
+
+class TestAdminAlertaRetrasoParametrizada:
+    """SCRUM-315 (HU-A07): umbral de alerta por inactividad parametrizable."""
+
+    def _crear_proyecto_en_desarrollo(self, empresa_user, titulo):
+        return Proyecto.objects.create(
+            empresa=empresa_user, titulo=titulo, descripcion='Proyecto de prueba',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+
+    def _proyecto_con_avance_de_dias(self, empresa_user, titulo, dias):
+        """Crea un proyecto en desarrollo cuyo último entregable es de hace `dias`."""
+        from proyectos.models import Entregable
+
+        proyecto = self._crear_proyecto_en_desarrollo(empresa_user, titulo)
+        entregable = Entregable.objects.create(proyecto=proyecto, titulo='Hito inicial')
+        Entregable.objects.filter(id=entregable.id).update(
+            fecha_creacion=timezone.now() - timedelta(days=dias)
+        )
+        return proyecto
+
+    def _proyecto_sin_avances_con_contrato_de_dias(
+        self, empresa_user, desarrollador_user, titulo, dias
+    ):
+        """Proyecto sin entregables cuya contratación activa inició hace `dias`."""
+        from contrataciones.models import Contratacion
+
+        proyecto = self._crear_proyecto_en_desarrollo(empresa_user, titulo)
+        contratacion = Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user,
+            estado='activa',
+        )
+        Contratacion.objects.filter(id=contratacion.id).update(
+            fecha_inicio=(timezone.now() - timedelta(days=dias)).date()
+        )
+        return proyecto
+
+    @staticmethod
+    def _titulos_alerta(response):
+        return [alerta[0] for alerta in response.context['alertas_retraso']]
+
+    @override_settings(PROYECTO_DIAS_ALERTA_RETRASO=15)
+    def test_avance_de_10_dias_no_genera_alerta_con_umbral_15(
+        self, admin_client, empresa_user
+    ):
+        """Con umbral de 15 días, un avance de hace 10 días no alerta."""
+        self._proyecto_con_avance_de_dias(empresa_user, 'Proyecto Reciente', 10)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.status_code == 200
+        assert response.context['dias_alerta_retraso'] == 15
+        assert 'Proyecto Reciente' not in self._titulos_alerta(response)
+
+    @override_settings(PROYECTO_DIAS_ALERTA_RETRASO=15)
+    def test_avance_de_20_dias_genera_alerta_con_umbral_15(
+        self, admin_client, empresa_user
+    ):
+        """Con umbral de 15 días, un avance de hace 20 días sí alerta."""
+        self._proyecto_con_avance_de_dias(empresa_user, 'Proyecto Retrasado', 20)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert 'Proyecto Retrasado' in self._titulos_alerta(response)
+
+    @override_settings(PROYECTO_DIAS_ALERTA_RETRASO=15)
+    def test_proyecto_sin_avances_con_contrato_de_20_dias_genera_alerta(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        """Sin entregables, la inactividad se mide desde el inicio del contrato."""
+        self._proyecto_sin_avances_con_contrato_de_dias(
+            empresa_user, desarrollador_user, 'Proyecto Sin Avances', 20
+        )
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        alertas = {alerta[0]: alerta[3] for alerta in response.context['alertas_retraso']}
+        assert alertas.get('Proyecto Sin Avances') == 20
+
+    @override_settings(PROYECTO_DIAS_ALERTA_RETRASO=5)
+    def test_umbral_configurable_a_5_dias_alerta_proyecto_de_10_dias(
+        self, admin_client, empresa_user
+    ):
+        """Con umbral de 5 días, el mismo avance de 10 días sí alerta."""
+        self._proyecto_con_avance_de_dias(empresa_user, 'Proyecto Reciente', 10)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.context['dias_alerta_retraso'] == 5
+        assert 'Proyecto Reciente' in self._titulos_alerta(response)
+
+    @override_settings(PROYECTO_DIAS_ALERTA_RETRASO=15)
+    def test_template_muestra_umbral_y_testid_de_alertas(self, admin_client, empresa_user):
+        """La sección de alertas indica el umbral vigente y expone su testid."""
+        self._proyecto_con_avance_de_dias(empresa_user, 'Proyecto Retrasado', 20)
+
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="tabla-alertas-inactividad"' in content
+        assert '&gt; 15 días' in content
+
+
+class TestAdminMetricasUsuariosSCRUM226:
+    """SCRUM-226 (RF 1.3.1): métricas de usuarios inactivos y suspendidos."""
+
+    def test_dashboard_admin_expone_metricas_inactivos_y_suspendidos(self, admin_client, db):
+        """El contexto incluye los conteos de usuarios inactivos y suspendidos."""
+        User.objects.create_user(
+            username='inactivo_metric', email='inactivo@test.jobdevs',
+            nombre='Inactivo Metric', rol='desarrollador',
+            estado='inactivo', password='TestPass123!',
+        )
+        User.objects.create_user(
+            username='suspendido_metric', email='suspendido@test.jobdevs',
+            nombre='Suspendido Metric', rol='empresa',
+            estado='suspendido', password='TestPass123!',
+        )
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.status_code == 200
+        assert response.context['usuarios_inactivos'] == 1
+        assert response.context['usuarios_suspendidos'] == 1
+
+    def test_dashboard_admin_total_usuarios_preservado_con_metricas(self, admin_client, empresa_user, desarrollador_user):
+        """Las nuevas métricas no alteran el cálculo de total_usuarios (empresas + devs activos)."""
+        inactivo = User.objects.create_user(
+            username='inactivo_preserva', email='inactivop@test.jobdevs',
+            nombre='Inactivo Preserva', rol='desarrollador',
+            estado='inactivo', password='TestPass123!',
+        )
+        inactivo.is_active = False
+        inactivo.save()
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.context['total_usuarios'] == 2
+        assert response.context['usuarios_inactivos'] == 1
+
+    def test_template_muestra_metricas_de_usuarios(self, admin_client, db):
+        """El grid de métricas incluye tarjetas identificables de inactivos y suspendidos."""
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="metric-usuarios-inactivos"' in content
+        assert 'data-testid="metric-usuarios-suspendidos"' in content
+
+
+class TestAdminFiltroFechaRegistroSCRUM226:
+    """SCRUM-226 (RF 1.3.3): filtro por rango de fecha de registro."""
+
+    def _crear_usuario_con_registro(self, username, fecha):
+        user = User.objects.create_user(
+            username=username, email=f'{username}@test.jobdevs',
+            nombre=username.replace('_', ' ').title(), rol='desarrollador',
+            password='TestPass123!',
+        )
+        User.objects.filter(id=user.id).update(date_joined=fecha)
+        return user
+
+    def test_dashboard_admin_filtra_por_fecha_desde(self, admin_client, db):
+        """fecha_desde excluye usuarios registrados antes del rango."""
+        self._crear_usuario_con_registro('viejo_desde', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('nuevo_desde', timezone.now() - timedelta(days=1))
+
+        desde = (timezone.now() - timedelta(days=10)).date().isoformat()
+        response = admin_client.get(reverse('dashboard_admin') + f'?fecha_desde={desde}')
+
+        assert response.status_code == 200
+        usernames = [u.username for u in response.context['usuarios_todos']]
+        assert 'nuevo_desde' in usernames
+        assert 'viejo_desde' not in usernames
+        assert response.context['fecha_desde'] == desde
+
+    def test_dashboard_admin_filtra_por_fecha_hasta(self, admin_client, db):
+        """fecha_hasta excluye usuarios registrados después del rango."""
+        self._crear_usuario_con_registro('viejo_hasta', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('nuevo_hasta', timezone.now() - timedelta(days=1))
+
+        hasta = (timezone.now() - timedelta(days=10)).date().isoformat()
+        response = admin_client.get(reverse('dashboard_admin') + f'?fecha_hasta={hasta}')
+
+        assert response.status_code == 200
+        usernames = [u.username for u in response.context['usuarios_todos']]
+        assert 'viejo_hasta' in usernames
+        assert 'nuevo_hasta' not in usernames
+        assert response.context['fecha_hasta'] == hasta
+
+    def test_dashboard_admin_rango_de_fechas_combinado(self, admin_client, db):
+        """fecha_desde y fecha_hasta delimitan un rango inclusivo de registros."""
+        self._crear_usuario_con_registro('fuera_rango', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('dentro_rango', timezone.now() - timedelta(days=10))
+
+        desde = (timezone.now() - timedelta(days=20)).date().isoformat()
+        hasta = (timezone.now() - timedelta(days=5)).date().isoformat()
+        response = admin_client.get(
+            reverse('dashboard_admin') + f'?fecha_desde={desde}&fecha_hasta={hasta}'
+        )
+
+        usernames = [u.username for u in response.context['usuarios_todos']]
+        assert 'dentro_rango' in usernames
+        assert 'fuera_rango' not in usernames
+
+    def test_template_incluye_controles_de_fecha_de_registro(self, admin_client, db):
+        """Los filtros de fecha exponen sus inputs y las filas llevan data-fecha-registro."""
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="filtro-fecha-desde"' in content
+        assert 'data-testid="filtro-fecha-hasta"' in content
+        assert 'name="fecha_desde"' in content
+        assert 'name="fecha_hasta"' in content
+        assert 'data-fecha-registro=' in content
+
+    def test_api_usuarios_filtra_por_fecha_desde(self, admin_client, db):
+        """api_usuarios respeta el parámetro fecha_desde."""
+        self._crear_usuario_con_registro('api_viejo_desde', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('api_nuevo_desde', timezone.now() - timedelta(days=1))
+
+        desde = (timezone.now() - timedelta(days=10)).date().isoformat()
+        response = admin_client.get(reverse('api_usuarios') + f'?fecha_desde={desde}')
+
+        assert response.status_code == 200
+        usernames = {u['username'] for u in response.json()}
+        assert 'api_nuevo_desde' in usernames
+        assert 'api_viejo_desde' not in usernames
+
+    def test_api_usuarios_filtra_por_fecha_hasta(self, admin_client, db):
+        """api_usuarios respeta el parámetro fecha_hasta."""
+        self._crear_usuario_con_registro('api_viejo_hasta', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('api_nuevo_hasta', timezone.now() - timedelta(days=1))
+
+        hasta = (timezone.now() - timedelta(days=10)).date().isoformat()
+        response = admin_client.get(reverse('api_usuarios') + f'?fecha_hasta={hasta}')
+
+        assert response.status_code == 200
+        usernames = {u['username'] for u in response.json()}
+        assert 'api_viejo_hasta' in usernames
+        assert 'api_nuevo_hasta' not in usernames
+
+    def test_api_usuarios_rango_de_fechas_combinado(self, admin_client, db):
+        """api_usuarios combina fecha_desde y fecha_hasta."""
+        self._crear_usuario_con_registro('api_fuera_rango', timezone.now() - timedelta(days=60))
+        self._crear_usuario_con_registro('api_dentro_rango', timezone.now() - timedelta(days=10))
+
+        desde = (timezone.now() - timedelta(days=20)).date().isoformat()
+        hasta = (timezone.now() - timedelta(days=5)).date().isoformat()
+        response = admin_client.get(
+            reverse('api_usuarios') + f'?fecha_desde={desde}&fecha_hasta={hasta}'
+        )
+
+        usernames = {u['username'] for u in response.json()}
+        assert 'api_dentro_rango' in usernames
+        assert 'api_fuera_rango' not in usernames

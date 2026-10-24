@@ -1,8 +1,7 @@
 from datetime import timedelta
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from django.db import transaction
-from notificaciones.models import Notificacion
+from notificaciones.services import depurar_notificaciones
 
 
 class Command(BaseCommand):
@@ -42,13 +41,13 @@ class Command(BaseCommand):
             raise CommandError("El parámetro --days debe ser un entero positivo o cero.")
 
         cutoff = timezone.now() - timedelta(days=days)
-        qs = Notificacion.objects.filter(fecha__lt=cutoff)
-
-        if not include_unread:
-            qs = qs.filter(leida=True)
-
-        total_a_eliminar = qs.count()
         filtro_desc = "todas las notificaciones" if include_unread else "notificaciones leídas"
+
+        # El conteo sale siempre del servicio en modo dry-run para mantener una
+        # única fuente de verdad sobre el filtro (SCRUM-316).
+        total_a_eliminar = depurar_notificaciones(
+            dias=days, incluir_no_leidas=include_unread, dry_run=True
+        )
 
         if dry_run:
             self.stdout.write(
@@ -66,8 +65,9 @@ class Command(BaseCommand):
             )
             return
 
-        with transaction.atomic():
-            deleted_count, _ = qs.delete()
+        deleted_count = depurar_notificaciones(
+            dias=days, incluir_no_leidas=include_unread
+        )
 
         self.stdout.write(
             self.style.SUCCESS(

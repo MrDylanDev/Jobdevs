@@ -15,6 +15,7 @@ urlpatterns = [
     path('admin/desarrollador/<int:perfil_id>/verificar/', views.admin_resolver_verificacion_desarrollador, name='admin_resolver_verificacion_desarrollador'),
     path('admin/fichas-sena/crear/', views.admin_crear_ficha_sena, name='admin_crear_ficha_sena'),
     path('admin/fichas-sena/<int:ficha_id>/toggle/', views.admin_toggle_ficha_sena, name='admin_toggle_ficha_sena'),
+    path('admin/notificaciones/depurar/', views.admin_depurar_notificaciones, name='admin_depurar_notificaciones'),
     path('empresa/<int:perfil_id>/documento/', views.descargar_documento_soporte_empresa, name='descargar_documento_soporte_empresa'),
     path('empresa/verificacion/', views.solicitar_verificacion_empresa, name='solicitar_verificacion_empresa'),
     path('desarrollador/dashboard/', views.dashboard_desarrollador, name='dashboard_desarrollador'),
