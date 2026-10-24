@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from proyectos.models import Proyecto
 from postulaciones.models import Postulacion
@@ -611,4 +612,23 @@ class TestIniciarNegociacion:
         assert res.status_code == 200
         post.refresh_from_db()
         assert post.estado == 'pendiente'
+
+    def test_lista_recibidas_muestra_badge_verificado_con_fecha(self, auth_client, escenario, desarrollador_user):
+        """SCRUM-231 (RF 9.2.2): La lista de postulaciones muestra el badge de verificación y su fecha."""
+        proyecto, post = escenario
+        perfil = desarrollador_user.perfil_desarrollador
+        perfil.estado_verificacion = 'verificado'
+        perfil.condicion_sena = 'egresado'
+        perfil.fecha_verificacion = timezone.now()
+        perfil.save()
+
+        url = reverse('ver_postulaciones_empresa', args=[proyecto.id])
+        res = auth_client.get(url)
+        assert res.status_code == 200
+        html = res.content.decode()
+
+        assert 'badge-sena-postulante' in html
+        assert 'Egresado SENA' in html
+        assert 'Verificado el' in html
+
 
