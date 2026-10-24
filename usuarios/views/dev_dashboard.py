@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q, Count, Prefetch
-from ..models import PerfilDesarrollador
+from ..models import PerfilDesarrollador, Usuario
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_id
 from proyectos.models import Proyecto, Valoracion, Entregable
@@ -158,3 +158,58 @@ def dashboard_desarrollador(request):
     context.update(datos_dashboard_disputas(request.user))
     context['disputas_activas_count'] = len(context['disputas_activas'])
     return render(request, 'Desarrollador/Desarrollador.html', context)
+
+
+@login_required
+@requiere_usuario_activo
+def detalle_desarrollador(request, desarrollador_id):
+    """
+    Vista de perfil público y reputación del desarrollador (RF 5.3.1 / SCRUM-222).
+    Permite consultar:
+    - Identidad profesional: nombre, foto, insignia SENA, programa de formación, ficha.
+    - Habilidades técnicas destacadas y enlace al portafolio.
+    - Métricas de trayectoria: reputación promedio, reseñas recibidas y proyectos finalizados.
+    - Testimonios y valoraciones dejados por las empresas contratantes.
+    """
+    desarrollador = get_object_or_404(Usuario, id=desarrollador_id, rol='desarrollador')
+    perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=desarrollador)
+
+    # Reseñas que las empresas dejaron a este desarrollador
+    resenas = list(
+        Valoracion.objects.filter(desarrollador=desarrollador, rol_evaluador='empresa')
+        .select_related('empresa', 'empresa__perfil_empresa', 'proyecto')
+        .order_by('-fecha')
+    )
+
+    total_resenas = len(resenas)
+    promedio = (
+        Valoracion.objects.filter(desarrollador=desarrollador, rol_evaluador='empresa')
+        .aggregate(Avg('puntuacion'))['puntuacion__avg']
+        or 0.0
+    )
+
+    # Desglose de estrellas (1 a 5) para la barra de distribución
+    conteo_estrellas = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for r in resenas:
+        if r.puntuacion in conteo_estrellas:
+            conteo_estrellas[r.puntuacion] += 1
+
+    proyectos_finalizados_count = Contratacion.objects.filter(
+        desarrollador=desarrollador, estado='finalizada'
+    ).count()
+
+    habilidades_lista = [
+        h.strip() for h in (perfil.habilidades or '').split(',') if h.strip()
+    ]
+
+    context = {
+        'desarrollador': desarrollador,
+        'perfil': perfil,
+        'resenas': resenas,
+        'total_resenas': total_resenas,
+        'promedio_reputacion': round(float(promedio), 1),
+        'conteo_estrellas': conteo_estrellas,
+        'proyectos_finalizados_count': proyectos_finalizados_count,
+        'habilidades_lista': habilidades_lista,
+    }
+    return render(request, 'desarrollador/detalle_publico.html', context)

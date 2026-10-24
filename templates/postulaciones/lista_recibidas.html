@@ -113,16 +113,20 @@
           <div class="card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
               <div style="flex: 1;">
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                      <div class="user-avatar" style="width: 44px; height: 44px; font-size: 16px; background: var(--accent);">
-                          {% if post.desarrollador.foto_perfil %}
-                            <img src="{{ post.desarrollador.foto_perfil }}" alt="Perfil">
-                          {% else %}
-                            {{ post.desarrollador.nombre|slice:":1"|upper }}
-                          {% endif %}
-                      </div>
+                      <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" title="Ver perfil público de {{ post.desarrollador.nombre }}" style="flex-shrink: 0;">
+                        <div class="user-avatar" style="width: 44px; height: 44px; font-size: 16px; background: var(--accent);">
+                            {% if post.desarrollador.foto_perfil %}
+                              <img src="{{ post.desarrollador.foto_perfil }}" alt="Perfil">
+                            {% else %}
+                              {{ post.desarrollador.nombre|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                      </a>
                       <div>
                           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">{{ post.desarrollador.nombre }}</h3>
+                            <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" class="text-decoration-none" title="Ver perfil público">
+                              <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">{{ post.desarrollador.nombre }}</h3>
+                            </a>
                             {% if post.desarrollador.badge_info %}
                               <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' or post.desarrollador.badge_info.label == 'En Revisión (Egresado)' %}badge-warning{% elif post.desarrollador.badge_info.label == 'Verificación Rechazada' %}badge-danger{% else %}badge-secondary{% endif %}"
                                     data-testid="badge-sena-postulante"
