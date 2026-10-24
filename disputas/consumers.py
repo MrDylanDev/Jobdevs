@@ -11,6 +11,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from .models import Disputa, MensajeDisputa
 from .views import ESTADOS_MENSAJERIA, _es_participante, _rol_emisor, _destinatarios_mensaje
+from .services import auditar_mensaje_disputa
 from notificaciones.models import Notificacion
 
 
@@ -109,6 +110,7 @@ class DisputaConsumer(AsyncJsonWebsocketConsumer):
                     emisor=self.user,
                     contenido=texto
                 )
+                auditar_mensaje_disputa(disputa, self.user, 'WebSocket')
 
                 destinatarios = _destinatarios_mensaje(disputa, self.user)
                 if destinatarios:

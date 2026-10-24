@@ -14,7 +14,12 @@ from proyectos.models import Proyecto
 from usuarios.models import Usuario
 
 from .models import Disputa, MensajeDisputa
-from .services import abrir_disputa, datos_dashboard_disputas, resolver_disputa
+from .services import (
+    abrir_disputa,
+    auditar_mensaje_disputa,
+    datos_dashboard_disputas,
+    resolver_disputa,
+)
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
 
@@ -196,6 +201,7 @@ def enviar_mensaje_disputa_view(request, disputa_id):
                 disputa.save(update_fields=['estado', 'mediador'])
 
             MensajeDisputa.objects.create(disputa=disputa, emisor=user, contenido=contenido)
+            auditar_mensaje_disputa(disputa, user, 'HTTP')
             Notificacion.objects.bulk_create([
                 Notificacion(
                     usuario_id=uid, proyecto=disputa.proyecto, tipo='mensaje',

@@ -10,6 +10,7 @@ from usuarios.models import Usuario
 from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
 from disputas.models import Disputa, MensajeDisputa
+from logs.models import LogAuditoria
 
 
 @pytest.mark.django_db(transaction=True)
@@ -112,3 +113,45 @@ class TestDisputaConsumer:
         await comm_emp.disconnect()
         await comm_dev.disconnect()
         await comm_admin.disconnect()
+
+    async def test_envio_websocket_registra_log_auditoria(self):
+        """SCRUM-234 (RF 10.2.1): el envío por WebSocket deja traza sin contenido."""
+        empresa = await Usuario.objects.acreate(
+            username="emp_aud", email="emp_aud@test.com", rol="empresa"
+        )
+        dev = await Usuario.objects.acreate(
+            username="dev_aud", email="dev_aud@test.com", rol="desarrollador"
+        )
+        proyecto = await Proyecto.objects.acreate(
+            empresa=empresa, titulo="Proyecto Auditoria", estado="en_desarrollo"
+        )
+        contrato = await Contratacion.objects.acreate(
+            proyecto=proyecto, empresa=empresa, desarrollador=dev, estado="activa"
+        )
+        disputa = await Disputa.objects.acreate(
+            proyecto=proyecto,
+            contratacion=contrato,
+            iniciado_por=empresa,
+            motivo="Falta de trazabilidad",
+            estado="abierta",
+        )
+        contenido = "TEXTO_CONFIDENCIAL_WS_XYZ"
+
+        communicator = WebsocketCommunicator(application, f"/ws/disputas/{disputa.id}/")
+        communicator.scope["user"] = dev
+        assert (await communicator.connect())[0]
+
+        await communicator.send_json_to({"contenido": contenido})
+        resp = await communicator.receive_json_from()
+        assert resp["mensaje"]["contenido"] == contenido
+
+        log = await LogAuditoria.objects.filter(
+            tabla_afectada="mensajes_disputa"
+        ).afirst()
+        assert log is not None
+        assert log.registro_id == disputa.id
+        assert log.usuario_id == dev.id
+        assert "WebSocket" in log.accion
+        assert contenido not in (log.accion or "")
+
+        await communicator.disconnect()

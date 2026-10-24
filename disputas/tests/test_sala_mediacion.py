@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from contrataciones.models import Contratacion
 from disputas.models import Disputa, MensajeDisputa
+from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
 
@@ -210,6 +211,47 @@ class TestNotificaciones:
         _login(client, sala['dev'])
         client.post(_enviar(sala['disputa']), {'contenido': '  '})
         assert Notificacion.objects.filter(tipo='mensaje').count() == 0
+
+
+class TestAuditoriaMensajes:
+    """SCRUM-234 (RF 10.2.1): trazabilidad de mensajes sin guardar el contenido."""
+
+    CONTENIDO = 'TEXTO_CONFIDENCIAL_SALA_XYZ'
+
+    def test_envio_http_registra_log_auditoria(self, client, sala):
+        _login(client, sala['dev'])
+        client.post(_enviar(sala['disputa']), {'contenido': self.CONTENIDO})
+
+        log = LogAuditoria.objects.get(tabla_afectada='mensajes_disputa')
+        assert log.registro_id == sala['disputa'].id
+        assert log.usuario == sala['dev']
+        assert 'HTTP' in log.accion
+
+    def test_log_no_almacena_el_contenido_del_mensaje(self, client, sala):
+        _login(client, sala['dev'])
+        client.post(_enviar(sala['disputa']), {'contenido': self.CONTENIDO})
+
+        log = LogAuditoria.objects.get(tabla_afectada='mensajes_disputa')
+        for valor in (log.accion, log.valor_anterior, log.valor_nuevo):
+            assert self.CONTENIDO not in (valor or '')
+        # El mensaje sí se persiste en su propia tabla.
+        assert MensajeDisputa.objects.filter(contenido=self.CONTENIDO).exists()
+
+    def test_cada_mensaje_genera_su_propio_log(self, client, sala):
+        _login(client, sala['empresa'])
+        client.post(_enviar(sala['disputa']), {'contenido': 'primero'})
+        _login(client, sala['dev'])
+        client.post(_enviar(sala['disputa']), {'contenido': 'segundo'})
+
+        logs = LogAuditoria.objects.filter(tabla_afectada='mensajes_disputa').order_by('pk')
+        assert [l.usuario_id for l in logs] == [sala['empresa'].id, sala['dev'].id]
+
+    @pytest.mark.parametrize('contenido', ['', '   '])
+    def test_mensaje_rechazado_no_audita(self, client, sala, contenido):
+        _login(client, sala['dev'])
+        resp = client.post(_enviar(sala['disputa']), {'contenido': contenido})
+        assert resp.status_code == 400
+        assert LogAuditoria.objects.filter(tabla_afectada='mensajes_disputa').count() == 0
 
 
 class TestRenderHistorial:

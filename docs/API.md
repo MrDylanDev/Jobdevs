@@ -210,7 +210,7 @@ curl -c cookies.txt http://localhost/login/
 
 # Login como admin
 curl -b cookies.txt -c cookies.txt \
-  -d "username=admin&password=AdminPass123!&rol_seleccionado=administrador" \
+  -d "username=admin&password=AdminPass123!" \
   http://localhost/login/
 
 # Extraer token CSRF

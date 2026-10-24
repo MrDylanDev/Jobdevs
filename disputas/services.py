@@ -278,6 +278,23 @@ def resolver_disputa(disputa, admin_user, resolucion, dictamen):
     return disputa
 
 
+def auditar_mensaje_disputa(disputa, emisor, canal='HTTP'):
+    """Registra en LogAuditoria el envío de un mensaje en la sala de mediación.
+
+    SCRUM-234 (RF 10.2.1): deja traza del emisor, la disputa y el canal usado
+    (HTTP o WebSocket). Por confidencialidad de las partes NO se guarda el
+    contenido del mensaje en ningún campo del log.
+    """
+    LogAuditoria.objects.create(
+        usuario=emisor,
+        accion=(
+            f"Envió mensaje en sala de mediación de disputa #{disputa.pk} vía {canal}"
+        )[:300],
+        tabla_afectada='mensajes_disputa',
+        registro_id=disputa.pk,
+    )
+
+
 def datos_dashboard_disputas(usuario, estado=None):
     """Datos de la pestaña/lista de disputas para un usuario según su rol.
 

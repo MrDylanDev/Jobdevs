@@ -859,3 +859,16 @@ class TestAdminExcepcionesFichaSenaSCRUM225:
         assert 'data-testid="tabla-excepciones-sena"' in content
         assert excepcion.numero_ficha in content
         assert reverse('admin_crear_excepcion_ficha_sena') in content
+
+
+class TestVisorLogsTecnicosTemplate:
+    """SCRUM-317 (HU-A18): el panel admin expone la sección de logs técnicos."""
+
+    def test_dashboard_renderiza_visor_logs_tecnicos(self, admin_client):
+        response = admin_client.get(reverse('dashboard_admin'))
+        assert response.status_code == 200
+        contenido = response.content.decode('utf-8')
+        assert 'logsTecnicosSection' in contenido
+        assert 'data-testid="visor-logs-tecnicos"' in contenido
+        assert 'data-testid="btn-refrescar-logs"' in contenido
+        assert 'cargarLogsTecnicos' in contenido

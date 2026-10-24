@@ -79,6 +79,7 @@
         <span>Auditoría</span>
       </button>
       <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i class="fa fa-shield-halved"></i><span>Auditoría de Chats</span></button>
+      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i class="fa fa-terminal"></i><span>Logs Técnicos</span></button>
       <button class="nav-item" onclick="showSection('reportsSection', this)">
         <i class="fa fa-file-export"></i>
         <span>Reportes</span>
@@ -1214,6 +1215,36 @@
         </div>
       </section>
 
+      <!-- Logs técnicos del servidor (SCRUM-317 / HU-A18) -->
+      <section id="logsTecnicosSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Logs Técnicos del Servidor</div>
+            <div class="page-subtitle">Últimas líneas de jobdevs.log (solo lectura)</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin-bottom:16px;">
+            <div>
+              <label class="form-label" style="font-weight:600;" for="visor-logs-lineas">Líneas</label>
+              <select id="visor-logs-lineas" class="form-control" data-testid="selector-lineas-logs"
+                      style="padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+                <option value="50">50</option>
+                <option value="100" selected>100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" data-testid="btn-refrescar-logs"
+                    onclick="cargarLogsTecnicos()">
+              <i class="fa fa-rotate-right me-1"></i> Refrescar
+            </button>
+          </div>
+          <pre id="visor-logs-output" data-testid="visor-logs-tecnicos"
+               style="margin:0;padding:16px;background:#0f172a;color:#e2e8f0;border-radius:8px;max-height:560px;overflow:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;">Cargando logs técnicos...</pre>
+        </div>
+      </section>
+
       <!-- Reportes -->
       <section id="reportsSection" class="section-v">
         <div class="page-header">
@@ -1427,6 +1458,35 @@
     };
 
     form.addEventListener('submit', function (e) { e.preventDefault(); search(1); });
+  })();
+</script>
+<script>
+  (function () {
+    const LOGS_URL = "{% url 'visor_logs_tecnicos' %}";
+
+    window.cargarLogsTecnicos = async function () {
+      const salida = document.getElementById('visor-logs-output');
+      const selector = document.getElementById('visor-logs-lineas');
+      if (!salida) return;
+      const lineas = selector ? selector.value : 100;
+      try {
+        const response = await fetch(LOGS_URL + '?format=json&lineas=' + encodeURIComponent(lineas), {
+          headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        });
+        if (!response.ok) {
+          salida.textContent = 'No se pudieron cargar los logs técnicos (HTTP ' + response.status + ').';
+          return;
+        }
+        const data = await response.json();
+        salida.textContent = (data.lineas || []).join('\n');
+        salida.scrollTop = salida.scrollHeight;
+      } catch (err) {
+        salida.textContent = 'Error de red al consultar los logs técnicos.';
+      }
+    };
+
+    const selector = document.getElementById('visor-logs-lineas');
+    if (selector) selector.addEventListener('change', window.cargarLogsTecnicos);
   })();
 </script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>

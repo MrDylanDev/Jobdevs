@@ -116,3 +116,91 @@ class TestReportes:
         assert 'Empresa,NIT,Sector,Ciudad,Telefono,Email,Proyectos Publicados,Reputación (★)' in content
         assert 'csv_emp_0' in content
 
+
+
+class TestVisorLogsTecnicos:
+    """SCRUM-317 (HU-A18): visor de logs técnicos del servidor, solo administrador."""
+
+    def _log_file(self, tmp_path, lineas=150):
+        archivo = tmp_path / 'jobdevs.log'
+        archivo.write_text(
+            '\n'.join(f'linea {i}' for i in range(1, lineas + 1)) + '\n',
+            encoding='utf-8',
+        )
+        return archivo
+
+    def test_no_admin_recibe_403(self, dev_client):
+        response = dev_client.get(reverse('visor_logs_tecnicos'))
+        assert response.status_code == 403
+
+    def test_anonimo_redirige_a_login(self, client):
+        response = client.get(reverse('visor_logs_tecnicos'))
+        assert response.status_code == 302
+
+    def test_admin_recibe_json(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path)
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'), {'format': 'json', 'lineas': 50}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data['archivo'] == 'jobdevs.log'
+        assert data['total'] == 50
+        assert len(data['lineas']) == 50
+        assert data['lineas'][-1] == 'linea 150'
+
+    def test_admin_recibe_texto_plano(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path)
+        response = admin_client.get(reverse('visor_logs_tecnicos'), {'lineas': 20})
+        assert response.status_code == 200
+        assert response['Content-Type'].startswith('text/plain')
+        assert 'linea 150' in response.content.decode('utf-8')
+
+    def test_lineas_se_acotan_entre_20_y_500(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path, lineas=600)
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'), {'format': 'json', 'lineas': 1000}
+        )
+        assert response.json()['total'] == 500
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'), {'format': 'json', 'lineas': 1}
+        )
+        assert response.json()['total'] == 20
+
+    def test_archivo_inexistente_devuelve_placeholder(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = tmp_path / 'no-existe.log'
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'), {'format': 'json'}
+        )
+        assert response.status_code == 200
+        assert response.json()['lineas'] == [
+            '(Archivo de log técnico jobdevs.log inicializándose...)'
+        ]
+
+    def test_registra_auditoria(self, admin_client, admin_user, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path)
+        admin_client.get(reverse('visor_logs_tecnicos'), {'lineas': 30})
+        log = LogAuditoria.objects.filter(
+            usuario=admin_user, tabla_afectada='logs_tecnicos'
+        ).first()
+        assert log is not None
+        assert '30' in log.accion
+
+    def test_xhr_header_devuelve_json(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path)
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'),
+            {'lineas': 25},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        assert response.status_code == 200
+        assert response['Content-Type'].startswith('application/json')
+        assert response.json()['total'] == 25
+
+    def test_lineas_invalidas_no_rompen_la_vista(self, admin_client, settings, tmp_path):
+        settings.LOG_FILE_APP = self._log_file(tmp_path)
+        response = admin_client.get(
+            reverse('visor_logs_tecnicos'), {'format': 'json', 'lineas': 'abc'}
+        )
+        assert response.status_code == 200
+        assert response.json()['total'] == 100

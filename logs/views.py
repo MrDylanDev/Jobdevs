@@ -1,11 +1,16 @@
 import csv
-from django.http import HttpResponse
+from collections import deque
+
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q, Value, FloatField
 from django.db.models.functions import Coalesce
 from proyectos.models import Proyecto, Valoracion
 from usuarios.models import Usuario, PerfilDesarrollador, PerfilEmpresa
+from logs.models import LogAuditoria
 
 @login_required
 def reporte_proyectos_csv(request):
@@ -127,3 +132,41 @@ def reporte_empresas_csv(request):
         ])
         
     return response
+
+
+@login_required
+def visor_logs_tecnicos(request):
+    """SCRUM-317 (HU-A18): últimas líneas del log técnico, solo administradores."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    try:
+        lineas = int(request.GET.get('lineas', 100))
+    except (TypeError, ValueError):
+        lineas = 100
+    lineas = max(20, min(lineas, 500))
+
+    LogAuditoria.objects.create(
+        usuario=request.user,
+        accion=f"Consultó visor de logs técnicos ({lineas} líneas)",
+        tabla_afectada='logs_tecnicos',
+    )
+
+    archivo = settings.LOG_FILE_APP
+    try:
+        with open(archivo, 'r', encoding='utf-8', errors='replace') as f:
+            lineas_leidas = [linea.rstrip('\n') for linea in deque(f, maxlen=lineas)]
+    except OSError:
+        lineas_leidas = ["(Archivo de log técnico jobdevs.log inicializándose...)"]
+
+    if request.GET.get('format') == 'json' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'lineas': lineas_leidas,
+            'total': len(lineas_leidas),
+            'archivo': 'jobdevs.log',
+        })
+
+    return HttpResponse(
+        "\n".join(lineas_leidas),
+        content_type='text/plain; charset=utf-8',
+    )
