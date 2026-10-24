@@ -17,6 +17,9 @@ from notificaciones.models import Notificacion
 EXTENSIONES_PERMITIDAS = {'.pdf', '.zip', '.png', '.jpg', '.jpeg'}
 MAX_AVANCE_BYTES = 10 * 1024 * 1024  # 10 MB
 
+# SCRUM-220: solo se revisan avances mientras el proyecto siga activo
+ESTADOS_PROYECTO_REVISABLES = ('en_desarrollo', 'en_revision')
+
 
 def _validar_archivo_adjunto(archivo):
     """Valida tamaño, extensión, cabecera mágica y consistencia estructural (SCRUM-168)."""
@@ -237,6 +240,14 @@ def revisar_avance(request, avance_id):
     
     avance = get_object_or_404(Avance, id=avance_id, proyecto__empresa=request.user)
 
+    # SCRUM-220: bloquear la revisión si el proyecto ya no está activo
+    if avance.proyecto.estado not in ESTADOS_PROYECTO_REVISABLES:
+        messages.error(
+            request,
+            f"No se pueden revisar avances en un proyecto con estado '{avance.proyecto.get_estado_display()}'."
+        )
+        return redirect('ver_avances', proyecto_id=avance.proyecto.id)
+
     if avance.estado != 'pendiente':
         messages.error(
             request,
@@ -262,6 +273,15 @@ def revisar_avance(request, avance_id):
                 .select_related('proyecto', 'entregable', 'desarrollador')
                 .get(id=avance_id, proyecto__empresa=request.user)
             )
+            # SCRUM-220: bloquear también el proyecto para revalidar su estado dentro de la transacción
+            proyecto = Proyecto.objects.select_for_update().get(id=avance.proyecto_id)
+            if proyecto.estado not in ESTADOS_PROYECTO_REVISABLES:
+                messages.error(
+                    request,
+                    f"No se pueden revisar avances en un proyecto con estado '{proyecto.get_estado_display()}'."
+                )
+                return redirect('ver_avances', proyecto_id=proyecto.id)
+
             if avance.estado != 'pendiente':
                 messages.error(
                     request,

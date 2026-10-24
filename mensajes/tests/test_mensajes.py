@@ -290,5 +290,48 @@ class TestIndicadorMensajesNoLeidos:
         assert 'badge-mensajes-no-leidos' not in res_despues.content.decode()
 
 
+class TestAislamientoSalasChat:
+    """Pruebas de aislamiento estricto de salas de chat por proyecto (SCRUM-221 / RF 6.1.3)."""
+
+    def test_sala_chat_proyecto_excluye_mensajes_generales_y_de_otros_proyectos(
+        self, client, empresa_user, desarrollador_user
+    ):
+        proyecto1 = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto 1', descripcion='D1',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto1, empresa=empresa_user, desarrollador=desarrollador_user, estado='activa'
+        )
+        proyecto2 = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Otro Proyecto', descripcion='D2',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto2, empresa=empresa_user, desarrollador=desarrollador_user, estado='activa'
+        )
+
+        Mensaje.objects.create(
+            remitente=empresa_user, receptor=desarrollador_user, proyecto=proyecto1, contenido='Exclusivo Proyecto 1'
+        )
+        Mensaje.objects.create(
+            remitente=empresa_user, receptor=desarrollador_user, proyecto=None, contenido='Mensaje General Sin Proyecto'
+        )
+        Mensaje.objects.create(
+            remitente=empresa_user, receptor=desarrollador_user, proyecto=proyecto2, contenido='Exclusivo Proyecto 2'
+        )
+
+        client.force_login(desarrollador_user)
+        url_p1 = reverse('sala_chat', args=[empresa_user.id, proyecto1.id])
+        res = client.get(url_p1)
+        assert res.status_code == 200
+        html = res.content.decode()
+
+        assert 'Exclusivo Proyecto 1' in html
+        assert 'Mensaje General Sin Proyecto' not in html  # SCRUM-221
+        assert 'Exclusivo Proyecto 2' not in html
+
+
+
 
 

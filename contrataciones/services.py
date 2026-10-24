@@ -19,14 +19,20 @@ from .models import Contratacion
 from .policies import puede_cancelar_contratacion
 
 
-def cancelar_contratacion(contratacion_id, ejecutado_por):
-    """Cancela una contratación activa (RF 3.5.3) y reabre el proyecto si era
+def cancelar_contratacion(contratacion_id, ejecutado_por, motivo=''):
+    """Cancela una contratación activa (RF 3.4.1 / SCRUM-223) y reabre el proyecto si era
     la última contratación vigente.
 
     Devuelve la `Contratacion` cancelada. Lanza `PermissionDenied` si el
     usuario no está autorizado y `ValidationError` si la operación incumple
-    una regla de negocio.
+    una regla de negocio o carece de motivo suficiente.
     """
+    motivo = (motivo or '').strip()
+    if not motivo:
+        raise ValidationError('Debes indicar el motivo de la cancelación.')
+    if len(motivo) < 10:
+        raise ValidationError('El motivo de cancelación debe tener al menos 10 caracteres.')
+
     try:
         contexto = Contratacion.objects.select_related('proyecto').get(
             id=contratacion_id
@@ -46,8 +52,10 @@ def cancelar_contratacion(contratacion_id, ejecutado_por):
                 f"Solo se pueden cancelar contratos activos (estado actual: '{contrato.get_estado_display()}')."
             )
 
+        estado_previo = contrato.estado
         contrato.estado = 'cancelada'
-        contrato.save()
+        contrato.motivo_cancelacion = motivo
+        contrato.save(update_fields=['estado', 'motivo_cancelacion'])
 
         # RF 3.4.1: la vacante se libera al cancelar. Si el proyecto seguía en
         # desarrollo pero ya tiene cupo libre, vuelve a la vitrina.
@@ -69,15 +77,17 @@ def cancelar_contratacion(contratacion_id, ejecutado_por):
             tipo='alerta',
             mensaje=(
                 f"Tu contratación para el proyecto '{contrato.proyecto.titulo}' "
-                f"ha sido cancelada por la empresa."
-            ),
+                f"ha sido cancelada por la empresa. Motivo: {motivo}"
+            )[:500],
         )
 
         LogAuditoria.objects.create(
             usuario=ejecutado_por,
-            accion=f"Canceló contratación en {contrato.proyecto.titulo}",
+            accion=f"Canceló contratación en {contrato.proyecto.titulo}: {motivo}"[:300],
             tabla_afectada='contrataciones',
             registro_id=contrato.id,
+            valor_anterior=estado_previo,
+            valor_nuevo='cancelada',
         )
 
     return contrato

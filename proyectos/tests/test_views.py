@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from proyectos.models import Proyecto
 from postulaciones.models import Postulacion
@@ -46,6 +47,32 @@ class TestListarProyectos:
         content = response.content.decode()
         assert 'CupoAbierto' in content
         assert '1 de 2 cupos libres' in content
+
+    def test_listar_proyectos_oculta_proyectos_con_fecha_limite_vencida(self, auth_client, empresa_user):
+        """SCRUM-233 (RF 3.1.1): Los proyectos con fecha límite vencida se ocultan de la vitrina pública."""
+        from datetime import timedelta
+        hoy = timezone.now().date()
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Caducado', descripcion='Vencido',
+            tipo_solucion='sitio_web', estado='publicado', fecha_limite=hoy - timedelta(days=1),
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Vigente Plazo', descripcion='Vigente',
+            tipo_solucion='sitio_web', estado='publicado', fecha_limite=hoy + timedelta(days=7),
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Sin Plazo', descripcion='Sin fecha',
+            tipo_solucion='sitio_web', estado='publicado', fecha_limite=None,
+        )
+
+        response = auth_client.get(reverse('listar_proyectos'))
+        assert response.status_code == 200
+        content = response.content.decode()
+
+        assert 'Proyecto Vigente Plazo' in content
+        assert 'Proyecto Sin Plazo' in content
+        assert 'Proyecto Caducado' not in content
+
 
     def test_filtrar_por_tipo(self, auth_client, empresa_user):
         """Filter by tipo_solucion works."""

@@ -41,14 +41,15 @@ def cancelar_contratacion(request, contratacion_id):
         return redirect('inicio')
 
     get_object_or_404(Contratacion, id=contratacion_id, empresa=request.user)
+    motivo = request.POST.get('motivo_cancelacion') or request.POST.get('motivo') or ''
 
     try:
-        services.cancelar_contratacion(contratacion_id, request.user)
+        services.cancelar_contratacion(contratacion_id, request.user, motivo=motivo)
         messages.warning(request, "Contrato cancelado exitosamente.")
     except PermissionDenied as exc:
         messages.error(request, str(exc))
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages))
+        messages.error(request, ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc))
     except Exception as e:
         messages.error(request, f"Error al cancelar contrato: {str(e)}")
 

@@ -58,8 +58,9 @@ def listar_proyectos(request):
     ).annotate(
         disponibles_anotadas=F('vacantes') - F('contratos_activos') - F('negociaciones_abiertas'),
     ).filter(
-        # RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres.
-        Q(estado='publicado') | Q(estado='en_desarrollo', disponibles_anotadas__gt=0)
+        # RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres y plazo vigente.
+        (Q(estado='publicado') | Q(estado='en_desarrollo', disponibles_anotadas__gt=0)),
+        (Q(fecha_limite__isnull=True) | Q(fecha_limite__gte=timezone.now().date())),
     )
     
     if tipo:

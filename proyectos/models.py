@@ -104,7 +104,9 @@ class Proyecto(models.Model):
 
     @property
     def acepta_postulaciones(self):
-        """RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres."""
+        """RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres y plazo vigente."""
+        if self.fecha_limite and self.fecha_limite < timezone.now().date():
+            return False
         return self.estado == 'publicado' or (
             self.estado == 'en_desarrollo' and self.vacantes_disponibles > 0
         )

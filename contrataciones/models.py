@@ -26,6 +26,7 @@ class Contratacion(models.Model):
     empresa = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='contrataciones_emp')
     fecha_inicio = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=25, choices=ESTADO, default='activa')
+    motivo_cancelacion = models.TextField(blank=True, null=True)
 
     objects = ContratacionManager()
 
