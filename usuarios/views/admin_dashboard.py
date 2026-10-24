@@ -1,3 +1,4 @@
+import os
 import re
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -268,11 +269,19 @@ def dashboard_admin(request):
     total_fichas_sena = FichaSena.objects.count()
     fichas_sena = list(FichaSena.objects.all().order_by('-fecha_creacion')[:100])
 
+    # SCRUM-311: mecanismo oficial de verificación SENA. No existe API pública de
+    # SOFIA Plus, así que el padrón institucional SENA (lista blanca local) es el
+    # mecanismo primario y SENA_API_URL queda como pasarela institucional opcional.
+    sena_api_url = getattr(settings, 'SENA_API_URL', os.environ.get('SENA_API_URL', ''))
+    sena_modo_verificacion = 'pasarela_externa' if sena_api_url else 'padron_oficial'
+
     context = {
         'desarrolladores_en_revision': desarrolladores_en_revision,
         'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
         'fichas_sena': fichas_sena,
         'total_fichas_sena': total_fichas_sena,
+        'sena_modo_verificacion': sena_modo_verificacion,
+        'sena_api_url': sena_api_url,
         'empresas_en_revision': empresas_en_revision,
         'total_empresas_en_revision': total_empresas_en_revision,
         'disputas_activas': disputas_activas,

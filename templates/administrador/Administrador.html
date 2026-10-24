@@ -1034,6 +1034,30 @@
           </div>
         </div>
 
+        <!-- SCRUM-311: mecanismo oficial de verificación SENA -->
+        <div class="card" style="margin-bottom:24px;" data-testid="badge-modo-verificacion-sena" data-modo="{{ sena_modo_verificacion }}">
+          <h3 class="h5 mb-2"><i class="fa fa-shield-halved me-1 text-primary"></i> Mecanismo Oficial de Verificación SENA</h3>
+          {% if sena_modo_verificacion == 'pasarela_externa' %}
+          <p style="margin:0;">
+            <span class="badge bg-success"><i class="fa fa-plug me-1"></i> Pasarela externa conectada</span>
+            <small class="text-muted d-block mt-2">
+              Se consulta la pasarela institucional configurada en <code>SENA_API_URL</code>
+              ({% if sena_api_url %}{{ sena_api_url }}{% else %}no configurada{% endif %}).
+              Si la pasarela no responde, la verificación se resuelve con el padrón institucional local.
+            </small>
+          </p>
+          {% else %}
+          <p style="margin:0;">
+            <span class="badge bg-primary"><i class="fa fa-database me-1"></i> Padrón Institucional Local (Lista Blanca Oficial)</span>
+            <small class="text-muted d-block mt-2">
+              No existe API pública oficial de SOFIA Plus / SENA. Por ello, la lista blanca local
+              (<code>FichaSena</code>) es la fuente oficial y primaria de verificación de fichas en JobDevs.
+              <code>SENA_API_URL</code> es sólo una pasarela institucional externa opcional.
+            </small>
+          </p>
+          {% endif %}
+        </div>
+
         <div class="card" style="margin-bottom:24px;">
           <h3 class="h5 mb-3"><i class="fa fa-plus-circle me-1 text-primary"></i> Registrar Nueva Ficha SENA</h3>
           <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;">
