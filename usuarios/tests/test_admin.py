@@ -696,3 +696,31 @@ class TestAdminFiltroFechaRegistroSCRUM226:
         usernames = {u['username'] for u in response.json()}
         assert 'api_dentro_rango' in usernames
         assert 'api_fuera_rango' not in usernames
+
+
+class TestAdminModoVerificacionSenaSCRUM311:
+    """SCRUM-311: el panel expone el mecanismo oficial de verificación SENA."""
+
+    def test_dashboard_admin_expone_modo_padron_oficial(self, admin_client, db):
+        """Sin SENA_API_URL el mecanismo activo es el padrón institucional local."""
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.status_code == 200
+        assert response.context['sena_modo_verificacion'] == 'padron_oficial'
+        assert not response.context['sena_api_url']
+
+    @override_settings(SENA_API_URL='https://sofia.sena.edu.co/api')
+    def test_dashboard_admin_expone_modo_pasarela_externa(self, admin_client, db):
+        """Con SENA_API_URL configurada el mecanismo activo es la pasarela externa."""
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.context['sena_modo_verificacion'] == 'pasarela_externa'
+        assert response.context['sena_api_url'] == 'https://sofia.sena.edu.co/api'
+
+    def test_template_renderiza_badge_modo_verificacion_sena(self, admin_client, db):
+        """La sección de fichas SENA muestra el badge del mecanismo oficial activo."""
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="badge-modo-verificacion-sena"' in content
+        assert 'Padrón Institucional Local' in content
+        assert 'SOFIA Plus' in content

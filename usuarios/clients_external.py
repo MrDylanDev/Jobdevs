@@ -3,6 +3,19 @@ Cliente HTTP asíncrono con httpx para validaciones externas con SENA y DIAN (SC
 
 Provee cliente httpx.AsyncClient con timeouts estrictos, reintentos exponenciales
 con backoff y degradación elegante ante caídas o latencia en servicios externos.
+
+Padrón institucional SENA (SCRUM-311)
+-------------------------------------
+No existe API pública oficial de SOFIA Plus / SENA. Por esa razón, la fuente
+primaria oficial de verificación de fichas en JobDevs es el **Padrón
+Institucional SENA**, materializado en la lista blanca local del modelo
+``FichaSena`` (``fuente='lista_blanca_local'``, ``degradado=False``).
+
+``SENA_API_URL`` se mantiene únicamente como **pasarela institucional externa
+opcional**: si está configurada y responde, se usa (``fuente='api_sena'``); si
+no está configurada, la consulta al padrón local es el mecanismo oficial
+estándar de producción y no se reporta como degradación (``degradado=False``).
+Sólo se reporta degradación cuando la pasarela estaba configurada y falló.
 """
 
 import asyncio
@@ -157,9 +170,17 @@ async def consultar_ficha_sena_api(
     api_url: str | None = None,
 ) -> dict[str, Any]:
     """
-    Valida una ficha de formación contra el servicio web externo de SOFIA Plus / SENA.
-    Si la API no está configurada, falla o se agotan los reintentos, aplica degradación
-    elegante consultando la lista blanca local de la base de datos de JobDevs.
+    Valida una ficha de formación contra el mecanismo oficial de verificación SENA.
+
+    No existe API pública oficial de SOFIA Plus / SENA. La fuente primaria oficial
+    es el **padrón institucional SENA**, es decir la lista blanca local del modelo
+    ``FichaSena`` (``fuente='lista_blanca_local'``, ``degradado=False``).
+
+    ``SENA_API_URL`` actúa sólo como **pasarela institucional externa opcional**:
+    cuando está configurada y responde se devuelve ``fuente='api_sena'``; cuando
+    no está configurada se consulta directamente el padrón oficial local, lo que
+    no es una degradación. Sólo hay degradación real (``degradado=True``) si la
+    pasarela externa estaba configurada y falló, o si el padrón local falló.
     """
     from .models import FichaSena
     from .services_sena import normalizar_numero_ficha
@@ -187,7 +208,8 @@ async def consultar_ficha_sena_api(
             except Exception as e:
                 logger.warning("Error parseando JSON de API SENA: %s", e)
 
-    # Fallback / Degradación elegante: consultar lista blanca local de forma asíncrona
+    # Mecanismo oficial por defecto: padrón institucional SENA (lista blanca local).
+    # Sólo se reporta degradación cuando la pasarela externa estaba configurada.
     try:
         ficha = await FichaSena.objects.filter(numero_ficha=limpio).afirst()
         if not ficha:
@@ -200,7 +222,10 @@ async def consultar_ficha_sena_api(
                 "centro": None,
                 "fuente": "lista_blanca_local",
                 "degradado": bool(url),
-                "detalle": f"Ficha {limpio} no encontrada en lista blanca local",
+                "detalle": (
+                    f"Ficha {limpio} no encontrada en el padrón institucional SENA "
+                    "(Lista Blanca Oficial)"
+                ),
             }
 
         return {
@@ -212,7 +237,11 @@ async def consultar_ficha_sena_api(
             "centro": ficha.centro_formacion,
             "fuente": "lista_blanca_local",
             "degradado": bool(url),
-            "detalle": "Validada contra lista blanca local" if ficha.activa else "Ficha inactiva en lista blanca local",
+            "detalle": (
+                "Validada contra el padrón institucional SENA (Lista Blanca Oficial)"
+                if ficha.activa
+                else "Ficha inactiva en el padrón institucional SENA (Lista Blanca Oficial)"
+            ),
         }
     except Exception as exc:
         return {

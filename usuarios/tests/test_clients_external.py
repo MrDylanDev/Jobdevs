@@ -3,6 +3,7 @@ Tests unitarios y de integración para clientes HTTP asíncronos externos (SCRUM
 Verifica timeouts, reintentos con backoff y degradación elegante ante caídas o latencia.
 """
 
+import sys
 from unittest import mock
 import httpx
 import pytest
@@ -187,3 +188,48 @@ class TestConsultarFichaSenaApi:
         assert res["activa"] is False
         assert res["fuente"] == "lista_blanca_local"
         assert res["degradado"] is False
+
+    async def test_padron_oficial_local_declara_detalle_formal(self):
+        """SCRUM-311: sin pasarela externa la respuesta declara el padrón oficial."""
+        await FichaSena.objects.acreate(
+            numero_ficha="2670777",
+            programa_formacion="ADSO Oficial",
+            activa=True,
+        )
+
+        res = await consultar_ficha_sena_api("2670777", api_url="")
+
+        assert res["valida"] is True
+        assert res["activa"] is True
+        assert res["fuente"] == "lista_blanca_local"
+        assert res["degradado"] is False
+        assert res["detalle"] == (
+            "Validada contra el padrón institucional SENA (Lista Blanca Oficial)"
+        )
+
+    async def test_padron_oficial_local_ficha_inexistente_no_es_degradacion(self):
+        """SCRUM-311: la consulta al padrón local no se reporta como degradada."""
+        res = await consultar_ficha_sena_api("9999999", api_url="")
+
+        assert res["valida"] is False
+        assert res["fuente"] == "lista_blanca_local"
+        assert res["degradado"] is False
+
+
+class TestPadronOficialSenaDocumentacionSCRUM311:
+    """SCRUM-311: declaración formal del padrón institucional como mecanismo oficial."""
+
+    def test_docstring_modulo_declara_padron_y_ausencia_de_api_publica(self):
+        modulo = sys.modules[consultar_ficha_sena_api.__module__]
+        texto = (modulo.__doc__ or "").lower()
+
+        assert "padrón institucional sena" in texto
+        assert "no existe api pública oficial" in texto
+
+    def test_docstring_funcion_declara_padron_oficial_y_pasarela_opcional(self):
+        texto = (consultar_ficha_sena_api.__doc__ or "").lower()
+
+        assert "padrón institucional sena" in texto
+        assert "no existe api pública oficial" in texto
+        assert "lista_blanca_local" in texto
+        assert "pasarela institucional" in texto
