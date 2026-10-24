@@ -27,10 +27,14 @@
 
 | Capa | Tecnología | Versión |
 |------|-----------|---------|
-| Backend | Django | 5.0+ |
+| Backend | Django | 6.1+ |
 | Lenguaje | Python | 3.14+ |
-| Base de datos | MySQL | 8.0 |
-| Driver MySQL | PyMySQL | 1.2+ |
+| Base de datos | PostgreSQL (Producción) / SQLite (Tests) | 16+ |
+| Driver PostgreSQL | psycopg2-binary | 2.9+ |
+| Asincronismo / WebSockets | Django Channels + Daphne | 4.0+ |
+| Broker / Cache | Redis | 7.0+ |
+| Tareas en segundo plano | Celery + Celery Beat | 5.3+ |
+| Correo en desarrollo | Mailpit | — |
 | Servidor WSGI | Gunicorn | 22.0+ |
 | Proxy reverso | Nginx | Alpine |
 | Contenedores | Docker + Docker Compose | — |
@@ -44,38 +48,49 @@
 
 ### 2.1 Patrón general
 
-JobDevs sigue una arquitectura **Django MTV (Model-Template-View)** modularizada en 9 aplicaciones independientes:
+JobDevs sigue una arquitectura **Django MTV (Model-Template-View)** desacoplada mediante una **capa de servicios de dominio (`services.py`) y políticas de autorización (`policies.py`)**, modularizada en 11 aplicaciones independientes:
 
 ```
-config/          → settings, urls raíz, wsgi/asgi
-usuarios/        → auth, perfiles, dashboards, API admin
-proyectos/       → CRUD proyectos, hitos, equipos, valoraciones
-postulaciones/   → postulación, aceptación/rechazo
-contrataciones/  → contratos, cancelación
-avances/         → registro y revisión de avances
-mensajes/        → chat grupal, privado, inbox
-notificaciones/  → sistema de alertas
-favoritos/       → toggle proyectos favoritos
-logs/            → auditoría y backups
+config/          → settings, urls raíz, wsgi/asgi, celery
+usuarios/        → auth, perfiles, dashboards, verificación SENA/empresas, API admin
+proyectos/       → CRUD proyectos, hitos individuales/equipo, valoraciones, vitrina
+postulaciones/   → postulación, negociación, rechazo formal, expiración de vacantes
+contrataciones/  → Módulo 8: contrato digital, firmas electrónicas SHA-256, cancelaciones
+avances/         → registro de entregables, revisión con idempotencia y guardas de estado
+mensajes/        → chats directos y grupales, WebSockets asíncronos vía Channels y Redis
+notificaciones/  → Server-Sent Events (SSE), alertas y depuración periódica con Celery Beat
+favoritos/       → marcadores reactivos de proyectos favoritos
+disputas/        → Módulo 10: arbitraje, sala de mediación a tres bandas y resolución
+logs/            → auditoría de negocio (LogAuditoria), reportes CSV y visor técnico de logs
 ```
 
 ### 2.2 Patrones de diseño
 
-- **Transacciones atómicas** (`transaction.atomic`) en operaciones críticas: finalizar proyecto, aceptar postulación, revisar avance, cancelar contrato
-- **Bloqueo pesimista** (`select_for_update`) para evitar race conditions en estados compartidos
-- **Bulk operations** (`bulk_create`, `update`) para notificaciones masivas
-- **Custom QuerySet** para sincronizar `is_superuser` con `rol`
-- **Custom User model** heredando de `AbstractUser` con campos `first_name` y `last_name` desactivados
-- **Decoradores** para control de acceso: `@login_required`, `@require_POST`, `@requiere_usuario_activo`
-- **Django checks framework** para validar existencia de triggers MySQL al iniciar
+- **Capa de Servicios y Políticas (`services.py` / `policies.py`)**: la lógica de negocio mutadora vive en servicios de dominio transaccionales, mientras las políticas de acceso aíslan los permisos del controlador.
+- **Transacciones atómicas** (`transaction.atomic`) en operaciones críticas: formalizar contratación, resolver disputas, revisar avance, cancelar contrato.
+- **Bloqueo pesimista** (`select_for_update`) para evitar race conditions en cupos de vacantes, concurrencia en avances y firmas digitales.
+- **Inmutabilidad criptográfica**: cálculo determinista de hash SHA-256 (`hash_documento`) congelado en la primera firma de contratos digitales.
+- **Mensajería asíncrona y SSE**: canales WebSockets backed por Redis para salas de chat y mediación, y Server-Sent Events para alertas de navbar.
+- **Decoradores de seguridad**: `@login_required`, `@require_POST`, `@requiere_usuario_activo`, `@api_ratelimit`.
 
 ### 2.3 Diagrama de despliegue
 
 ```
-[Cliente] → [Nginx :80] → [Gunicorn :8000] → [Django] → [MySQL :3306]
-                |                  |                 |
-           /static/           /media/          triggers SQL
-           (cache 30d)       (cache 7d)       (integridad)
+[Cliente / Navegador]
+       │
+   (Puerto 80)
+       ▼
+    [Nginx]
+   ┌───┴──────────────────────────────┐
+   │ HTTP (:8000)                     │ WS (:8001 /ws/)
+   ▼                                  ▼
+[Gunicorn]                         [Daphne]
+   │                                  │
+   └───► [Django Core / ASGI / Celery] ◄───┘
+             │              │
+      (PostgreSQL 16)    (Redis 7)
+             │              │
+        [Database]     [Channels & Tasks]
 ```
 
 ---
@@ -921,64 +936,84 @@ python manage.py migrate <app_name> <numero_anterior>
 
 **Nota:** El proyecto usa `settings_test.py` con SQLite en memoria para tests. La migración 0005 de usuarios usa `SeparateDatabaseAndState` porque la columna `cedula` se renombró manualmente en MySQL. El `conftest.py` aplica un monkey-patch para que SQLite maneje este caso correctamente.
 
-### 14.5 Relación modelos Django ↔ tablas MySQL
+### 14.5 Relación modelos Django ↔ tablas PostgreSQL
 
-| Modelo Django | Tabla MySQL | Tipo |
-|---------------|-------------|------|
-| Usuario | usuarios | Custom User (AbstractUser) |
-| PerfilEmpresa | perfil_empresa | OneToOneField |
-| PerfilDesarrollador | perfil_desarrollador | OneToOneField |
-| Proyecto | proyectos | Model |
-| Entregable | entregables | Model |
-| Equipo | equipos | Model |
-| Equipo.miembros (M2M) | equipos_miembros | Through table |
-| Postulacion | postulaciones | Model |
-| Contratacion | contrataciones | Model |
-| Valoracion | valoraciones | Model |
-| Avance | avances | Model |
-| Mensaje | mensajes | Model |
-| Notificacion | notificaciones | Model |
-| Favorito | favoritos | Model |
-| LogAuditoria | logs_auditoria | Model |
-| CopiaSeguridad | copias_seguridad | Model |
-| HistorialEstadoProyecto | historial_estado_proyecto | Model |
+| Modelo Django | Tabla BD | Aplicación | Descripción |
+|---------------|----------|------------|-------------|
+| Usuario | usuarios | usuarios | Custom User con roles y estados |
+| PerfilEmpresa | perfil_empresa | usuarios | Perfil corporativo y estado de verificación |
+| PerfilDesarrollador | perfil_desarrollador | usuarios | Perfil dev, condición SENA y reputación |
+| FichaSena | fichas_sena | usuarios | Padrón oficial institucional SENA (Lista Blanca) |
+| ExcepcionFichaSena | excepciones_ficha_sena | usuarios | Excepciones autorizadas a la lista blanca |
+| Proyecto | proyectos | proyectos | Proyectos con prioridades y ciclo de vida |
+| Entregable | entregables | proyectos | Hitos individuales o de equipo |
+| Equipo | equipos | proyectos | Equipos de colaboradores |
+| Postulacion | postulaciones | postulaciones | Postulaciones y negociación precontractual |
+| Contratacion | contrataciones | contrataciones | Contrataciones activas, cupos y cancelaciones |
+| ContratoDigital | contratos_digitales | contrataciones | Módulo 8: Contrato digital y firmas SHA-256 |
+| Valoracion | valoraciones | proyectos | Calificaciones bidireccionales por estrellas |
+| Avance | avances | avances | Entregas de trabajo con idempotencia y revisión |
+| Mensaje | mensajes | mensajes | Mensajería directa y grupal en tiempo real |
+| Notificacion | notificaciones | notificaciones | Alertas de sistema y Server-Sent Events (SSE) |
+| Favorito | favoritos | favoritos | Marcadores reactivos de proyectos |
+| Disputa | disputas | disputas | Módulo 10: Arbitraje y mediación de conflictos |
+| MensajeDisputa | mensajes_disputa | disputas | Intervenciones en sala de mediación |
+| EvidenciaDisputa | evidencias_disputa | disputas | Pruebas documentales de arbitraje |
+| LogAuditoria | logs_auditoria | logs | Trazabilidad inmutable de operaciones críticas |
 
 ---
 
-## 15. Troubleshooting técnico
+## 15. Módulos Avanzados del Sistema
 
-**Error: `No module named 'pymysql'`**
-```bash
-pip install pymysql
-```
+### 15.1 Módulo 8: Contratación Digital y Formalización (`contrataciones`)
+El módulo de contratación digital gestiona la transición formal entre la postulación y la ejecución del proyecto:
+1. **Negociación Precontractual**: Se establece en la sala de chat de postulación (`en_negociacion`).
+2. **Plantilla y Términos**: Se acuerda monto, moneda (COP), forma de pago y cláusulas vinculantes.
+3. **Firmas Electrónicas y Criptografía**:
+   - `hash_documento`: Hash SHA-256 determinista del contenido contractual congelado en la primera firma para asegurar inmutabilidad jurídica.
+   - `hash_contrato`: Hash que incorpora las marcas temporales oficiales de ambas partes.
+   - Cada firma genera un registro estricto en `LogAuditoria` con los hashes en `valor_anterior` y `valor_nuevo`.
+4. **Expiración Automática**: Las negociaciones sin firma activa expiran automáticamente a los 7 días mediante tarea Celery Beat, comando CLI `expirar_negociaciones` y guarda reactiva JIT.
+5. **Revalidación de Vacantes**: Al formalizarse la segunda firma, se ejecuta bloqueo pesimista `select_for_update` sobre el proyecto para impedir sobrecontratación.
 
-**Error: `DJANGO_SECRET_KEY es obligatorio en producción`**
-El archivo `.env` no existe o no tiene `DJANGO_SECRET_KEY`. Crearlo desde el template:
-```bash
-cp docker/.env.docker.example .env
-```
+### 15.2 Módulo 9: Validación de Identidad y Autenticidad (`usuarios`)
+1. **Desarrolladores SENA**:
+   - **Padrón Oficial Institucional (`FichaSena`)**: Validación automática contra la lista blanca oficial de fichas administrada por el centro de formación.
+   - **Mecanismo de Excepciones (`ExcepcionFichaSena`)**: Habilitación formal y auditada de aprendices con justificación y vigencia temporal.
+   - **Pasarela Opcional**: Parámetro `SENA_API_URL` configurado para microservicios institucionales futuros.
+2. **Empresas**:
+   - **Verificación Documental Oficial Humana**: La empresa aporta soporte legal oficial (RUT / Cámara de Comercio en PDF). El Administrador audita y emite dictamen en el panel (`Empresa Verificada`), auditado en `LogAuditoria`.
 
-**Error: MySQL no conecta desde Django**
-1. Verificar que MySQL está corriendo: `systemctl status mysql`
-2. Verificar credenciales en `.env` (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)
-3. Verificar que la BD existe: `mysql -u root -p -e "SHOW DATABASES"`
-4. Si usás Docker: `docker exec teir_db mysqladmin ping`
+### 15.3 Módulo 10: Mediación y Resolución de Disputas (`disputas`)
+1. **Apertura de Disputa**: Invocable por la empresa o el desarrollador bajo contratación activa ante causales tipificadas (incumplimiento, abandono, calidad, pago). El proyecto pasa a estado `en_disputa`.
+2. **Sala de Mediación Tripartita**:
+   - Espacio colaborativo en tiempo real entre empresa, desarrollador y mediador asignado.
+   - Comunicación bidireccional vía WebSockets (Django Channels) o fallback HTTP.
+   - Auditoría confidencial: cada mensaje enviado genera una traza en `LogAuditoria` (`tabla_afectada='mensajes_disputa'`) sin exponer el contenido del texto.
+3. **Resolución Vinculante y Efectos Colaterales**:
+   - Al emitir el dictamen vinculante el mediador, el sistema ejecuta automáticamente los efectos colaterales: los avances en revisión se rechazan con el dictamen y los hitos vuelven a `pendiente` para desatascar la continuidad del proyecto.
 
-**Warning: "Falta el trigger requerido: 'trg_...'"**
-Los triggers no se crearon en la BD. Ejecutar:
-```bash
-mysql -u root -p tem_dbv2 < database/init.sql
-```
-Verificar: `mysql -u root -p -e "SHOW TRIGGERS" tem_dbv2`
+### 15.4 Tiempo Real, Reportes y Observabilidad
+1. **Server-Sent Events (SSE)**: Endpoint `/notificaciones/stream/` con streaming reactivo de notificaciones hacia el navbar del usuario en tiempo real.
+2. **WebSockets con Channels y Redis**: Manejo de concurrencia y salas en `/ws/chat/<sala>/` y `/ws/disputas/<id>/`.
+3. **Reportes Administrativos CSV**: Generación y descarga bajo demanda de reportes en streaming de proyectos (`/logs/reporte/proyectos/`), aprendices (`/logs/reporte/aprendices/`) y empresas (`/logs/reporte/empresas/`).
+4. **Visor de Logs Técnicos**: Endpoint `/logs/tecnico/` protegido para administradores que realiza lectura acotada tipo tail del archivo de logging rotativo del servidor (`var/log/jobdevs.log`), registrando el acceso en `LogAuditoria`.
+5. **Tareas en Segundo Plano (Celery & Beat)**: Purga periódica de notificaciones antiguas (`cleanup_notifications`) y expiración de negociaciones vencidas.
 
-**Error: `Table 'tem_dbv2.X' doesn't exist`**
+---
+
+## 16. Troubleshooting técnico
+
+**Error: PostgreSQL no conecta desde Django**
+1. Verificar que PostgreSQL está corriendo: `systemctl status postgresql` o contenedor `docker compose ps`
+2. Verificar credenciales en `.env` (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT=5432)
+3. Verificar estado del servicio: `pg_isready -h localhost -p 5432`
+
+**Error: `Table 'X' doesn't exist`**
 Las migraciones no se aplicaron. Ejecutar:
 ```bash
 python manage.py migrate
 ```
-
-**Error: `port 3306 already in use`**
-MySQL local está usando el puerto. Para Docker, el compose mapea `3307:3306`. Conectate por el 3307 o detené MySQL local.
 
 **Error: CSRF token missing en API**
 Obtener el token de la cookie de sesión:
@@ -998,9 +1033,9 @@ Ajustar `--max-requests` y `--max-requests-jitter` en `entrypoint.sh`. Por defec
 
 ---
 
-## 16. Guía de contribución
+## 17. Guía de contribución
 
-### 16.1 Agregar una nueva app
+### 17.1 Agregar una nueva app
 
 ```bash
 python manage.py startapp nueva_app
