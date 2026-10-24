@@ -27,6 +27,7 @@ from .empresa_dashboard import (
 
 from .dev_dashboard import (
     dashboard_desarrollador,
+    detalle_desarrollador,
 )
 
 from .admin_dashboard import (
