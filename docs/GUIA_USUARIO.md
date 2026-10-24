@@ -77,12 +77,11 @@ Una vez registrada, la empresa puede completar su perfil corporativo con logo, s
 ## 3. Inicio de sesión
 
 1. Ir a la landing page (`/`)
-2. Hacer clic en **Iniciar Sesión** (o ir a `/login/`)
-3. Seleccionar el rol correcto: **Desarrollador**, **Empresa**, o **Administrador**
-4. Ingresar usuario y contraseña
-5. Clic en **Ingresar**
+2. Hacer clic en **Iniciar Sesión** (abre el modal de acceso)
+3. Ingresar correo electrónico (o nombre de usuario) y contraseña
+4. Clic en **Iniciar Sesión**
 
-**El rol seleccionado DEBE coincidir con tu rol real.** Si sos desarrollador y seleccionás "Empresa", el sistema rechaza el acceso aunque la contraseña sea correcta.
+**Autenticación y Redirección Automática por Rol:** El sistema valida tus credenciales de forma unificada e identifica automáticamente tu rol (`Desarrollador`, `Empresa` o `Administrador`), redirigiéndote de inmediato a tu panel correspondiente sin requerir selección manual de rol.
 
 **Seguridad:** Después de 5 intentos fallidos consecutivos, tu cuenta se suspende automáticamente. Contactá al administrador para reactivarla.
 
@@ -383,7 +382,7 @@ Endpoints disponibles solo para administradores:
 **Ejemplo cURL:**
 ```bash
 # Login
-curl -c cookies.txt -d "username=admin&password=...&rol_seleccionado=administrador" http://localhost/login/
+curl -c cookies.txt -d "username=admin&password=..." http://localhost/login/
 
 # Extraer CSRF
 CSRF=$(grep csrftoken cookies.txt | awk '{print $7}')
@@ -514,16 +513,16 @@ La sesión también se cierra automáticamente al cerrar el navegador.
 ## 12. Solución de problemas
 
 **No puedo iniciar sesión.**
-Verificá que estás seleccionando el rol correcto (Desarrollador, Empresa o Administrador). Si tu cuenta fue suspendida por intentos fallidos, usá la opción "Recuperar contraseña" para reactivarla.
+Verificá que tu correo/usuario y contraseña sean correctos. El sistema detecta tu rol automáticamente al autenticarte. Si tu cuenta fue suspendida por superar 5 intentos fallidos consecutivos, usá la opción "¿Olvidaste tu contraseña?" para restablecerla o contactá a administración.
 
-**Seleccioné el rol equivocado al entrar.**
-El sistema te muestra un error. Volvé atrás, seleccioná tu rol real, e intentá de nuevo. No perdés intentos por seleccionar el rol equivocado con la contraseña correcta.
+**¿Debo seleccionar mi rol al ingresar?**
+No. El inicio de sesión es unificado: el sistema reconoce tu rol registrado en la base de datos y te dirige directamente a tu dashboard.
 
 **No veo el botón de postularme a un proyecto.**
 Puede ser porque: ya te postulaste antes a ese proyecto, el proyecto ya no acepta postulaciones (estado distinto a "publicado"), o ya tenés 3 postulaciones/proyectos activos.
 
 **La empresa no revisa mi avance hace días.**
-El administrador monitorea proyectos con más de 7 días sin actividad. Contactá al admin por chat (`/mensajes/chat/<id_admin>/0/`) para que intervenga.
+El administrador monitorea proyectos con más de 15 días sin actividad. Contactá al admin por chat (`/mensajes/chat/<id_admin>/0/`) para que intervenga.
 
 **No puedo finalizar mi proyecto.**
 Verificá que TODOS los hitos estén en estado "completado". Si hay hitos pendientes, no se puede finalizar. Revisá en "Ver Avances" que no quede ninguno sin aprobar.

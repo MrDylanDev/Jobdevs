@@ -983,7 +983,7 @@ MySQL local está usando el puerto. Para Docker, el compose mapea `3307:3306`. C
 **Error: CSRF token missing en API**
 Obtener el token de la cookie de sesión:
 ```bash
-curl -c cookies.txt -d "username=admin&password=...&rol_seleccionado=administrador" http://localhost/login/
+curl -c cookies.txt -d "username=admin&password=..." http://localhost/login/
 CSRF=$(grep csrftoken cookies.txt | awk '{print $7}')
 ```
 

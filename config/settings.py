@@ -208,6 +208,51 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# ==============================================================================
+# Observabilidad: logs técnicos del servidor (SCRUM-317 / HU-A18)
+# ==============================================================================
+# Los logs rotativos viven fuera de control de versiones (var/ está en .gitignore).
+LOGS_DIR = BASE_DIR / 'var' / 'log'
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE_APP = Path(os.environ.get('DJANGO_LOG_FILE', LOGS_DIR / 'jobdevs.log'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {name} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(LOG_FILE_APP),
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'usuarios': {
+            'handlers': ['file', 'console'],
+            'level': os.environ.get('USUARIOS_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
