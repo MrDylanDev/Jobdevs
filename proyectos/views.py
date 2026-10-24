@@ -174,13 +174,17 @@ def crear_proyecto(request):
                     messages.error(request, "Formato de fecha límite inválido.")
                     return redirect('dashboard_empresa')
 
+            prioridad = request.POST.get('prioridad', 'media')
+            if prioridad not in dict(Proyecto.PRIORIDAD):
+                prioridad = 'media'
+
             proyecto = Proyecto(
                 empresa=request.user,
                 titulo=request.POST.get('titulo'),
                 descripcion=request.POST.get('descripcion'),
                 categoria=categoria,
                 tipo_solucion=categoria.slug if categoria else tipo_solucion,
-                prioridad=request.POST.get('prioridad', 'media'),
+                prioridad=prioridad,
                 vacantes=vacantes,
                 fecha_limite=fecha_limite,
                 estado='publicado'
