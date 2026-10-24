@@ -124,8 +124,11 @@
                           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                             <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">{{ post.desarrollador.nombre }}</h3>
                             {% if post.desarrollador.badge_info %}
-                              <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' %}badge-warning{% elif post.desarrollador.badge_info.label == 'Verificación Rechazada' %}badge-danger{% else %}badge-secondary{% endif %}" data-testid="badge-sena-postulante" style="font-size: 11px; padding: 2px 7px;">
-                                <i class="fa {% if post.desarrollador.es_verificado_sena %}fa-circle-check{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' %}fa-hourglass-half{% else %}fa-id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
+                              <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' or post.desarrollador.badge_info.label == 'En Revisión (Egresado)' %}badge-warning{% elif post.desarrollador.badge_info.label == 'Verificación Rechazada' %}badge-danger{% else %}badge-secondary{% endif %}"
+                                    data-testid="badge-sena-postulante"
+                                    style="font-size: 11px; padding: 2px 7px;"
+                                    title="{% if post.desarrollador.fecha_verificacion %}Verificado el {{ post.desarrollador.fecha_verificacion|date:'d/m/Y' }}{% else %}{{ post.desarrollador.badge_info.label }}{% endif %}">
+                                <i class="fa {% if post.desarrollador.es_verificado_sena %}fa-circle-check{% elif 'Revisión' in post.desarrollador.badge_info.label %}fa-hourglass-half{% else %}fa-id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
                               </span>
                             {% endif %}
                           </div>
