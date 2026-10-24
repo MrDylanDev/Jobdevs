@@ -90,6 +90,12 @@ class ContratoDigital(models.Model):
     firmado_desarrollador = models.BooleanField(default=False)
     fecha_firma_desarrollador = models.DateTimeField(null=True, blank=True)
     hash_contrato = models.CharField(max_length=64, blank=True, null=True, unique=True)
+    hash_documento = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="SHA-256 del contenido contractual inmutable congelado en la primera firma.",
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
@@ -113,6 +119,21 @@ class ContratoDigital(models.Model):
             self.clausulas,
             self.fecha_firma_empresa.isoformat() if self.fecha_firma_empresa else '',
             self.fecha_firma_desarrollador.isoformat() if self.fecha_firma_desarrollador else '',
+        ]
+        return hashlib.sha256('|'.join(partes).encode('utf-8')).hexdigest()
+
+    def calcular_hash_documento(self) -> str:
+        """Hash determinista del contenido contractual, sin timestamps de firma."""
+        postulacion = self.postulacion
+        partes = [
+            str(postulacion.pk),
+            str(postulacion.proyecto_id),
+            str(postulacion.proyecto.empresa_id),
+            str(postulacion.desarrollador_id),
+            f"{Decimal(str(self.monto)):.2f}" if self.monto is not None else '',
+            self.moneda or '',
+            self.forma_pago or '',
+            self.clausulas or '',
         ]
         return hashlib.sha256('|'.join(partes).encode('utf-8')).hexdigest()
 

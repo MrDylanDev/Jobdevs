@@ -283,11 +283,14 @@ def firmar_contrato_digital(request, contrato_id):
                 contrato.firmado_desarrollador = True
                 contrato.fecha_firma_desarrollador = ahora
                 otra_parte = postulacion.proyecto.empresa
+            contrato.hash_documento = contrato.hash_documento or contrato.calcular_hash_documento()
             contrato.hash_contrato = contrato.calcular_hash()
 
             if contrato.esta_firmado:
                 activar_contratacion_formal(contrato, postulacion.proyecto.empresa)
                 mensaje = "Contrato firmado por ambas partes. ¡La contratación quedó formalizada!"
+                valor_anterior = contrato.hash_documento
+                valor_nuevo = contrato.hash_contrato
             else:
                 contrato.estado = 'pendiente_firma'
                 Notificacion.objects.create(
@@ -299,13 +302,18 @@ def firmar_contrato_digital(request, contrato_id):
                         f"'{postulacion.proyecto.titulo}'. El contrato espera tu firma."
                     ),
                 )
-                LogAuditoria.objects.create(
-                    usuario=request.user,
-                    accion=f"Firmó el contrato digital #{contrato.id} ({rol_contrato})",
-                    tabla_afectada='contratos_digitales',
-                    registro_id=contrato.id,
-                )
                 mensaje = "Has firmado el contrato. Queda pendiente la firma de la otra parte."
+                valor_anterior = None
+                valor_nuevo = contrato.hash_documento
+
+            LogAuditoria.objects.create(
+                usuario=request.user,
+                accion=f"Firmó el contrato digital #{contrato.id} ({rol_contrato})",
+                tabla_afectada='contratos_digitales',
+                registro_id=contrato.id,
+                valor_anterior=valor_anterior,
+                valor_nuevo=valor_nuevo,
+            )
 
             contrato.save()
     except ValidationError as ve:

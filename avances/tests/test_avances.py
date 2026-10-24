@@ -545,3 +545,184 @@ class TestRevisarAvance:
 
 
 
+
+
+class TestGuardasHitosIndividuales:
+    """SCRUM-309 (HU-E13): guardas de avance para hitos individuales y de equipo."""
+
+    @pytest.fixture
+    def escenario_individual(self, empresa_user, desarrollador_user):
+        otro_dev = User.objects.create_user(
+            username='dev_otro', email='dev_otro@test.jobdevs',
+            nombre='Dev Otro', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Hito Individual',
+            descripcion='D', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=otro_dev,
+            empresa=empresa_user, estado='activa',
+        )
+        hito_asignado = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito individual',
+            descripcion='Solo asignado', estado='pendiente',
+            desarrollador=desarrollador_user,
+        )
+        hito_general = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito general',
+            descripcion='General', estado='pendiente',
+        )
+        return proyecto, hito_asignado, hito_general, otro_dev
+
+    def test_dev_asignado_registra_avance_en_su_hito(
+        self, dev_client, escenario_individual
+    ):
+        """El desarrollador asignado puede registrar el avance de su hito individual."""
+        proyecto, hito_asignado, _, _ = escenario_individual
+
+        response = dev_client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': hito_asignado.id,
+                'descripcion': 'Avance del hito individual',
+                'archivo_url': 'https://github.com/mrdylan/jobdevs/pull/9',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert Avance.objects.filter(
+            proyecto=proyecto, entregable=hito_asignado
+        ).exists()
+
+    def test_otro_dev_contratado_no_puede_avanzar_hito_asignado(
+        self, empresa_user, escenario_individual
+    ):
+        """Un dev contratado distinto del asignado es rechazado al enviar avance."""
+        from django.test import Client
+        proyecto, hito_asignado, _, otro_dev = escenario_individual
+        client = Client()
+        client.login(username='dev_otro', password='TestPass123!')
+
+        response = client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': hito_asignado.id,
+                'descripcion': 'Intento de avance ajeno',
+                'archivo_url': 'https://github.com/mrdylan/jobdevs/pull/10',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert not Avance.objects.filter(
+            proyecto=proyecto, entregable=hito_asignado
+        ).exists()
+        assert 'asignado a otro desarrollador' in response.content.decode('utf-8')
+
+    def test_otro_dev_no_ve_hito_individual_ajeno_en_listado(
+        self, empresa_user
+    ):
+        """El listado de hitos pendientes no expone hitos individuales de otro dev."""
+        from django.test import Client
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Listado Individual',
+            descripcion='D', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        dev_duenio = User.objects.create_user(
+            username='dev_duenio', email='dev_duenio@test.jobdevs',
+            nombre='Dev Duenio', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        dev_ajeno = User.objects.create_user(
+            username='dev_ajeno', email='dev_ajeno@test.jobdevs',
+            nombre='Dev Ajeno', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        for dev in (dev_duenio, dev_ajeno):
+            Contratacion.objects.create(
+                proyecto=proyecto, desarrollador=dev,
+                empresa=empresa_user, estado='activa',
+            )
+        Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito privado de duenio',
+            descripcion='D', estado='pendiente', desarrollador=dev_duenio,
+        )
+        client = Client()
+        client.login(username='dev_ajeno', password='TestPass123!')
+
+        response = client.get(reverse('registrar_avance', args=[proyecto.id]), follow=True)
+
+        assert response.status_code == 200
+        assert 'Hito privado de duenio' not in response.content.decode('utf-8')
+
+    def test_hito_general_sigue_disponible_para_dev_no_asignado(
+        self, empresa_user, escenario_individual
+    ):
+        """Los hitos generales (sin dev ni equipo) siguen abiertos a todo contratado."""
+        from django.test import Client
+        proyecto, _, hito_general, _ = escenario_individual
+        client = Client()
+        client.login(username='dev_otro', password='TestPass123!')
+
+        response = client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': hito_general.id,
+                'descripcion': 'Avance sobre hito general',
+                'archivo_url': 'https://github.com/mrdylan/jobdevs/pull/11',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert Avance.objects.filter(
+            proyecto=proyecto, entregable=hito_general
+        ).exists()
+
+    def test_dev_no_miembro_no_puede_avanzar_hito_de_equipo(
+        self, empresa_user, escenario_individual
+    ):
+        """Un dev que no pertenece al equipo del hito es rechazado al enviar avance."""
+        from django.test import Client
+        from proyectos.models import Equipo
+        proyecto, _, hito_general, otro_dev = escenario_individual
+        dev_miembro = User.objects.create_user(
+            username='dev_miembro', email='dev_miembro@test.jobdevs',
+            nombre='Dev Miembro', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=dev_miembro,
+            empresa=empresa_user, estado='activa',
+        )
+        equipo = Equipo.objects.create(nombre='Equipo X', proyecto=proyecto)
+        equipo.miembros.set([dev_miembro])
+        hito_equipo = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito de equipo',
+            descripcion='Equipo X', estado='pendiente', equipo=equipo,
+        )
+        client = Client()
+        client.login(username='dev_otro', password='TestPass123!')
+
+        response = client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': hito_equipo.id,
+                'descripcion': 'Intento fuera del equipo',
+                'archivo_url': 'https://github.com/mrdylan/jobdevs/pull/12',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert not Avance.objects.filter(
+            proyecto=proyecto, entregable=hito_equipo
+        ).exists()
+        assert 'No eres miembro del equipo' in response.content.decode('utf-8')

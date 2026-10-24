@@ -88,7 +88,11 @@ def dashboard_desarrollador(request):
     if proyectos_ids:
         hitos_todos = Entregable.objects.filter(
             Q(proyecto_id__in=proyectos_ids) & 
-            (Q(equipo__miembros=request.user) | Q(equipo__isnull=True))
+            (
+                Q(desarrollador=request.user) |
+                Q(desarrollador__isnull=True, equipo__miembros=request.user) |
+                Q(desarrollador__isnull=True, equipo__isnull=True)
+            )
         ).distinct().values('proyecto_id', 'titulo', 'estado', 'descripcion')
 
         hitos_por_proyecto = {}
