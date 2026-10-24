@@ -1124,6 +1124,94 @@
           <p style="margin:0;">No hay fichas registradas aún en la lista blanca.</p>
           {% endif %}
         </div>
+
+        <!-- SCRUM-225 (RF 9.1.2): excepciones individuales justificadas -->
+        <div class="card" style="margin-top:24px;">
+          <h3 class="h5 mb-3">
+            <i class="fa fa-shield-halved me-1 text-primary"></i> Excepciones Autorizadas de Ficha
+            <span class="badge bg-secondary">{{ total_excepciones_fichas_sena }}</span>
+          </h3>
+          <p class="project-card-sub" style="margin-bottom:16px;">
+            Autoriza de forma individual y auditada la verificación automática de un aprendiz
+            cuya ficha aún no está en el padrón oficial. Las excepciones vencidas o revocadas
+            no habilitan la verificación.
+          </p>
+          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;" data-testid="form-nueva-excepcion-sena">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" style="font-weight:600;">Desarrollador *</label>
+              <select name="desarrollador_id" required class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+                <option value="">Selecciona un desarrollador</option>
+                {% for perfil_id, nombre, username in desarrolladores_para_excepcion %}
+                <option value="{{ perfil_id }}">{{ nombre|default:username }} ({{ username }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-numero-ficha-excepcion">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Justificación *</label>
+              <input type="text" name="justificacion" required placeholder="Motivo avalado por coordinación" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;">Días de vigencia</label>
+              <input type="number" name="dias_vigencia" min="1" placeholder="Sin vencimiento" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-dias-vigencia-excepcion">
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-crear-excepcion-sena">
+                <i class="fa fa-plus me-1"></i> Autorizar excepción
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:24px;">
+          <h3 class="h5 mb-3"><i class="fa fa-list me-1 text-secondary"></i> Catálogo de Excepciones</h3>
+          {% if excepciones_fichas_sena %}
+          <table style="width:100%;" data-testid="tabla-excepciones-sena">
+            <thead>
+              <tr><th>Ficha</th><th>Desarrollador</th><th>Justificación</th><th>Expiración</th><th>Estado</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+              {% for e in excepciones_fichas_sena %}
+              <tr>
+                <td><strong>{{ e.numero_ficha }}</strong></td>
+                <td>
+                  <small>{{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username }}<br>{{ e.desarrollador.usuario.username }}</small>
+                </td>
+                <td><small>{{ e.justificacion }}</small></td>
+                <td>
+                  <small>{% if e.fecha_expiracion %}{{ e.fecha_expiracion|date:"d/m/Y H:i" }}{% else %}Sin vencimiento{% endif %}</small>
+                </td>
+                <td>
+                  {% if e.esta_vigente %}
+                  <span class="badge bg-success">Vigente</span>
+                  {% elif e.activa %}
+                  <span class="badge bg-warning">Expirada</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Revocada</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if e.activa %}
+                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning" data-testid="btn-revocar-excepcion-sena">Revocar</button>
+                  </form>
+                  {% else %}
+                  <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="margin:0;" data-testid="tabla-excepciones-sena-vacia">No hay excepciones autorizadas aún.</p>
+          {% endif %}
+        </div>
       </section>
 
       <!-- Reportes -->
