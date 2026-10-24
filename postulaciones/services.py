@@ -14,6 +14,7 @@ al servicio y traducir la excepción en un mensaje para el usuario.
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from contrataciones.models import Contratacion
 from logs.models import LogAuditoria
@@ -137,3 +138,98 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
         )
 
     return contratacion
+
+
+def expirar_negociacion(postulacion_id):
+    """Expira una postulación en negociación vencida y libera el cupo (RF 8.1.2 / SCRUM-217).
+
+    - Bloquea la fila de la postulación dentro de una transacción.
+    - Cambia postulacion.estado = 'rechazada'.
+    - Si existe ContratoDigital asociado, cambia estado = 'expirado'.
+    - Notifica a ambas partes (empresa y desarrollador).
+    - Registra auditoría en LogAuditoria.
+    """
+    with transaction.atomic():
+        try:
+            postulacion = (
+                Postulacion.objects.select_for_update()
+                .select_related('proyecto', 'desarrollador', 'proyecto__empresa')
+                .get(id=postulacion_id)
+            )
+        except Postulacion.DoesNotExist:
+            return False
+
+        if postulacion.estado != 'en_negociacion':
+            return False
+
+        from contrataciones.models import ContratoDigital
+        try:
+            contrato = ContratoDigital.objects.select_for_update().get(postulacion_id=postulacion.id)
+            if contrato.estado == 'firmado':
+                # Ya fue firmado concurrentemente por ambas partes
+                return False
+            if contrato.estado in ('borrador', 'pendiente_firma'):
+                contrato.estado = 'expirado'
+                contrato.save(update_fields=['estado', 'fecha_actualizacion'])
+        except ContratoDigital.DoesNotExist:
+            pass
+
+        postulacion.estado = 'rechazada'
+        postulacion.save(update_fields=['estado'])
+
+        # Notificar al desarrollador
+        Notificacion.objects.create(
+            usuario=postulacion.desarrollador,
+            proyecto=postulacion.proyecto,
+            tipo='alerta',
+            mensaje=(
+                f"El plazo para formalizar la negociación del proyecto "
+                f"'{postulacion.proyecto.titulo}' ha expirado."
+            ),
+        )
+
+        # Notificar a la empresa
+        if postulacion.proyecto.empresa:
+            Notificacion.objects.create(
+                usuario=postulacion.proyecto.empresa,
+                proyecto=postulacion.proyecto,
+                tipo='alerta',
+                mensaje=(
+                    f"La negociación con {postulacion.desarrollador.nombre or postulacion.desarrollador.username} "
+                    f"para el proyecto '{postulacion.proyecto.titulo}' ha expirado por superar el límite de tiempo."
+                ),
+            )
+
+        LogAuditoria.objects.create(
+            usuario=postulacion.proyecto.empresa,
+            accion=(
+                f"Expiró negociación de {postulacion.desarrollador.username} "
+                f"en {postulacion.proyecto.titulo} por límite de tiempo"
+            )[:300],
+            tabla_afectada='postulaciones',
+            registro_id=postulacion.id,
+        )
+
+        return True
+
+
+def expirar_negociaciones_vencidas(referencia_tiempo=None):
+    """Busca todas las postulaciones en negociación cuya fecha límite haya vencido y las expira.
+
+    Retorna la cantidad de negociaciones expiradas.
+    """
+    ahora = referencia_tiempo or timezone.now()
+    vencidas_ids = list(
+        Postulacion.objects.filter(
+            estado='en_negociacion',
+            fecha_limite_negociacion__isnull=False,
+            fecha_limite_negociacion__lt=ahora,
+        ).values_list('id', flat=True)
+    )
+
+    expiradas = 0
+    for p_id in vencidas_ids:
+        if expirar_negociacion(p_id):
+            expiradas += 1
+
+    return expiradas
