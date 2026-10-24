@@ -26,7 +26,8 @@ def lista_disputas_view(request):
         return redirect(f"{reverse('dashboard_empresa')}?section=disputas")
     if user.rol == 'desarrollador':
         return redirect(f"{reverse('dashboard_desarrollador')}?section=disputas")
-    return render(request, 'disputas/lista_disputas.html', datos_dashboard_disputas(user))
+    estado = request.GET.get('estado')
+    return render(request, 'disputas/lista_disputas.html', datos_dashboard_disputas(user, estado=estado))
 
 
 @login_required

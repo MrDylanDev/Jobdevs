@@ -207,3 +207,117 @@ class TestDashboardAdminDisputas:
         resp = client.get(reverse('dashboard_admin'))
         assert resp.status_code == 200
         assert resp.context['total_disputas_activas'] == 0
+
+
+class TestDatosDashboardDisputasFiltro:
+    """SCRUM-232 (RF 10.1.2): filtro fino y conteos por estado."""
+
+    def _datos(self, usuario, estado=None):
+        from disputas.services import datos_dashboard_disputas
+        return datos_dashboard_disputas(usuario, estado=estado)
+
+    def test_conteos_por_estado_admin(self, escenario):
+        datos = self._datos(escenario['admin'])
+        assert datos['disputas_por_estado'] == {
+            'abierta': 1, 'en_mediacion': 1, 'resuelta': 1, 'cancelada': 1,
+        }
+        assert datos['total_disputas'] == 4
+
+    def test_conteos_por_estado_empresa(self, escenario):
+        datos = self._datos(escenario['empresa1'])
+        assert datos['disputas_por_estado'] == {
+            'abierta': 1, 'en_mediacion': 1, 'resuelta': 0, 'cancelada': 0,
+        }
+        assert datos['total_disputas'] == 2
+
+    def test_conteos_por_estado_desarrollador(self, escenario):
+        datos = self._datos(escenario['dev2'])
+        assert datos['disputas_por_estado'] == {
+            'abierta': 0, 'en_mediacion': 0, 'resuelta': 1, 'cancelada': 1,
+        }
+        assert datos['total_disputas'] == 2
+
+    @pytest.mark.parametrize('estado', ['abierta', 'en_mediacion', 'resuelta', 'cancelada'])
+    def test_filtro_por_estado_admin(self, escenario, estado):
+        datos = self._datos(escenario['admin'], estado=estado)
+        esperada = {'abierta': escenario['abierta'], 'en_mediacion': escenario['mediacion'],
+                    'resuelta': escenario['resuelta'], 'cancelada': escenario['cancelada']}[estado]
+        assert datos['filtro_estado_actual'] == estado
+        assert _ids(datos['disputas_filtradas']) == {esperada.pk}
+
+    def test_filtro_por_estado_empresa(self, escenario):
+        datos = self._datos(escenario['empresa1'], estado='en_mediacion')
+        assert _ids(datos['disputas_filtradas']) == {escenario['mediacion'].pk}
+
+    def test_filtro_por_estado_dev(self, escenario):
+        datos = self._datos(escenario['dev2'], estado='cancelada')
+        assert _ids(datos['disputas_filtradas']) == {escenario['cancelada'].pk}
+
+    def test_estado_invalido_no_filtra(self, escenario):
+        datos = self._datos(escenario['admin'], estado='inexistente')
+        assert datos['filtro_estado_actual'] == ''
+        assert len(datos['disputas_filtradas']) == 4
+
+    def test_sin_estado_devuelve_todas(self, escenario):
+        datos = self._datos(escenario['admin'])
+        assert datos['filtro_estado_actual'] == ''
+        fechas = [d.fecha_creacion for d in datos['disputas_filtradas']]
+        assert len(fechas) == 4
+        assert fechas == sorted(fechas, reverse=True)
+
+    def test_claves_preexistentes_intactas(self, escenario):
+        datos = self._datos(escenario['empresa1'], estado='abierta')
+        assert _ids(datos['disputas_activas']) == {
+            escenario['abierta'].pk, escenario['mediacion'].pk}
+        assert _ids(datos['disputas_resueltas']) == set()
+        assert 'proyectos_disputables' in datos
+
+
+class TestFiltroEstadoEnVistas:
+    """SCRUM-232: la vista acepta ?estado= y renderiza la barra de filtros."""
+
+    def test_lista_disputas_admin_acepta_estado(self, client, escenario):
+        _login(client, escenario['admin'])
+        resp = client.get(reverse('disputas:lista_disputas'), {'estado': 'en_mediacion'})
+        assert resp.status_code == 200
+        assert resp.context['filtro_estado_actual'] == 'en_mediacion'
+        assert _ids(resp.context['disputas_filtradas']) == {escenario['mediacion'].pk}
+        html = resp.content.decode()
+        assert 'data-testid="filtro-disputas"' in html
+        assert 'En mediación (1)' in html
+
+    def test_lista_disputas_renderiza_todos_los_conteos(self, client, escenario):
+        _login(client, escenario['admin'])
+        html = client.get(reverse('disputas:lista_disputas')).content.decode()
+        assert 'data-testid="filtro-disputas"' in html
+        assert 'Abiertas (1)' in html
+        assert 'Resueltas (1)' in html
+        assert 'Canceladas (1)' in html
+        assert 'Todos (4)' in html
+
+    def test_dashboard_empresa_acepta_estado(self, client, escenario):
+        _login(client, escenario['empresa1'])
+        resp = client.get(reverse('dashboard_empresa'), {
+            'section': 'disputas', 'estado': 'abierta'})
+        assert resp.status_code == 200
+        assert resp.context['filtro_estado_actual'] == 'abierta'
+        assert _ids(resp.context['disputas_filtradas']) == {escenario['abierta'].pk}
+        html = resp.content.decode()
+        assert 'data-testid="filtro-disputas"' in html
+        assert 'section=disputas&amp;estado=abierta' in html
+
+    def test_dashboard_dev_acepta_estado(self, client, escenario):
+        _login(client, escenario['dev2'])
+        resp = client.get(reverse('dashboard_desarrollador'), {
+            'section': 'disputas', 'estado': 'resuelta'})
+        assert resp.status_code == 200
+        assert resp.context['filtro_estado_actual'] == 'resuelta'
+        assert _ids(resp.context['disputas_filtradas']) == {escenario['resuelta'].pk}
+
+    def test_dashboard_admin_incluye_conteos(self, client, escenario):
+        _login(client, escenario['admin'])
+        resp = client.get(reverse('dashboard_admin'))
+        assert resp.status_code == 200
+        assert resp.context['disputas_por_estado'] == {
+            'abierta': 1, 'en_mediacion': 1, 'resuelta': 1, 'cancelada': 1,
+        }

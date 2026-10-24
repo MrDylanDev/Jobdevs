@@ -27,6 +27,25 @@ def dashboard_desarrollador(request):
         desarrollador=request.user
     ).select_related('proyecto', 'proyecto__empresa', 'proyecto__empresa__perfil_empresa', 'contrato_digital')
     mis_proyectos_activos_q = Contratacion.objects.filter(desarrollador=request.user, estado='activa').select_related('proyecto', 'empresa', 'empresa__perfil_empresa')
+
+    # SCRUM-227 (RF 1.2.3): separación vigentes vs historial (contexto aditivo)
+    postulaciones_vigentes = mis_postulaciones.filter(
+        estado__in=['pendiente', 'en_negociacion', 'aceptada']
+    ).order_by('-fecha')
+    postulaciones_historial = mis_postulaciones.filter(
+        estado='rechazada'
+    ).order_by('-fecha')
+
+    contratos_vigentes = Contratacion.objects.filter(
+        desarrollador=request.user, estado__in=['activa', 'en_disputa']
+    ).select_related('proyecto', 'empresa', 'empresa__perfil_empresa').order_by('-fecha_inicio')
+
+    contratos_historial = Contratacion.objects.filter(
+        Q(desarrollador=request.user) & (
+            Q(estado__in=['finalizada', 'cancelada']) |
+            Q(proyecto__estado__in=['finalizado', 'inactivo', 'rechazado'])
+        )
+    ).select_related('proyecto', 'empresa', 'empresa__perfil_empresa').order_by('-fecha_inicio').distinct()
     
     mis_proyectos_finalizados = Contratacion.objects.filter(
         Q(desarrollador=request.user) & 
@@ -149,13 +168,19 @@ def dashboard_desarrollador(request):
         'conversaciones_chat': conversaciones_chat,
         'mis_proyectos_finalizados': mis_proyectos_finalizados,
         'mis_postulaciones': mis_postulaciones,
+        'postulaciones_vigentes': postulaciones_vigentes,
+        'postulaciones_historial': postulaciones_historial,
+        'postulaciones_vigentes_count': postulaciones_vigentes.count(),
+        'postulaciones_historial_count': postulaciones_historial.count(),
+        'contratos_vigentes': contratos_vigentes,
+        'contratos_historial': contratos_historial,
         'mis_contratos_digitales': mis_contratos_digitales,
         'contratos_pendientes_firma_count': contratos_pendientes_firma_count,
         'favoritos': mis_favoritos,
         'perfil': perfil,
         'admin_id': admin_id
     }
-    context.update(datos_dashboard_disputas(request.user))
+    context.update(datos_dashboard_disputas(request.user, estado=request.GET.get('estado')))
     context['disputas_activas_count'] = len(context['disputas_activas'])
     return render(request, 'Desarrollador/Desarrollador.html', context)
 
