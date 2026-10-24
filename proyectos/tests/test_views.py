@@ -223,6 +223,36 @@ class TestCrearProyecto:
         content = response.content.decode('utf-8')
         assert 'Las vacantes deben ser un número mayor o igual a 1' in content
 
+    def test_crear_proyecto_con_prioridades(self, auth_client, empresa_user):
+        """SCRUM-312: La empresa puede seleccionar la prioridad (alta, media, baja)."""
+        auth_client.post(reverse('crear_proyecto'), {
+            'titulo': 'Proyecto Urgente',
+            'descripcion': 'Test prioridad alta',
+            'tipo_solucion': 'sitio_web',
+            'prioridad': 'alta',
+        })
+        p_alta = Proyecto.objects.get(titulo='Proyecto Urgente')
+        assert p_alta.prioridad == 'alta'
+
+        auth_client.post(reverse('crear_proyecto'), {
+            'titulo': 'Proyecto Calmo',
+            'descripcion': 'Test prioridad baja',
+            'tipo_solucion': 'sitio_web',
+            'prioridad': 'baja',
+        })
+        p_baja = Proyecto.objects.get(titulo='Proyecto Calmo')
+        assert p_baja.prioridad == 'baja'
+
+    def test_modal_crear_proyecto_contiene_selector_prioridad(self, auth_client, empresa_user):
+        """SCRUM-312: El modal de nueva oferta en el dashboard de empresa incluye selector de prioridad."""
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert 'name="prioridad"' in content
+        assert 'value="alta"' in content
+        assert 'value="media"' in content
+        assert 'value="baja"' in content
+
 
 class TestEditarProyecto:
     """Tests for editar_proyecto view (SCRUM-103 / RF 2.2.2)."""
