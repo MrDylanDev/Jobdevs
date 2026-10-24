@@ -267,3 +267,32 @@ def iniciar_negociacion(request, postulacion_id):
 
     messages.success(request, "Negociación iniciada. Define los términos del contrato digital.")
     return redirect('sala_chat', receptor_id=postulacion.desarrollador_id, proyecto_id=postulacion.proyecto_id)
+
+
+@login_required
+@require_POST
+def rechazar_postulacion(request, postulacion_id):
+    """La empresa rechaza formalmente una postulación recibida (SCRUM-310)."""
+    if request.user.rol != 'empresa':
+        messages.error(request, "Acceso denegado. Solo las empresas pueden rechazar postulaciones.")
+        return redirect('inicio')
+
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id, proyecto__empresa=request.user)
+    proyecto_id = postulacion.proyecto_id
+    motivo = request.POST.get('motivo', '')
+
+    try:
+        services.rechazar_postulacion(postulacion_id, request.user, motivo=motivo)
+        messages.success(
+            request,
+            f"La postulación de {postulacion.desarrollador.nombre or postulacion.desarrollador.username} ha sido rechazada."
+        )
+    except PermissionDenied as exc:
+        messages.error(request, str(exc))
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc))
+    except Exception as e:
+        messages.error(request, f"Error al procesar: {str(e)}")
+
+    return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
+

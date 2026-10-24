@@ -48,3 +48,13 @@ def puede_aceptar_postulacion(usuario, postulacion):
         postulacion.estado == 'pendiente'
         and proyecto.estado in ESTADOS_PROYECTO_ACEPTABLES
     )
+
+
+def puede_rechazar_postulacion(usuario, postulacion):
+    """True si el usuario es la empresa dueña del proyecto y la postulación está en pendiente o en negociación."""
+    if not usuario or getattr(usuario, 'rol', None) != 'empresa':
+        return False
+    if postulacion.proyecto.empresa_id != usuario.id:
+        return False
+    return postulacion.estado in ('pendiente', 'en_negociacion')
+

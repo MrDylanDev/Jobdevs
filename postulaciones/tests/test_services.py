@@ -138,3 +138,40 @@ class TestAceptarPostulacionServicio:
 
         postulacion.refresh_from_db()
         assert postulacion.estado == 'pendiente'
+
+
+class TestRechazarPostulacion:
+    """Pruebas del servicio rechazar_postulacion (SCRUM-310)."""
+
+    def test_empresa_puede_rechazar_postulacion_pendiente(self, empresa_user, desarrollador_user, postulacion):
+        from postulaciones.services import rechazar_postulacion
+        res = rechazar_postulacion(postulacion.id, empresa_user)
+        assert res is True
+        postulacion.refresh_from_db()
+        assert postulacion.estado == 'rechazada'
+        assert Notificacion.objects.filter(
+            usuario=desarrollador_user, tipo='alerta', mensaje__contains='no ha sido seleccionada'
+        ).exists()
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='postulaciones', registro_id=postulacion.id, accion__contains='Rechazó postulación'
+        ).exists()
+
+    def test_rechazar_postulacion_en_negociacion_cancela_contrato(self, empresa_user, desarrollador_user, postulacion):
+        from postulaciones.services import rechazar_postulacion
+        from contrataciones.models import ContratoDigital
+        postulacion.estado = 'en_negociacion'
+        postulacion.save()
+        contrato = ContratoDigital.objects.create(postulacion=postulacion, estado='pendiente_firma')
+
+        rechazar_postulacion(postulacion.id, empresa_user)
+        postulacion.refresh_from_db()
+        contrato.refresh_from_db()
+        assert postulacion.estado == 'rechazada'
+        assert contrato.estado == 'rechazado'
+
+    def test_rechazar_postulacion_otra_empresa_lanza_permission_denied(self, otra_empresa, postulacion):
+        from postulaciones.services import rechazar_postulacion
+        with pytest.raises(PermissionDenied):
+            rechazar_postulacion(postulacion.id, otra_empresa)
+        postulacion.refresh_from_db()
+        assert postulacion.estado == 'pendiente'
