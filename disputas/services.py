@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from contrataciones.models import Contratacion
@@ -14,6 +14,8 @@ from .models import Disputa
 ESTADOS_DISPUTABLES = ('en_desarrollo', 'en_revision')
 ESTADOS_ACTIVOS = ('abierta', 'en_mediacion')
 LONGITUD_MINIMA_MOTIVO = 80
+# SCRUM-232 (RF 10.1.2): estados válidos para el filtro fino del centro de disputas.
+ESTADOS_VALIDOS = tuple(valor for valor, _ in Disputa.ESTADO)
 
 
 def abrir_disputa(
@@ -276,11 +278,15 @@ def resolver_disputa(disputa, admin_user, resolucion, dictamen):
     return disputa
 
 
-def datos_dashboard_disputas(usuario):
+def datos_dashboard_disputas(usuario, estado=None):
     """Datos de la pestaña/lista de disputas para un usuario según su rol.
 
     Devuelve disputas activas, historial y los proyectos sobre los que el
     usuario puede abrir una disputa (solo empresa y desarrollador).
+
+    SCRUM-232 (RF 10.1.2): agrega de forma aditiva el filtro fino por estado
+    (``estado``), el mapa de conteos ``disputas_por_estado`` y la lista
+    ``disputas_filtradas`` sin alterar las claves preexistentes.
     """
     qs = Disputa.objects.select_related(
         'proyecto__empresa', 'contratacion__desarrollador', 'iniciado_por', 'mediador',
@@ -306,8 +312,23 @@ def datos_dashboard_disputas(usuario):
     resueltas = qs.filter(estado__in=('resuelta', 'cancelada')).order_by(
         '-fecha_resolucion', '-fecha_creacion',
     )
+
+    disputas_por_estado = {clave: 0 for clave in ESTADOS_VALIDOS}
+    for fila in qs.values('estado').annotate(total=Count('id')):
+        disputas_por_estado[fila['estado']] = fila['total']
+
+    filtro_estado_actual = estado if estado in ESTADOS_VALIDOS else ''
+    if filtro_estado_actual:
+        disputas_filtradas = qs.filter(estado=filtro_estado_actual).order_by('-fecha_creacion')
+    else:
+        disputas_filtradas = qs.all().order_by('-fecha_creacion')
+
     return {
         'disputas_activas': activas,
         'disputas_resueltas': resueltas,
         'proyectos_disputables': proyectos.distinct().order_by('-fecha_publicacion', '-id'),
+        'disputas_filtradas': disputas_filtradas,
+        'disputas_por_estado': disputas_por_estado,
+        'filtro_estado_actual': filtro_estado_actual,
+        'total_disputas': sum(disputas_por_estado.values()),
     }

@@ -307,7 +307,11 @@
             <div class="page-subtitle">Seguimiento de solicitudes enviadas</div>
           </div>
         </div>
-        <div class="table-wrapper">
+        <div data-testid="postulaciones-vigentes" style="margin-bottom:24px;">
+          <div class="label-section" style="margin-bottom:10px;">
+            <i class="fa fa-file-circle-check" style="margin-right:6px;"></i>Postulaciones vigentes ({{ postulaciones_vigentes_count }})
+          </div>
+          <div class="table-wrapper">
           <table class="data-table">
             <thead>
               <tr>
@@ -318,7 +322,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for post in mis_postulaciones %}
+              {% for post in postulaciones_vigentes %}
                 <tr>
                   <td>
                     <strong>{{ post.proyecto.titulo }}</strong>
@@ -345,11 +349,47 @@
                 </tr>
               {% empty %}
                 <tr><td colspan="4">
-                  <div class="empty-state"><i class="fa fa-file-circle-xmark"></i><p>Aún no te has postulado a ningún proyecto</p></div>
+                  <div class="empty-state"><i class="fa fa-file-circle-xmark"></i><p>No tienes postulaciones vigentes</p></div>
                 </td></tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
+        </div>
+
+        <div data-testid="postulaciones-historial">
+          <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
+            <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
+              <i class="fa fa-clock-rotate-left" style="margin-right:6px;"></i>Historial de postulaciones rechazadas ({{ postulaciones_historial_count }})
+            </summary>
+            <div class="table-wrapper" style="margin-top:14px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Proyecto</th>
+                    <th>Fecha Envío</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for post in postulaciones_historial %}
+                    <tr>
+                      <td>
+                        <strong>{{ post.proyecto.titulo }}</strong>
+                        <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
+                      </td>
+                      <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
+                      <td><span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span></td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="3">
+                      <div class="empty-state"><i class="fa fa-clock-rotate-left"></i><p>Sin postulaciones rechazadas en tu historial</p></div>
+                    </td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -486,6 +526,40 @@
           {% empty %}
             <div class="empty-state"><i class="fa fa-trophy"></i><p>Aún no has finalizado proyectos</p></div>
           {% endfor %}
+
+          <div data-testid="contratos-historial">
+            <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
+              <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
+                <i class="fa fa-circle-xmark" style="margin-right:6px;"></i>Contratos finalizados y cancelados
+              </summary>
+              <div class="table-wrapper" style="margin-top:14px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Proyecto</th>
+                      <th>Empresa</th>
+                      <th>Inicio</th>
+                      <th>Estado del contrato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for contrato in contratos_historial %}
+                      <tr>
+                        <td><strong>{{ contrato.proyecto.titulo }}</strong></td>
+                        <td style="color:var(--text-secondary)">{{ contrato.empresa.nombre|default:contrato.empresa.username }}</td>
+                        <td style="color:var(--text-secondary)">{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td><span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span></td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="4">
+                        <div class="empty-state"><i class="fa fa-circle-check"></i><p>Sin contratos finalizados ni cancelados</p></div>
+                      </td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 

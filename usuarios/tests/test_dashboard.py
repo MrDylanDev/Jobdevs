@@ -227,3 +227,224 @@ def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarroll
     assert '$ 3.500.000 COP' in content
 
 
+def _crear_proyecto(empresa, titulo, estado='publicado'):
+    from proyectos.models import Proyecto
+    return Proyecto.objects.create(
+        empresa=empresa, titulo=titulo, descripcion='Descripcion de prueba',
+        tipo_solucion='sitio_web', estado=estado,
+    )
+
+
+def test_dev_dashboard_separa_postulaciones_vigentes_e_historial(dev_client, desarrollador_user, empresa_user, db):
+    """SCRUM-227 (RF 1.2.3): postulaciones vigentes vs historial de rechazadas."""
+    from django.urls import reverse
+    from postulaciones.models import Postulacion
+
+    proyecto_vigente = _crear_proyecto(empresa_user, 'Proyecto Postulacion Vigente')
+    proyecto_negociacion = _crear_proyecto(empresa_user, 'Proyecto Postulacion Negociacion')
+    proyecto_rechazada = _crear_proyecto(empresa_user, 'Proyecto Postulacion Rechazada')
+
+    post_vigente = Postulacion.objects.create(
+        proyecto=proyecto_vigente, desarrollador=desarrollador_user, estado='pendiente'
+    )
+    post_negociacion = Postulacion.objects.create(
+        proyecto=proyecto_negociacion, desarrollador=desarrollador_user, estado='en_negociacion'
+    )
+    post_rechazada = Postulacion.objects.create(
+        proyecto=proyecto_rechazada, desarrollador=desarrollador_user, estado='rechazada'
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+
+    vigentes_ids = {p.id for p in response.context['postulaciones_vigentes']}
+    historial_ids = {p.id for p in response.context['postulaciones_historial']}
+
+    assert post_vigente.id in vigentes_ids
+    assert post_negociacion.id in vigentes_ids
+    assert post_rechazada.id in historial_ids
+    assert post_rechazada.id not in vigentes_ids
+
+    assert response.context['postulaciones_vigentes_count'] == 2
+    assert response.context['postulaciones_historial_count'] == 1
+
+    # Claves preexistentes se mantienen (compatibilidad estricta)
+    assert 'mis_postulaciones' in response.context
+    assert 'mis_proyectos_activos_v' in response.context
+    assert 'mis_proyectos_finalizados' in response.context
+    assert post_rechazada.id in {p.id for p in response.context['mis_postulaciones']}
+
+
+def test_dev_dashboard_ui_muestra_bloques_vigente_e_historial_postulaciones(dev_client, desarrollador_user, empresa_user, db):
+    """SCRUM-227 (RF 1.2.3): la UI expone un bloque vigente y un historial de rechazadas."""
+    from django.urls import reverse
+    from postulaciones.models import Postulacion
+
+    proyecto_vigente = _crear_proyecto(empresa_user, 'Proyecto UI Vigente')
+    proyecto_rechazada = _crear_proyecto(empresa_user, 'Proyecto UI Rechazada')
+    Postulacion.objects.create(
+        proyecto=proyecto_vigente, desarrollador=desarrollador_user, estado='pendiente'
+    )
+    Postulacion.objects.create(
+        proyecto=proyecto_rechazada, desarrollador=desarrollador_user, estado='rechazada'
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    assert 'data-testid="postulaciones-vigentes"' in content
+    assert 'data-testid="postulaciones-historial"' in content
+
+    bloque_vigente = content.split('data-testid="postulaciones-vigentes"', 1)[1]
+    bloque_vigente = bloque_vigente.split('data-testid="postulaciones-historial"', 1)[0]
+    bloque_historial = content.split('data-testid="postulaciones-historial"', 1)[1]
+
+    assert 'Proyecto UI Vigente' in bloque_vigente
+    assert 'Proyecto UI Rechazada' not in bloque_vigente
+    assert 'Proyecto UI Rechazada' in bloque_historial
+
+
+def test_dev_dashboard_separa_contratos_vigentes_e_historial(dev_client, desarrollador_user, empresa_user, db):
+    """SCRUM-227 (RF 1.2.3): contratos vigentes vs historial (finalizada/cancelada)."""
+    from django.urls import reverse
+    from contrataciones.models import Contratacion
+
+    proyecto_activa = _crear_proyecto(empresa_user, 'Contrato Activa', estado='en_desarrollo')
+    proyecto_disputa = _crear_proyecto(empresa_user, 'Contrato Disputa', estado='en_disputa')
+    proyecto_finalizada = _crear_proyecto(empresa_user, 'Contrato Finalizada', estado='finalizado')
+    proyecto_cancelada = _crear_proyecto(empresa_user, 'Contrato Cancelada', estado='en_desarrollo')
+
+    contrato_activa = Contratacion.objects.create(
+        proyecto=proyecto_activa, desarrollador=desarrollador_user, empresa=empresa_user, estado='activa'
+    )
+    contrato_disputa = Contratacion.objects.create(
+        proyecto=proyecto_disputa, desarrollador=desarrollador_user, empresa=empresa_user, estado='en_disputa'
+    )
+    contrato_finalizada = Contratacion.objects.create(
+        proyecto=proyecto_finalizada, desarrollador=desarrollador_user, empresa=empresa_user, estado='finalizada'
+    )
+    contrato_cancelada = Contratacion.objects.create(
+        proyecto=proyecto_cancelada, desarrollador=desarrollador_user, empresa=empresa_user, estado='cancelada'
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+
+    vigentes_ids = {c.id for c in response.context['contratos_vigentes']}
+    historial_ids = {c.id for c in response.context['contratos_historial']}
+
+    assert contrato_activa.id in vigentes_ids
+    assert contrato_disputa.id in vigentes_ids
+    assert contrato_finalizada.id in historial_ids
+    assert contrato_cancelada.id in historial_ids
+    assert not ({contrato_finalizada.id, contrato_cancelada.id} & vigentes_ids)
+
+
+
+
+# ---------------------------------------------------------------------------
+# SCRUM-228 (RF 2.2.1): historial de proyectos de empresa por estado
+# ---------------------------------------------------------------------------
+
+def _crear_proyectos_historial(empresa_user):
+    from proyectos.models import Proyecto
+    estados = ('finalizado', 'rechazado', 'inactivo', 'en_disputa', 'publicado')
+    return {
+        estado: Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo=f'Proyecto Historial {estado}',
+            descripcion='DH',
+            tipo_solucion='sitio_web',
+            estado=estado,
+        )
+        for estado in estados
+    }
+
+
+def test_empresa_dashboard_historial_incluye_estados_inactivos(auth_client, empresa_user, db):
+    """SCRUM-228: el historial de empresa incluye finalizado, rechazado, inactivo y en_disputa."""
+    proyectos = _crear_proyectos_historial(empresa_user)
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+
+    historial_ids = {p.id for p in response.context['historial_inactivos']}
+    for estado in ('finalizado', 'rechazado', 'inactivo', 'en_disputa'):
+        assert proyectos[estado].id in historial_ids
+    assert proyectos['publicado'].id not in historial_ids
+    assert response.context['historial_inactivos_count'] == 4
+
+    # La clave preexistente 'historial' se conserva y sigue siendo solo finalizados.
+    historial_solo_finalizados = {p.id for p in response.context['historial']}
+    assert historial_solo_finalizados == {proyectos['finalizado'].id}
+
+    por_estado = response.context['historial_por_estado']
+    assert por_estado['finalizado'] == 1
+    assert por_estado['rechazado'] == 1
+    assert por_estado['inactivo'] == 1
+    assert por_estado['en_disputa'] == 1
+
+
+def test_empresa_dashboard_historial_filtra_por_estado(auth_client, empresa_user, db):
+    """SCRUM-228: ?historial_estado filtra el historial por estado válido."""
+    proyectos = _crear_proyectos_historial(empresa_user)
+
+    response = auth_client.get(reverse('dashboard_empresa'), {'historial_estado': 'rechazado'})
+    assert response.status_code == 200
+    ids_rechazado = {p.id for p in response.context['historial_inactivos']}
+    assert ids_rechazado == {proyectos['rechazado'].id}
+    assert response.context['historial_inactivos_count'] == 1
+    assert response.context['historial_estado_actual'] == 'rechazado'
+
+    response = auth_client.get(reverse('dashboard_empresa'), {'historial_estado': 'inactivo'})
+    assert response.status_code == 200
+    ids_inactivo = {p.id for p in response.context['historial_inactivos']}
+    assert ids_inactivo == {proyectos['inactivo'].id}
+    assert response.context['historial_estado_actual'] == 'inactivo'
+
+    # Un estado inválido no debe romper la vista ni filtrar el queryset.
+    response = auth_client.get(reverse('dashboard_empresa'), {'historial_estado': 'inexistente'})
+    assert response.status_code == 200
+    assert response.context['historial_inactivos_count'] == 4
+
+
+def test_empresa_dashboard_historial_ui_muestra_badges_dinamicos(auth_client, empresa_user, db):
+    """SCRUM-228: la UI expone filtros por estado, badges dinámicos y data-testid."""
+    _crear_proyectos_historial(empresa_user)
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    assert 'data-testid="historial-inactivos"' in content
+    for estado in ('finalizado', 'rechazado', 'inactivo', 'en_disputa'):
+        assert f'data-testid="card-historial-{estado}"' in content
+
+    # Badges dinámicos según get_estado_display()
+    assert 'Finalizado' in content
+    assert 'Rechazado' in content
+    assert 'Inactivo' in content
+    assert 'En Disputa' in content
+
+    # Enlaces de filtro conservan la sección de historial
+    assert 'historial_estado=rechazado' in content
+    assert 'historial_estado=inactivo' in content
+    assert 'historial_estado=en_disputa' in content
+
+
+def test_empresa_dashboard_historial_empty_state_por_filtro(auth_client, empresa_user, db):
+    """SCRUM-228: un filtro sin resultados muestra el empty state, no el historial completo."""
+    from proyectos.models import Proyecto
+
+    finalizado = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto Solo Finalizado', descripcion='DH',
+        tipo_solucion='sitio_web', estado='finalizado',
+    )
+
+    response = auth_client.get(reverse('dashboard_empresa'), {'historial_estado': 'rechazado'})
+    assert response.status_code == 200
+    assert response.context['historial_inactivos_count'] == 0
+    content = response.content.decode()
+    assert 'No hay proyectos en este estado del historial.' in content
+    assert finalizado.titulo not in content

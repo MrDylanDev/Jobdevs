@@ -223,6 +223,11 @@ def dashboard_admin(request):
         .order_by('-fecha_creacion')
     )
 
+    # SCRUM-232 (RF 10.1.2): conteos por estado para el panel de mediación.
+    disputas_por_estado = {clave: 0 for clave, _ in Disputa.ESTADO}
+    for fila in Disputa.objects.values('estado').annotate(total=Count('id')):
+        disputas_por_estado[fila['estado']] = fila['total']
+
     total_empresas_en_revision = PerfilEmpresa.objects.filter(
         estado_verificacion='en_revision'
     ).count()
@@ -252,6 +257,7 @@ def dashboard_admin(request):
         'total_empresas_en_revision': total_empresas_en_revision,
         'disputas_activas': disputas_activas,
         'total_disputas_activas': len(disputas_activas),
+        'disputas_por_estado': disputas_por_estado,
         'categorias_solucion': categorias_solucion,
         'total_usuarios': total_usuarios, 'total_proyectos': total_proyectos,
         'total_devs': total_devs, 'total_empresas': total_empresas,

@@ -12,6 +12,10 @@ from mensajes.models import Mensaje
 from ._helpers import get_notificaciones_context
 
 
+# SCRUM-228 (RF 2.2.1): estados que representan proyectos fuera del ciclo activo.
+ESTADOS_HISTORIAL = ('finalizado', 'rechazado', 'inactivo', 'en_disputa')
+
+
 @login_required
 @requiere_usuario_activo
 def dashboard_empresa(request):
@@ -88,6 +92,30 @@ def dashboard_empresa(request):
         estado='finalizado'
     ).select_related('categoria').annotate(num_desarrolladores=Count('contrataciones')).prefetch_related('contrataciones__desarrollador').order_by('-fecha_publicacion')
 
+    # SCRUM-228 (RF 2.2.1): historial completo (finalizado, rechazado, inactivo,
+    # en_disputa) con filtro opcional por estado vía GET 'historial_estado'.
+    historial_estado_actual = request.GET.get('historial_estado', '')
+    historial_inactivos_qs = Proyecto.objects.filter(
+        empresa=request.user, estado__in=ESTADOS_HISTORIAL
+    )
+    if historial_estado_actual in ESTADOS_HISTORIAL:
+        historial_inactivos_qs = historial_inactivos_qs.filter(estado=historial_estado_actual)
+    else:
+        historial_estado_actual = ''
+
+    historial_inactivos = historial_inactivos_qs.select_related('categoria').annotate(
+        num_desarrolladores=Count('contrataciones')
+    ).prefetch_related('contrataciones__desarrollador').order_by('-fecha_publicacion')
+    historial_inactivos_count = historial_inactivos.count()
+
+    conteos_historial = dict(
+        Proyecto.objects.filter(empresa=request.user, estado__in=ESTADOS_HISTORIAL)
+        .values('estado')
+        .annotate(c=Count('id'))
+        .values_list('estado', 'c')
+    )
+    historial_por_estado = {estado: conteos_historial.get(estado, 0) for estado in ESTADOS_HISTORIAL}
+
     context = {
         'total_proyectos': p_pub,
         'proyectos_activos': p_act,
@@ -97,6 +125,10 @@ def dashboard_empresa(request):
         'en_desarrollo_v': en_desarrollo_v,
         'colaboradores_activos': colaboradores_activos,
         'historial': historial_v,
+        'historial_inactivos': historial_inactivos,
+        'historial_inactivos_count': historial_inactivos_count,
+        'historial_por_estado': historial_por_estado,
+        'historial_estado_actual': historial_estado_actual,
         'valoraciones_recibidas': valoraciones_dev,
         'promedio_empresa': round(promedio_empresa, 1),
         'postulaciones_pendientes': postulaciones_pendientes_obj,
@@ -107,7 +139,7 @@ def dashboard_empresa(request):
         'admin_id': admin_id,
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     }
-    context.update(datos_dashboard_disputas(request.user))
+    context.update(datos_dashboard_disputas(request.user, estado=request.GET.get('estado')))
     context['disputas_activas_count'] = len(context['disputas_activas'])
     return render(request, 'empresa/empresa.html', context)
 

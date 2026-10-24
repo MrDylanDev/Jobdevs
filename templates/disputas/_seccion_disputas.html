@@ -11,6 +11,62 @@
   {% endif %}
 </div>
 
+{# SCRUM-232 (RF 10.1.2): filtro fino por estado con conteos. #}
+{% with seccion=request.GET.section %}
+<div class="disputas-filtros" data-testid="filtro-disputas" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+  <a href="?{% if seccion %}section={{ seccion }}{% endif %}"
+     class="btn btn-sm {% if not filtro_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}">
+    Todos ({{ total_disputas }})
+  </a>
+  <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=abierta"
+     class="btn btn-sm {% if filtro_estado_actual == 'abierta' %}btn-primary{% else %}btn-secondary{% endif %}">
+    Abiertas ({{ disputas_por_estado.abierta }})
+  </a>
+  <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=en_mediacion"
+     class="btn btn-sm {% if filtro_estado_actual == 'en_mediacion' %}btn-primary{% else %}btn-secondary{% endif %}">
+    En mediación ({{ disputas_por_estado.en_mediacion }})
+  </a>
+  <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=resuelta"
+     class="btn btn-sm {% if filtro_estado_actual == 'resuelta' %}btn-primary{% else %}btn-secondary{% endif %}">
+    Resueltas ({{ disputas_por_estado.resuelta }})
+  </a>
+  <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=cancelada"
+     class="btn btn-sm {% if filtro_estado_actual == 'cancelada' %}btn-primary{% else %}btn-secondary{% endif %}">
+    Canceladas ({{ disputas_por_estado.cancelada }})
+  </a>
+</div>
+{% endwith %}
+
+{% if filtro_estado_actual %}
+<div class="card" style="margin-bottom:20px;" data-testid="disputas-filtradas">
+  <div class="card-header">
+    <div class="card-title"><i class="fa fa-filter" style="color:var(--primary);margin-right:6px;"></i>Disputas filtradas</div>
+    <span class="badge badge-gray">{{ disputas_filtradas|length }}</span>
+  </div>
+  <div class="table-wrapper" style="margin-top:0;border:none;box-shadow:none;">
+    <table class="data-table">
+      <thead>
+        <tr><th>ID</th><th>Proyecto</th><th>Estado</th><th>Creada</th><th>Resolución</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for d in disputas_filtradas %}
+        <tr>
+          <td>#{{ d.pk }}</td>
+          <td><strong>{{ d.proyecto.titulo }}</strong></td>
+          <td><span class="badge {% if d.estado == 'abierta' %}badge-danger{% elif d.estado == 'en_mediacion' %}badge-warning{% elif d.estado == 'resuelta' %}badge-success{% else %}badge-gray{% endif %}">{{ d.get_estado_display }}</span></td>
+          <td>{{ d.fecha_creacion|date:"d/m/Y H:i" }}</td>
+          <td>{% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}—{% endif %}</td>
+          <td style="text-align:right;"><a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-secondary btn-sm">Ver Expediente</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty-state" style="padding:30px;"><i class="fa fa-filter"></i><p>No hay disputas en este estado.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 <div class="card" style="margin-bottom:20px;">
   <div class="card-header">
     <div class="card-title"><i class="fa fa-hourglass-half" style="color:var(--warning);margin-right:6px;"></i>Disputas Activas</div>

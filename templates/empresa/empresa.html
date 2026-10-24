@@ -429,14 +429,47 @@
         <div class="page-header">
           <div>
             <div class="page-title">Historial de Proyectos</div>
-            <div class="page-subtitle">Proyectos finalizados y archivados</div>
+            <div class="page-subtitle">Proyectos finalizados, rechazados, inactivos y en disputa</div>
           </div>
         </div>
-        <div class="cards-grid">
-          {% for proyecto in historial %}
-            <div class="project-card">
+
+        <!-- SCRUM-228: filtros por estado del historial -->
+        <div class="historial-filtros" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <a href="?section=historial"
+             class="btn btn-sm {% if not historial_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}">
+            Todos ({{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }})
+          </a>
+          <a href="?section=historial&amp;historial_estado=finalizado"
+             class="btn btn-sm {% if historial_estado_actual == 'finalizado' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Finalizados ({{ historial_por_estado.finalizado }})
+          </a>
+          <a href="?section=historial&amp;historial_estado=rechazado"
+             class="btn btn-sm {% if historial_estado_actual == 'rechazado' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Rechazados ({{ historial_por_estado.rechazado }})
+          </a>
+          <a href="?section=historial&amp;historial_estado=inactivo"
+             class="btn btn-sm {% if historial_estado_actual == 'inactivo' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Inactivos ({{ historial_por_estado.inactivo }})
+          </a>
+          <a href="?section=historial&amp;historial_estado=en_disputa"
+             class="btn btn-sm {% if historial_estado_actual == 'en_disputa' %}btn-primary{% else %}btn-secondary{% endif %}">
+            En disputa ({{ historial_por_estado.en_disputa }})
+          </a>
+        </div>
+
+        <div class="cards-grid" data-testid="historial-inactivos">
+          {% for proyecto in historial_inactivos %}
+            <div class="project-card" data-testid="card-historial-{{ proyecto.estado }}">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span class="badge badge-success"><i class="fa fa-check" style="margin-right:4px;"></i>Finalizado</span>
+                {% if proyecto.estado == 'finalizado' %}
+                  <span class="badge badge-success"><i class="fa fa-check" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
+                {% elif proyecto.estado == 'rechazado' %}
+                  <span class="badge badge-danger"><i class="fa fa-circle-xmark" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
+                {% elif proyecto.estado == 'en_disputa' %}
+                  <span class="badge badge-danger"><i class="fa fa-scale-balanced" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
+                {% else %}
+                  <span class="badge badge-warning"><i class="fa fa-circle-pause" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
+                {% endif %}
               </div>
               <div class="project-card-title" style="margin-bottom:12px;">{{ proyecto.titulo }}</div>
               <div style="display:flex;flex-direction:column;gap:8px;">
@@ -458,7 +491,7 @@
               </div>
             </div>
           {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-clock-rotate-left"></i><p>Aún no has finalizado proyectos</p></div>
+            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-clock-rotate-left"></i><p>No hay proyectos en este estado del historial.</p></div>
           {% endfor %}
         </div>
       </section>
