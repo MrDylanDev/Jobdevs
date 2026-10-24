@@ -378,4 +378,84 @@ class TestFirmarContratoDigital:
         content = res.content.decode()
         assert 'vacantes' in content.lower() or 'límite' in content.lower()
 
+    def test_calcular_hash_documento_ignora_timestamps_de_firma(self, contrato):
+        """SCRUM-235: el hash documental es determinista y no incluye fechas de firma."""
+        contrato.monto = '1500000.00'
+        base = contrato.calcular_hash_documento()
+        assert len(base) == 64
+        assert int(base, 16) >= 0
+        assert contrato.calcular_hash_documento() == base
+
+        contrato.fecha_firma_empresa = timezone.now()
+        contrato.fecha_firma_desarrollador = timezone.now()
+        assert contrato.calcular_hash_documento() == base
+
+        contrato.monto = '2000000.00'
+        assert contrato.calcular_hash_documento() != base
+
+    def test_primera_firma_congela_hash_documento(self, empresa_c, contrato):
+        """SCRUM-235: la primera firma congela el SHA-256 del contenido contractual."""
+        assert contrato.hash_documento is None
+        res = empresa_c.post(
+            reverse('firmar_contrato_digital', args=[contrato.id]), {'acepta_terminos': 'on'})
+        assert res.status_code == 302
+
+        contrato.refresh_from_db()
+        assert contrato.hash_documento is not None
+        assert len(contrato.hash_documento) == 64
+        assert contrato.hash_documento == contrato.calcular_hash_documento()
+
+    def test_segunda_firma_no_altera_hash_documento(self, empresa_c, dev_c, contrato):
+        """SCRUM-235: el hash documental congelado sobrevive a la segunda firma."""
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        dev_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+        hash_congelado = contrato.hash_documento
+        assert hash_congelado is not None
+
+        # Alteración posterior del contenido contractual: el hash congelado no debe cambiar.
+        ContratoDigital.objects.filter(id=contrato.id).update(clausulas='Cláusulas alteradas')
+        empresa_c.post(url, {'acepta_terminos': 'on'})
+
+        contrato.refresh_from_db()
+        assert contrato.esta_firmado
+        assert contrato.hash_documento == hash_congelado
+        assert contrato.hash_documento != contrato.calcular_hash_documento()
+
+    def test_ambas_firmas_quedan_auditadas_en_log_auditoria(self, empresa_c, dev_c, contrato):
+        """SCRUM-235: ambas firmas registran hashes en logs_auditoria."""
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        empresa = contrato.postulacion.proyecto.empresa
+        desarrollador = contrato.postulacion.desarrollador
+
+        empresa_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+        hash_documento = contrato.hash_documento
+        hash_primera_firma = contrato.hash_contrato
+        assert hash_documento is not None and hash_primera_firma is not None
+
+        log_primera = LogAuditoria.objects.filter(
+            tabla_afectada='contratos_digitales',
+            registro_id=contrato.id,
+            valor_anterior__isnull=True,
+            valor_nuevo=hash_documento,
+        )
+        assert log_primera.count() == 1
+        assert log_primera.first().usuario == empresa
+        assert f'#{contrato.id}' in log_primera.first().accion
+
+        dev_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+
+        log_segunda = LogAuditoria.objects.filter(
+            tabla_afectada='contratos_digitales',
+            registro_id=contrato.id,
+            valor_anterior=hash_documento,
+            valor_nuevo=contrato.hash_contrato,
+        )
+        assert log_segunda.count() == 1
+        assert log_segunda.first().usuario == desarrollador
+        assert f'#{contrato.id}' in log_segunda.first().accion
+        assert len(log_segunda.first().valor_nuevo) == 64
+
 

@@ -196,6 +196,15 @@ class Entregable(models.Model):
     ]
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='entregables', db_column='proyecto_id')
     equipo = models.ForeignKey('Equipo', on_delete=models.SET_NULL, null=True, blank=True, related_name='hitos', db_column='equipo_id')
+    # SCRUM-309 (HU-E13): asignación individual del hito a un desarrollador concreto
+    desarrollador = models.ForeignKey(
+        'usuarios.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='entregables_asignados',
+        db_column='desarrollador_id',
+    )
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')

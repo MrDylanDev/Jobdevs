@@ -87,11 +87,16 @@ def registrar_avance(request, proyecto_id):
         messages.error(request, "No tienes un contrato activo para este proyecto.")
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
-    # 3. SCRUM-205: Verificar si hay hitos pendientes disponibles para el desarrollador
+    # 3. SCRUM-205 / SCRUM-309: Verificar si hay hitos pendientes disponibles para el desarrollador
+    #    - Hitos asignados individualmente a él (desarrollador=request.user)
+    #    - Hitos sin desarrollador asignado que sean de su equipo o generales
     hitos_pendientes = Entregable.objects.filter(
-        Q(proyecto=proyecto) & 
-        Q(estado='pendiente') & 
-        (Q(equipo__miembros=request.user) | Q(equipo__isnull=True))
+        Q(proyecto=proyecto) &
+        Q(estado='pendiente') &
+        (
+            Q(desarrollador=request.user)
+            | (Q(desarrollador__isnull=True) & (Q(equipo__miembros=request.user) | Q(equipo__isnull=True)))
+        )
     ).distinct()
 
     if not hitos_pendientes.exists():
@@ -163,6 +168,17 @@ def registrar_avance(request, proyecto_id):
 
             if entregable.estado != 'pendiente':
                 return _responder_error(f"El hito '{entregable.titulo}' ya no se encuentra pendiente y no admite nuevos avances.")
+
+            # SCRUM-309 (HU-E13): guardas de asignación individual y de equipo
+            if entregable.desarrollador_id and entregable.desarrollador_id != request.user.id:
+                return _responder_error(
+                    f"El hito '{entregable.titulo}' está asignado a otro desarrollador y no puedes registrar avances sobre él."
+                )
+
+            if entregable.equipo_id and not entregable.equipo.miembros.filter(id=request.user.id).exists():
+                return _responder_error(
+                    f"No eres miembro del equipo '{entregable.equipo.nombre}' asignado al hito '{entregable.titulo}', por lo que no puedes registrar avances sobre él."
+                )
 
             with transaction.atomic():
                 # Bloquear el proyecto para evitar condiciones de carrera

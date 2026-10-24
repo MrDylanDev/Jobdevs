@@ -522,3 +522,95 @@ class TestCalificarEmpresa:
         assert Valoracion.objects.filter(
             proyecto=proyecto_finalizado, desarrollador=desarrollador_user
         ).count() == 1
+
+
+class TestGestionarHitosAsignacionIndividual:
+    """SCRUM-309 (HU-E13): la empresa puede asignar un hito a un desarrollador individual."""
+
+    @pytest.fixture
+    def proyecto_hitos(self, empresa_user):
+        from contrataciones.models import Contratacion
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Hitos Individuales',
+            descripcion='D', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        dev_contratado = User.objects.create_user(
+            username='dev_hitos_a', email='dev_hitos_a@test.jobdevs',
+            nombre='Dev Hitos A', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=dev_contratado,
+            empresa=empresa_user, estado='activa',
+        )
+        dev_no_contratado = User.objects.create_user(
+            username='dev_hitos_b', email='dev_hitos_b@test.jobdevs',
+            nombre='Dev Hitos B', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        return proyecto, dev_contratado, dev_no_contratado
+
+    def test_asigna_hito_a_desarrollador_con_contratacion_activa(
+        self, auth_client, proyecto_hitos
+    ):
+        """POST con desarrollador_id válido persiste la asignación y notifica al dev."""
+        from proyectos.models import Entregable
+        from notificaciones.models import Notificacion
+        proyecto, dev_contratado, _ = proyecto_hitos
+
+        response = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {
+                'titulo': 'Hito individual',
+                'descripcion': 'Solo para un dev',
+                'desarrollador_id': str(dev_contratado.id),
+            },
+        )
+
+        assert response.status_code == 302
+        hito = Entregable.objects.get(proyecto=proyecto, titulo='Hito individual')
+        assert hito.desarrollador_id == dev_contratado.id
+        assert hito.equipo_id is None
+        assert Notificacion.objects.filter(
+            usuario=dev_contratado, tipo='avance'
+        ).exists()
+
+    def test_rechaza_asignacion_a_desarrollador_sin_contratacion_activa(
+        self, auth_client, proyecto_hitos
+    ):
+        """POST con un dev sin contratación activa no crea el hito y muestra error."""
+        from proyectos.models import Entregable
+        proyecto, _, dev_no_contratado = proyecto_hitos
+
+        response = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {
+                'titulo': 'Hito invalido',
+                'descripcion': 'Dev sin contrato',
+                'desarrollador_id': str(dev_no_contratado.id),
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert not Entregable.objects.filter(
+            proyecto=proyecto, titulo='Hito invalido'
+        ).exists()
+        assert 'no tiene una contratación activa' in response.content.decode('utf-8')
+
+    def test_get_expone_selector_de_desarrolladores_activos(self, auth_client, proyecto_hitos):
+        """El formulario de hitos ofrece el selector de desarrollador con los contratados activos."""
+        from proyectos.models import Entregable
+        proyecto, dev_contratado, dev_no_contratado = proyecto_hitos
+        Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito asignado', descripcion='D',
+            desarrollador=dev_contratado,
+        )
+
+        response = auth_client.get(reverse('gestionar_hitos', args=[proyecto.id]))
+
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert 'data-testid="select-desarrollador-hito"' in content
+        assert dev_contratado.nombre in content
+        assert dev_no_contratado.nombre not in content

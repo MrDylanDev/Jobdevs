@@ -437,6 +437,7 @@ def gestionar_hitos(request, proyecto_id):
         titulo = request.POST.get('titulo')
         descripcion = request.POST.get('descripcion')
         equipo_id = request.POST.get('equipo_id')
+        desarrollador_id = request.POST.get('desarrollador_id')
 
         if titulo:
             # Validacion de integridad: El equipo debe pertenecer al proyecto
@@ -447,15 +448,39 @@ def gestionar_hitos(request, proyecto_id):
                     messages.error(request, "Error: El equipo seleccionado no pertenece a este proyecto.")
                     return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
+            # SCRUM-309 (HU-E13): el desarrollador asignado debe tener contratación activa
+            desarrollador = None
+            if desarrollador_id:
+                contratacion = Contratacion.objects.filter(
+                    proyecto=proyecto,
+                    desarrollador_id=desarrollador_id,
+                    estado='activa',
+                ).select_related('desarrollador').first()
+                if not contratacion:
+                    messages.error(
+                        request,
+                        "Error: El desarrollador seleccionado no tiene una contratación activa en este proyecto.",
+                    )
+                    return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+                desarrollador = contratacion.desarrollador
+
             Entregable.objects.create(
                 proyecto=proyecto, 
                 titulo=titulo, 
                 descripcion=descripcion,
-                equipo=equipo
+                equipo=equipo,
+                desarrollador=desarrollador,
             )
 
             # Notificacion
-            if equipo:
+            if desarrollador:
+                # SCRUM-309: avisar únicamente al desarrollador asignado
+                Notificacion.objects.create(
+                    usuario=desarrollador,
+                    tipo='avance',
+                    mensaje=f"Nueva tarea asignada de forma individual en '{proyecto.titulo}': {titulo}"
+                )
+            elif equipo:
                 # Avisar solo a los miembros del equipo
                 for miembro in equipo.miembros.all():
                     Notificacion.objects.create(
@@ -479,12 +504,17 @@ def gestionar_hitos(request, proyecto_id):
 
     equipos = proyecto.equipos.all()
     tiene_multiples_contratos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() >= 2
+    # SCRUM-309 (HU-E13): candidatos válidos para asignación individual de hitos
+    desarrolladores_activos = Contratacion.objects.filter(
+        proyecto=proyecto, estado='activa'
+    ).select_related('desarrollador')
 
     return render(request, 'proyectos/gestionar_hitos.html', {
         'proyecto': proyecto, 
         'hitos': hitos,
         'equipos': equipos,
         'tiene_multiples_contratos': tiene_multiples_contratos,
+        'desarrolladores_activos': desarrolladores_activos,
     })
 
 @login_required
