@@ -353,3 +353,29 @@ class TestFirmarContratoDigital:
         assert len(equipo.nombre) <= 100
         assert equipo.nombre == f"Equipo {proyecto.titulo}"[:100]
 
+    def test_formalizar_contrato_digital_bloquea_si_cupo_se_agoto(self, empresa_c, dev_c, contrato):
+        """SCRUM-216: Si el proyecto ya alcanzó el tope de vacantes, la formalización falla y no crea contratación extra."""
+        proyecto = contrato.postulacion.proyecto
+        proyecto.vacantes = 1
+        proyecto.save()
+
+        otro_dev = User.objects.create_user(
+            username='dev_previo_activo', email='dev_previo@test.jobdevs', nombre='Previo',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, empresa=proyecto.empresa, desarrollador=otro_dev, estado='activa'
+        )
+
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        dev_c.post(url, {'acepta_terminos': 'on'})
+        res = empresa_c.post(url, {'acepta_terminos': 'on'}, follow=True)
+        assert res.status_code == 200
+
+        contrato.refresh_from_db()
+        assert contrato.estado != 'firmado'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        content = res.content.decode()
+        assert 'vacantes' in content.lower() or 'límite' in content.lower()
+
+
