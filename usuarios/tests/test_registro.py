@@ -188,6 +188,110 @@ class TestRegistroView:
         assert user.perfil_desarrollador.ficha == '9999999'
         assert user.perfil_desarrollador.es_verificado_sena is False
 
+    def test_registro_desarrollador_ficha_lista_blanca_programa_no_coincide_es_rechazado(self, client):
+        """SCRUM-229 (RF 1.2.1): el programa debe coincidir con el oficial de la ficha."""
+        admin = User.objects.create_user(
+            username='admin_programas',
+            email='admin_programas@test.jobdevs',
+            password='TestPass123!',
+            rol='administrador',
+            identificacion='1111111199',
+        )
+        FichaSena.objects.create(
+            numero_ficha='2670999',
+            programa_formacion='ADSO',
+            activa=True,
+            creada_por=admin,
+        )
+
+        response = client.post(reverse('registro'), {
+            'username': 'devprogramano',
+            'nombre': 'Dev Programa No',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500099',
+            'email': 'devprogramano@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'ficha': '2670999',
+            'programa_formacion': 'Cocina',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 200
+        assert not User.objects.filter(username='devprogramano').exists()
+        assert 'programa_formacion' in response.context['form'].errors
+        assert 'no coincide' in response.context['form'].errors['programa_formacion'][0]
+
+    def test_registro_desarrollador_ficha_lista_blanca_programa_coincide_se_verifica(self, client):
+        """SCRUM-229: alias tolerante (ADSO) coincide con el nombre oficial de la ficha."""
+        admin = User.objects.create_user(
+            username='admin_programas2',
+            email='admin_programas2@test.jobdevs',
+            password='TestPass123!',
+            rol='administrador',
+            identificacion='1111111198',
+        )
+        FichaSena.objects.create(
+            numero_ficha='2670998',
+            programa_formacion='ADSO',
+            activa=True,
+            creada_por=admin,
+        )
+
+        response = client.post(reverse('registro'), {
+            'username': 'devprogramasi',
+            'nombre': 'Dev Programa Si',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500098',
+            'email': 'devprogramasi@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'ficha': '2670998',
+            'programa_formacion': 'Análisis y Desarrollo de Software',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(username='devprogramasi')
+        assert user.perfil_desarrollador.estado_verificacion == 'verificado'
+
+    def test_registro_desarrollador_sin_ficha_programa_invalido_es_rechazado(self, client):
+        """SCRUM-229: sin ficha, el programa debe pertenecer al catálogo oficial."""
+        response = client.post(reverse('registro'), {
+            'username': 'devinventado',
+            'nombre': 'Dev Inventado',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500097',
+            'email': 'devinventado@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'programa_formacion': 'Inventado 123',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 200
+        assert not User.objects.filter(username='devinventado').exists()
+        assert 'programa_formacion' in response.context['form'].errors
+        assert 'válido' in response.context['form'].errors['programa_formacion'][0]
+
+    def test_registro_desarrollador_sin_ficha_programa_catalogo_es_aceptado(self, client):
+        """SCRUM-229: sin ficha, un programa del catálogo es aceptado y queda sin verificar."""
+        response = client.post(reverse('registro'), {
+            'username': 'devvideojuegos',
+            'nombre': 'Dev Videojuegos',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234500096',
+            'email': 'devvideojuegos@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'programa_formacion': 'Desarrollo de Videojuegos',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(username='devvideojuegos')
+        assert user.perfil_desarrollador.estado_verificacion == 'sin_verificar'
+
     def test_registro_identificacion_duplicada_muestra_error(self, client):
         """RF 1.1.1 (SCRUM-37): El NIT o número de identificación debe ser único en el sistema."""
         User.objects.create_user(

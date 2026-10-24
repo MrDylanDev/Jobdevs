@@ -724,3 +724,138 @@ class TestAdminModoVerificacionSenaSCRUM311:
         assert 'data-testid="badge-modo-verificacion-sena"' in content
         assert 'Padrón Institucional Local' in content
         assert 'SOFIA Plus' in content
+
+
+class TestAdminExcepcionesFichaSenaSCRUM225:
+    """SCRUM-225 (RF 9.1.2): gestión de excepciones individuales a la lista blanca SENA."""
+
+    def _crear_excepcion(self, admin_user, perfil, numero_ficha='3000123',
+                         activa=True, fecha_expiracion=None):
+        from usuarios.models import ExcepcionFichaSena
+        return ExcepcionFichaSena.objects.create(
+            desarrollador=perfil,
+            numero_ficha=numero_ficha,
+            justificacion='Caso especial aprobado por coordinación académica.',
+            autorizado_por=admin_user,
+            activa=activa,
+            fecha_expiracion=fecha_expiracion,
+        )
+
+    def test_admin_crea_excepcion(self, admin_client, admin_user, desarrollador_user):
+        """El administrador registra una excepción con vigencia y queda auditada."""
+        from logs.models import LogAuditoria
+        from usuarios.models import ExcepcionFichaSena
+
+        perfil = desarrollador_user.perfil_desarrollador
+        response = admin_client.post(reverse('admin_crear_excepcion_ficha_sena'), {
+            'desarrollador_id': perfil.id,
+            'numero_ficha': ' 3000-123 ',
+            'justificacion': 'Ficha pendiente de cargue en SOFIA Plus.',
+            'dias_vigencia': '30',
+        })
+
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_admin') + '?section=fichasSenaSection'
+        excepcion = ExcepcionFichaSena.objects.get(desarrollador=perfil)
+        assert excepcion.numero_ficha == '3000123'
+        assert excepcion.activa is True
+        assert excepcion.autorizado_por == admin_user
+        assert excepcion.fecha_expiracion is not None
+        assert excepcion.fecha_expiracion > timezone.now()
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='excepciones_ficha_sena', registro_id=excepcion.id
+        ).exists()
+
+    def test_admin_crea_excepcion_sin_vigencia(self, admin_client, desarrollador_user):
+        """Sin dias_vigencia la excepción queda sin fecha de expiración."""
+        from usuarios.models import ExcepcionFichaSena
+
+        perfil = desarrollador_user.perfil_desarrollador
+        response = admin_client.post(reverse('admin_crear_excepcion_ficha_sena'), {
+            'desarrollador_id': perfil.id,
+            'numero_ficha': '3000456',
+            'justificacion': 'Excepción permanente aprobada por el comité.',
+        })
+
+        assert response.status_code == 302
+        excepcion = ExcepcionFichaSena.objects.get(numero_ficha='3000456')
+        assert excepcion.fecha_expiracion is None
+
+    def test_admin_no_crea_excepcion_sin_desarrollador_valido(self, admin_client, db):
+        """Un desarrollador inexistente no genera excepción."""
+        from usuarios.models import ExcepcionFichaSena
+
+        response = admin_client.post(reverse('admin_crear_excepcion_ficha_sena'), {
+            'desarrollador_id': '999999',
+            'numero_ficha': '3000789',
+            'justificacion': 'Justificación válida.',
+        })
+
+        assert response.status_code == 302
+        assert not ExcepcionFichaSena.objects.exists()
+
+    def test_no_admin_no_puede_crear_excepcion(self, auth_client, desarrollador_user):
+        """Un usuario no administrador recibe 403 y no se crea la excepción."""
+        from usuarios.models import ExcepcionFichaSena
+
+        perfil = desarrollador_user.perfil_desarrollador
+        response = auth_client.post(reverse('admin_crear_excepcion_ficha_sena'), {
+            'desarrollador_id': perfil.id,
+            'numero_ficha': '3000123',
+            'justificacion': 'Intento no autorizado.',
+        })
+
+        assert response.status_code == 403
+        assert not ExcepcionFichaSena.objects.exists()
+
+    def test_admin_revoca_excepcion(self, admin_client, admin_user, desarrollador_user):
+        """Revocar desactiva la excepción y registra auditoría."""
+        from logs.models import LogAuditoria
+
+        excepcion = self._crear_excepcion(admin_user, desarrollador_user.perfil_desarrollador)
+        response = admin_client.post(
+            reverse('admin_revocar_excepcion_ficha_sena', args=[excepcion.id])
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_admin') + '?section=fichasSenaSection'
+        excepcion.refresh_from_db()
+        assert excepcion.activa is False
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='excepciones_ficha_sena', registro_id=excepcion.id
+        ).exists()
+
+    def test_no_admin_no_puede_revocar_excepcion(self, admin_client, auth_client,
+                                                 admin_user, desarrollador_user):
+        """Un usuario no administrador no puede revocar excepciones."""
+        excepcion = self._crear_excepcion(admin_user, desarrollador_user.perfil_desarrollador)
+
+        response = auth_client.post(
+            reverse('admin_revocar_excepcion_ficha_sena', args=[excepcion.id])
+        )
+
+        assert response.status_code == 403
+        excepcion.refresh_from_db()
+        assert excepcion.activa is True
+
+    def test_dashboard_expone_excepciones_en_contexto(self, admin_client, admin_user,
+                                                      desarrollador_user):
+        """El dashboard expone las excepciones y su total en el contexto."""
+        excepcion = self._crear_excepcion(admin_user, desarrollador_user.perfil_desarrollador)
+
+        response = admin_client.get(reverse('dashboard_admin'))
+
+        assert response.status_code == 200
+        assert response.context['total_excepciones_fichas_sena'] == 1
+        assert list(response.context['excepciones_fichas_sena']) == [excepcion]
+
+    def test_template_renderiza_tabla_de_excepciones(self, admin_client, admin_user,
+                                                     desarrollador_user):
+        """La sección de fichas SENA incluye la tabla de excepciones."""
+        excepcion = self._crear_excepcion(admin_user, desarrollador_user.perfil_desarrollador)
+
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="tabla-excepciones-sena"' in content
+        assert excepcion.numero_ficha in content
+        assert reverse('admin_crear_excepcion_ficha_sena') in content

@@ -14,7 +14,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from datetime import timedelta
 from django.core.paginator import Paginator
-from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
+from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena, ExcepcionFichaSena
+from ..services_sena import normalizar_numero_ficha
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
@@ -269,6 +270,19 @@ def dashboard_admin(request):
     total_fichas_sena = FichaSena.objects.count()
     fichas_sena = list(FichaSena.objects.all().order_by('-fecha_creacion')[:100])
 
+    # SCRUM-225 (RF 9.1.2): excepciones individuales justificadas a la lista blanca.
+    total_excepciones_fichas_sena = ExcepcionFichaSena.objects.count()
+    excepciones_fichas_sena = list(
+        ExcepcionFichaSena.objects.select_related(
+            'desarrollador__usuario', 'autorizado_por'
+        ).order_by('-fecha_creacion')[:100]
+    )
+    desarrolladores_para_excepcion = list(
+        PerfilDesarrollador.objects.order_by('usuario__nombre').values_list(
+            'id', 'usuario__nombre', 'usuario__username'
+        )
+    )
+
     # SCRUM-311: mecanismo oficial de verificación SENA. No existe API pública de
     # SOFIA Plus, así que el padrón institucional SENA (lista blanca local) es el
     # mecanismo primario y SENA_API_URL queda como pasarela institucional opcional.
@@ -280,6 +294,9 @@ def dashboard_admin(request):
         'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
         'fichas_sena': fichas_sena,
         'total_fichas_sena': total_fichas_sena,
+        'excepciones_fichas_sena': excepciones_fichas_sena,
+        'total_excepciones_fichas_sena': total_excepciones_fichas_sena,
+        'desarrolladores_para_excepcion': desarrolladores_para_excepcion,
         'sena_modo_verificacion': sena_modo_verificacion,
         'sena_api_url': sena_api_url,
         'empresas_en_revision': empresas_en_revision,
@@ -447,6 +464,97 @@ def admin_toggle_ficha_sena(request, ficha_id):
         )
     estado_str = 'activada' if ficha.activa else 'desactivada'
     messages.success(request, f'Ficha {ficha.numero_ficha} {estado_str} correctamente.')
+    return destino
+
+
+@login_required
+@require_POST
+def admin_crear_excepcion_ficha_sena(request):
+    """SCRUM-225 (RF 9.1.2): autoriza una excepción individual a la lista blanca SENA."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    desarrollador_id = request.POST.get('desarrollador_id')
+    numero_ficha = normalizar_numero_ficha(request.POST.get('numero_ficha', ''))
+    justificacion = request.POST.get('justificacion', '').strip()
+    dias_vigencia_raw = request.POST.get('dias_vigencia', '').strip()
+
+    if not desarrollador_id or not numero_ficha or not justificacion:
+        messages.error(
+            request,
+            'El desarrollador, el número de ficha y la justificación son obligatorios.',
+        )
+        return destino
+
+    try:
+        perfil = PerfilDesarrollador.objects.select_related('usuario').get(id=desarrollador_id)
+    except (PerfilDesarrollador.DoesNotExist, ValueError, TypeError):
+        messages.error(request, 'El desarrollador indicado no existe.')
+        return destino
+
+    fecha_expiracion = None
+    if dias_vigencia_raw:
+        try:
+            dias = int(dias_vigencia_raw)
+        except (TypeError, ValueError):
+            messages.error(request, 'Los días de vigencia deben ser un número entero.')
+            return destino
+        if dias <= 0:
+            messages.error(request, 'Los días de vigencia deben ser mayores que cero.')
+            return destino
+        fecha_expiracion = timezone.now() + timedelta(days=dias)
+
+    with transaction.atomic():
+        excepcion = ExcepcionFichaSena.objects.create(
+            desarrollador=perfil,
+            numero_ficha=numero_ficha,
+            justificacion=justificacion,
+            autorizado_por=request.user,
+            fecha_expiracion=fecha_expiracion,
+            activa=True,
+        )
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=(
+                f'Creó excepción SENA para {perfil.usuario.username} '
+                f'(Ficha {numero_ficha})'
+            )[:300],
+            tabla_afectada='excepciones_ficha_sena',
+            registro_id=excepcion.id,
+        )
+    messages.success(request, f'Excepción autorizada para la ficha {numero_ficha}.')
+    return destino
+
+
+@login_required
+@require_POST
+def admin_revocar_excepcion_ficha_sena(request, excepcion_id):
+    """SCRUM-225 (RF 9.1.2): revoca una excepción individual a la lista blanca SENA."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    with transaction.atomic():
+        excepcion = get_object_or_404(
+            ExcepcionFichaSena.objects.select_for_update().select_related('desarrollador__usuario'),
+            id=excepcion_id,
+        )
+        excepcion.activa = False
+        excepcion.save(update_fields=['activa'])
+
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=(
+                f'Revocó excepción SENA de {excepcion.desarrollador.usuario.username} '
+                f'(Ficha {excepcion.numero_ficha})'
+            )[:300],
+            tabla_afectada='excepciones_ficha_sena',
+            registro_id=excepcion.id,
+        )
+    messages.success(
+        request, f'Excepción de la ficha {excepcion.numero_ficha} revocada correctamente.'
+    )
     return destino
 
 

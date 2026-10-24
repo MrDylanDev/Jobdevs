@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
+from django.utils import timezone
 
 class UsuarioQuerySet(models.QuerySet):
     def update(self, **kwargs):
@@ -245,3 +246,39 @@ class PerfilDesarrollador(models.Model):
 
     class Meta:
         db_table = 'perfil_desarrollador'
+
+
+class ExcepcionFichaSena(models.Model):
+    """SCRUM-225 (RF 9.1.2): excepción individual y justificada a la lista blanca SENA.
+
+    Permite verificar automáticamente a un aprendiz cuya ficha aún no está en el
+    padrón oficial, siempre que exista una autorización vigente y auditada.
+    """
+
+    desarrollador = models.ForeignKey(
+        PerfilDesarrollador, on_delete=models.CASCADE, related_name='excepciones_ficha_sena'
+    )
+    numero_ficha = models.CharField(max_length=50, db_index=True)
+    justificacion = models.TextField()
+    autorizado_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='excepciones_autorizadas'
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_expiracion = models.DateTimeField(null=True, blank=True)
+    activa = models.BooleanField(default=True, db_index=True)
+
+    @property
+    def esta_vigente(self):
+        return self.activa and (
+            self.fecha_expiracion is None or self.fecha_expiracion > timezone.now()
+        )
+
+    def __str__(self):
+        return f"Excepción ficha {self.numero_ficha} - {self.desarrollador.usuario.username}"
+
+    class Meta:
+        db_table = 'excepciones_ficha_sena'
+        verbose_name = 'Excepción de Ficha SENA'
+        verbose_name_plural = 'Excepciones de Fichas SENA'
+        ordering = ['-fecha_creacion']

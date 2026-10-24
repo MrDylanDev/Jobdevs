@@ -36,6 +36,8 @@ from .admin_dashboard import (
     admin_reactivar_proyecto,
     admin_crear_ficha_sena,
     admin_toggle_ficha_sena,
+    admin_crear_excepcion_ficha_sena,
+    admin_revocar_excepcion_ficha_sena,
     admin_depurar_notificaciones,
 )
 

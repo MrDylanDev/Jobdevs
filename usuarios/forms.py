@@ -2,7 +2,12 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
 from datetime import date
-from .services_sena import verificar_desarrollador_automatico
+from .services_sena import (
+    normalizar_numero_ficha,
+    programa_formacion_es_valido,
+    programas_formacion_coinciden,
+    verificar_desarrollador_automatico,
+)
 
 class RegistroUsuarioForm(UserCreationForm):
     nombre = forms.CharField(
@@ -86,7 +91,32 @@ class RegistroUsuarioForm(UserCreationForm):
         username = (cleaned_data.get('username') or '').strip()
         if not username and email:
             cleaned_data['username'] = email.strip().lower()
-        
+
+        # SCRUM-229 (RF 1.2.1): validar coherencia del programa de formación SENA.
+        if rol == 'desarrollador':
+            programa = (cleaned_data.get('programa_formacion') or '').strip()
+            ficha_texto = (cleaned_data.get('ficha') or '').strip()
+            if programa:
+                if ficha_texto:
+                    ficha_obj = FichaSena.objects.filter(
+                        numero_ficha=normalizar_numero_ficha(ficha_texto),
+                        activa=True,
+                    ).first()
+                    if ficha_obj and not programas_formacion_coinciden(
+                        programa, ficha_obj.programa_formacion
+                    ):
+                        self.add_error(
+                            'programa_formacion',
+                            'El programa de formación no coincide con el programa oficial '
+                            'registrado para esta ficha SENA.',
+                        )
+                elif not programa_formacion_es_valido(programa):
+                    self.add_error(
+                        'programa_formacion',
+                        'Ingresa un programa de formación SENA válido del área de '
+                        'tecnología o software.',
+                    )
+
         return cleaned_data
 
     def clean_email(self):

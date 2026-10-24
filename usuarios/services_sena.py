@@ -1,16 +1,106 @@
 import os
 import re
+import unicodedata
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from .models import FichaSena, PerfilDesarrollador, Usuario
+from .models import ExcepcionFichaSena, FichaSena, PerfilDesarrollador, Usuario
 
 MAX_SOPORTE_DEV_BYTES = 5 * 1024 * 1024  # 5 MB
+
+# SCRUM-229 (RF 1.2.1): catálogo de programas oficiales SENA del área de
+# tecnología y software usados para validar el registro de desarrolladores.
+PROGRAMAS_SENA_SOFTWARE = (
+    'Análisis y Desarrollo de Software',
+    'ADSO',
+    'Programación de Software',
+    'Desarrollo de Aplicaciones Web',
+    'Desarrollo de Videojuegos',
+    'Diseño y Desarrollo de Sistemas de Información',
+    'Análisis y Desarrollo de Sistemas de Información',
+    'ADSI',
+    'Administración de Sistemas Informáticos',
+    'Gestión de Bases de Datos',
+    'Gestión de Redes de Datos',
+    'Seguridad Informática',
+    'Mantenimiento de Equipos de Cómputo',
+    'Tecnólogo en Análisis y Desarrollo de Software',
+    'Tecnólogo en Programación de Software',
+    'Técnico en Programación de Software',
+)
+
+
+# Grupos de programas equivalentes (nombre oficial, sigla y variantes de nivel
+# de formación). Permiten comprobar coherencia entre la ficha y el programa
+# ingresado sin exigir una coincidencia literal del texto.
+_GRUPOS_PROGRAMAS_EQUIVALENTES = (
+    (
+        'analisis y desarrollo de software',
+        'adso',
+        'tecnologo en analisis y desarrollo de software',
+    ),
+    (
+        'programacion de software',
+        'tecnologo en programacion de software',
+        'tecnico en programacion de software',
+    ),
+    (
+        'analisis y desarrollo de sistemas de informacion',
+        'adsi',
+    ),
+)
+
+
+def normalizar_programa_formacion(programa):
+    """Normaliza un programa de formación: sin tildes, minúsculas y espacios simples."""
+    if not programa:
+        return ''
+    texto = unicodedata.normalize('NFKD', str(programa))
+    texto = ''.join(caracter for caracter in texto if not unicodedata.combining(caracter))
+    texto = texto.lower()
+    texto = re.sub(r'[^a-z0-9]+', ' ', texto)
+    return re.sub(r'\s+', ' ', texto).strip()
+
+
+def programa_formacion_es_valido(programa):
+    """Indica si el programa pertenece al catálogo oficial de software/tecnología SENA."""
+    normalizado = normalizar_programa_formacion(programa)
+    if not normalizado:
+        return False
+    catalogo = {normalizar_programa_formacion(item) for item in PROGRAMAS_SENA_SOFTWARE}
+    return normalizado in catalogo
+
+
+def _grupo_programa(normalizado):
+    """Devuelve el índice del grupo equivalente al programa normalizado, si existe."""
+    for indice, grupo in enumerate(_GRUPOS_PROGRAMAS_EQUIVALENTES):
+        if normalizado in grupo:
+            return indice
+    # Tolerar textos con sufijos o aclaraciones, p. ej. "... (ADSO)".
+    for indice, grupo in enumerate(_GRUPOS_PROGRAMAS_EQUIVALENTES):
+        for variante in grupo:
+            if len(variante) >= 4 and (variante in normalizado or normalizado in variante):
+                return indice
+    return None
+
+
+def programas_formacion_coinciden(prog_a, prog_b):
+    """Comprueba si dos programas son equivalentes (tolerante a tildes y alias)."""
+    a = normalizar_programa_formacion(prog_a)
+    b = normalizar_programa_formacion(prog_b)
+    if not a or not b:
+        return False
+    if a == b:
+        return True
+    grupo_a = _grupo_programa(a)
+    grupo_b = _grupo_programa(b)
+    return grupo_a is not None and grupo_a == grupo_b
 
 
 def normalizar_numero_ficha(numero_ficha):
@@ -35,11 +125,40 @@ def validar_ficha_sena_en_lista_blanca(numero_ficha, programa_formacion=None):
     return ficha, None
 
 
+def buscar_excepcion_ficha_activa(numero_ficha, perfil):
+    """SCRUM-225 (RF 9.1.2): devuelve la excepción vigente del aprendiz para esa ficha.
+
+    Una excepción es vigente si está activa y no ha expirado. Las excepciones sin
+    fecha de expiración se consideran permanentes hasta que un administrador las revoque.
+    """
+    limpio = normalizar_numero_ficha(numero_ficha)
+    if not perfil or not limpio:
+        return None
+
+    return (
+        ExcepcionFichaSena.objects.filter(
+            desarrollador=perfil,
+            numero_ficha=limpio,
+            activa=True,
+        )
+        .filter(Q(fecha_expiracion__isnull=True) | Q(fecha_expiracion__gt=timezone.now()))
+        .order_by('fecha_creacion')
+        .first()
+    )
+
+
 def verificar_desarrollador_automatico(perfil, numero_ficha, programa_formacion=None, usuario_solicitante=None):
-    """Verifica de forma automática al aprendiz si su ficha está en la lista blanca activa."""
+    """Verifica de forma automática al aprendiz si su ficha está en la lista blanca activa.
+
+    Si la ficha no está en el padrón oficial, se resuelve la verificación con una
+    excepción individual vigente (SCRUM-225 / RF 9.1.2), dejando trazabilidad completa.
+    """
     ficha_obj, error = validar_ficha_sena_en_lista_blanca(numero_ficha, programa_formacion)
     if error:
-        return False, error
+        excepcion = buscar_excepcion_ficha_activa(numero_ficha, perfil)
+        if not excepcion:
+            return False, error
+        return _verificar_por_excepcion(perfil, excepcion, programa_formacion, usuario_solicitante)
 
     with transaction.atomic():
         perfil_locked = PerfilDesarrollador.objects.select_for_update().select_related('usuario').get(id=perfil.id)
@@ -66,6 +185,39 @@ def verificar_desarrollador_automatico(perfil, numero_ficha, programa_formacion=
         )
 
     return True, 'Identidad SENA verificada automáticamente con éxito.'
+
+
+def _verificar_por_excepcion(perfil, excepcion, programa_formacion, usuario_solicitante):
+    """Aplica la verificación autorizada por una excepción vigente y la audita."""
+    limpio = excepcion.numero_ficha
+
+    with transaction.atomic():
+        perfil_locked = PerfilDesarrollador.objects.select_for_update().select_related('usuario').get(id=perfil.id)
+        perfil_locked.estado_verificacion = 'verificado'
+        perfil_locked.ficha = limpio
+        perfil_locked.programa_formacion = programa_formacion or perfil_locked.programa_formacion
+        perfil_locked.fecha_solicitud_verificacion = timezone.now()
+        perfil_locked.fecha_verificacion = timezone.now()
+        perfil_locked.notas_auditoria = f'Verificación mediante excepción autorizada (Ficha {limpio}).'
+        perfil_locked.save()
+
+        LogAuditoria.objects.create(
+            usuario=usuario_solicitante or perfil_locked.usuario,
+            accion=f'Verificación por excepción autorizada SENA (Ficha {limpio}, excepción #{excepcion.id})'[:300],
+            tabla_afectada='excepciones_ficha_sena',
+            registro_id=excepcion.id,
+        )
+
+        Notificacion.objects.create(
+            usuario=perfil_locked.usuario,
+            tipo='aprobacion',
+            mensaje=(
+                f'¡Tu identidad SENA fue verificada exitosamente mediante una excepción '
+                f'autorizada con la ficha {limpio}!'
+            ),
+        )
+
+    return True, 'Verificación exitosa mediante excepción autorizada.'
 
 
 def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_formacion, documento_soporte, usuario_solicitante, condicion_sena='aprendiz'):
