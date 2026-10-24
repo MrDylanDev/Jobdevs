@@ -86,10 +86,9 @@ def sala_chat(request, receptor_id, proyecto_id=None):
         (Q(remitente=request.user, receptor=receptor) | Q(remitente=receptor, receptor=request.user))
     )
 
-    # Aislamiento flexible por proyecto
-    # Si hay proyecto, mostramos los de ese proyecto + los generales (sin proyecto)
+    # Aislamiento estricto por proyecto (SCRUM-221 / RF 6.1.3)
     if proyecto:
-        mensajes_chat = mensajes_chat.filter(Q(proyecto=proyecto) | Q(proyecto__isnull=True))
+        mensajes_chat = mensajes_chat.filter(proyecto=proyecto)
     else:
         # En chat general, solo mostramos los que no tienen proyecto asignado
         mensajes_chat = mensajes_chat.filter(proyecto__isnull=True)

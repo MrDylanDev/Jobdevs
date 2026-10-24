@@ -52,6 +52,21 @@ class TestLogAuditoriaModel:
         assert len(log.accion) == 300
         assert len(log.tabla_afectada) == 100
 
+    def test_log_auditoria_soporta_valor_anterior_y_valor_nuevo(self, db):
+        """SCRUM-224 (RF 7.1.2): LogAuditoria persiste valor_anterior y valor_nuevo."""
+        log = LogAuditoria.objects.create(
+            accion='Cambio de estado',
+            tabla_afectada='contrataciones',
+            registro_id=1,
+            valor_anterior='activa',
+            valor_nuevo='cancelada',
+        )
+        assert log.id is not None
+        log.refresh_from_db()
+        assert log.valor_anterior == 'activa'
+        assert log.valor_nuevo == 'cancelada'
+
+
 
 
 class TestReportes:

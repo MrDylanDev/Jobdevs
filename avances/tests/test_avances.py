@@ -470,6 +470,78 @@ class TestRevisarAvance:
         )
         assert response.status_code == 404
 
+    @pytest.mark.parametrize('estado_proyecto', ['finalizado', 'inactivo', 'rechazado', 'publicado'])
+    def test_revisar_avance_bloquea_proyecto_en_estado_no_revisable(
+        self, auth_client, escenario_revision, estado_proyecto
+    ):
+        """SCRUM-220: solo se revisan avances en proyectos 'en_desarrollo' o 'en_revision'."""
+        proyecto, entregable, avance = escenario_revision
+        proyecto.estado = estado_proyecto
+        proyecto.save()
+        estado_proyecto_previo = proyecto.estado
+        notificaciones_previas = Notificacion.objects.count()
+
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Intento de revisión fuera de estado'},
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        proyecto.refresh_from_db()
+        # El avance, el hito y el proyecto no deben mutar
+        assert avance.estado == 'pendiente'
+        assert avance.comentario_revision in (None, '')
+        assert entregable.estado == 'en_revision'
+        assert proyecto.estado == estado_proyecto_previo
+        assert Notificacion.objects.count() == notificaciones_previas
+        content = response.content.decode('utf-8')
+        assert 'No se pueden revisar avances' in content
+
+    def test_revisar_avance_bloquea_rechazo_en_proyecto_finalizado(self, auth_client, escenario_revision):
+        """SCRUM-220: el bloqueo aplica también a la acción de rechazar."""
+        proyecto, entregable, avance = escenario_revision
+        proyecto.estado = 'finalizado'
+        proyecto.save()
+
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'rechazar', 'comentario': 'No corresponde, proyecto cerrado'},
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        proyecto.refresh_from_db()
+        assert avance.estado == 'pendiente'
+        assert entregable.estado == 'en_revision'
+        assert proyecto.estado == 'finalizado'
+        content = response.content.decode('utf-8')
+        assert 'No se pueden revisar avances' in content
+
+    def test_empresa_revisa_avance_en_proyecto_en_revision(self, auth_client, escenario_revision):
+        """SCRUM-220: los proyectos 'en_revision' sí admiten revisión de avances."""
+        proyecto, entregable, avance = escenario_revision
+        proyecto.estado = 'en_revision'
+        proyecto.save()
+
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Aprobado en revisión'},
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        avance.refresh_from_db()
+        entregable.refresh_from_db()
+        assert avance.estado == 'aceptado'
+        assert entregable.estado == 'completado'
+        content = response.content.decode('utf-8')
+        assert 'No se pueden revisar avances' not in content
+
 
 
 

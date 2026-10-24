@@ -28,21 +28,39 @@ def contrato(proyecto, empresa_user, desarrollador_user):
     )
 
 
+MOTIVO_TEST = 'Cancelación debidamente justificada por la empresa'
+
+
 class TestCancelarContratacion:
 
     def test_cancela_notifica_y_audita(self, empresa_user, proyecto, contrato, desarrollador_user):
-        resultado = cancelar_contratacion(contrato.id, empresa_user)
+        resultado = cancelar_contratacion(contrato.id, empresa_user, motivo=MOTIVO_TEST)
 
         assert resultado.estado == 'cancelada'
+        assert resultado.motivo_cancelacion == MOTIVO_TEST
         assert Notificacion.objects.filter(
             usuario=desarrollador_user, proyecto=proyecto, tipo='alerta'
         ).exists()
-        assert LogAuditoria.objects.filter(
+        log = LogAuditoria.objects.get(
             usuario=empresa_user, tabla_afectada='contrataciones', registro_id=contrato.id
-        ).exists()
+        )
+        assert log.valor_anterior == 'activa'
+        assert log.valor_nuevo == 'cancelada'
+
+    def test_cancelar_sin_motivo_falla_validation_error(self, empresa_user, contrato):
+        """SCRUM-223: Es obligatorio indicar motivo al cancelar."""
+        with pytest.raises(ValidationError) as exc:
+            cancelar_contratacion(contrato.id, empresa_user, motivo='')
+        assert 'indicar el motivo' in str(exc.value).lower()
+
+    def test_cancelar_motivo_corto_falla_validation_error(self, empresa_user, contrato):
+        """SCRUM-223: El motivo debe tener al menos 10 caracteres."""
+        with pytest.raises(ValidationError) as exc:
+            cancelar_contratacion(contrato.id, empresa_user, motivo='Corto')
+        assert 'al menos 10 caracteres' in str(exc.value).lower()
 
     def test_reabre_el_proyecto_si_era_la_ultima_contratacion(self, empresa_user, proyecto, contrato):
-        cancelar_contratacion(contrato.id, empresa_user)
+        cancelar_contratacion(contrato.id, empresa_user, motivo=MOTIVO_TEST)
 
         proyecto.refresh_from_db()
         assert proyecto.estado == 'publicado'
@@ -59,7 +77,7 @@ class TestCancelarContratacion:
             proyecto=proyecto, desarrollador=otro_dev, empresa=empresa_user, estado='activa',
         )
 
-        cancelar_contratacion(contrato.id, empresa_user)
+        cancelar_contratacion(contrato.id, empresa_user, motivo=MOTIVO_TEST)
 
         proyecto.refresh_from_db()
         assert proyecto.estado == 'en_desarrollo'
@@ -77,7 +95,7 @@ class TestCancelarContratacion:
             proyecto=proyecto, desarrollador=otro_dev, empresa=empresa_user, estado='activa',
         )
 
-        cancelar_contratacion(contrato.id, empresa_user)
+        cancelar_contratacion(contrato.id, empresa_user, motivo=MOTIVO_TEST)
 
         proyecto.refresh_from_db()
         assert proyecto.estado == 'publicado'
@@ -88,7 +106,7 @@ class TestCancelarContratacion:
         contrato.save()
 
         with pytest.raises(ValidationError) as exc:
-            cancelar_contratacion(contrato.id, empresa_user)
+            cancelar_contratacion(contrato.id, empresa_user, motivo=MOTIVO_TEST)
 
         assert 'contratos activos' in str(exc.value)
 
@@ -100,11 +118,11 @@ class TestCancelarContratacion:
         )
 
         with pytest.raises(PermissionDenied):
-            cancelar_contratacion(contrato.id, intruso)
+            cancelar_contratacion(contrato.id, intruso, motivo=MOTIVO_TEST)
 
         contrato.refresh_from_db()
         assert contrato.estado == 'activa'
 
     def test_permission_denied_para_desarrollador(self, desarrollador_user, contrato):
         with pytest.raises(PermissionDenied):
-            cancelar_contratacion(contrato.id, desarrollador_user)
+            cancelar_contratacion(contrato.id, desarrollador_user, motivo=MOTIVO_TEST)
