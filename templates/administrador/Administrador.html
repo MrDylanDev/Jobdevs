@@ -156,6 +156,22 @@
             <div class="mc-value">{{ total_devs }}</div>
             <div class="mc-sub">Talentos activos</div>
           </div>
+          <div class="metric-card warning" data-testid="metric-usuarios-inactivos">
+            <div class="mc-header">
+              <div class="mc-label">Usuarios Inactivos</div>
+              <div class="mc-icon"><i class="fa fa-user-slash"></i></div>
+            </div>
+            <div class="mc-value">{{ usuarios_inactivos }}</div>
+            <div class="mc-sub">Cuentas sin actividad</div>
+          </div>
+          <div class="metric-card danger" data-testid="metric-usuarios-suspendidos">
+            <div class="mc-header">
+              <div class="mc-label">Usuarios Suspendidos</div>
+              <div class="mc-icon"><i class="fa fa-user-lock"></i></div>
+            </div>
+            <div class="mc-value">{{ usuarios_suspendidos }}</div>
+            <div class="mc-sub">Cuentas restringidas</div>
+          </div>
         </div>
 
         <!-- Métricas de proyectos -->
@@ -445,9 +461,9 @@
           <div style="margin-top:32px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
               <i class="fa fa-triangle-exclamation" style="color:var(--danger);"></i>
-              <div class="page-title" style="font-size:16px;color:var(--danger);">Proyectos con Alerta de Inactividad</div>
+              <div class="page-title" style="font-size:16px;color:var(--danger);">Proyectos con Alerta de Inactividad (&gt; {{ dias_alerta_retraso|default:15 }} días)</div>
             </div>
-            <div class="table-wrapper" style="border-color:#fecaca;">
+            <div class="table-wrapper" style="border-color:#fecaca;" data-testid="tabla-alertas-inactividad">
               <table class="data-table">
                 <thead style="background:#fef2f2;">
                   <tr>
@@ -537,6 +553,16 @@
             <option value="active">Activo</option>
             <option value="inactive">Inactivo / Suspendido</option>
           </select>
+          <form method="get" action="{% url 'dashboard_admin' %}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input type="hidden" name="section" value="usersSection">
+            <label style="font-size:12px; color:var(--text-muted);">Registro desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde"
+              style="padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
+            <label style="font-size:12px; color:var(--text-muted);">hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta"
+              style="padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+          </form>
           <div id="bulkActions" style="display:none; gap:8px;">
             <button class="btn btn-success btn-sm" onclick="bulkToggleUsers('activate')"><i class="fa fa-check"></i> Activar</button>
             <button class="btn btn-danger btn-sm" onclick="bulkToggleUsers('suspend')"><i class="fa fa-ban"></i> Suspender</button>
@@ -558,7 +584,7 @@
             </thead>
             <tbody>
               {% for u in usuarios_todos %}
-                <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-id="{{ u.id }}">
+                <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
                   <td><input type="checkbox" class="user-checkbox" value="{{ u.id }}" onchange="updateBulkActions()"></td>
                   <td>
                     <div style="display:flex;align-items:center;gap:10px;">
@@ -1105,6 +1131,32 @@
               <i class="fa fa-download"></i> Descargar Excel (.csv)
             </a>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:24px;">
+          <h3 class="h5 mb-3"><i class="fa fa-broom me-1 text-primary"></i> Mantenimiento del Sistema</h3>
+          <p class="project-card-sub" style="margin-bottom:16px;">
+            Elimina notificaciones antiguas para optimizar el espacio y el rendimiento de la base de datos.
+            Cada ejecución queda registrada en el log de auditoría.
+          </p>
+          <form method="post" action="{% url 'admin_depurar_notificaciones' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end;">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" style="font-weight:600;">Días de antigüedad mínima</label>
+              <input type="number" name="dias" min="0" value="90" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-dias-depuracion">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:600;display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" name="incluir_no_leidas" data-testid="checkbox-incluir-no-leidas">
+                Incluir notificaciones no leídas
+              </label>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-depurar-notificaciones">
+                <i class="fa fa-trash me-1"></i> Depurar notificaciones
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 

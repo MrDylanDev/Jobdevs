@@ -1,4 +1,5 @@
 import re
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -9,6 +10,7 @@ from django.db import transaction
 from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value, FloatField, F, Max
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from datetime import timedelta
 from django.core.paginator import Paginator
 from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
@@ -19,6 +21,7 @@ from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
 from disputas.models import Disputa
 from notificaciones.models import Notificacion
+from notificaciones.services import depurar_notificaciones
 from mensajes.models import Mensaje
 from logs.models import LogAuditoria
 from ._helpers import get_notificaciones_context, cached_or_compute
@@ -36,6 +39,9 @@ def dashboard_admin(request):
             total_empresas=Count('id', filter=Q(rol='empresa', is_active=True)),
             total_devs=Count('id', filter=Q(rol='desarrollador', is_active=True)),
         )
+        # SCRUM-226 (RF 1.3.1): métricas de cuentas inactivas y suspendidas.
+        user_stats['inactivos'] = Usuario.objects.filter(estado='inactivo').count()
+        user_stats['suspendidos'] = Usuario.objects.filter(estado='suspendido').count()
         proy_stats = Proyecto.objects.aggregate(
             p_pub=Count('id', filter=Q(estado='publicado')),
             p_des=Count('id', filter=Q(estado='en_desarrollo')),
@@ -54,6 +60,8 @@ def dashboard_admin(request):
 
     total_empresas = user_stats['total_empresas']
     total_devs = user_stats['total_devs']
+    usuarios_inactivos = user_stats['inactivos']
+    usuarios_suspendidos = user_stats['suspendidos']
     p_pub = proy_stats['p_pub']
     p_des = proy_stats['p_des']
     p_fin = proy_stats['p_fin']
@@ -63,6 +71,8 @@ def dashboard_admin(request):
     user_q = request.GET.get('user_q', '').strip()
     user_rol = request.GET.get('user_rol', '').strip()
     user_estado = request.GET.get('user_estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
     usuarios_qs = Usuario.objects.all()
     if user_q:
@@ -76,6 +86,14 @@ def dashboard_admin(request):
         usuarios_qs = usuarios_qs.filter(rol=user_rol)
     if user_estado:
         usuarios_qs = usuarios_qs.filter(estado=user_estado)
+
+    # SCRUM-226 (RF 1.3.3): filtro por rango de fecha de registro.
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        usuarios_qs = usuarios_qs.filter(date_joined__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        usuarios_qs = usuarios_qs.filter(date_joined__date__lte=fecha_hasta_parsed)
 
     user_paginator = Paginator(usuarios_qs.order_by('-date_joined'), 25)
     user_page = request.GET.get('user_page', 1)
@@ -163,13 +181,15 @@ def dashboard_admin(request):
 
     salud_global = (promedio_global, p_ret)
 
-    siete_dias_atras = timezone.now() - timedelta(days=7)
+    # SCRUM-315 (HU-A07): el umbral de inactividad es configurable (15 días por defecto).
+    dias_alerta = getattr(settings, 'PROYECTO_DIAS_ALERTA_RETRASO', 15)
+    fecha_alerta = timezone.now() - timedelta(days=dias_alerta)
     proyectos_alerta = Proyecto.objects.filter(
         estado='en_desarrollo'
     ).annotate(
         ultimo_avance=Max('entregables__fecha_creacion'),
     ).filter(
-        Q(ultimo_avance__lt=siete_dias_atras) | Q(ultimo_avance__isnull=True)
+        Q(ultimo_avance__lt=fecha_alerta) | Q(ultimo_avance__isnull=True)
     ).select_related('empresa').prefetch_related(
         Prefetch('contrataciones',
             queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador'),
@@ -265,6 +285,8 @@ def dashboard_admin(request):
         'post_pen': post_pen, 'promedio_global': promedio_global, 'p_ret': p_ret,
         'usuarios_todos': usuarios_lista, 'proyectos_todos': proyectos_lista,
         'user_q': user_q, 'user_rol': user_rol, 'user_estado': user_estado,
+        'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'usuarios_inactivos': usuarios_inactivos,
+        'usuarios_suspendidos': usuarios_suspendidos,
         'proy_q': proy_q, 'proy_estado': proy_estado,
         'logs_auditoria': logs, 'conversaciones': conversaciones, 
         'mensajes_no_leidos_admin': mensajes_no_leidos_admin,
@@ -275,6 +297,7 @@ def dashboard_admin(request):
         'resenas_auditoria': resenas_auditoria,
         'salud_global': salud_global,
         'alertas_retraso': alertas_retraso,
+        'dias_alerta_retraso': dias_alerta,
         'notificaciones': notificaciones_admin,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'admin_id': request.user.id,
@@ -416,4 +439,37 @@ def admin_toggle_ficha_sena(request, ficha_id):
     estado_str = 'activada' if ficha.activa else 'desactivada'
     messages.success(request, f'Ficha {ficha.numero_ficha} {estado_str} correctamente.')
     return destino
+
+
+@login_required
+@require_POST
+def admin_depurar_notificaciones(request):
+    """SCRUM-316 (HU-A16): depura notificaciones antiguas desde el panel admin."""
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = reverse('dashboard_admin') + '?section=reportsSection'
+
+    try:
+        dias = int(request.POST.get('dias', 90))
+    except (TypeError, ValueError):
+        dias = 90
+    dias = max(0, dias)
+
+    incluir_no_leidas = request.POST.get('incluir_no_leidas') in ('on', 'true', '1')
+
+    borradas = depurar_notificaciones(
+        dias=dias, incluir_no_leidas=incluir_no_leidas
+    )
+
+    LogAuditoria.objects.create(
+        usuario=request.user,
+        accion=f"Depuración de notificaciones: {borradas} eliminadas (> {dias} días)"[:300],
+        tabla_afectada='notificaciones',
+    )
+    messages.success(
+        request,
+        f"Se depuraron {borradas} notificaciones antiguas exitosamente.",
+    )
+    return redirect(destino)
 

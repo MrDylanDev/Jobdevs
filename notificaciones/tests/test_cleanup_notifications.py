@@ -94,3 +94,37 @@ class TestCleanupNotificationsCommand:
         from django.core.management.base import CommandError
         with pytest.raises(CommandError, match="El parámetro --days debe ser un entero positivo o cero"):
             call_command('cleanup_notifications', days=-5)
+
+
+@pytest.mark.django_db
+class TestDepurarNotificacionesService:
+    """SCRUM-316: contrato del servicio reutilizable `depurar_notificaciones`."""
+
+    def test_dias_negativos_raise_value_error(self):
+        from notificaciones.services import depurar_notificaciones
+
+        with pytest.raises(ValueError, match="El parámetro días debe ser un entero positivo o cero."):
+            depurar_notificaciones(dias=-1)
+
+    def test_dry_run_no_borra_y_retorna_conteo(self, notif_user):
+        from notificaciones.services import depurar_notificaciones
+
+        ahora = timezone.now()
+        n = Notificacion.objects.create(
+            usuario=notif_user, tipo='alerta', mensaje='Dry run service', leida=True,
+        )
+        Notificacion.objects.filter(id=n.id).update(fecha=ahora - timedelta(days=100))
+
+        assert depurar_notificaciones(dias=90, dry_run=True) == 1
+        assert Notificacion.objects.filter(id=n.id).exists()
+
+    def test_sin_coincidencias_retorna_cero_sin_borrar(self, notif_user):
+        from notificaciones.services import depurar_notificaciones
+
+        n = Notificacion.objects.create(
+            usuario=notif_user, tipo='alerta', mensaje='Reciente', leida=True,
+        )
+        Notificacion.objects.filter(id=n.id).update(fecha=timezone.now() - timedelta(days=5))
+
+        assert depurar_notificaciones(dias=90) == 0
+        assert Notificacion.objects.filter(id=n.id).exists()
