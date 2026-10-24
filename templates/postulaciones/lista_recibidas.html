@@ -191,6 +191,12 @@
                               <i class="fa fa-check"></i> Contratar
                           </button>
                       </form>
+                      <form method="post" action="{% url 'rechazar_postulacion' post.id %}" onsubmit="return confirm('¿Seguro que deseas rechazar esta postulación?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger" style="width: 100%; justify-content: center; padding: 10px;">
+                              <i class="fa fa-xmark"></i> Rechazar
+                          </button>
+                      </form>
                       <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
                           <i class="fa fa-message"></i> Mensaje Privado
                       </a>

@@ -585,6 +585,7 @@ class TestIniciarNegociacion:
         html = auth_client.get(url).content.decode()
         assert reverse('iniciar_negociacion', args=[post.id]) in html
         assert reverse('aceptar_postulacion', args=[post.id]) in html
+        assert reverse('rechazar_postulacion', args=[post.id]) in html
 
         auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
         contrato = ContratoDigital.objects.get(postulacion=post)
@@ -593,3 +594,21 @@ class TestIniciarNegociacion:
         assert reverse('ver_contrato_digital', args=[contrato.id]) in html
         assert reverse('sala_chat', args=[desarrollador_user.id, proyecto.id]) in html
         assert reverse('iniciar_negociacion', args=[post.id]) not in html
+
+    def test_vista_rechazar_postulacion_exito(self, auth_client, escenario):
+        _, post = escenario
+        url = reverse('rechazar_postulacion', args=[post.id])
+        res = auth_client.post(url, follow=True)
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'rechazada'
+        assert any('ha sido rechazada' in str(m) for m in res.context['messages'])
+
+    def test_vista_rechazar_postulacion_no_empresa_denegado(self, dev_client, escenario):
+        _, post = escenario
+        url = reverse('rechazar_postulacion', args=[post.id])
+        res = dev_client.post(url, follow=True)
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+

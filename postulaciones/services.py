@@ -22,7 +22,7 @@ from notificaciones.models import Notificacion
 from proyectos.models import Proyecto, Equipo
 
 from .models import Postulacion
-from .policies import puede_aceptar_postulacion
+from .policies import puede_aceptar_postulacion, puede_rechazar_postulacion
 
 
 def aceptar_postulacion(postulacion_id, ejecutado_por):
@@ -233,3 +233,64 @@ def expirar_negociaciones_vencidas(referencia_tiempo=None):
             expiradas += 1
 
     return expiradas
+
+
+def rechazar_postulacion(postulacion_id, ejecutado_por, motivo=''):
+    """Rechaza formalmente una postulación individual por la empresa (SCRUM-310).
+
+    - Bloquea la postulación dentro de una transacción con select_for_update.
+    - Valida autorización con puede_rechazar_postulacion.
+    - Si existe un contrato digital asociado en borrador o pendiente de firma, se pasa a 'rechazado'.
+    - Notifica al desarrollador sobre el rechazo.
+    - Registra auditoría en LogAuditoria.
+    """
+    with transaction.atomic():
+        try:
+            postulacion = (
+                Postulacion.objects.select_for_update()
+                .select_related('proyecto', 'desarrollador', 'proyecto__empresa')
+                .get(id=postulacion_id)
+            )
+        except Postulacion.DoesNotExist:
+            raise ValidationError('La postulación no existe.')
+
+        if not puede_rechazar_postulacion(ejecutado_por, postulacion):
+            raise PermissionDenied('No tienes autorización para rechazar esta postulación.')
+
+        postulacion.estado = 'rechazada'
+        postulacion.save(update_fields=['estado'])
+
+        from contrataciones.models import ContratoDigital
+        try:
+            contrato = ContratoDigital.objects.select_for_update().get(postulacion_id=postulacion.id)
+            if contrato.estado in ('borrador', 'pendiente_firma'):
+                contrato.estado = 'rechazado'
+                contrato.save(update_fields=['estado', 'fecha_actualizacion'])
+        except ContratoDigital.DoesNotExist:
+            pass
+
+        mensaje_notif = (
+            f"Tu postulación al proyecto '{postulacion.proyecto.titulo}' "
+            f"no ha sido seleccionada por la empresa."
+        )
+        if motivo.strip():
+            mensaje_notif += f" Motivo: {motivo.strip()}"
+
+        Notificacion.objects.create(
+            usuario=postulacion.desarrollador,
+            proyecto=postulacion.proyecto,
+            tipo='alerta',
+            mensaje=mensaje_notif[:500],
+        )
+
+        LogAuditoria.objects.create(
+            usuario=ejecutado_por,
+            accion=(
+                f"Rechazó postulación de {postulacion.desarrollador.username} "
+                f"en {postulacion.proyecto.titulo}"
+            )[:300],
+            tabla_afectada='postulaciones',
+            registro_id=postulacion.id,
+        )
+
+        return True
