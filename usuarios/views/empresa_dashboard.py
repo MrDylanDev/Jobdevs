@@ -8,6 +8,7 @@ from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
 from contrataciones.models import Contratacion
 from disputas.services import datos_dashboard_disputas
+from mensajes.models import Mensaje
 from ._helpers import get_notificaciones_context
 
 
@@ -101,6 +102,7 @@ def dashboard_empresa(request):
         'postulaciones_pendientes': postulaciones_pendientes_obj,
         'notificaciones': notificaciones_recientes,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
+        'mensajes_no_leidos': Mensaje.objects.filter(receptor=request.user, leido=False).count(),
         'perfil': perfil,
         'admin_id': admin_id,
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
