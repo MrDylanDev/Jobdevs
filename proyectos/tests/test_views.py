@@ -335,6 +335,41 @@ class TestEditarProyecto:
         proyecto.refresh_from_db()
         assert proyecto.titulo == 'Editable'  # unchanged
 
+    def test_editar_proyecto_bloquea_reducir_vacantes_por_debajo_de_negociaciones(self, auth_client, empresa_user):
+        """SCRUM-216: No se pueden reducir vacantes por debajo de las negociaciones en curso."""
+        proyecto = self._proyecto_publicado(empresa_user)
+        proyecto.vacantes = 3
+        proyecto.save()
+
+        from postulaciones.models import Postulacion
+        dev1 = User.objects.create_user(
+            username='dev_neg1', email='dev_neg1@test.jobdevs', nombre='Dev 1',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        dev2 = User.objects.create_user(
+            username='dev_neg2', email='dev_neg2@test.jobdevs', nombre='Dev 2',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        Postulacion.objects.create(proyecto=proyecto, desarrollador=dev1, estado='en_negociacion')
+        Postulacion.objects.create(proyecto=proyecto, desarrollador=dev2, estado='en_negociacion')
+
+        response = auth_client.post(
+            reverse('editar_proyecto', args=[proyecto.id]),
+            {
+                'titulo': proyecto.titulo,
+                'descripcion': proyecto.descripcion,
+                'tipo_solucion': proyecto.tipo_solucion,
+                'prioridad': 'media',
+                'vacantes': '1',
+            },
+            follow=True,
+        )
+        assert response.status_code == 200
+        proyecto.refresh_from_db()
+        assert proyecto.vacantes == 3  # No se redujo
+        content = response.content.decode()
+        assert 'comprometida' in content.lower() or 'negociación' in content.lower()
+
 
 class TestFinalizarProyecto:
     """Tests for finalizar_proyecto view."""

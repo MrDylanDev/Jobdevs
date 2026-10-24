@@ -42,6 +42,15 @@
           </div>
         </div>
 
+        {% if messages %}
+          {% for message in messages %}
+            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
+              <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
         <div class="card">
           <form method="post" style="display:flex; flex-direction:column; gap:20px;">
             {% csrf_token %}

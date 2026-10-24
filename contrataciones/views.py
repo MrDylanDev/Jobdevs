@@ -87,6 +87,12 @@ def activar_contratacion_formal(contrato, empresa):
     proyecto = Proyecto.objects.select_for_update().get(id=postulacion.proyecto_id)
     desarrollador = postulacion.desarrollador
 
+    contrataciones_activas = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count()
+    if contrataciones_activas >= proyecto.vacantes:
+        raise ValidationError(
+            f"El proyecto '{proyecto.titulo}' ya ha alcanzado el límite de vacantes disponibles ({proyecto.vacantes})."
+        )
+
     contrato.estado = 'firmado'
 
     postulacion.estado = 'aceptada'
@@ -282,6 +288,10 @@ def firmar_contrato_digital(request, contrato_id):
                 mensaje = "Has firmado el contrato. Queda pendiente la firma de la otra parte."
 
             contrato.save()
+    except ValidationError as ve:
+        mensaje_error = ve.messages[0] if hasattr(ve, 'messages') and ve.messages else str(ve)
+        messages.error(request, f"No es posible formalizar la contratación: {mensaje_error}")
+        return redirect('ver_contrato_digital', contrato_id=contrato_id)
     except Exception as e:
         messages.error(request, f"Error al firmar el contrato: {str(e)}")
         return redirect('ver_contrato_digital', contrato_id=contrato_id)

@@ -528,6 +528,17 @@ def editar_proyecto(request, proyecto_id):
             messages.error(request, "Las vacantes deben ser un número mayor o igual a 1.")
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
 
+        contratos_activos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count()
+        negociaciones_activas = proyecto.postulaciones.filter(estado='en_negociacion').count()
+        comprometidas = contratos_activos + negociaciones_activas
+        if vacantes < comprometidas:
+            messages.error(
+                request,
+                f"No puedes reducir las vacantes a {vacantes} porque ya hay {comprometidas} "
+                f"vacante(s) comprometida(s) ({contratos_activos} contratos activos y {negociaciones_activas} en negociación)."
+            )
+            return redirect('editar_proyecto', proyecto_id=proyecto.id)
+
         # Hallazgo 9: Validar que fecha_limite no sea en el pasado
         fecha_limite = request.POST.get('fecha_limite') or None
         if fecha_limite:
