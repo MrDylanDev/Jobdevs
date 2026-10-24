@@ -287,4 +287,8 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'kwargs': {'dias': 30, 'incluir_no_leidas': False},
     },
+    'expirar-negociaciones-vencidas': {
+        'task': 'postulaciones.expirar_negociaciones_vencidas',
+        'schedule': crontab(minute='*/30'),
+    },
 }

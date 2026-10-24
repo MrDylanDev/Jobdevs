@@ -155,6 +155,19 @@ def ver_contrato_digital(request, contrato_id):
     if rol_contrato is None:
         raise PermissionDenied
 
+    postulacion = contrato.postulacion
+    if (
+        contrato.estado in ('borrador', 'pendiente_firma')
+        and postulacion.estado == 'en_negociacion'
+        and postulacion.fecha_limite_negociacion
+        and postulacion.fecha_limite_negociacion < timezone.now()
+    ):
+        from postulaciones.services import expirar_negociacion
+        expirar_negociacion(postulacion.id)
+        contrato.refresh_from_db()
+        postulacion.refresh_from_db()
+        messages.warning(request, "El plazo para formalizar este contrato ha expirado.")
+
     if request.method == 'POST':
         if rol_contrato != 'empresa':
             raise PermissionDenied
@@ -247,6 +260,12 @@ def firmar_contrato_digital(request, contrato_id):
 
             if contrato.estado not in ('borrador', 'pendiente_firma') or postulacion.estado != 'en_negociacion':
                 messages.error(request, "Este contrato ya no está disponible para firma.")
+                return redirect('ver_contrato_digital', contrato_id=contrato.id)
+
+            if postulacion.fecha_limite_negociacion and postulacion.fecha_limite_negociacion < timezone.now():
+                from postulaciones.services import expirar_negociacion
+                expirar_negociacion(postulacion.id)
+                messages.error(request, "El plazo para formalizar este contrato ha expirado.")
                 return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
             ya_firmo = contrato.firmado_empresa if rol_contrato == 'empresa' else contrato.firmado_desarrollador
