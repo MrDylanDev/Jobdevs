@@ -33,6 +33,12 @@
     <div class="brand-dot"></div>
   </a>
   <ul class="nav-links" id="navLinks">
+    <li><a href="#sistemas">Módulos</a></li>
+    <li><a href="#metodologia">Cómo funciona</a></li>
+    <li><a href="#roles">Roles</a></li>
+    <li><a href="#testimonios">Casos de éxito</a></li>
+    <li><a href="#comenzar">Comenzar</a></li>
+    <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">Ingresar</a></li>
   </ul>
   <div class="nav-right">
     <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">[ INGRESAR ]</button>
@@ -121,45 +127,45 @@
 <section class="stats-section">
   <div class="stats-grid stats-wrapper in-view">
     <div class="stat-item">
-      <div class="stat-number number-display" data-count="12" data-suffix="" style="color:var(--fg);">0</div>
-      <div class="stat-label">Meses operando</div>
+      <div class="stat-number number-display" data-count="120" data-suffix="+" style="color:var(--fg);">0</div>
+      <div class="stat-label">Proyectos gestionados</div>
     </div>
     <div class="stat-item">
-      <div class="stat-number number-display" data-count="35" data-suffix="" style="color:var(--accent);">0</div>
-      <div class="stat-label">Funcionalidades activas</div>
+      <div class="stat-number number-display" data-count="350" data-suffix="+" style="color:var(--accent);">0</div>
+      <div class="stat-label">Desarrolladores SENA verificados</div>
     </div>
     <div class="stat-item">
-      <div class="stat-number number-display" data-count="99" data-suffix="%" style="color:var(--fg);">0</div>
-      <div class="stat-label">Uptime del sistema</div>
+      <div class="stat-number number-display" data-count="98" data-suffix="%" style="color:var(--fg);">0</div>
+      <div class="stat-label">Hitos entregados con éxito</div>
     </div>
     <div class="stat-item">
-      <div class="stat-number number-display" data-count="3" data-suffix="" style="color:var(--fg);">0</div>
-      <div class="stat-label">Tipos de nodo</div>
+      <div class="stat-number number-display" data-count="100" data-suffix="%" style="color:var(--accent);">0</div>
+      <div class="stat-label">Trazabilidad y contratos seguros</div>
     </div>
   </div>
 </section>
 
-<!-- ==================== FLIP CARDS — CORE SYSTEMS ==================== -->
+<!-- ==================== CORE SYSTEMS ==================== -->
 <section id="sistemas" class="section-tech bg-darker">
   <div class="section-inner">
     <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_02: SYSTEM_CORE</span></span>
-      <h2 class="sh-title">Módulos que <span style="color:var(--accent);">construyen</span><br>módulos que <span class="text-stroke">transforman.</span></h2>
+      <span class="section-marker"><span>MÓDULOS DE LA PLATAFORMA</span></span>
+      <h2 class="sh-title">Arquitectura pensada para<br><span style="color:var(--accent);">entregas reales.</span></h2>
     </div>
     <div class="reveal" style="margin-bottom:24px;">
-      <p class="desc-mono desc-mono--lg">Cada módulo del sistema está diseñado para un propósito específico dentro del ecosistema JobDevs. Pasa el cursor sobre cada tarjeta para ver sus capacidades.</p>
+      <p class="desc-mono desc-mono--lg">Cuatro pilares técnicos para conectar, gestionar y auditar proyectos de software con trazabilidad total. Pasa el cursor o haz clic en cada tarjeta para conocer sus capacidades.</p>
     </div>
 
     <div class="reveal-stagger flip-grid">
 
       <!-- Sistema 1: Gestión de Proyectos -->
-      <div class="flip-card">
+      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Gestión de Proyectos">
         <div class="flip-card-inner">
           <div class="flip-face flip-front">
             <div class="flip-img-box">
               <img src="{% static 'IMG/website.png' %}" alt="Gestión de proyectos" loading="lazy">
               <div class="flip-label">/ 01</div>
-              <div class="flip-badge">CORE</div>
+              <div class="flip-badge">PROYECTOS</div>
               <div class="flip-specialty">Gestión & Seguimiento</div>
             </div>
             <div class="flip-info">
@@ -168,8 +174,8 @@
                 <p class="flip-role">Registro · Avances · Hitos</p>
               </div>
               <div class="flip-meta">
-                <span class="flip-meta-stats">3 ENTIDADES · REGISTRO</span>
-                <span class="flip-meta-hint">HOVER →</span>
+                <span class="flip-meta-stats">3 ROLES · SEGUIMIENTO</span>
+                <span class="flip-meta-hint">CAPACIDADES ↻</span>
               </div>
             </div>
           </div>
@@ -177,10 +183,10 @@
             <div class="flip-back-label">/ Gestión — Ficha técnica</div>
             <h3 class="flip-back-title">Capacidades</h3>
             <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Registro completo de proyectos</li>
-              <li><i class="fa fa-circle-check"></i> Sistema de hitos y entregables</li>
-              <li><i class="fa fa-circle-check"></i> Avances con evidencia documentada</li>
-              <li><i class="fa fa-circle-check"></i> Dashboard por rol (Admin/Empresa/Dev)</li>
+              <li><i class="fa fa-circle-check"></i> Registro completo de requerimientos técnicos</li>
+              <li><i class="fa fa-circle-check"></i> Desglose por hitos y entregables fechados</li>
+              <li><i class="fa fa-circle-check"></i> Avances con evidencia documentada en R2</li>
+              <li><i class="fa fa-circle-check"></i> Dashboard contextual por rol (Admin/Empresa/Dev)</li>
             </ul>
             <div class="flip-back-footer">
               <div class="flip-back-sig">Módulo principal</div>
@@ -192,13 +198,13 @@
       </div>
 
       <!-- Sistema 2: Control de Acceso -->
-      <div class="flip-card">
+      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Control de Acceso">
         <div class="flip-card-inner">
           <div class="flip-face flip-front">
             <div class="flip-img-box">
               <img src="{% static 'IMG/Personalizado.png' %}" alt="Control de acceso" loading="lazy">
               <div class="flip-label">/ 02</div>
-              <div class="flip-badge">Ingresar</div>
+              <div class="flip-badge">SEGURIDAD</div>
               <div class="flip-specialty">Usuarios & Permisos</div>
             </div>
             <div class="flip-info">
@@ -207,8 +213,8 @@
                 <p class="flip-role">Perfiles verificados con reputación pública</p>
               </div>
               <div class="flip-meta">
-                <span class="flip-meta-stats">3 ROLES · SESIÓN</span>
-                <span class="flip-meta-hint">HOVER →</span>
+                <span class="flip-meta-stats">SENA & DIAN · SESIÓN</span>
+                <span class="flip-meta-hint">CAPACIDADES ↻</span>
               </div>
             </div>
           </div>
@@ -216,22 +222,22 @@
             <div class="flip-back-label">/ Acceso — Ficha técnica</div>
             <h3 class="flip-back-title">Capacidades</h3>
             <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Registro con portafolio y stack tecnológico</li>
-              <li><i class="fa fa-circle-check"></i> Perfil público verificable para empresas</li>
-              <li><i class="fa fa-circle-check"></i> Control de acceso segmentado por rol</li>
-              <li><i class="fa fa-circle-check"></i> Suspensión y bloqueo de cuentas</li>
+              <li><i class="fa fa-circle-check"></i> Validación de identidad con padrón oficial SENA</li>
+              <li><i class="fa fa-circle-check"></i> Perfil público verificable con stack y ficha</li>
+              <li><i class="fa fa-circle-check"></i> Control de acceso basado en roles (RBAC)</li>
+              <li><i class="fa fa-circle-check"></i> Sesiones aisladas y auditoría de accesos</li>
             </ul>
             <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">PERFIL VERIFICABLE</div>
-              <div class="flip-back-sig-desc">Tu identidad profesional, validada dentro del ecosistema JobDevs.</div>
+              <div class="flip-back-sig">Módulo de seguridad</div>
+              <div class="flip-back-sig-name">IDENTIDAD VERIFICADA</div>
+              <div class="flip-back-sig-desc">Validación de aprendices y empresas registradas.</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Sistema 3: Motor de Vinculación -->
-      <div class="flip-card">
+      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Motor de Vinculación">
         <div class="flip-card-inner">
           <div class="flip-face flip-front">
             <div class="flip-img-box">
@@ -246,8 +252,8 @@
                 <p class="flip-role">Postular · Contratar · Evaluar</p>
               </div>
               <div class="flip-meta">
-                <span class="flip-meta-stats">3 FLUJOS · CONTRATO</span>
-                <span class="flip-meta-hint">HOVER →</span>
+                <span class="flip-meta-stats">ACUERDO · CONTRATO</span>
+                <span class="flip-meta-hint">CAPACIDADES ↻</span>
               </div>
             </div>
           </div>
@@ -256,27 +262,27 @@
             <h3 class="flip-back-title">Capacidades</h3>
             <ul class="flip-back-list">
               <li><i class="fa fa-circle-check"></i> Postulación directa con carta de presentación</li>
-              <li><i class="fa fa-circle-check"></i> Contratación directa con acuerdos por proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Evaluación de empresas por devs</li>
-              <li><i class="fa fa-circle-check"></i> Estados transicionales con triggers</li>
+              <li><i class="fa fa-circle-check"></i> Contratos digitales con hash criptográfico SHA-256</li>
+              <li><i class="fa fa-circle-check"></i> Calificación mutua al cierre de proyecto</li>
+              <li><i class="fa fa-circle-check"></i> Sala de mediación y resolución de disputas</li>
             </ul>
             <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">FLUJO DE VINCULACIÓN</div>
-              <div class="flip-back-sig-desc">Selección manual con carta de presentación.</div>
+              <div class="flip-back-sig">Módulo contractual</div>
+              <div class="flip-back-sig-name">CONTRATACIÓN SEGURA</div>
+              <div class="flip-back-sig-desc">Acuerdos digitales con validez y registro inmutable.</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Sistema 4: Centro de Comunicación -->
-      <div class="flip-card">
+      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Centro de Comunicación">
         <div class="flip-card-inner">
           <div class="flip-face flip-front">
             <div class="flip-img-box">
               <img src="{% static 'IMG/ia.png' %}" alt="Centro de comunicación" loading="lazy">
               <div class="flip-label">/ 04</div>
-              <div class="flip-badge">COMMS</div>
+              <div class="flip-badge">COMUNICACIÓN</div>
               <div class="flip-specialty">Mensajería & Notificaciones</div>
             </div>
             <div class="flip-info">
@@ -285,8 +291,8 @@
                 <p class="flip-role">Chat · Notif · Auditoría</p>
               </div>
               <div class="flip-meta">
-                <span class="flip-meta-stats">MENSAJERÍA · LOGS</span>
-                <span class="flip-meta-hint">HOVER →</span>
+                <span class="flip-meta-stats">TIEMPO REAL · LOGS</span>
+                <span class="flip-meta-hint">CAPACIDADES ↻</span>
               </div>
             </div>
           </div>
@@ -294,15 +300,15 @@
             <div class="flip-back-label">/ Comunicación — Ficha técnica</div>
             <h3 class="flip-back-title">Capacidades</h3>
             <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Chat privado por proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Sistema de notificaciones por rol</li>
-              <li><i class="fa fa-circle-check"></i> Registro de actividad del proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Favoritos y seguimiento</li>
+              <li><i class="fa fa-circle-check"></i> Chat privado de proyecto entre empresa y dev</li>
+              <li><i class="fa fa-circle-check"></i> Notificaciones automáticas por eventos y avances</li>
+              <li><i class="fa fa-circle-check"></i> Registro de auditoría de actividad del proyecto</li>
+              <li><i class="fa fa-circle-check"></i> Seguimiento reactivo y favoritos</li>
             </ul>
             <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">MOTOR DE COMUNICACIÓN</div>
-              <div class="flip-back-sig-desc">Comunicación directa con historial.</div>
+              <div class="flip-back-sig">Módulo colaborativo</div>
+              <div class="flip-back-sig-name">MENSAJERÍA INTEGRADA</div>
+              <div class="flip-back-sig-desc">Comunicación directa sin salir de la plataforma.</div>
             </div>
           </div>
         </div>
@@ -316,40 +322,40 @@
 <section id="metodologia" class="section-tech bg-dim">
   <div class="section-inner">
     <div class="section-head reveal" style="align-items: center; text-align: center;">
-      <span class="section-marker"><span>// MODULE_03: CÓMO_FUNCIONA</span></span>
-      <h2 class="sh-title">Cómo Funciona.</h2>
+      <span class="section-marker"><span>FLUJO DE TRABAJO</span></span>
+      <h2 class="sh-title">Cómo funciona JobDevs</h2>
     </div>
-    <p class="reveal desc-mono" style="text-align:center;max-width:520px;margin:-20px auto 50px;">
-       Cuatro pasos. Del requerimiento a la entrega. Simple, directo, sin intermediarios.
+    <p class="reveal desc-mono" style="text-align:center;max-width:560px;margin:-20px auto 50px;">
+       Cuatro pasos simples. Del requerimiento técnico a la entrega en producción, con trazabilidad y sin intermediarios.
     </p>
 
     <div class="method-flow reveal-stagger">
       <div class="flow-step">
         <div class="step-node"><i class="fa fa-file-code"></i></div>
         <div class="step-content tech-frame">
-          <h4>[ 01 · PUBLICAR_PROYECTO ]</h4>
-          <p>La empresa registra su necesidad técnica: tipo de solución, stack tecnológico y fecha límite.</p>
+          <h4>01 · Publicar Requerimiento</h4>
+          <p>La empresa define su necesidad técnica: stack tecnológico, hitos estimados y vacantes requeridas.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="step-node"><i class="fa fa-users"></i></div>
         <div class="step-content tech-frame">
-          <h4>[ 02 · POSTULARSE ]</h4>
-          <p>Desarrolladores del SENA envían su carta de presentación, experiencia y portafolio. La empresa elige al candidato.</p>
+          <h4>02 · Postulación y Selección</h4>
+          <p>Desarrolladores del SENA envían su carta de presentación y portafolio verificado. La empresa elige al equipo.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="step-node"><i class="fa fa-code-pull-request"></i></div>
         <div class="step-content tech-frame">
-          <h4>[ 03 · EJECUTAR ]</h4>
-          <p>Trabajo por hitos. El equipo entrega avances con evidencia. La empresa revisa y aprueba cada etapa.</p>
+          <h4>03 · Ejecución por Hitos</h4>
+          <p>Desarrollo estructurado. Los aprendices registran avances con evidencia técnica que la empresa valida.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="step-node"><i class="fa fa-rocket"></i></div>
         <div class="step-content tech-frame">
-          <h4>[ 04 · CERRAR ]</h4>
-          <p>Proyecto finalizado. Se emiten calificaciones y certificados de reputación para ambas partes.</p>
+          <h4>04 · Entrega y Calificación</h4>
+          <p>Cierre de proyecto exitoso. Emisión de contratos finales y calificaciones mutuas que construyen reputación.</p>
         </div>
       </div>
     </div>
@@ -360,38 +366,44 @@
 <section id="roles" class="section-tech">
   <div class="section-inner">
     <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_04: ROLES</span></span>
-      <h2 class="sh-title">Dos formas de<br>participar.</h2>
+      <span class="section-marker"><span>MODELO BILATERAL</span></span>
+      <h2 class="sh-title">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
     </div>
 
     <div class="roles-wrapper reveal">
       <div class="role-pane tech-frame role-pane-corp">
         <div class="rp-header">
-          <span class="rp-label">Para empresas</span>
-          <h3 class="rp-title">Corp</h3>
-          <p class="rp-desc">Publica tu proyecto, recibe postulaciones de talento SENA, elige al candidato y gestiona entregas por hitos.</p>
+          <span class="rp-label">Para Empresas y Startups</span>
+          <h3 class="rp-title">Empresas</h3>
+          <p class="rp-desc">Publica requerimientos de software, recibe postulaciones de aprendices calificados y gestiona tus entregas mediante hitos auditables.</p>
         </div>
         <ul class="rp-data">
-          <li><span>Publicación</span> <span>Requerimientos técnicos</span></li>
-          <li><span>Selección</span> <span>Directa del equipo</span></li>
-          <li><span>Seguimiento</span> <span>Por hitos verificables</span></li>
-          <li><span>Evaluación</span> <span>Del trabajo recibido</span></li>
+          <li><span>Publicación</span> <span>Requerimientos técnicos claros</span></li>
+          <li><span>Selección</span> <span>Elección directa del talento</span></li>
+          <li><span>Seguimiento</span> <span>Hitos con evidencia en tiempo real</span></li>
+          <li><span>Seguridad</span> <span>Contratos digitales y mediación</span></li>
         </ul>
-        <a href="{% url 'registro' %}" class="btn-tech-sec" style="margin-top: 40px; width: 100%;">PUBLICAR PROYECTO</a>
+        <a href="{% url 'registro' %}" class="btn-tech-sec" style="margin-top: 40px; width: 100%;">
+          <span>PUBLICAR PROYECTO</span>
+          <i class="fa fa-briefcase ms-2"></i>
+        </a>
       </div>
       <div class="role-pane tech-frame">
         <div class="rp-header">
-          <span class="rp-label">Para desarrolladores</span>
-          <h3 class="rp-title">Dev</h3>
-          <p class="rp-desc">Crea tu perfil con portafolio y stack, postúlate a proyectos reales y construye reputación verificable dentro del ecosistema.</p>
+          <span class="rp-label">Para Aprendices y Egresados SENA</span>
+          <h3 class="rp-title">Desarrolladores</h3>
+          <p class="rp-desc">Crea tu perfil profesional con tu ficha académica y portafolio, postúlate a proyectos reales y construye reputación verificable.</p>
         </div>
         <ul class="rp-data">
-          <li><span>Perfil</span> <span>Público con stack tecnológico</span></li>
-          <li><span>Postulación</span> <span>Con carta de presentación</span></li>
-          <li><span>Ejecución</span> <span>Por hitos con evidencia</span></li>
-          <li><span>Reputación</span> <span>Calificación acumulable</span></li>
+          <li><span>Perfil</span> <span>Verificación oficial con el SENA</span></li>
+          <li><span>Postulación</span> <span>Carta de presentación directa</span></li>
+          <li><span>Experiencia</span> <span>Trabajo en equipo y entrega de hitos</span></li>
+          <li><span>Reputación</span> <span>Calificaciones públicas de empresas</span></li>
         </ul>
-        <a href="{% url 'registro' %}" class="btn-tech" style="margin-top: 40px; width: 100%;"><span>CREAR PERFIL</span></a>
+        <a href="{% url 'registro' %}" class="btn-tech" style="margin-top: 40px; width: 100%;">
+          <span>CREAR PERFIL PROFESIONAL</span>
+          <i class="fa fa-code ms-2"></i>
+        </a>
       </div>
     </div>
   </div>
@@ -401,11 +413,11 @@
 <section id="testimonios" class="section-tech story-section bg-dim">
   <div class="section-inner" style="margin-bottom: 48px;">
     <div class="section-head reveal">
-      <h2 class="sh-title">Resultados <span style="color:var(--accent);">comprobables.</span></h2>
+      <span class="section-marker"><span>CASOS DE ÉXITO</span></span>
+      <h2 class="sh-title">Resultados <span style="color:var(--accent);">comprobables</span> en producción.</h2>
     </div>
-    <div class="reveal" style="max-width: 600px;">
-      <p class="desc-mono">Cada caso representa una implemtación éxitosa</p>
-
+    <div class="reveal" style="max-width: 650px;">
+      <p class="desc-mono">Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs.</p>
     </div>
   </div>
 
@@ -415,12 +427,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/website.png' %}" class="story-img" alt="FINTECH" loading="lazy">
-          <div class="story-img-tag">CASE / 01</div>
-          <div class="story-img-badge">-80% TIME</div>
+          <div class="story-img-tag">CASO / 01</div>
+          <div class="story-img-badge">-80% TIEMPO</div>
         </div>
         <div class="story-body">
           <div class="story-name">FINTECH COLOMBIA</div>
-          <div class="story-role">Backend · 6 meses</div>
+          <div class="story-role">Backend & Pagos · 6 meses</div>
           <p class="story-quote">"El equipo del SENA entregó una API de pagos más robusta que la de nuestro proveedor anterior. En 6 meses ya estábamos en producción."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">100%</div><div class="story-stat-label">A tiempo</div></div>
@@ -433,12 +445,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="ECOMMERCE" loading="lazy">
-          <div class="story-img-tag">CASE / 02</div>
-          <div class="story-img-badge">+34% CONV</div>
+          <div class="story-img-tag">CASO / 02</div>
+          <div class="story-img-badge">+34% CONVERSIÓN</div>
         </div>
         <div class="story-body">
           <div class="story-name">ECOMMERCE NACIONAL</div>
-          <div class="story-role">Frontend · 4 meses</div>
+          <div class="story-role">Frontend & Checkout · 4 meses</div>
           <p class="story-quote">"Rediseñamos todo el checkout con un equipo de 2 devs del SENA. La tasa de conversión subió 34% en el primer trimestre."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">+34%</div><div class="story-stat-label">Conversión</div></div>
@@ -451,12 +463,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/ia.png' %}" class="story-img" alt="AGROTECH" loading="lazy">
-          <div class="story-img-tag">CASE / 03</div>
-          <div class="story-img-badge">-60% COST</div>
+          <div class="story-img-tag">CASO / 03</div>
+          <div class="story-img-badge">-60% COSTOS</div>
         </div>
         <div class="story-body">
           <div class="story-name">AGROTECH STARTUP</div>
-          <div class="story-role">Full Stack · 8 meses</div>
+          <div class="story-role">Full Stack & IoT · 8 meses</div>
           <p class="story-quote">"Necesitábamos un dashboard IoT para monitoreo de cultivos. El equipo SENA armó una solución mejor que la que cotizamos afuera."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">-60%</div><div class="story-stat-label">Costo vs ext</div></div>
@@ -469,7 +481,7 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/Personalizado.png' %}" class="story-img" alt="LOGISTICA" loading="lazy">
-          <div class="story-img-tag">CASE / 04</div>
+          <div class="story-img-tag">CASO / 04</div>
           <div class="story-img-badge">-93% DEPLOY</div>
         </div>
         <div class="story-body">
@@ -486,9 +498,9 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <div class="story-placeholder"></div>
-          <div class="story-img-tag">CASE / 05</div>
-          <div class="story-img-badge">50K+ USERS</div>
+          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="EDTECH" loading="lazy">
+          <div class="story-img-tag">CASO / 05</div>
+          <div class="story-img-badge">50K+ USUARIOS</div>
         </div>
         <div class="story-body">
           <div class="story-name">EDTECH PLATFORM</div>
@@ -504,9 +516,9 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <div class="story-placeholder"></div>
-          <div class="story-img-tag">CASE / 06</div>
-          <div class="story-img-badge">2M REG/DAY</div>
+          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="INSURTECH" loading="lazy">
+          <div class="story-img-tag">CASO / 06</div>
+          <div class="story-img-badge">2M REG/DÍA</div>
         </div>
         <div class="story-body">
           <div class="story-name">INSURTECH CORP</div>
@@ -537,73 +549,91 @@
 <!-- ==================== CTA / COMENZAR ==================== -->
 <section id="comenzar" class="section-tech bg-darker">
   <div class="section-inner">
-    <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
-      <h2 class="sh-title">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
+    <div class="section-head reveal" style="text-align: center; align-items: center;">
+      <span class="section-marker"><span>REGISTRO Y ACCESO</span></span>
+      <h2 class="sh-title">Comienza a construir en <span style="color:var(--accent);">JobDevs</span>.</h2>
+      <p class="desc-mono" style="max-width: 600px; margin: 12px auto 0;">Únete como empresa contratante o como desarrollador SENA. Proceso ágil, seguro y 100% transparente.</p>
     </div>
 
-    <div class="booking-layout reveal">
+    <div class="booking-layout-dual reveal">
+      <!-- Panel Empresas -->
       <div class="booking-panel">
-        <div class="booking-label">// Solicitud de proyecto</div>
-        <h3 class="booking-title">PUBLICA TU PROYECTO</h3>
-        <p class="booking-desc">Conecta tu necesidad de desarrollo con talento verificado del SENA. Crea tu cuenta de empresa, define los requerimientos de tu proyecto y recibe postulaciones de desarrolladores calificados.</p>
+        <div class="booking-label">Perfil Empresa / Contratante</div>
+        <h3 class="booking-title" style="font-size: 2rem;">PUBLICA TU PROYECTO</h3>
+        <p class="booking-desc">Conecta tus requerimientos de software con aprendices y egresados calificados del SENA. Gestiona tu equipo, revisa avances por hitos y finaliza con calificación mutua.</p>
 
-        <div style="margin: 28px 0; display:flex; flex-direction:column; gap:16px;">
+        <div style="margin: 24px 0; display:flex; flex-direction:column; gap:14px;">
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes sin costos ocultos</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes y requerimientos técnicos</span>
           </div>
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Verificación académica y validación de aprendices SENA</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Postulación directa de candidatos con ficha SENA</span>
           </div>
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros con trazabilidad de hitos</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros y sala de mediación</span>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <a href="{% url 'registro' %}" class="pulse-btn btn-submit-booking" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <span>CREAR CUENTA DE EMPRESA</span>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top: auto;">
+          <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;">
+            <span>REGISTRAR EMPRESA</span>
             <i class="fa fa-arrow-right"></i>
           </a>
-          <p class="form-disclaimer">
-            ¿Ya tienes cuenta? <a href="/?login=1" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión aquí</a>
+          <p class="form-disclaimer" style="text-align: center; margin: 0;">
+            ¿Ya tienes cuenta de empresa? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión</a>
           </p>
         </div>
       </div>
 
-      <!-- Info Panels -->
-      <div class="booking-info">
-        <div class="info-card">
-          <div class="info-label">/ Tiempos estimados</div>
-          <h4 class="info-title">RESPUESTA INICIAL</h4>
-          <div class="info-rows">
-            <div class="info-row">
-              <span>Evaluación de requerimiento</span>
-              <span>24h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Propuesta de equipo</span>
-              <span>48h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Inicio de trabajo</span>
-              <span>A coordinar</span>
-            </div>
+      <!-- Panel Desarrolladores -->
+      <div class="booking-panel">
+        <div class="booking-label" style="color:var(--fg);">Perfil Desarrollador / SENA</div>
+        <h3 class="booking-title" style="font-size: 2rem;">POSTÚLATE A PROYECTOS</h3>
+        <p class="booking-desc">Demuestra tus competencias técnicas en proyectos de software reales. Trabaja en equipo, entrega avances con evidencia y construye un portafolio profesional verificado.</p>
+
+        <div style="margin: 24px 0; display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Validación oficial con tu ficha y programa SENA</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Postulaciones directas con carta de presentación</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Historial y calificaciones públicas de empresas</span>
           </div>
         </div>
 
-        <div class="info-card">
-          <div class="info-label">/ Contacto</div>
-          <h4 class="info-title">CONTACTO DIRECTO</h4>
-          <div class="info-rows">
-            <a href="mailto:contacto@jobdevs-platform.com" class="info-link">
-              <i class="fa fa-envelope"></i>
-              <span>contacto@jobdevs-platform.com</span>
-            </a>
-          </div>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top: auto;">
+          <a href="{% url 'registro' %}" class="btn-tech-sec" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;">
+            <span>REGISTRARME COMO DESARROLLADOR</span>
+            <i class="fa fa-code"></i>
+          </a>
+          <p class="form-disclaimer" style="text-align: center; margin: 0;">
+            ¿Ya eres aprendiz registrado? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact & SLA Strip -->
+    <div class="reveal" style="margin-top: 32px; background: var(--bg-card); border: 1px solid var(--border-dim); padding: 20px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <i class="fa fa-shield-halved" style="color: var(--accent); font-size: 20px;"></i>
+        <div>
+          <div style="font-weight: 600; font-size: 14px;">Plataforma Institucional y Segura</div>
+          <div style="font-size: 12px; color: var(--fg-dim);">Validación de identidad con padrón oficial SENA y soporte continuo.</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <div style="font-size: 13px; color: var(--fg-dim);">
+          <i class="fa fa-envelope" style="color: var(--accent); margin-right: 6px;"></i>
+          <a href="mailto:contacto@jobdevs.co" style="color: var(--fg); text-decoration: none;">contacto@jobdevs.co</a>
         </div>
       </div>
     </div>
@@ -675,12 +705,12 @@
     <div class="hero-strip-side">
       <span class="rec-dot"></span>
       <div>
-        <div class="sticky-text">Iniciar proyecto ahora</div>
-        <div class="sticky-sub">Sin costo de registro · Sin compromiso</div>
+        <div class="sticky-text">JobDevs · Ecosistema SENA</div>
+        <div class="sticky-sub">Conectando empresas y talento verificado</div>
       </div>
     </div>
     <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="white-space:nowrap;">
-      <span>REGISTRAR PROYECTO</span>
+      <span>CREAR CUENTA</span>
     </a>
   </div>
 </div>

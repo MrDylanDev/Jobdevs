@@ -450,12 +450,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     FLIP CARDS TOUCH
+     FLIP CARDS (CLICK & KEYBOARD ACCESSIBILITY)
      ============================ */
-  var isTouchDevice = !window.matchMedia('(hover: hover)').matches;
   document.querySelectorAll('.flip-card').forEach(function(card) {
     card.addEventListener('click', function(e) {
-      if (isTouchDevice && !e.target.closest('a')) {
+      if (!e.target.closest('a') && !e.target.closest('button')) {
+        card.classList.toggle('flipped');
+      }
+    });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
         card.classList.toggle('flipped');
       }
     });
