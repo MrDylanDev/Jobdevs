@@ -42,4 +42,7 @@ urlpatterns = [
     path('api/<int:usuario_id>/actualizar/', views.api_actualizar_usuario, name='api_actualizar_usuario'),
     path('api/<int:usuario_id>/eliminar/', views.api_eliminar_usuario, name='api_eliminar_usuario'),
     path('api/bulk-toggle/', views.api_bulk_toggle, name='api_bulk_toggle'),
+
+    # Almacenamiento privado (Cloudflare R2)
+    path('api/storage/presigned-upload/', views.api_generar_url_subida_prefirmada, name='api_presigned_upload'),
 ]

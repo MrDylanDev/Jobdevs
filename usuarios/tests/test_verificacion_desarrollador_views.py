@@ -1,4 +1,6 @@
 import io
+from unittest import mock
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -259,3 +261,53 @@ class TestDescargarDocumentoSoporteDesarrollador:
         url = reverse('descargar_documento_soporte_desarrollador', args=[perfil.id])
         response = client.get(url)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestDescargaDocumentoSoporteDesarrolladorR2:
+    def _perfil_con_soporte(self, dev_user):
+        perfil = dev_user.perfil_desarrollador
+        perfil.documento_soporte = SimpleUploadedFile(
+            'doc.pdf', b'%PDF-1.4 sena', content_type='application/pdf'
+        )
+        perfil.save()
+        return perfil
+
+    def test_descarga_redirige_a_url_prefirmada(self, client, dev_user):
+        perfil = self._perfil_con_soporte(dev_user)
+        client.force_login(dev_user)
+        url = reverse('descargar_documento_soporte_desarrollador', args=[perfil.id])
+
+        with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True), \
+             mock.patch(
+                 'usuarios.views.verificacion_views.generar_url_descarga_prefirmada',
+                 return_value='https://r2.test/descarga?sig=dev',
+             ) as mock_url:
+            response = client.get(url)
+
+        assert response.status_code == 302
+        assert response.url == 'https://r2.test/descarga?sig=dev'
+        mock_url.assert_called_once_with(perfil.documento_soporte.name)
+
+    def test_descarga_fallback_local_sin_r2(self, client, dev_user):
+        perfil = self._perfil_con_soporte(dev_user)
+        client.force_login(dev_user)
+        url = reverse('descargar_documento_soporte_desarrollador', args=[perfil.id])
+
+        with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=False):
+            response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/pdf'
+
+    def test_descarga_fallback_local_si_falla_r2(self, client, dev_user):
+        perfil = self._perfil_con_soporte(dev_user)
+        client.force_login(dev_user)
+        url = reverse('descargar_documento_soporte_desarrollador', args=[perfil.id])
+
+        with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True), \
+             mock.patch('usuarios.views.verificacion_views.generar_url_descarga_prefirmada', return_value=None):
+            response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/pdf'
