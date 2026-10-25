@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -19,6 +19,11 @@ from ..services_sena import (
     admin_resolver_verificacion_desarrollador as resolver_desarrollador_sena_service,
     solicitar_verificacion_manual_desarrollador,
     verificar_desarrollador_automatico,
+)
+from ..services_storage import (
+    esta_configurado_r2,
+    generar_url_descarga_prefirmada,
+    generar_url_subida_prefirmada,
 )
 from ..utils_dian import calcular_dv_dian, limpiar_documento
 
@@ -278,6 +283,10 @@ def descargar_documento_soporte_empresa(request, perfil_id):
         raise PermissionDenied
     if not perfil.documento_soporte:
         raise Http404('Documento no disponible.')
+    if esta_configurado_r2():
+        url_r2 = generar_url_descarga_prefirmada(perfil.documento_soporte.name)
+        if url_r2:
+            return redirect(url_r2)
     try:
         archivo = perfil.documento_soporte.open('rb')
     except FileNotFoundError:
@@ -369,9 +378,64 @@ def descargar_documento_soporte_desarrollador(request, perfil_id):
         raise PermissionDenied
     if not perfil.documento_soporte:
         raise Http404('Documento no disponible.')
+    if esta_configurado_r2():
+        url_r2 = generar_url_descarga_prefirmada(perfil.documento_soporte.name)
+        if url_r2:
+            return redirect(url_r2)
     try:
         archivo = perfil.documento_soporte.open('rb')
     except FileNotFoundError:
         raise Http404('Documento no disponible.')
     return FileResponse(archivo, content_type='application/pdf')
 
+
+
+@login_required
+@require_POST
+def api_generar_url_subida_prefirmada(request):
+    """Genera una URL prefirmada de subida directa a Cloudflare R2 para soportes de verificación."""
+    import json
+
+    if not esta_configurado_r2():
+        return JsonResponse({
+            'r2_disponible': False,
+            'mensaje': (
+                'Almacenamiento Cloudflare R2 no configurado en este entorno. '
+                'Utilice el flujo multipart tradicional.'
+            ),
+        }, status=503)
+
+    try:
+        data = json.loads(request.body) if request.body else request.POST
+    except Exception:
+        data = request.POST
+
+    nombre_archivo = str(data.get('nombre_archivo', '') or '').strip()
+    content_type = str(data.get('content_type', 'application/pdf') or '').strip().lower()
+
+    if not nombre_archivo:
+        return JsonResponse({'error': 'nombre_archivo es requerido.'}, status=400)
+
+    ext = nombre_archivo.rsplit('.', 1)[-1].lower() if '.' in nombre_archivo else ''
+    if ext not in ('pdf', 'png', 'jpg', 'jpeg'):
+        return JsonResponse(
+            {'error': 'Extensión de archivo no permitida. Solo se admiten PDF, PNG y JPG.'},
+            status=400,
+        )
+
+    if content_type not in ('application/pdf', 'image/png', 'image/jpeg'):
+        return JsonResponse({'error': 'Tipo MIME no admitido.'}, status=400)
+
+    resultado = generar_url_subida_prefirmada(
+        nombre_archivo=nombre_archivo,
+        content_type=content_type,
+        prefijo=f"soportes/{request.user.rol}",
+    )
+
+    if not resultado:
+        return JsonResponse({'error': 'No se pudo generar la URL de subida.'}, status=500)
+
+    return JsonResponse({
+        'r2_disponible': True,
+        'upload': resultado,
+    })

@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -255,3 +257,135 @@ def test_en_revision_oculta_formulario(auth_client, perfil):
 def test_accion_log_se_trunca_a_300(auth_client, perfil):
     auth_client.post(reverse(URL_NAME), _payload(numero_documento=NIT))
     assert all(len(l.accion) <= 300 for l in LogAuditoria.objects.all())
+
+
+# --- Descarga de documento soporte (S3: R2 con fallback local) ---
+
+def _perfil_con_soporte(perfil):
+    perfil.documento_soporte = SimpleUploadedFile(
+        'rut.pdf', b'%PDF-1.4 contenido simulado', content_type='application/pdf'
+    )
+    perfil.save()
+    return perfil
+
+
+def test_descarga_documento_empresa_redirige_a_url_prefirmada(auth_client, perfil):
+    perfil = _perfil_con_soporte(perfil)
+    url = reverse('descargar_documento_soporte_empresa', args=[perfil.id])
+
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True), \
+         mock.patch(
+             'usuarios.views.verificacion_views.generar_url_descarga_prefirmada',
+             return_value='https://r2.test/descarga?sig=abc',
+         ) as mock_url:
+        response = auth_client.get(url)
+
+    assert response.status_code == 302
+    assert response.url == 'https://r2.test/descarga?sig=abc'
+    mock_url.assert_called_once_with(perfil.documento_soporte.name)
+
+
+def test_descarga_documento_empresa_fallback_local_sin_r2(auth_client, perfil):
+    perfil = _perfil_con_soporte(perfil)
+    url = reverse('descargar_documento_soporte_empresa', args=[perfil.id])
+
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=False):
+        response = auth_client.get(url)
+
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/pdf'
+
+
+def test_descarga_documento_empresa_fallback_local_si_falla_r2(auth_client, perfil):
+    perfil = _perfil_con_soporte(perfil)
+    url = reverse('descargar_documento_soporte_empresa', args=[perfil.id])
+
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True), \
+         mock.patch('usuarios.views.verificacion_views.generar_url_descarga_prefirmada', return_value=None):
+        response = auth_client.get(url)
+
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/pdf'
+
+
+# --- API de subida prefirmada (S4) ---
+
+URL_PRESIGNED = reverse('api_presigned_upload')
+
+
+def test_api_presigned_upload_anonimo_redirige_a_login(client):
+    response = client.post(URL_PRESIGNED, data={}, content_type='application/json')
+    assert response.status_code == 302
+    assert reverse('login') in response.url
+
+
+def test_api_presigned_upload_rechaza_get(auth_client):
+    assert auth_client.get(URL_PRESIGNED).status_code == 405
+
+
+def test_api_presigned_upload_503_sin_r2(auth_client):
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=False):
+        response = auth_client.post(
+            URL_PRESIGNED,
+            data={'nombre_archivo': 'soporte.pdf', 'content_type': 'application/pdf'},
+        )
+
+    assert response.status_code == 503
+    assert response.json()['r2_disponible'] is False
+
+
+def test_api_presigned_upload_400_extension_no_permitida(auth_client):
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True):
+        response = auth_client.post(
+            URL_PRESIGNED,
+            data={'nombre_archivo': 'malware.exe', 'content_type': 'application/pdf'},
+        )
+
+    assert response.status_code == 400
+    assert 'error' in response.json()
+
+
+def test_api_presigned_upload_400_sin_nombre_archivo(auth_client):
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True):
+        response = auth_client.post(URL_PRESIGNED, data={'content_type': 'application/pdf'})
+
+    assert response.status_code == 400
+
+
+def test_api_presigned_upload_400_content_type_no_admitido(auth_client):
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True):
+        response = auth_client.post(
+            URL_PRESIGNED,
+            data={'nombre_archivo': 'soporte.pdf', 'content_type': 'application/x-msdownload'},
+        )
+
+    assert response.status_code == 400
+
+
+def test_api_presigned_upload_200_con_r2(auth_client):
+    resultado = {
+        'url': 'https://r2.test/subida?sig=xyz',
+        'file_key': 'soportes/abc_soporte.pdf',
+        'content_type': 'application/pdf',
+        'expira_en': 300,
+    }
+
+    with mock.patch('usuarios.views.verificacion_views.esta_configurado_r2', return_value=True), \
+         mock.patch(
+             'usuarios.views.verificacion_views.generar_url_subida_prefirmada',
+             return_value=resultado,
+         ) as mock_url:
+        response = auth_client.post(
+            URL_PRESIGNED,
+            data={'nombre_archivo': 'soporte.pdf', 'content_type': 'application/pdf'},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload['r2_disponible'] is True
+    assert payload['upload'] == resultado
+    mock_url.assert_called_once_with(
+        nombre_archivo='soporte.pdf',
+        content_type='application/pdf',
+        prefijo='soportes/empresa',
+    )

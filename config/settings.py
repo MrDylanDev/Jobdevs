@@ -344,3 +344,25 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
     },
 }
+
+# ==============================================================================
+# Cloudflare R2 — Almacenamiento privado con URLs prefirmadas
+# ==============================================================================
+# Soporte para almacenamiento de documentos privados en Cloudflare R2 mediante
+# URLs prefirmadas temporales. Si las credenciales no están configuradas, el
+# servicio degrada de forma transparente al almacenamiento local (MEDIA_ROOT).
+CLOUDFLARE_R2_ACCOUNT_ID = os.environ.get('CLOUDFLARE_R2_ACCOUNT_ID', '')
+CLOUDFLARE_R2_ACCESS_KEY_ID = os.environ.get('CLOUDFLARE_R2_ACCESS_KEY_ID', '')
+CLOUDFLARE_R2_SECRET_ACCESS_KEY = os.environ.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY', '')
+CLOUDFLARE_R2_BUCKET_NAME = os.environ.get('CLOUDFLARE_R2_BUCKET_NAME', '')
+CLOUDFLARE_R2_ENDPOINT_URL = os.environ.get(
+    'CLOUDFLARE_R2_ENDPOINT_URL',
+    f"https://{CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+    if CLOUDFLARE_R2_ACCOUNT_ID else '',
+)
+R2_UPLOAD_URL_EXPIRACION_SEGUNDOS = int(
+    os.environ.get('R2_UPLOAD_URL_EXPIRACION_SEGUNDOS', '300')
+)
+R2_DOWNLOAD_URL_EXPIRACION_SEGUNDOS = int(
+    os.environ.get('R2_DOWNLOAD_URL_EXPIRACION_SEGUNDOS', '900')
+)

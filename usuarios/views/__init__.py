@@ -57,4 +57,5 @@ from .verificacion_views import (
     solicitar_verificacion_desarrollador,
     descargar_documento_soporte_desarrollador,
     admin_resolver_verificacion_desarrollador,
+    api_generar_url_subida_prefirmada,
 )
