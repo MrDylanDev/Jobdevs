@@ -505,6 +505,73 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
+     WORKFLOW PRODUCT TOUR (SPLIT)
+     ============================ */
+  const stepItems = document.querySelectorAll('.wf-step-item');
+  const screens = document.querySelectorAll('.wf-screen');
+  const wfUrl = document.getElementById('wfWindowUrl');
+  const wfStage = document.getElementById('wfWindowStage');
+
+  const stageUrls = {
+    '1': 'jobdevs.co/app/proyectos/publicar',
+    '2': 'jobdevs.co/app/postulaciones/match-sena',
+    '3': 'jobdevs.co/app/hitos/seguimiento-r2',
+    '4': 'jobdevs.co/app/contratos/cierre-sha256'
+  };
+
+  const stageLabels = {
+    '1': 'FASE 01 ACTIVA',
+    '2': 'FASE 02 ACTIVA',
+    '3': 'FASE 03 ACTIVA',
+    '4': 'FASE 04 ACTIVA'
+  };
+
+  if (stepItems.length && screens.length) {
+    let currentStep = 1;
+    let tourTimer = null;
+    let userInteracted = false;
+
+    function selectStep(stepNum) {
+      stepItems.forEach(item => {
+        const isActive = (item.dataset.step === String(stepNum));
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      screens.forEach((screen, i) => {
+        screen.classList.toggle('active', i === (stepNum - 1));
+      });
+      if (wfUrl) wfUrl.textContent = stageUrls[String(stepNum)] || 'jobdevs.co/app/workflow';
+      if (wfStage) wfStage.textContent = stageLabels[String(stepNum)] || 'EN EJECUCIÓN';
+      currentStep = stepNum;
+    }
+
+    stepItems.forEach(item => {
+      item.addEventListener('click', function() {
+        userInteracted = true;
+        if (tourTimer) clearInterval(tourTimer);
+        const stepNum = parseInt(this.dataset.step, 10);
+        selectStep(stepNum);
+      });
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          userInteracted = true;
+          if (tourTimer) clearInterval(tourTimer);
+          selectStep(parseInt(this.dataset.step, 10));
+        }
+      });
+    });
+
+    // Auto-advance softly every 6s unless user interacted
+    tourTimer = setInterval(function() {
+      if (!userInteracted) {
+        currentStep = (currentStep % stepItems.length) + 1;
+        selectStep(currentStep);
+      }
+    }, 6000);
+  }
+
+  /* ============================
      CUSTOM CURSOR
      ============================ */
   if (window.matchMedia('(hover: hover)').matches) {

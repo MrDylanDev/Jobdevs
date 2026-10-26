@@ -318,121 +318,216 @@
   </div>
 </section>
 
-<!-- ==================== METHODOLOGY (4-STAGE PIPELINE) ==================== -->
+<!-- ==================== METHODOLOGY (SPLIT PRODUCT TOUR) ==================== -->
 <section id="metodologia" class="section-tech bg-dim">
   <div class="section-inner">
     <div class="section-head reveal" style="align-items: center; text-align: center;">
-      <span class="section-marker"><span>PIPELINE DE TRABAJO</span></span>
+      <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
       <h2 class="sh-title">Cómo funciona JobDevs</h2>
-      <p class="desc-mono" style="text-align:center;max-width:620px;margin: 12px auto 0;">
-        Cuatro etapas continuas. Del requerimiento técnico a la entrega en producción con trazabilidad inmutable y sin intermediarios.
+      <p class="desc-mono" style="text-align:center;max-width:640px;margin: 12px auto 0;">
+        Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.
       </p>
     </div>
 
-    <!-- Pipeline de 4 tarjetas horizontales conectadas -->
-    <div class="workflow-pipeline-grid reveal-stagger">
+    <!-- Layout dividido: Recorrido a la izquierda y Consola de software en vivo a la derecha -->
+    <div class="wf-split-tour reveal">
 
-      <!-- Etapa 01 -->
-      <div class="workflow-card">
-        <div class="workflow-watermark">01</div>
-        <div class="workflow-card-top">
-          <span class="workflow-step-pill">FASE 01</span>
-          <div class="workflow-icon-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-code-2"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m5 12-3 3 3 3"/><path d="m9 18 3-3-3-3"/></svg>
+      <!-- Columna Izquierda: Los 4 pasos interactivos -->
+      <div class="wf-steps-stack" role="tablist" aria-label="Etapas del proceso">
+        
+        <!-- Paso 01 -->
+        <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" aria-controls="screen01" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_01</span>
+            <span class="wf-step-tag">Empresa</span>
+          </div>
+          <h3 class="wf-step-title">Publicar Proyecto</h3>
+          <p class="wf-step-desc">La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Publicación ágil sin costos de registro.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Segmentación por tipo: Web, Móvil, Cloud, Datos.</div>
           </div>
         </div>
-        <div class="workflow-card-body">
-          <h3 class="workflow-card-title">Publicar Proyecto</h3>
-          <p class="workflow-card-desc">La empresa crea el requerimiento: tipo de solución (Web, Móvil, etc.), número de vacantes, prioridad y descripción técnica.</p>
-        </div>
-        <div class="workflow-micro-ui">
-          <div class="micro-tag-row">
-            <span class="micro-chip"><i class="fa fa-code"></i> Python / Django</span>
-            <span class="micro-chip"><i class="fa fa-cubes"></i> Solución Web</span>
-            <span class="micro-chip micro-chip--accent">2 Vacantes</span>
+
+        <!-- Paso 02 -->
+        <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" aria-controls="screen02" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_02</span>
+            <span class="wf-step-tag">Match & Firma</span>
           </div>
+          <h3 class="wf-step-title">Postulación y Contrato</h3>
+          <p class="wf-step-desc">Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se genera el Contrato Digital.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Validación académica contra el padrón oficial SENA.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Contrato digital vinculante con doble firma electrónica.</div>
+          </div>
+        </div>
+
+        <!-- Paso 03 -->
+        <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" aria-controls="screen03" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_03</span>
+            <span class="wf-step-tag">Desarrollo</span>
+          </div>
+          <h3 class="wf-step-title">Hitos con Evidencias</h3>
+          <p class="wf-step-desc">Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Revisión obligatoria: aprobar o solicitar corrección.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Almacenamiento seguro de código y documentación.</div>
+          </div>
+        </div>
+
+        <!-- Paso 04 -->
+        <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" aria-controls="screen04" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_04</span>
+            <span class="wf-step-tag">Cierre</span>
+          </div>
+          <h3 class="wf-step-title">Cierre y Calificación Mutua</h3>
+          <p class="wf-step-desc">100% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Sello inmutable del contrato para validez legal.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Reputación pública acumulable para el portafolio.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Visor de Software (Window Console en vivo) -->
+      <div class="wf-console-window">
+        <!-- Barra de ventana estilo sistema operativo -->
+        <div class="wf-window-bar">
+          <div class="wf-window-dots">
+            <span class="wf-dot wf-dot-red"></span>
+            <span class="wf-dot wf-dot-yellow"></span>
+            <span class="wf-dot wf-dot-green"></span>
+          </div>
+          <div class="wf-window-url">
+            <i class="fa fa-lock" style="font-size:0.65rem; color:var(--accent);"></i>
+            <span id="wfWindowUrl">jobdevs.co/app/proyectos/publicar</span>
+          </div>
+          <div class="wf-window-badge">
+            <span class="dot-live"></span>
+            <span id="wfWindowStage">FASE 01 ACTIVA</span>
+          </div>
+        </div>
+
+        <!-- Escenario de pantallas dinámicas simuladas -->
+        <div class="wf-window-stage">
+
+          <!-- Pantalla 01: Publicar Proyecto -->
+          <div class="wf-screen active" id="screen01" role="tabpanel" aria-labelledby="stepBtn01">
+            <div class="wf-mock-card">
+              <div class="wf-mock-header">
+                <span class="wf-mock-title"><i class="fa fa-file-code me-2"></i>Nuevo Requerimiento de Software</span>
+                <span class="wf-mock-sub">Empresa Demo SAS</span>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div style="font-size:0.75rem; color:var(--fg-dim); margin-bottom:4px; font-family:var(--font-mono);">TÍTULO DEL PROYECTO</div>
+                <div style="font-size:1.05rem; font-weight:700; color:var(--fg);">Plataforma E-commerce y API de Pagos</div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div style="font-size:0.75rem; color:var(--fg-dim); margin-bottom:6px; font-family:var(--font-mono);">STACK TECNOLÓGICO REQUERIDO</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <span class="micro-chip micro-chip--accent"><i class="fa fa-code"></i> Python 3.14</span>
+                  <span class="micro-chip"><i class="fa fa-cubes"></i> Django 5.0</span>
+                  <span class="micro-chip"><i class="fa fa-database"></i> PostgreSQL 16</span>
+                  <span class="micro-chip"><i class="fa fa-box"></i> Docker</span>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; font-family:var(--font-mono); font-size:0.75rem;">
+                <div><span style="color:var(--fg-dim); display:block;">Vacantes:</span><strong>2 Desarrolladores</strong></div>
+                <div><span style="color:var(--fg-dim); display:block;">Hitos:</span><strong>3 Entregables</strong></div>
+                <div><span style="color:var(--fg-dim); display:block;">Prioridad:</span><strong style="color:var(--accent);">Alta</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pantalla 02: Postulación y Contrato -->
+          <div class="wf-screen" id="screen02" role="tabpanel" aria-labelledby="stepBtn02">
+            <div class="wf-mock-card">
+              <div class="wf-mock-header">
+                <span class="wf-mock-title"><i class="fa fa-users me-2"></i>Postulación Recibida · Match SENA</span>
+                <span class="badge" style="background:rgba(34,197,94,0.15); color:#4ade80; font-family:var(--font-mono); font-size:0.7rem;">CANDIDATO DESTACADO</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                <div style="width:48px; height:48px; border-radius:50%; background:var(--accent); color:#000; font-weight:800; font-size:1rem; display:flex; align-items:center; justify-content:center;">AD</div>
+                <div>
+                  <div style="font-weight:700; font-size:1.05rem; color:var(--fg);">Alejandro Argaez</div>
+                  <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--fg-dim);">ADSO · Ficha Oficial: <strong style="color:#22c55e;">2670123 (Verificado)</strong></div>
+                </div>
+              </div>
+              <div style="background:rgba(0,0,0,0.4); border-left:3px solid var(--accent); padding:10px 14px; margin-bottom:16px; font-family:var(--font-mono); font-size:0.78rem; color:var(--fg-dim); line-height:1.5;">
+                "Cuento con experiencia en Django, Celery y Docker. Cumplo los requerimientos técnicos del proyecto y disponibilidad para iniciar de inmediato."
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.08);">
+                <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--fg-dim);"><i class="fa fa-file-signature text-accent me-1"></i> Contrato Digital: <strong>Listo para firma</strong></span>
+                <span class="btn-tech-sec" style="padding:6px 14px; font-size:0.75rem;">ACEPTAR & FIRMAR</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pantalla 03: Hitos con Evidencias -->
+          <div class="wf-screen" id="screen03" role="tabpanel" aria-labelledby="stepBtn03">
+            <div class="wf-mock-card">
+              <div class="wf-mock-header">
+                <span class="wf-mock-title"><i class="fa fa-bars-progress me-2"></i>Seguimiento de Hitos</span>
+                <span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent); font-weight:700;">66% COMPLETADO</span>
+              </div>
+              <div class="micro-progress-bar" style="margin-bottom:18px;"><div class="micro-progress-fill" style="width:66%;"></div></div>
+              
+              <div style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.76rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:10px 12px; border-radius:4px;">
+                  <span><i class="fa fa-circle-check text-success me-2"></i>Hito 1: Modelo BD & Arquitectura</span>
+                  <span style="color:#22c55e; font-weight:600;">APROBADO</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(var(--accent-rgb),0.06); border:1px solid rgba(var(--accent-rgb),0.3); padding:10px 12px; border-radius:4px;">
+                  <div>
+                    <div><strong>Hito 2: Endpoints REST & Pasarela</strong></div>
+                    <div style="font-size:0.68rem; color:var(--fg-dim); margin-top:2px;"><i class="fa fa-cloud-arrow-up text-accent me-1"></i> Evidencia en Cloudflare R2: <code>pull-14.zip</code></div>
+                  </div>
+                  <span style="color:#f59e0b; font-weight:700;">EN REVISIÓN</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.04); padding:10px 12px; border-radius:4px; opacity:0.6;">
+                  <span><i class="fa fa-clock me-2"></i>Hito 3: Pruebas E2E & Deploy</span>
+                  <span style="color:var(--fg-dim);">PRÓXIMO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pantalla 04: Cierre y Calificación Mutua -->
+          <div class="wf-screen" id="screen04" role="tabpanel" aria-labelledby="stepBtn04">
+            <div class="wf-mock-card">
+              <div class="wf-mock-header">
+                <span class="wf-mock-title"><i class="fa fa-certificate me-2"></i>Contrato Finalizado & Certificado</span>
+                <span class="badge" style="background:rgba(34,197,94,0.15); color:#4ade80; font-family:var(--font-mono); font-size:0.7rem;">CUMPLIMIENTO 100%</span>
+              </div>
+              <div style="background:#0f172a; border:1px solid rgba(34,197,94,0.25); border-radius:6px; padding:12px; margin-bottom:16px; font-family:var(--font-mono); font-size:0.72rem;">
+                <div style="color:var(--fg-dim); margin-bottom:2px;">SELLO CRIPTOGRÁFICO INMUTABLE:</div>
+                <div style="color:#86efac; word-break:break-all;">SHA-256: 7f8a92b3c4d5e6f8a9b0c1d2e3f4a5b6c7d8e9f0</div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-family:var(--font-mono); font-size:0.75rem;">
+                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:6px;">
+                  <div style="color:var(--fg-dim); font-size:0.68rem;">EVALUACIÓN DE LA EMPRESA:</div>
+                  <div style="color:#f59e0b; margin:4px 0;"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 5.0</div>
+                  <div style="color:var(--fg); font-size:0.75rem;">"Código limpio, puntual y excelente trabajo en equipo."</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:6px;">
+                  <div style="color:var(--fg-dim); font-size:0.68rem;">EVALUACIÓN DEL APRENDIZ:</div>
+                  <div style="color:#f59e0b; margin:4px 0;"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 5.0</div>
+                  <div style="color:var(--fg); font-size:0.75rem;">"Requerimientos claros y retroalimentación profesional."</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Etapa 02 -->
-      <div class="workflow-card">
-        <div class="workflow-watermark">02</div>
-        <div class="workflow-card-top">
-          <span class="workflow-step-pill">FASE 02</span>
-          <div class="workflow-icon-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8"/></svg>
-          </div>
-        </div>
-        <div class="workflow-card-body">
-          <h3 class="workflow-card-title">Postulación y Contrato</h3>
-          <p class="workflow-card-desc">Desarrolladores SENA verificados aplican con su portafolio. La empresa evalúa, acepta y se formaliza el Contrato Digital.</p>
-        </div>
-        <div class="workflow-micro-ui">
-          <div class="micro-avatar-row" style="margin-bottom:8px;">
-            <div class="micro-avatar">ADSO</div>
-            <div>
-              <div class="micro-avatar-name">Aprendiz SENA Verificado</div>
-              <div class="micro-avatar-sub"><i class="fa fa-circle-check"></i> Ficha Validada</div>
-            </div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:4px; padding:5px 8px; font-family:var(--font-mono); font-size:0.68rem; color:var(--fg-dim); display:flex; justify-content:space-between;">
-            <span>Contrato Digital</span>
-            <span style="color:#22c55e;">Aceptado & Firmado</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Etapa 03 -->
-      <div class="workflow-card">
-        <div class="workflow-watermark">03</div>
-        <div class="workflow-card-top">
-          <span class="workflow-step-pill">FASE 03</span>
-          <div class="workflow-icon-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-pull-request"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" x2="6" y1="9" y2="21"/></svg>
-          </div>
-        </div>
-        <div class="workflow-card-body">
-          <h3 class="workflow-card-title">Hitos con Evidencias</h3>
-          <p class="workflow-card-desc">El trabajo avanza por entregables. El desarrollador registra avances con evidencia obligatoria (R2/URL) que la empresa revisa y aprueba.</p>
-        </div>
-        <div class="workflow-micro-ui">
-          <div class="micro-progress-row">
-            <div class="micro-progress-labels">
-              <span>Hito 2/3: Entregable</span>
-              <span style="color:var(--accent); font-weight:700;">66%</span>
-            </div>
-            <div class="micro-progress-bar"><div class="micro-progress-fill" style="width:66%;"></div></div>
-            <div style="font-family:var(--font-mono); font-size:0.68rem; color:var(--fg-dim); margin-top:4px; display:flex; justify-content:space-between;">
-              <span><i class="fa fa-paperclip" style="color:var(--accent);"></i> Evidencia en R2</span>
-              <span style="color:#22c55e; font-weight:600;">Hito Aprobado</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Etapa 04 -->
-      <div class="workflow-card">
-        <div class="workflow-watermark">04</div>
-        <div class="workflow-card-top">
-          <span class="workflow-step-pill">FASE 04</span>
-          <div class="workflow-icon-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
-          </div>
-        </div>
-        <div class="workflow-card-body">
-          <h3 class="workflow-card-title">Cierre y Calificación Mutua</h3>
-          <p class="workflow-card-desc">Al completar el 100% de los hitos, la empresa finaliza el proyecto. Se emite la calificación mutua acumulable en la reputación pública.</p>
-        </div>
-        <div class="workflow-micro-ui">
-          <div class="micro-hash-row">
-            <div class="micro-hash">Contrato Finalizado · 100% Hitos</div>
-            <div class="micro-stars">
-              <span><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i></span>
-              <span style="color:var(--fg); font-weight:600;">Evaluación Bilateral 5.0</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
+</section>
 
     </div>
   </div>
