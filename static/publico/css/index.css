@@ -600,33 +600,249 @@ section[id] { scroll-margin-top: 80px; }
 }
 .flip-back-sig-desc { font-family: var(--font-main); font-size: 0.8rem; color: var(--fg-dim); margin-top: 6px; }
 
-/* ========== METHODOLOGY FLOW ========== */
-.method-flow {
-  border: 1px solid var(--border-dim); padding: 80px 60px;
-  display: flex; flex-direction: column; gap: 50px;
-  background: rgba(0,0,0,0.5); position: relative;
+/* ========== WORKFLOW PIPELINE (4 COLUMNS - SUPABASE STYLE) ========== */
+#metodologia .section-inner {
+  max-width: 1400px; width: 100%;
 }
-.method-flow::before {
-  content: ''; position: absolute; left: 50%; top: 80px; bottom: 80px;
-  width: 1px; background: linear-gradient(to bottom, transparent 0%, var(--accent-dim) 15%, var(--accent-dim) 85%, transparent 100%);
-  transform: translateX(-50%);
+.workflow-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  position: relative;
+  margin-top: 50px;
 }
-.flow-step { display: grid; grid-template-columns: 1fr 52px 1fr; gap: 40px; align-items: center; }
-.step-node {
-  grid-column: 2; width: 52px; height: 52px; background: var(--bg);
-  border: 1px solid var(--accent-dim); display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem; z-index: 2;
-  margin: 0 auto; color: var(--accent); border-radius: 50%;
-  transition: border-color 0.4s, box-shadow 0.4s;
+/* Línea de conexión de fondo entre tarjetas */
+.workflow-pipeline-grid::before {
+  content: '';
+  position: absolute;
+  top: 54px;
+  left: 80px;
+  right: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    rgba(var(--accent-rgb), 0.1) 0%, 
+    rgba(var(--accent-rgb), 0.5) 25%, 
+    rgba(var(--accent-rgb), 0.5) 75%, 
+    rgba(var(--accent-rgb), 0.1) 100%
+  );
+  z-index: 1;
 }
-.step-node:hover { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-glow); }
-.step-node i { font-size: 0.9rem; }
-.step-content { padding: 30px; border: 1px solid var(--border-dim); background: var(--bg); transition: border-color 0.3s; }
-.step-content:hover { border-color: var(--accent-dim); }
-.flow-step:nth-child(even) .step-content { grid-column: 3; }
-.flow-step:nth-child(odd) .step-content { grid-column: 1; text-align: right; grid-row: 1; }
-.step-content h4 { font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 10px; font-size: 0.9rem; letter-spacing: 0.05em; }
-.step-content p { color: var(--fg-dim); font-size: 0.9rem; }
+
+.workflow-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dim);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 8px;
+  padding: 32px 24px 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 420px;
+  z-index: 2;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.workflow-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(var(--accent-rgb), 0.12);
+}
+
+/* Marca de agua con el número de paso */
+.workflow-watermark {
+  position: absolute;
+  right: 14px;
+  top: 6px;
+  font-family: var(--font-mono);
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.03);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Cabecera de la tarjeta */
+.workflow-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.workflow-step-pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.workflow-icon-box {
+  width: 44px;
+  height: 44px;
+  background: rgba(9, 9, 11, 0.85);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  transition: all 0.3s ease;
+}
+.workflow-card:hover .workflow-icon-box {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.25);
+}
+.workflow-icon-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Contenido de la tarjeta */
+.workflow-card-body {
+  flex: 1;
+  margin-bottom: 24px;
+}
+.workflow-card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  color: var(--fg);
+}
+.workflow-card-desc {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  color: var(--fg-dim);
+  line-height: 1.6;
+}
+
+/* Micro-componente visual al pie */
+.workflow-micro-ui {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: auto;
+}
+.micro-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.micro-chip {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: var(--fg-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.micro-chip--accent {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.3);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+.micro-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.micro-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.micro-avatar-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.micro-avatar-sub {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: #22c55e;
+}
+.micro-progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.micro-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+}
+.micro-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.micro-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #4ade80);
+  border-radius: 3px;
+}
+.micro-hash-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.micro-hash {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: #86efac;
+  background: #0f172a;
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+.micro-stars {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #f59e0b;
+}
+
+@media (max-width: 1100px) {
+  .workflow-pipeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .workflow-pipeline-grid::before {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .workflow-pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ========== ROLES ========== */
 .roles-wrapper { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border-dim); }

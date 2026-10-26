@@ -318,46 +318,114 @@
   </div>
 </section>
 
-<!-- ==================== METHODOLOGY ==================== -->
+<!-- ==================== METHODOLOGY (4-STAGE PIPELINE) ==================== -->
 <section id="metodologia" class="section-tech bg-dim">
   <div class="section-inner">
     <div class="section-head reveal" style="align-items: center; text-align: center;">
-      <span class="section-marker"><span>FLUJO DE TRABAJO</span></span>
+      <span class="section-marker"><span>PIPELINE DE TRABAJO</span></span>
       <h2 class="sh-title">Cómo funciona JobDevs</h2>
+      <p class="desc-mono" style="text-align:center;max-width:620px;margin: 12px auto 0;">
+        Cuatro etapas continuas. Del requerimiento técnico a la entrega en producción con trazabilidad inmutable y sin intermediarios.
+      </p>
     </div>
-    <p class="reveal desc-mono" style="text-align:center;max-width:560px;margin:-20px auto 50px;">
-       Cuatro pasos simples. Del requerimiento técnico a la entrega en producción, con trazabilidad y sin intermediarios.
-    </p>
 
-    <div class="method-flow reveal-stagger">
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-file-code"></i></div>
-        <div class="step-content tech-frame">
-          <h4>01 · Publicar Requerimiento</h4>
-          <p>La empresa define su necesidad técnica: stack tecnológico, hitos estimados y vacantes requeridas.</p>
+    <!-- Pipeline de 4 tarjetas horizontales conectadas -->
+    <div class="workflow-pipeline-grid reveal-stagger">
+
+      <!-- Etapa 01 -->
+      <div class="workflow-card">
+        <div class="workflow-watermark">01</div>
+        <div class="workflow-card-top">
+          <span class="workflow-step-pill">FASE 01</span>
+          <div class="workflow-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-code-2"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m5 12-3 3 3 3"/><path d="m9 18 3-3-3-3"/></svg>
+          </div>
+        </div>
+        <div class="workflow-card-body">
+          <h3 class="workflow-card-title">Publicar Requerimiento</h3>
+          <p class="workflow-card-desc">La empresa define su necesidad técnica: stack de desarrollo, entregables estimados, vacantes y presupuesto formal.</p>
+        </div>
+        <div class="workflow-micro-ui">
+          <div class="micro-tag-row">
+            <span class="micro-chip"><i class="fa fa-code"></i> Python</span>
+            <span class="micro-chip"><i class="fa fa-database"></i> PostgreSQL</span>
+            <span class="micro-chip micro-chip--accent">2 Vacantes</span>
+          </div>
         </div>
       </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-users"></i></div>
-        <div class="step-content tech-frame">
-          <h4>02 · Postulación y Selección</h4>
-          <p>Desarrolladores del SENA envían su carta de presentación y portafolio verificado. La empresa elige al equipo.</p>
+
+      <!-- Etapa 02 -->
+      <div class="workflow-card">
+        <div class="workflow-watermark">02</div>
+        <div class="workflow-card-top">
+          <span class="workflow-step-pill">FASE 02</span>
+          <div class="workflow-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8"/></svg>
+          </div>
+        </div>
+        <div class="workflow-card-body">
+          <h3 class="workflow-card-title">Selección y Match</h3>
+          <p class="workflow-card-desc">Desarrolladores SENA verificados envían su carta de presentación y portafolio técnico. La empresa elige a su equipo.</p>
+        </div>
+        <div class="workflow-micro-ui">
+          <div class="micro-avatar-row">
+            <div class="micro-avatar">ADSO</div>
+            <div>
+              <div class="micro-avatar-name">Aprendiz SENA Calificado</div>
+              <div class="micro-avatar-sub"><i class="fa fa-circle-check"></i> Ficha Validada</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-code-pull-request"></i></div>
-        <div class="step-content tech-frame">
-          <h4>03 · Ejecución por Hitos</h4>
-          <p>Desarrollo estructurado. Los aprendices registran avances con evidencia técnica que la empresa valida.</p>
+
+      <!-- Etapa 03 -->
+      <div class="workflow-card">
+        <div class="workflow-watermark">03</div>
+        <div class="workflow-card-top">
+          <span class="workflow-step-pill">FASE 03</span>
+          <div class="workflow-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-pull-request"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" x2="6" y1="9" y2="21"/></svg>
+          </div>
+        </div>
+        <div class="workflow-card-body">
+          <h3 class="workflow-card-title">Ejecución por Hitos</h3>
+          <p class="workflow-card-desc">Desarrollo estructurado. Los aprendices entregan avances con evidencias auditables en R2 que la empresa valida.</p>
+        </div>
+        <div class="workflow-micro-ui">
+          <div class="micro-progress-row">
+            <div class="micro-progress-labels">
+              <span>Hito 2/3: Endpoints & BD</span>
+              <span style="color:var(--accent); font-weight:700;">66%</span>
+            </div>
+            <div class="micro-progress-bar"><div class="micro-progress-fill" style="width:66%;"></div></div>
+          </div>
         </div>
       </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-rocket"></i></div>
-        <div class="step-content tech-frame">
-          <h4>04 · Entrega y Calificación</h4>
-          <p>Cierre de proyecto exitoso. Emisión de contratos finales y calificaciones mutuas que construyen reputación.</p>
+
+      <!-- Etapa 04 -->
+      <div class="workflow-card">
+        <div class="workflow-watermark">04</div>
+        <div class="workflow-card-top">
+          <span class="workflow-step-pill">FASE 04</span>
+          <div class="workflow-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+        </div>
+        <div class="workflow-card-body">
+          <h3 class="workflow-card-title">Entrega y Contrato</h3>
+          <p class="workflow-card-desc">Cierre exitoso. Se activa el contrato digital con hash inmutable y se emite la calificación mutua de reputación.</p>
+        </div>
+        <div class="workflow-micro-ui">
+          <div class="micro-hash-row">
+            <div class="micro-hash">SHA-256: 7f8a92b3...</div>
+            <div class="micro-stars">
+              <span><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i></span>
+              <span style="color:var(--fg); font-weight:600;">5.0 / 5.0</span>
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
