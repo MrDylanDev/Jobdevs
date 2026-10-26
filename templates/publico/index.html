@@ -362,16 +362,27 @@
   </div>
 </section>
 
-<!-- ==================== ROLES ==================== -->
-<section id="roles" class="section-tech">
-  <div class="section-inner">
+<!-- ==================== ROLES (HERO STYLE FULL BLEED) ==================== -->
+<section id="roles" class="section-tech roles-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
+  <div class="roles-bg-stage">
+    <div class="role-bg-frame active" id="bgRoleEmpresa">
+      <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-full-bg-img" loading="lazy">
+    </div>
+    <div class="role-bg-frame" id="bgRoleDev">
+      <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-full-bg-img" loading="lazy">
+    </div>
+    <div class="roles-bg-overlay"></div>
+  </div>
+
+  <div class="section-inner roles-hero-content">
     <div class="section-head reveal">
       <span class="section-marker"><span>MODELO BILATERAL</span></span>
       <h2 class="sh-title">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
       <p class="desc-mono" style="max-width: 600px; margin-top: 12px;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
     </div>
 
-    <div class="roles-interactive-wrapper reveal">
+    <div class="roles-hero-layout reveal">
       <!-- Selector lateral con iconos Lucide -->
       <div class="roles-sidebar-nav" role="tablist" aria-label="Selector de rol">
         <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
@@ -389,17 +400,10 @@
         </button>
       </div>
 
-      <!-- Escenario central (Imagen Izquierda Transparente + Información Derecha) -->
-      <div class="roles-stage">
+      <!-- Textos en el apartado DERECHO con máxima legibilidad sobre el fondo transparente -->
+      <div class="roles-right-stage">
         <!-- Panel Empresa -->
         <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
-          <div class="role-visual-col">
-            <div class="role-cinema-box">
-              <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-cinema-img" loading="lazy">
-              <div class="role-cinema-overlay"></div>
-            </div>
-          </div>
-
           <div class="role-info-col">
             <div class="rp-label">Para Empresas y Startups</div>
             <h3 class="role-stage-title">Impulsa tus proyectos con talento SENA verificado</h3>
@@ -416,13 +420,6 @@
 
         <!-- Panel Desarrollador / Aprendiz -->
         <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
-          <div class="role-visual-col">
-            <div class="role-cinema-box">
-              <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-cinema-img" loading="lazy">
-              <div class="role-cinema-overlay"></div>
-            </div>
-          </div>
-
           <div class="role-info-col">
             <div class="rp-label" style="color:var(--accent);">Para Aprendices y Egresados SENA</div>
             <h3 class="role-stage-title">Construye tu carrera profesional con proyectos reales</h3>
@@ -436,6 +433,10 @@
             </ul>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       </div>
     </div>

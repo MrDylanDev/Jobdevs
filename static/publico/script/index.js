@@ -471,6 +471,7 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================ */
   const roleNavBtns = document.querySelectorAll('.role-nav-btn');
   const rolePanes = document.querySelectorAll('.role-stage-pane');
+  const roleBgFrames = document.querySelectorAll('.role-bg-frame');
   if (roleNavBtns.length && rolePanes.length) {
     roleNavBtns.forEach(btn => {
       btn.addEventListener('click', function() {
@@ -483,6 +484,10 @@ document.addEventListener('DOMContentLoaded', function () {
         rolePanes.forEach(pane => {
           const isTarget = (pane.id === (targetRole === 'empresa' ? 'paneEmpresa' : 'paneDev'));
           pane.classList.toggle('active', isTarget);
+        });
+        roleBgFrames.forEach(frame => {
+          const isTarget = (frame.id === (targetRole === 'empresa' ? 'bgRoleEmpresa' : 'bgRoleDev'));
+          frame.classList.toggle('active', isTarget);
         });
       });
     });
