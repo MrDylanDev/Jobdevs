@@ -645,48 +645,51 @@ body {
 .role-pane-corp.tech-frame::after { border-bottom-color: var(--fg); border-right-color: var(--fg); }
 .role-pane-corp .btn-tech-sec:hover { border-color: var(--fg); color: var(--fg); }
 
-/* ========== INTERACTIVE ROLES (LUCIDE SWITCHER) ========== */
+/* ========== INTERACTIVE ROLES (FULL-WIDTH EXPANDED) ========== */
+#roles .section-inner {
+  max-width: 100% !important; width: 100% !important;
+}
 .roles-interactive-wrapper {
-  display: flex; gap: 20px; align-items: stretch; margin-top: 20px;
+  display: flex; gap: 36px; align-items: stretch; margin-top: 36px; width: 100%;
 }
 .roles-sidebar-nav {
-  display: flex; flex-direction: column; gap: 12px; width: 92px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 16px; width: 104px; flex-shrink: 0;
 }
 .role-nav-btn {
-  background: var(--bg-card); border: 1px solid var(--border-dim);
-  padding: 22px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 10px; color: var(--fg-dim); cursor: pointer; transition: all 0.25s ease;
-  position: relative;
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border-dim);
+  padding: 28px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--fg-dim); cursor: pointer; transition: all 0.25s ease;
+  position: relative; border-radius: 6px;
 }
 .role-nav-btn:hover {
-  color: var(--fg); border-color: var(--accent-dim); background: rgba(var(--accent-rgb), 0.05);
+  color: var(--fg); border-color: var(--accent-dim); background: rgba(var(--accent-rgb), 0.06);
 }
 .role-nav-btn.active {
   color: var(--accent); border-color: var(--accent);
   background: rgba(var(--accent-rgb), 0.12);
-  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.15);
+  box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.20);
 }
 .role-nav-btn.active::before {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: var(--accent);
+  width: 4px; background: var(--accent); border-radius: 4px 0 0 4px;
 }
 .role-nav-icon { display: flex; align-items: center; justify-content: center; }
-.role-nav-icon svg { width: 24px; height: 24px; }
+.role-nav-icon svg { width: 28px; height: 28px; }
 .role-nav-label {
-  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
 }
 
 .roles-stage {
-  flex: 1; background: var(--bg-card); border: 1px solid var(--border-dim);
-  position: relative; min-height: 480px;
+  flex: 1; background: transparent !important; border: none !important;
+  position: relative; min-height: 520px; width: 100%;
 }
 .role-stage-pane {
-  display: none; height: 100%;
+  display: none; height: 100%; width: 100%;
 }
 .role-stage-pane.active {
-  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px;
-  align-items: center; padding: 48px;
+  display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px;
+  align-items: center; padding: 10px 0; width: 100%;
   animation: fadeInPane 0.35s ease;
 }
 @keyframes fadeInPane {
@@ -695,68 +698,71 @@ body {
 }
 
 .role-info-col {
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; flex-direction: column; justify-content: center; padding-right: 20px;
 }
 .role-stage-title {
-  font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.3rem);
-  font-weight: 700; line-height: 1.15; text-transform: uppercase;
-  margin-bottom: 18px; color: var(--fg);
+  font-family: var(--font-display); font-size: clamp(2rem, 3.2vw, 3rem);
+  font-weight: 800; line-height: 1.1; text-transform: uppercase;
+  margin-bottom: 22px; color: var(--fg); letter-spacing: -0.02em;
 }
 .role-stage-desc {
-  font-family: var(--font-mono); font-size: 0.88rem; color: var(--fg-dim);
-  line-height: 1.65; margin-bottom: 28px;
+  font-family: var(--font-mono); font-size: 0.95rem; color: var(--fg-dim);
+  line-height: 1.7; margin-bottom: 32px;
 }
 .role-stage-features {
-  list-style: none; display: flex; flex-direction: column; gap: 14px;
-  margin-bottom: 32px; padding: 0;
+  list-style: none; display: flex; flex-direction: column; gap: 16px;
+  margin-bottom: 36px; padding: 0;
 }
 .role-stage-features li {
-  display: flex; align-items: flex-start; gap: 12px;
-  font-size: 0.86rem; color: var(--fg-dim); line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 14px;
+  font-size: 0.95rem; color: var(--fg-dim); line-height: 1.55;
 }
 .role-stage-features li i {
-  color: var(--accent); font-size: 0.85rem; margin-top: 3px; flex-shrink: 0;
+  color: var(--accent); font-size: 1rem; margin-top: 3px; flex-shrink: 0;
 }
-.role-stage-features li strong { color: var(--fg); }
-.role-stage-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+.role-stage-features li strong { color: var(--fg); font-weight: 600; }
+.role-stage-actions { display: flex; gap: 18px; flex-wrap: wrap; }
 
 .role-visual-col {
-  height: 100%; display: flex; align-items: center; justify-content: center;
+  height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;
 }
 .role-img-card {
-  position: relative; width: 100%; height: 100%; min-height: 360px; max-height: 440px;
-  border: 1px solid var(--border-dim); overflow: hidden; background: #000;
+  position: relative; width: 100%; height: 100%; min-height: 480px; max-height: 560px;
+  border: 1px solid rgba(255,255,255,0.10); overflow: hidden; background: #000;
+  border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .role-display-img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: contrast(1.1) brightness(0.9);
-  transition: transform 0.6s ease, filter 0.6s ease;
+  filter: contrast(1.1) brightness(0.92);
+  transition: transform 0.8s ease, filter 0.8s ease;
 }
 .role-img-card:hover .role-display-img {
-  transform: scale(1.04);
-  filter: contrast(1.15) brightness(0.95);
+  transform: scale(1.03);
+  filter: contrast(1.15) brightness(0.98);
 }
 .role-img-badge-float {
-  position: absolute; z-index: 3; background: rgba(0,0,0,0.75);
-  border: 1px solid var(--border-dim); backdrop-filter: blur(8px);
-  padding: 6px 12px; display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
-  color: var(--fg); letter-spacing: 0.05em; text-transform: uppercase;
+  position: absolute; z-index: 3; background: rgba(0,0,0,0.80);
+  border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(10px);
+  padding: 8px 16px; display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+  color: var(--fg); letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: 4px;
 }
-.role-img-badge-float.top-left { top: 16px; left: 16px; }
-.role-img-badge-float.bottom-right { bottom: 16px; right: 16px; }
+.role-img-badge-float.top-left { top: 20px; left: 20px; }
+.role-img-badge-float.bottom-right { bottom: 20px; right: 20px; }
 .dot-live {
-  width: 6px; height: 6px; background: var(--accent); border-radius: 50%;
+  width: 7px; height: 7px; background: var(--accent); border-radius: 50%;
   animation: blink 2s infinite;
 }
 
 @media (max-width: 900px) {
-  .roles-interactive-wrapper { flex-direction: column; gap: 16px; }
+  .roles-interactive-wrapper { flex-direction: column; gap: 20px; margin-top: 24px; }
   .roles-sidebar-nav { flex-direction: row; width: 100%; }
-  .role-nav-btn { flex: 1; flex-direction: row; padding: 12px; }
-  .role-nav-btn.active::before { width: 100%; height: 3px; top: auto; bottom: 0; left: 0; }
-  .role-stage-pane.active { grid-template-columns: 1fr; padding: 28px 20px; gap: 28px; }
-  .role-img-card { min-height: 260px; max-height: 320px; }
+  .role-nav-btn { flex: 1; flex-direction: row; padding: 14px; gap: 8px; }
+  .role-nav-btn.active::before { width: 100%; height: 3px; top: auto; bottom: 0; left: 0; border-radius: 0 0 4px 4px; }
+  .role-stage-pane.active { grid-template-columns: 1fr; padding: 0; gap: 32px; }
+  .role-info-col { padding-right: 0; }
+  .role-img-card { min-height: 280px; max-height: 360px; }
 }
 
 /* ========== TESTIMONIALS CAROUSEL ========== */
