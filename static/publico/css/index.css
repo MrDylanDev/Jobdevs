@@ -649,9 +649,9 @@ section[id] { scroll-margin-top: 80px; }
 /* ========== ROLES SECTION (HERO-STYLE FULL BLEED) ========== */
 .roles-hero-section {
   position: relative;
-  min-height: 80vh;
+  min-height: 90vh;
   overflow: hidden;
-  padding: 100px 5%;
+  padding: 120px 5% 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -671,22 +671,22 @@ section[id] { scroll-margin-top: 80px; }
 }
 .role-bg-frame.active {
   opacity: 1;
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 .role-full-bg-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 25% center;
-  filter: contrast(1.15) brightness(0.8);
+  object-position: 18% center;
+  filter: contrast(1.15) brightness(0.9);
 }
 .roles-bg-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
-  /* Degradado transparente: en la izquierda deja respirar la imagen con transparencia suave, y hacia la derecha se oscurece para máxima legibilidad del texto */
+  /* Fondo transparente a la izquierda para la persona y oscuro a la derecha para el texto */
   background:
-    linear-gradient(90deg, rgba(9,9,11,0.25) 0%, rgba(9,9,11,0.45) 30%, rgba(9,9,11,0.85) 55%, rgba(9,9,11,0.96) 80%, rgba(9,9,11,0.99) 100%),
+    linear-gradient(90deg, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.2) 30%, rgba(9,9,11,0.85) 50%, rgba(9,9,11,0.97) 70%, #09090b 100%),
     linear-gradient(180deg, rgba(9,9,11,0.90) 0%, transparent 15%, transparent 85%, rgba(9,9,11,0.95) 100%);
 }
 .roles-hero-content {
@@ -694,66 +694,101 @@ section[id] { scroll-margin-top: 80px; }
   z-index: 10;
   width: 100% !important;
   max-width: 100% !important;
+  display: flex;
+  justify-content: flex-end;
 }
 .roles-hero-layout {
   display: flex;
-  gap: 36px;
-  align-items: stretch;
-  margin-top: 36px;
+  flex-direction: column;
   width: 100%;
+  max-width: 680px;
+  margin-left: auto;
 }
-.roles-sidebar-nav {
-  display: flex; flex-direction: column; gap: 16px; width: 104px; flex-shrink: 0;
+.roles-main-header {
+  margin-bottom: 24px;
 }
-.role-nav-btn {
-  background: rgba(9,9,11,0.65); border: 1px solid var(--border-dim);
+.roles-role-switcher {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.roles-role-switcher .role-nav-btn {
+  background: rgba(9,9,11,0.7);
+  border: 1px solid var(--border-dim);
   backdrop-filter: blur(12px);
-  padding: 28px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; color: var(--fg-dim); cursor: pointer; transition: all 0.25s ease;
-  position: relative; border-radius: 6px;
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-radius: 6px;
+  position: relative;
 }
-.role-nav-btn:hover {
-  color: var(--fg); border-color: var(--accent-dim); background: rgba(var(--accent-rgb), 0.08);
+.roles-role-switcher .role-nav-btn:hover {
+  color: var(--fg);
+  border-color: var(--accent-dim);
+  background: rgba(var(--accent-rgb), 0.08);
 }
-/* Activo por defecto */
-.role-nav-btn.active {
+.roles-role-switcher .role-nav-btn.active {
   transition: all 0.3s ease;
 }
-/* Empresa activo: Gris / Slate monocromático */
-.role-nav-btn[data-role="empresa"].active {
-  color: #e2e8f0; border-color: rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.12);
+.roles-role-switcher .role-nav-btn[data-role="empresa"].active {
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.14);
   box-shadow: 0 0 20px rgba(255,255,255,0.08);
 }
-.role-nav-btn[data-role="empresa"].active::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 4px; background: #cbd5e1; border-radius: 4px 0 0 4px;
+.roles-role-switcher .role-nav-btn[data-role="empresa"].active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: #cbd5e1;
+  border-radius: 0 0 4px 4px;
 }
-/* Aprendiz / Dev activo: Verde SENA esmeralda */
-.role-nav-btn[data-role="dev"].active {
-  color: var(--accent); border-color: var(--accent);
+.roles-role-switcher .role-nav-btn[data-role="dev"].active {
+  color: var(--accent);
+  border-color: var(--accent);
   background: rgba(var(--accent-rgb), 0.16);
   box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.25);
 }
-.role-nav-btn[data-role="dev"].active::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 4px; background: var(--accent); border-radius: 4px 0 0 4px;
+.roles-role-switcher .role-nav-btn[data-role="dev"].active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 4px 4px;
 }
-.role-nav-icon { display: flex; align-items: center; justify-content: center; }
-.role-nav-icon svg { width: 28px; height: 28px; }
-.role-nav-label {
-  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase;
+.roles-role-switcher .role-nav-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.roles-role-switcher .role-nav-label {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .roles-right-stage {
-  flex: 1; display: flex; justify-content: flex-end; width: 100%;
+  width: 100%;
 }
 .roles-right-stage .role-stage-pane {
-  display: none; width: 100%; max-width: 680px; margin-left: auto;
+  display: none;
+  width: 100%;
 }
 .roles-right-stage .role-stage-pane.active {
-  display: block; animation: fadeInPane 0.4s ease;
+  display: block;
+  animation: fadeInPane 0.4s ease;
 }
 @keyframes fadeInPane {
   from { opacity: 0; transform: translateY(6px); }
@@ -793,11 +828,9 @@ section[id] { scroll-margin-top: 80px; }
 .role-stage-features li strong { color: var(--fg); font-weight: 600; }
 
 @media (max-width: 900px) {
-  .roles-hero-layout { flex-direction: column; gap: 20px; margin-top: 24px; }
-  .roles-sidebar-nav { flex-direction: row; width: 100%; }
-  .role-nav-btn { flex: 1; flex-direction: row; padding: 14px; gap: 8px; }
-  .role-nav-btn.active::before { width: 100%; height: 3px; top: auto; bottom: 0; left: 0; border-radius: 0 0 4px 4px; }
-  .roles-right-stage .role-stage-pane { max-width: 100%; margin-left: 0; }
+  .roles-hero-layout { max-width: 100%; margin-left: 0; }
+  .roles-role-switcher { width: 100%; }
+  .roles-role-switcher .role-nav-btn { flex: 1; justify-content: center; }
   .roles-bg-overlay {
     background: linear-gradient(180deg, rgba(9,9,11,0.6) 0%, rgba(9,9,11,0.92) 50%, rgba(9,9,11,0.99) 100%);
   }

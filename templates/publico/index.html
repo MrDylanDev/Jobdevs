@@ -376,31 +376,33 @@
   </div>
 
   <div class="section-inner roles-hero-content">
-    <div class="section-head reveal">
-      <span class="section-marker"><span>MODELO BILATERAL</span></span>
-      <h2 class="sh-title">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
-      <p class="desc-mono" style="max-width: 600px; margin-top: 12px;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
-    </div>
-
     <div class="roles-hero-layout reveal">
-      <!-- Selector lateral con iconos Lucide -->
-      <div class="roles-sidebar-nav" role="tablist" aria-label="Selector de rol">
+      
+      <!-- Todo el encabezado agrupado a la derecha -->
+      <div class="roles-main-header">
+        <span class="section-marker"><span>MODELO BILATERAL</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
+        <p class="desc-mono" style="font-size: 0.88rem; color: var(--fg-dim); margin-bottom: 24px; line-height: 1.6;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
+      </div>
+
+      <!-- Selector de rol interactivo con iconos Lucide -->
+      <div class="roles-role-switcher" role="tablist" aria-label="Selector de rol">
         <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
           <span class="role-nav-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           </span>
           <span class="role-nav-label">EMPRESA</span>
         </button>
 
         <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
           <span class="role-nav-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
           </span>
           <span class="role-nav-label">APRENDIZ</span>
         </button>
       </div>
 
-      <!-- Textos en el apartado DERECHO con máxima legibilidad sobre el fondo transparente -->
+      <!-- Contenido detallado del rol seleccionado -->
       <div class="roles-right-stage">
         <!-- Panel Empresa -->
         <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
@@ -434,11 +436,7 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-      </div>
     </div>
   </div>
 </section>
