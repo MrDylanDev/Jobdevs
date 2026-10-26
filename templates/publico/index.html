@@ -368,42 +368,103 @@
     <div class="section-head reveal">
       <span class="section-marker"><span>MODELO BILATERAL</span></span>
       <h2 class="sh-title">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
+      <p class="desc-mono" style="max-width: 600px; margin-top: 12px;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
     </div>
 
-    <div class="roles-wrapper reveal">
-      <div class="role-pane tech-frame role-pane-corp">
-        <div class="rp-header">
-          <span class="rp-label">Para Empresas y Startups</span>
-          <h3 class="rp-title">Empresas</h3>
-          <p class="rp-desc">Publica requerimientos de software, recibe postulaciones de aprendices calificados y gestiona tus entregas mediante hitos auditables.</p>
-        </div>
-        <ul class="rp-data">
-          <li><span>Publicación</span> <span>Requerimientos técnicos claros</span></li>
-          <li><span>Selección</span> <span>Elección directa del talento</span></li>
-          <li><span>Seguimiento</span> <span>Hitos con evidencia en tiempo real</span></li>
-          <li><span>Seguridad</span> <span>Contratos digitales y mediación</span></li>
-        </ul>
-        <a href="{% url 'registro' %}" class="btn-tech-sec" style="margin-top: 40px; width: 100%;">
-          <span>PUBLICAR PROYECTO</span>
-          <i class="fa fa-briefcase ms-2"></i>
-        </a>
+    <div class="roles-interactive-wrapper reveal">
+      <!-- Selector lateral con iconos Lucide -->
+      <div class="roles-sidebar-nav" role="tablist" aria-label="Selector de rol">
+        <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          </span>
+          <span class="role-nav-label">EMPRESA</span>
+        </button>
+
+        <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+          </span>
+          <span class="role-nav-label">APRENDIZ</span>
+        </button>
       </div>
-      <div class="role-pane tech-frame">
-        <div class="rp-header">
-          <span class="rp-label">Para Aprendices y Egresados SENA</span>
-          <h3 class="rp-title">Desarrolladores</h3>
-          <p class="rp-desc">Crea tu perfil profesional con tu ficha académica y portafolio, postúlate a proyectos reales y construye reputación verificable.</p>
+
+      <!-- Escenario central (Información Izquierda + Imagen Derecha) -->
+      <div class="roles-stage tech-frame">
+        <!-- Panel Empresa -->
+        <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
+          <div class="role-info-col">
+            <div class="rp-label">Para Empresas y Startups</div>
+            <h3 class="role-stage-title">Impulsa tus proyectos con talento SENA verificado</h3>
+            <p class="role-stage-desc">Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total.</p>
+            
+            <ul class="role-stage-features">
+              <li><i class="fa fa-circle-check"></i> <span><strong>Publicación ágil:</strong> define stack técnico, vacantes y fechas estimadas sin costos de registro.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Selección directa:</strong> recibe cartas de presentación y perfiles con ficha SENA oficial.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Control por hitos:</strong> aprueba avances con evidencia técnica documentada antes de liberar pagos.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Seguridad jurídica:</strong> contratos digitales con hash criptográfico SHA-256 y mediación formal.</span></li>
+            </ul>
+
+            <div class="role-stage-actions">
+              <a href="{% url 'registro' %}" class="btn-tech-sec">
+                <span>PUBLICAR PROYECTO</span>
+                <i class="fa fa-briefcase ms-2"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="role-visual-col">
+            <div class="role-img-card">
+              <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-display-img" loading="lazy">
+              <div class="role-img-badge-float top-left">
+                <span class="dot-live"></span>
+                <span>ENTORNO CORPORATIVO</span>
+              </div>
+              <div class="role-img-badge-float bottom-right">
+                <i class="fa fa-shield-halved" style="color:var(--accent);"></i>
+                <span>CONTRATACIÓN SEGURA</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <ul class="rp-data">
-          <li><span>Perfil</span> <span>Verificación oficial con el SENA</span></li>
-          <li><span>Postulación</span> <span>Carta de presentación directa</span></li>
-          <li><span>Experiencia</span> <span>Trabajo en equipo y entrega de hitos</span></li>
-          <li><span>Reputación</span> <span>Calificaciones públicas de empresas</span></li>
-        </ul>
-        <a href="{% url 'registro' %}" class="btn-tech" style="margin-top: 40px; width: 100%;">
-          <span>CREAR PERFIL PROFESIONAL</span>
-          <i class="fa fa-code ms-2"></i>
-        </a>
+
+        <!-- Panel Desarrollador / Aprendiz -->
+        <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
+          <div class="role-info-col">
+            <div class="rp-label" style="color:var(--accent);">Para Aprendices y Egresados SENA</div>
+            <h3 class="role-stage-title">Construye tu carrera profesional con proyectos reales</h3>
+            <p class="role-stage-desc">Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales.</p>
+            
+            <ul class="role-stage-features">
+              <li><i class="fa fa-circle-check"></i> <span><strong>Validación oficial:</strong> verificación de identidad académica contra el padrón oficial del SENA.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Postulación directa:</strong> carta de presentación técnica y límite responsable de 3 vacantes simultáneas.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Experiencia en producción:</strong> entrega de código y avances por hitos con evidencias auditadas en R2.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Reputación verificable:</strong> calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones.</span></li>
+            </ul>
+
+            <div class="role-stage-actions">
+              <a href="{% url 'registro' %}" class="btn-tech">
+                <span>CREAR PERFIL PROFESIONAL</span>
+                <i class="fa fa-code ms-2"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="role-visual-col">
+            <div class="role-img-card">
+              <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-display-img" loading="lazy">
+              <div class="role-img-badge-float top-left">
+                <span class="dot-live" style="background:#22c55e;"></span>
+                <span>TALENTO SENA ACTIVO</span>
+              </div>
+              <div class="role-img-badge-float bottom-right">
+                <i class="fa fa-certificate" style="color:var(--accent);"></i>
+                <span>EXPERIENCIA COMPROBABLE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

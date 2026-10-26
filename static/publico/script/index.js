@@ -467,6 +467,28 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ============================
+     ROLES INTERACTIVE SWITCHER
+     ============================ */
+  const roleNavBtns = document.querySelectorAll('.role-nav-btn');
+  const rolePanes = document.querySelectorAll('.role-stage-pane');
+  if (roleNavBtns.length && rolePanes.length) {
+    roleNavBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetRole = this.dataset.role;
+        roleNavBtns.forEach(b => {
+          const isActive = (b === this);
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        rolePanes.forEach(pane => {
+          const isTarget = (pane.id === (targetRole === 'empresa' ? 'paneEmpresa' : 'paneDev'));
+          pane.classList.toggle('active', isTarget);
+        });
+      });
+    });
+  }
+
+  /* ============================
      CUSTOM CURSOR
      ============================ */
   if (window.matchMedia('(hover: hover)').matches) {
