@@ -1354,7 +1354,60 @@ details[open] .faq-q::after { content: '−'; }
 .sticky-text { font-family: var(--font-display); font-size: 1.3rem; text-transform: uppercase; font-weight: 700; }
 .sticky-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
 
-/* ========== MODAL ========== */
+/* ========== MODAL BASE (DEFENSIVE ISOLATION) ========== */
+.modal {
+  display: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  outline: 0 !important;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.modal.fade {
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+.modal.fade:not(.show) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 1.75rem auto;
+  pointer-events: auto;
+}
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - 3.5rem);
+}
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  outline: 0;
+}
+
 .modal-tech { background: var(--bg); border: 1px solid var(--border-mid); border-radius: 0; padding: 0; color: var(--fg); }
 .modal-tech .modal-header {
   border-bottom: 1px dashed var(--border-mid); padding: 28px 30px 20px;

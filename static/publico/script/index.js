@@ -447,6 +447,17 @@ document.addEventListener('DOMContentLoaded', function () {
   var loginModalEl = document.getElementById('loginModal');
   if (loginModalEl) {
     loginModalEl.addEventListener('hidden.bs.modal', function() { showLogin(); });
+    loginModalEl.addEventListener('click', function(e) {
+      if (e.target === loginModalEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          var inst = bootstrap.Modal.getInstance(loginModalEl);
+          if (inst) inst.hide();
+          else loginModalEl.classList.remove('show');
+        } else {
+          loginModalEl.classList.remove('show');
+        }
+      }
+    });
   }
 
   /* ============================
