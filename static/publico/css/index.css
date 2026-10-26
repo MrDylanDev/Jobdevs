@@ -664,12 +664,27 @@ body {
 .role-nav-btn:hover {
   color: var(--fg); border-color: var(--accent-dim); background: rgba(var(--accent-rgb), 0.06);
 }
+/* Activo por defecto */
 .role-nav-btn.active {
+  transition: all 0.3s ease;
+}
+/* Empresa activo: Gris / Slate monocromático */
+.role-nav-btn[data-role="empresa"].active {
+  color: #e2e8f0; border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 20px rgba(255,255,255,0.08);
+}
+.role-nav-btn[data-role="empresa"].active::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; background: #cbd5e1; border-radius: 4px 0 0 4px;
+}
+/* Aprendiz / Dev activo: Verde SENA esmeralda */
+.role-nav-btn[data-role="dev"].active {
   color: var(--accent); border-color: var(--accent);
   background: rgba(var(--accent-rgb), 0.12);
   box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.20);
 }
-.role-nav-btn.active::before {
+.role-nav-btn[data-role="dev"].active::before {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0;
   width: 4px; background: var(--accent); border-radius: 4px 0 0 4px;
 }
@@ -719,6 +734,19 @@ body {
 }
 .role-stage-features li i {
   color: var(--accent); font-size: 1rem; margin-top: 3px; flex-shrink: 0;
+}
+/* Acentos diferenciados por rol: Empresa (Gris/Plata) vs Dev (Verde SENA) */
+#paneEmpresa .role-stage-features li i {
+  color: #94a3b8;
+}
+#paneEmpresa .dot-live {
+  background: #94a3b8;
+}
+#paneDev .role-stage-features li i {
+  color: var(--accent);
+}
+#paneDev .dot-live {
+  background: var(--accent);
 }
 .role-stage-features li strong { color: var(--fg); font-weight: 600; }
 .role-stage-actions { display: flex; gap: 18px; flex-wrap: wrap; }
