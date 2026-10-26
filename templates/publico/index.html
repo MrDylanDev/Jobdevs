@@ -389,10 +389,17 @@
         </button>
       </div>
 
-      <!-- Escenario central (Información Izquierda + Imagen Derecha) -->
+      <!-- Escenario central (Imagen Izquierda Transparente + Información Derecha) -->
       <div class="roles-stage">
         <!-- Panel Empresa -->
         <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
+          <div class="role-visual-col">
+            <div class="role-cinema-box">
+              <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-cinema-img" loading="lazy">
+              <div class="role-cinema-overlay"></div>
+            </div>
+          </div>
+
           <div class="role-info-col">
             <div class="rp-label">Para Empresas y Startups</div>
             <h3 class="role-stage-title">Impulsa tus proyectos con talento SENA verificado</h3>
@@ -405,16 +412,17 @@
               <li><i class="fa fa-circle-check"></i> <span><strong>Seguridad jurídica:</strong> contratos digitales con hash criptográfico SHA-256 y mediación formal.</span></li>
             </ul>
           </div>
-
-          <div class="role-visual-col">
-            <div class="role-img-card">
-              <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-display-img" loading="lazy">
-            </div>
-          </div>
         </div>
 
         <!-- Panel Desarrollador / Aprendiz -->
         <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
+          <div class="role-visual-col">
+            <div class="role-cinema-box">
+              <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-cinema-img" loading="lazy">
+              <div class="role-cinema-overlay"></div>
+            </div>
+          </div>
+
           <div class="role-info-col">
             <div class="rp-label" style="color:var(--accent);">Para Aprendices y Egresados SENA</div>
             <h3 class="role-stage-title">Construye tu carrera profesional con proyectos reales</h3>
@@ -426,12 +434,6 @@
               <li><i class="fa fa-circle-check"></i> <span><strong>Experiencia en producción:</strong> entrega de código y avances por hitos con evidencias auditadas en R2.</span></li>
               <li><i class="fa fa-circle-check"></i> <span><strong>Reputación verificable:</strong> calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones.</span></li>
             </ul>
-          </div>
-
-          <div class="role-visual-col">
-            <div class="role-img-card">
-              <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-display-img" loading="lazy">
-            </div>
           </div>
         </div>
 

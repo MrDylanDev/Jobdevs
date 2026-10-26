@@ -440,6 +440,7 @@ body {
 }
 
 /* ========== SECTION TECH ========== */
+section[id] { scroll-margin-top: 80px; }
 .section-tech { padding: 130px 5%; border-top: 1px solid var(--border-dim); position: relative; }
 .section-inner { max-width: 1200px; margin: 0 auto; }
 
@@ -703,7 +704,7 @@ body {
   display: none; height: 100%; width: 100%;
 }
 .role-stage-pane.active {
-  display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 50px;
   align-items: center; padding: 10px 0; width: 100%;
   animation: fadeInPane 0.35s ease;
 }
@@ -713,7 +714,7 @@ body {
 }
 
 .role-info-col {
-  display: flex; flex-direction: column; justify-content: center; padding-right: 20px;
+  display: flex; flex-direction: column; justify-content: center; padding-left: 10px;
 }
 .role-stage-title {
   font-family: var(--font-display); font-size: clamp(2rem, 3.2vw, 3rem);
@@ -726,7 +727,7 @@ body {
 }
 .role-stage-features {
   list-style: none; display: flex; flex-direction: column; gap: 16px;
-  margin-bottom: 36px; padding: 0;
+  margin-bottom: 20px; padding: 0;
 }
 .role-stage-features li {
   display: flex; align-items: flex-start; gap: 14px;
@@ -753,34 +754,33 @@ body {
 
 .role-visual-col {
   height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;
+  position: relative;
 }
-.role-img-card {
+.role-cinema-box {
   position: relative; width: 100%; height: 100%; min-height: 480px; max-height: 560px;
-  border: 1px solid rgba(255,255,255,0.10); overflow: hidden; background: #000;
-  border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  overflow: hidden; border-radius: 8px;
 }
-.role-display-img {
+.role-cinema-img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: contrast(1.1) brightness(0.92);
+  filter: contrast(1.15) brightness(0.9);
+  /* Máscara de transparencia degradada hacia el lado derecho y bordes */
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
+                      linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+  -webkit-mask-composite: destination-in;
+  mask-image: linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
+              linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+  mask-composite: intersect;
   transition: transform 0.8s ease, filter 0.8s ease;
 }
-.role-img-card:hover .role-display-img {
+.role-cinema-box:hover .role-cinema-img {
   transform: scale(1.03);
-  filter: contrast(1.15) brightness(0.98);
+  filter: contrast(1.2) brightness(0.95);
 }
-.role-img-badge-float {
-  position: absolute; z-index: 3; background: rgba(0,0,0,0.80);
-  border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(10px);
-  padding: 8px 16px; display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
-  color: var(--fg); letter-spacing: 0.08em; text-transform: uppercase;
-  border-radius: 4px;
-}
-.role-img-badge-float.top-left { top: 20px; left: 20px; }
-.role-img-badge-float.bottom-right { bottom: 20px; right: 20px; }
-.dot-live {
-  width: 7px; height: 7px; background: var(--accent); border-radius: 50%;
-  animation: blink 2s infinite;
+.role-cinema-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 40%, rgba(0,0,0,0.5) 75%, var(--bg) 100%),
+    linear-gradient(180deg, transparent 75%, var(--bg) 100%);
 }
 
 @media (max-width: 900px) {
