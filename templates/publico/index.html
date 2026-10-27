@@ -33,7 +33,7 @@
     <div class="brand-dot"></div>
   </a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#sistemas">Módulos</a></li>
+    <li><a href="#garantias">Garantías</a></li>
     <li><a href="#metodologia">Cómo funciona</a></li>
     <li><a href="#roles">Roles</a></li>
     <li><a href="#testimonios">Casos de éxito</a></li>
@@ -145,176 +145,67 @@
   </div>
 </section>
 
-<!-- ==================== FLIP CARDS — CORE SYSTEMS ==================== -->
-<section id="sistemas" class="section-tech bg-darker">
+<!-- ==================== GARANTÍAS DE OPERACIÓN ==================== -->
+<section id="garantias" class="section-tech bg-darker trust-section">
   <div class="section-inner">
     <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_02: SYSTEM_CORE</span></span>
-      <h2 class="sh-title">Módulos que <span style="color:var(--accent);">construyen</span><br>módulos que <span class="text-stroke">transforman.</span></h2>
+      <span class="section-marker"><span>// OPERATING_GUARANTEES</span></span>
+      <h2 class="sh-title">Garantías de <span style="color:var(--accent);">operación</span>.</h2>
     </div>
-    <div class="reveal" style="margin-bottom:24px;">
-      <p class="desc-mono desc-mono--lg">Cada módulo del sistema está diseñado para un propósito específico dentro del ecosistema JobDevs. Pasa el cursor o haz clic en cada tarjeta para ver sus capacidades.</p>
+    <div class="reveal" style="margin-bottom:36px;">
+      <p class="desc-mono desc-mono--lg">Cada etapa del ciclo queda registrada y auditable. Estos son los controles que ya operan en JobDevs, no promesas de roadmap.</p>
     </div>
 
-    <div class="reveal-stagger flip-grid">
-
-      <!-- Sistema 1: Gestión de Proyectos -->
-      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Gestión de Proyectos">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/website.png' %}" alt="Gestión de proyectos" loading="lazy">
-              <div class="flip-label">/ 01</div>
-              <div class="flip-badge">PROYECTOS</div>
-              <div class="flip-specialty">Gestión & Seguimiento</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">GESTIÓN DE<br>PROYECTOS</h3>
-                <p class="flip-role">Registro · Avances · Hitos</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">3 ROLES · SEGUIMIENTO</span>
-                <span class="flip-meta-hint">CAPACIDADES ↻</span>
-              </div>
-            </div>
-          </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Gestión — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Registro completo de requerimientos técnicos</li>
-              <li><i class="fa fa-circle-check"></i> Desglose por hitos y entregables fechados</li>
-              <li><i class="fa fa-circle-check"></i> Avances con evidencia documentada en R2</li>
-              <li><i class="fa fa-circle-check"></i> Dashboard contextual por rol (Admin/Empresa/Dev)</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">CENTRO DE PROYECTOS</div>
-              <div class="flip-back-sig-desc">Ciclo completo de gestión con trazabilidad documentada.</div>
-            </div>
-          </div>
+    <ol class="trust-ledger reveal-stagger">
+      <li class="trust-row">
+        <span class="trust-idx">/ 01</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Contrato digital inmutable</h3>
+          <p class="trust-desc">Ambas partes firman electrónicamente y el acuerdo se sella con hash criptográfico sobre el contenido firmado.</p>
         </div>
-      </div>
-
-      <!-- Sistema 2: Control de Acceso -->
-      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Control de Acceso">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/Personalizado.png' %}" alt="Control de acceso" loading="lazy">
-              <div class="flip-label">/ 02</div>
-              <div class="flip-badge">SEGURIDAD</div>
-              <div class="flip-specialty">Usuarios & Permisos</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">CONTROL DE<br>ACCESO</h3>
-                <p class="flip-role">Perfiles verificados con reputación pública</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">SENA & DIAN · SESIÓN</span>
-                <span class="flip-meta-hint">CAPACIDADES ↻</span>
-              </div>
-            </div>
-          </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Acceso — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Validación de identidad con padrón oficial SENA</li>
-              <li><i class="fa fa-circle-check"></i> Perfil público verificable con stack y ficha</li>
-              <li><i class="fa fa-circle-check"></i> Control de acceso basado en roles (RBAC)</li>
-              <li><i class="fa fa-circle-check"></i> Sesiones aisladas y auditoría de accesos</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo de seguridad</div>
-              <div class="flip-back-sig-name">IDENTIDAD VERIFICADA</div>
-              <div class="flip-back-sig-desc">Validación de aprendices y empresas registradas.</div>
-            </div>
-          </div>
+        <span class="trust-metric">SHA-256</span>
+      </li>
+      <li class="trust-row">
+        <span class="trust-idx">/ 02</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Evidencias protegidas</h3>
+          <p class="trust-desc">Los avances se guardan en almacenamiento privado, con validación real del tipo de archivo antes de aceptarse.</p>
         </div>
-      </div>
-
-      <!-- Sistema 3: Motor de Vinculación -->
-      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Motor de Vinculación">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/automatizacion.png' %}" alt="Motor de vinculación" loading="lazy">
-              <div class="flip-label">/ 03</div>
-              <div class="flip-badge">MATCH</div>
-              <div class="flip-specialty">Postulaciones & Contratos</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">MOTOR DE<br>VINCULACIÓN</h3>
-                <p class="flip-role">Postular · Contratar · Evaluar</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">ACUERDO · CONTRATO</span>
-                <span class="flip-meta-hint">CAPACIDADES ↻</span>
-              </div>
-            </div>
-          </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Vinculación — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Postulación directa con carta de presentación</li>
-              <li><i class="fa fa-circle-check"></i> Contratos digitales con hash criptográfico SHA-256</li>
-              <li><i class="fa fa-circle-check"></i> Calificación mutua al cierre de proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Sala de mediación y resolución de disputas</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo contractual</div>
-              <div class="flip-back-sig-name">CONTRATACIÓN SEGURA</div>
-              <div class="flip-back-sig-desc">Acuerdos digitales con validez y registro inmutable.</div>
-            </div>
-          </div>
+        <span class="trust-metric">R2 PRIVADO</span>
+      </li>
+      <li class="trust-row">
+        <span class="trust-idx">/ 03</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Identidad verificada</h3>
+          <p class="trust-desc">Aprendices contra el padrón oficial SENA y empresas con NIT o cédula validados por dígito de verificación.</p>
         </div>
-      </div>
-
-      <!-- Sistema 4: Centro de Comunicación -->
-      <div class="flip-card" tabindex="0" role="button" aria-label="Tarjeta Sistema: Centro de Comunicación">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/ia.png' %}" alt="Centro de comunicación" loading="lazy">
-              <div class="flip-label">/ 04</div>
-              <div class="flip-badge">COMUNICACIÓN</div>
-              <div class="flip-specialty">Mensajería & Notificaciones</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">CENTRO DE<br>COMUNICACIÓN</h3>
-                <p class="flip-role">Chat · Notif · Auditoría</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">TIEMPO REAL · LOGS</span>
-                <span class="flip-meta-hint">CAPACIDADES ↻</span>
-              </div>
-            </div>
-          </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Comunicación — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Chat privado de proyecto entre empresa y dev</li>
-              <li><i class="fa fa-circle-check"></i> Notificaciones automáticas por eventos y avances</li>
-              <li><i class="fa fa-circle-check"></i> Registro de auditoría de actividad del proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Seguimiento reactivo y favoritos</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo colaborativo</div>
-              <div class="flip-back-sig-name">MENSAJERÍA INTEGRADA</div>
-              <div class="flip-back-sig-desc">Comunicación directa sin salir de la plataforma.</div>
-            </div>
-          </div>
+        <span class="trust-metric">SENA · DIAN</span>
+      </li>
+      <li class="trust-row">
+        <span class="trust-idx">/ 04</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Liberación por hitos</h3>
+          <p class="trust-desc">Nada avanza sin un entregable revisado: la empresa aprueba o solicita corrección antes de cada cierre.</p>
         </div>
-      </div>
-
-    </div>
+        <span class="trust-metric">HITO → APROBACIÓN</span>
+      </li>
+      <li class="trust-row">
+        <span class="trust-idx">/ 05</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Mediación formal</h3>
+          <p class="trust-desc">Las disputas entran a una sala con plazos definidos y resolución auditada; las negociaciones inactivas expiran.</p>
+        </div>
+        <span class="trust-metric">PLAZO 7 DÍAS</span>
+      </li>
+      <li class="trust-row">
+        <span class="trust-idx">/ 06</span>
+        <div class="trust-body">
+          <h3 class="trust-title">Respaldo y recuperación</h3>
+          <p class="trust-desc">Copias con retención escalonada de 30 días y restauración medida y verificada en pruebas periódicas.</p>
+        </div>
+        <span class="trust-metric">RTO 6,6 S</span>
+      </li>
+    </ol>
   </div>
 </section>
 

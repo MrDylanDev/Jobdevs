@@ -461,23 +461,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     FLIP CARDS (CLICK & KEYBOARD ACCESSIBILITY)
-     ============================ */
-  document.querySelectorAll('.flip-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      if (!e.target.closest('a') && !e.target.closest('button')) {
-        card.classList.toggle('flipped');
-      }
-    });
-    card.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        card.classList.toggle('flipped');
-      }
-    });
-  });
-
-  /* ============================
      ROLES INTERACTIVE SWITCHER
      ============================ */
   const roleNavBtns = document.querySelectorAll('.role-nav-btn');
@@ -566,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.style.left = mx + 'px';
         dot.style.top = my + 'px';
       });
-      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech, .flip-card, .story-card, .goal-pill, input, textarea, select, [role="button"]');
+      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech, .story-card, .goal-pill, input, textarea, select, [role="button"]');
       hoverTargets.forEach(function(el) {
         el.addEventListener('mouseenter', function() { dot.classList.add('hover'); ring.classList.add('hover'); });
         el.addEventListener('mouseleave', function() { dot.classList.remove('hover'); ring.classList.remove('hover'); });
