@@ -61,6 +61,12 @@ Cada SVG pasó por este pipeline (reproducible con `magick` + `rsvg-convert`):
 4. Inks monocromos: `#c9c9c9`. Los rellenos casi blancos (espacio negativo) se
    mapean a `#0b0b0b` para que la tipografía se lea como calado sobre el fondo
    oscuro.
+   - Modo invertido (`#0b0b0b` ↔ `#c9c9c9`), aplicado solo a `tiendas-d1.svg` y
+     `frisby.svg`: su recuadro de marca desaparece y queda la tinta clara.
+   - `almacenes-exito.svg` y `olimpica.svg` conservan el relleno de marca
+     (cobertura 0.75 y 0.91): su recuadro es la identidad del logo y no se puede
+     quitar sin redibujarlo. Pendiente decisión: conservarlos o retirarlos del
+     carrusel.
 5. `currentColor` **no** se usa: un SVG dentro de `<img>` no hereda color del
    documento, así que el tono se controla con `opacity` en CSS.
 
