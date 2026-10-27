@@ -52,6 +52,10 @@ class TestQueEsJobDevs:
         )
         assert filas == ESPEC
 
+    def test_ficha_tiene_header_con_version(self, bloque_que_es):
+        assert 'class="what-spec-head"' in bloque_que_es
+        assert '// SPEC' in bloque_que_es and 'v1.0' in bloque_que_es
+
     def test_tres_principios_numerados(self, bloque_que_es):
         numerales = re.findall(r'class="what-numeral" aria-hidden="true">(\d{2})<', bloque_que_es)
         assert numerales == ['01', '02', '03']
@@ -73,7 +77,9 @@ class TestQueEsJobDevs:
     def test_css_de_la_composicion(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
         for regla in ('.what-section', '.what-head', '.what-statement', '.what-spec',
-                      '.what-spec-row', '.what-principles', '.what-numeral',
+                      '.what-spec-head', '.what-spec-row',
+                      '.what-spec-row dt::after', '.what-principles', '.what-numeral',
+                      '.what-principle::before',
                       '.what-principle-title', '.what-negation'):
             assert regla in css, f'Falta la regla {regla}'
         assert '.trust-' not in css, 'No deben quedar reglas del ledger anterior'
