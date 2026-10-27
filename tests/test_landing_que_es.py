@@ -32,11 +32,11 @@ class TestQueEsJobDevs:
         assert re.search(r'<a href="#que-es">Qué es</a>', landing_html)
 
     def test_titular_pregunta_que_es_jobdevs(self, bloque_que_es):
-        assert re.search(r'<h2[^>]*class="[^"]*what-statement[^"]*"[^>]*>¿Qué es ', bloque_que_es)
+        assert re.search(r'<h2[^>]*class="sh-title"[^>]*>¿Qué es ', bloque_que_es)
         assert 'JobDevs' in bloque_que_es
 
     def test_solo_un_parrafo_de_texto(self, bloque_que_es):
-        parrafos = re.findall(r'<p class="[^"]*what-lede[^"]*">([^<]+)</p>', bloque_que_es)
+        parrafos = re.findall(r'<p class="desc-mono">([^<]+)</p>', bloque_que_es)
         assert len(parrafos) == 1, 'La sección debe tener un único párrafo'
         texto = parrafos[0].strip()
         assert 80 <= len(texto) <= 320, 'El texto debe ser breve'
@@ -52,10 +52,16 @@ class TestQueEsJobDevs:
 
     def test_css_minimo_de_la_seccion(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
-        for regla in ('.what-section', '.what-inner', '.what-statement', '.what-lede'):
+        for regla in ('.what-section', '.what-head', '.what-grid-bg'):
             assert regla in css, f'Falta la regla {regla}'
-        for resto in ('.what-spec', '.what-principle', '.what-negation'):
+        for resto in ('.what-spec', '.what-principle', '.what-negation', '.what-inner'):
             assert resto not in css
+
+    def test_comparte_la_piel_de_la_banda_de_empresas(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        assert '.logos-marquee-section,\n.what-section {' in css
+        assert '.logos-marquee-head,\n.what-head {' in css
+        assert '.logos-grid-bg,\n.what-grid-bg {' in css
 
     def test_banda_de_metricas_sigue_fuera(self, landing_html):
         for resto in ('stats-section', 'stats-grid', 'data-count', 'stat-number'):
