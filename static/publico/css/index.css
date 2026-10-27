@@ -510,96 +510,84 @@ section[id] { scroll-margin-top: 80px; }
 .module-link i { font-size: 0.65rem; }
 
 /* ========== FLIP CARDS (Coach-style) ========== */
-/* ========== GARANTÍAS DE OPERACIÓN (TRUST LEDGER) ========== */
-.trust-panel {
-  position: relative;
-  padding: 6px 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 60%);
+/* ========== QUÉ ES JOBDEVS ========== */
+.what-section { position: relative; overflow: hidden; }
+.what-head {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 18px;
+  max-width: 900px; margin-bottom: 64px;
 }
-.trust-ledger {
-  list-style: none; margin: 0; padding: 0;
+.what-statement {
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  line-height: 0.98; letter-spacing: -0.03em;
 }
-.trust-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 44px 66px minmax(0, 1fr) auto;
-  align-items: start; gap: 22px;
-  padding: 28px 6px;
-  border-bottom: 1px solid var(--border-dim);
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-.trust-row:last-child { border-bottom: 0; }
-.trust-row::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-  background: var(--accent); transform: scaleY(0); transform-origin: top;
-  transition: transform 0.3s ease;
-}
-.trust-row:hover { background: rgba(var(--accent-rgb), 0.035); }
-.trust-row:hover::before { transform: scaleY(1); }
-
-.trust-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px;
-  border: 1px solid var(--border-dim); color: var(--fg-dim);
-  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
-}
-.trust-row:hover .trust-icon {
-  color: var(--accent); border-color: var(--accent-dim);
-  background: rgba(var(--accent-rgb), 0.07);
+.what-lede {
+  max-width: 720px; margin: 0;
+  font-size: 0.88rem; line-height: 1.7;
 }
 
-.trust-lead { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.trust-idx {
-  font-family: var(--font-mono); font-size: 0.62rem;
-  letter-spacing: 0.2em; color: var(--muted);
+.what-compare {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--border-dim);
 }
-.trust-state {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.16em;
-  color: var(--fg-dim); border: 1px solid var(--border-dim); padding: 2px 6px;
+.what-col { padding: 34px 40px 34px 0; }
+.what-col + .what-col {
+  padding-left: 40px; padding-right: 0;
+  border-left: 1px solid var(--border-dim);
 }
-.trust-dot {
-  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
-  animation: trust-pulse 2.4s ease-in-out infinite;
+.what-col-title {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  margin: 0 0 22px;
 }
-@keyframes trust-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.what-col-title--no { color: var(--muted); }
+.what-col-title--yes { color: var(--accent); }
 
-.trust-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.12rem, 1.7vw, 1.5rem); font-weight: 700;
-  text-transform: uppercase; letter-spacing: -0.01em;
-  margin: 0 0 8px;
+.what-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.what-item {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px; align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: var(--font-main); font-size: 0.9rem; line-height: 1.5;
 }
-.trust-desc {
-  font-family: var(--font-main); font-size: 0.86rem; line-height: 1.65;
-  color: var(--fg-dim); margin: 0; max-width: 640px;
-}
-.trust-metric {
-  justify-self: end; white-space: nowrap;
-  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.16em;
-  color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.35);
-  background: rgba(var(--accent-rgb), 0.05);
-  padding: 8px 12px;
-  transition: background 0.25s ease, border-color 0.25s ease;
-}
-.trust-row:hover .trust-metric { background: rgba(var(--accent-rgb), 0.12); border-color: var(--accent); }
+.what-item:last-child { border-bottom: 0; }
+.what-mark { font-family: var(--font-mono); font-size: 0.85rem; }
+.what-item--no { color: var(--muted); }
+.what-item--no .what-mark { color: rgba(255, 255, 255, 0.25); }
+.what-item--yes { color: var(--fg); }
+.what-item--yes .what-mark { color: var(--accent); }
 
-.trust-foot {
-  margin: 28px 0 0;
-  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--muted);
+.what-chips {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px;
+  margin-top: 52px; padding-top: 26px;
+  border-top: 1px solid var(--border-dim);
 }
+.what-chips-label {
+  font-family: var(--font-mono); font-size: 0.56rem;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+}
+.what-chips-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 0; padding: 0; list-style: none;
+}
+.what-chips-list li {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.14em; color: var(--fg-dim);
+  border: 1px solid var(--border-dim); padding: 5px 10px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.what-chips-list li:hover { color: var(--accent); border-color: var(--accent-dim); }
 
-@media (max-width: 760px) {
-  .trust-panel { padding: 4px 10px; }
-  .trust-row {
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: 8px 14px; padding: 24px 2px;
+@media (max-width: 860px) {
+  .what-head { margin-bottom: 44px; }
+  .what-compare { grid-template-columns: 1fr; }
+  .what-col { padding: 28px 0 8px; }
+  .what-col + .what-col {
+    padding: 28px 0 8px; border-left: 0;
+    border-top: 1px solid var(--border-dim);
   }
-  .trust-icon { width: 40px; height: 40px; }
-  .trust-lead { flex-direction: row; align-items: center; gap: 10px; }
-  .trust-body { grid-column: 2; }
-  .trust-metric { grid-column: 2; justify-self: start; margin-top: 4px; }
+  .what-chips { margin-top: 36px; }
 }
 
 /* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */
