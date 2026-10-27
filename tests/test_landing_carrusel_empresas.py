@@ -104,3 +104,24 @@ class TestCarruselEmpresasLanding:
         assert '.logos-wordmark:hover img' in landing_css
         assert '.logos-marquee-track:hover' in landing_css
         assert 'prefers-reduced-motion' in landing_css
+
+    def test_encabezado_tecnico_con_metadatos_y_sectores(self, bloque_empresas):
+        meta = re.findall(
+            r'class="logos-meta-row"><dt>([^<]+)</dt><dd>([^<]+)</dd>', bloque_empresas
+        )
+        assert len(meta) == 3, 'El encabezado debe mostrar tres metadatos'
+        assert all(valor.strip() for _etiqueta, valor in meta)
+
+        sectores = re.findall(r'<li>([^<]+)</li>', bloque_empresas)
+        assert len(sectores) >= 6, 'La banda debe listar los sectores cubiertos'
+
+    def test_css_aporta_estetica_tecnica_de_la_banda(self, landing_css):
+        for regla in (
+            '.logos-grid-bg',
+            '.logos-head-meta',
+            '.logos-rail-label',
+            '.logos-wordmark + .logos-wordmark::before',
+            '.logos-wordmark:hover::after',
+            '.logos-sectors-list li',
+        ):
+            assert regla in landing_css, f'Falta la regla {regla}'
