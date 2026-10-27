@@ -393,135 +393,42 @@
 
       </div>
 
-      <!-- Columna Derecha: Visor de Software (Window Console en vivo) -->
-      <div class="wf-console-window">
-        <!-- Barra de ventana estilo sistema operativo -->
-        <div class="wf-window-bar">
-          <div class="wf-window-dots">
-            <span class="wf-dot wf-dot-red"></span>
-            <span class="wf-dot wf-dot-yellow"></span>
-            <span class="wf-dot wf-dot-green"></span>
-          </div>
-          <div class="wf-window-url">
-            <i class="fa fa-lock" style="font-size:0.65rem; color:var(--accent);"></i>
-            <span id="wfWindowUrl">jobdevs.co/app/proyectos/publicar</span>
-          </div>
-          <div class="wf-window-badge">
-            <span class="dot-live"></span>
-            <span id="wfWindowStage">FASE 01 ACTIVA</span>
+      <!-- Columna Derecha: Visor de Fotografía Real de Alta Definición con Transparencia -->
+      <div class="wf-visual-stage">
+        <div class="wf-photo-frame active" id="photoStep01">
+          <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="Planificación y requerimientos técnicos" class="wf-cinema-img" loading="lazy">
+          <div class="wf-photo-overlay"></div>
+          <div class="wf-photo-caption">
+            <span class="wf-caption-step">FASE 01</span>
+            <span class="wf-caption-title">Planificación Técnica & Arquitectura</span>
           </div>
         </div>
 
-        <!-- Escenario de pantallas dinámicas simuladas -->
-        <div class="wf-window-stage">
-
-          <!-- Pantalla 01: Publicar Proyecto -->
-          <div class="wf-screen active" id="screen01" role="tabpanel" aria-labelledby="stepBtn01">
-            <div class="wf-mock-card">
-              <div class="wf-mock-header">
-                <span class="wf-mock-title"><i class="fa fa-file-code me-2"></i>Nuevo Requerimiento de Software</span>
-                <span class="wf-mock-sub">Empresa Demo SAS</span>
-              </div>
-              <div style="margin-bottom:16px;">
-                <div style="font-size:0.75rem; color:var(--fg-dim); margin-bottom:4px; font-family:var(--font-mono);">TÍTULO DEL PROYECTO</div>
-                <div style="font-size:1.05rem; font-weight:700; color:var(--fg);">Plataforma E-commerce y API de Pagos</div>
-              </div>
-              <div style="margin-bottom:16px;">
-                <div style="font-size:0.75rem; color:var(--fg-dim); margin-bottom:6px; font-family:var(--font-mono);">STACK TECNOLÓGICO REQUERIDO</div>
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                  <span class="micro-chip micro-chip--accent"><i class="fa fa-code"></i> Python 3.14</span>
-                  <span class="micro-chip"><i class="fa fa-cubes"></i> Django 5.0</span>
-                  <span class="micro-chip"><i class="fa fa-database"></i> PostgreSQL 16</span>
-                  <span class="micro-chip"><i class="fa fa-box"></i> Docker</span>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; font-family:var(--font-mono); font-size:0.75rem;">
-                <div><span style="color:var(--fg-dim); display:block;">Vacantes:</span><strong>2 Desarrolladores</strong></div>
-                <div><span style="color:var(--fg-dim); display:block;">Hitos:</span><strong>3 Entregables</strong></div>
-                <div><span style="color:var(--fg-dim); display:block;">Prioridad:</span><strong style="color:var(--accent);">Alta</strong></div>
-              </div>
-            </div>
+        <div class="wf-photo-frame" id="photoStep02">
+          <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="Acuerdo profesional y firma de contrato" class="wf-cinema-img" loading="lazy">
+          <div class="wf-photo-overlay"></div>
+          <div class="wf-photo-caption">
+            <span class="wf-caption-step">FASE 02</span>
+            <span class="wf-caption-title">Match de Talento & Contrato Digital</span>
           </div>
+        </div>
 
-          <!-- Pantalla 02: Postulación y Contrato -->
-          <div class="wf-screen" id="screen02" role="tabpanel" aria-labelledby="stepBtn02">
-            <div class="wf-mock-card">
-              <div class="wf-mock-header">
-                <span class="wf-mock-title"><i class="fa fa-users me-2"></i>Postulación Recibida · Match SENA</span>
-                <span class="badge" style="background:rgba(34,197,94,0.15); color:#4ade80; font-family:var(--font-mono); font-size:0.7rem;">CANDIDATO DESTACADO</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-                <div style="width:48px; height:48px; border-radius:50%; background:var(--accent); color:#000; font-weight:800; font-size:1rem; display:flex; align-items:center; justify-content:center;">AD</div>
-                <div>
-                  <div style="font-weight:700; font-size:1.05rem; color:var(--fg);">Alejandro Argaez</div>
-                  <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--fg-dim);">ADSO · Ficha Oficial: <strong style="color:#22c55e;">2670123 (Verificado)</strong></div>
-                </div>
-              </div>
-              <div style="background:rgba(0,0,0,0.4); border-left:3px solid var(--accent); padding:10px 14px; margin-bottom:16px; font-family:var(--font-mono); font-size:0.78rem; color:var(--fg-dim); line-height:1.5;">
-                "Cuento con experiencia en Django, Celery y Docker. Cumplo los requerimientos técnicos del proyecto y disponibilidad para iniciar de inmediato."
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.08);">
-                <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--fg-dim);"><i class="fa fa-file-signature text-accent me-1"></i> Contrato Digital: <strong>Listo para firma</strong></span>
-                <span class="btn-tech-sec" style="padding:6px 14px; font-size:0.75rem;">ACEPTAR & FIRMAR</span>
-              </div>
-            </div>
+        <div class="wf-photo-frame" id="photoStep03">
+          <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="Desarrollo de software y entrega de hitos" class="wf-cinema-img" loading="lazy">
+          <div class="wf-photo-overlay"></div>
+          <div class="wf-photo-caption">
+            <span class="wf-caption-step">FASE 03</span>
+            <span class="wf-caption-title">Ejecución de Hitos con Evidencias R2</span>
           </div>
+        </div>
 
-          <!-- Pantalla 03: Hitos con Evidencias -->
-          <div class="wf-screen" id="screen03" role="tabpanel" aria-labelledby="stepBtn03">
-            <div class="wf-mock-card">
-              <div class="wf-mock-header">
-                <span class="wf-mock-title"><i class="fa fa-bars-progress me-2"></i>Seguimiento de Hitos</span>
-                <span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent); font-weight:700;">66% COMPLETADO</span>
-              </div>
-              <div class="micro-progress-bar" style="margin-bottom:18px;"><div class="micro-progress-fill" style="width:66%;"></div></div>
-              
-              <div style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.76rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:10px 12px; border-radius:4px;">
-                  <span><i class="fa fa-circle-check text-success me-2"></i>Hito 1: Modelo BD & Arquitectura</span>
-                  <span style="color:#22c55e; font-weight:600;">APROBADO</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(var(--accent-rgb),0.06); border:1px solid rgba(var(--accent-rgb),0.3); padding:10px 12px; border-radius:4px;">
-                  <div>
-                    <div><strong>Hito 2: Endpoints REST & Pasarela</strong></div>
-                    <div style="font-size:0.68rem; color:var(--fg-dim); margin-top:2px;"><i class="fa fa-cloud-arrow-up text-accent me-1"></i> Evidencia en Cloudflare R2: <code>pull-14.zip</code></div>
-                  </div>
-                  <span style="color:#f59e0b; font-weight:700;">EN REVISIÓN</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.04); padding:10px 12px; border-radius:4px; opacity:0.6;">
-                  <span><i class="fa fa-clock me-2"></i>Hito 3: Pruebas E2E & Deploy</span>
-                  <span style="color:var(--fg-dim);">PRÓXIMO</span>
-                </div>
-              </div>
-            </div>
+        <div class="wf-photo-frame" id="photoStep04">
+          <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="Cierre exitoso y calificación mutua" class="wf-cinema-img" loading="lazy">
+          <div class="wf-photo-overlay"></div>
+          <div class="wf-photo-caption">
+            <span class="wf-caption-step">FASE 04</span>
+            <span class="wf-caption-title">Entrega en Producción & Reputación</span>
           </div>
-
-          <!-- Pantalla 04: Cierre y Calificación Mutua -->
-          <div class="wf-screen" id="screen04" role="tabpanel" aria-labelledby="stepBtn04">
-            <div class="wf-mock-card">
-              <div class="wf-mock-header">
-                <span class="wf-mock-title"><i class="fa fa-certificate me-2"></i>Contrato Finalizado & Certificado</span>
-                <span class="badge" style="background:rgba(34,197,94,0.15); color:#4ade80; font-family:var(--font-mono); font-size:0.7rem;">CUMPLIMIENTO 100%</span>
-              </div>
-              <div style="background:#0f172a; border:1px solid rgba(34,197,94,0.25); border-radius:6px; padding:12px; margin-bottom:16px; font-family:var(--font-mono); font-size:0.72rem;">
-                <div style="color:var(--fg-dim); margin-bottom:2px;">SELLO CRIPTOGRÁFICO INMUTABLE:</div>
-                <div style="color:#86efac; word-break:break-all;">SHA-256: 7f8a92b3c4d5e6f8a9b0c1d2e3f4a5b6c7d8e9f0</div>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-family:var(--font-mono); font-size:0.75rem;">
-                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:6px;">
-                  <div style="color:var(--fg-dim); font-size:0.68rem;">EVALUACIÓN DE LA EMPRESA:</div>
-                  <div style="color:#f59e0b; margin:4px 0;"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 5.0</div>
-                  <div style="color:var(--fg); font-size:0.75rem;">"Código limpio, puntual y excelente trabajo en equipo."</div>
-                </div>
-                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:6px;">
-                  <div style="color:var(--fg-dim); font-size:0.68rem;">EVALUACIÓN DEL APRENDIZ:</div>
-                  <div style="color:#f59e0b; margin:4px 0;"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 5.0</div>
-                  <div style="color:var(--fg); font-size:0.75rem;">"Requerimientos claros y retroalimentación profesional."</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
 

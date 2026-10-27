@@ -505,28 +505,12 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     WORKFLOW PRODUCT TOUR (SPLIT)
+     WORKFLOW PRODUCT TOUR (SPLIT WITH REAL PHOTOS)
      ============================ */
   const stepItems = document.querySelectorAll('.wf-step-item');
-  const screens = document.querySelectorAll('.wf-screen');
-  const wfUrl = document.getElementById('wfWindowUrl');
-  const wfStage = document.getElementById('wfWindowStage');
+  const photoFrames = document.querySelectorAll('.wf-photo-frame');
 
-  const stageUrls = {
-    '1': 'jobdevs.co/app/proyectos/publicar',
-    '2': 'jobdevs.co/app/postulaciones/match-sena',
-    '3': 'jobdevs.co/app/hitos/seguimiento-r2',
-    '4': 'jobdevs.co/app/contratos/cierre-sha256'
-  };
-
-  const stageLabels = {
-    '1': 'FASE 01 ACTIVA',
-    '2': 'FASE 02 ACTIVA',
-    '3': 'FASE 03 ACTIVA',
-    '4': 'FASE 04 ACTIVA'
-  };
-
-  if (stepItems.length && screens.length) {
+  if (stepItems.length && photoFrames.length) {
     let currentStep = 1;
     let tourTimer = null;
     let userInteracted = false;
@@ -537,11 +521,9 @@ document.addEventListener('DOMContentLoaded', function () {
         item.classList.toggle('active', isActive);
         item.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
-      screens.forEach((screen, i) => {
-        screen.classList.toggle('active', i === (stepNum - 1));
+      photoFrames.forEach((frame, i) => {
+        frame.classList.toggle('active', i === (stepNum - 1));
       });
-      if (wfUrl) wfUrl.textContent = stageUrls[String(stepNum)] || 'jobdevs.co/app/workflow';
-      if (wfStage) wfStage.textContent = stageLabels[String(stepNum)] || 'EN EJECUCIÓN';
       currentStep = stepNum;
     }
 
