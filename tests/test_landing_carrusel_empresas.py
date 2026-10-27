@@ -64,7 +64,7 @@ class TestCarruselEmpresasLanding:
         imagenes = re.findall(
             r'<img[^>]+src="([^"]*IMG/logos/[^"]+)"[^>]*alt="([^"]*)"', pistas[0]
         )
-        assert len(imagenes) >= 16, 'La pista visible debe mostrar al menos 16 logos'
+        assert len(imagenes) >= 14, 'La pista visible debe mostrar al menos 14 logos'
         for _src, alt in imagenes:
             assert alt.strip(), 'Cada logo necesita texto alternativo con la marca'
 

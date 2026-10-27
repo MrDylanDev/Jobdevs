@@ -5,7 +5,7 @@ de `templates/publico/index.html`.
 
 ## Estado
 
-17 logos SVG normalizados a monocromo claro. Los archivos crudos de origen se
+15 logos SVG normalizados a monocromo claro. Los archivos crudos de origen se
 conservan fuera del repositorio (`odd/assets/logos-originales/`) para
 trazabilidad.
 
@@ -32,7 +32,6 @@ por escrito → registro en la tabla de abajo.
 
 | Empresa | Archivo | Fuente | Autorización |
 | --- | --- | --- | --- |
-| Almacenes Éxito | `almacenes-exito.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Alpina | `alpina.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Bavaria | `bavaria.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Colanta | `colanta.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
@@ -44,7 +43,6 @@ por escrito → registro en la tabla de abajo.
 | Ecopetrol | `ecopetrol.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Frisby | `frisby.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Grupo Argos | `grupo-argos.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
-| Olímpica | `olimpica.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Postobón | `postobon.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Presto | `presto.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
 | Rappi | `rappi.svg` | Wikimedia Commons | No verificada (decisión del operador, 2026-10-27) |
@@ -63,10 +61,10 @@ Cada SVG pasó por este pipeline (reproducible con `magick` + `rsvg-convert`):
    oscuro.
    - Modo invertido (`#0b0b0b` ↔ `#c9c9c9`), aplicado solo a `tiendas-d1.svg` y
      `frisby.svg`: su recuadro de marca desaparece y queda la tinta clara.
-   - `almacenes-exito.svg` y `olimpica.svg` conservan el relleno de marca
-     (cobertura 0.75 y 0.91): su recuadro es la identidad del logo y no se puede
-     quitar sin redibujarlo. Pendiente decisión: conservarlos o retirarlos del
-     carrusel.
+   - `almacenes-exito.svg` y `olimpica.svg` fueron retirados del carrusel
+     (decisión del operador, 2026-10-27): su recuadro es la identidad del logo
+     (cobertura 0.75 y 0.91) y no se puede quitar sin redibujarlo, así que no
+     encajan en una banda de tinta clara homogénea.
 5. `currentColor` **no** se usa: un SVG dentro de `<img>` no hereda color del
    documento, así que el tono se controla con `opacity` en CSS.
 
