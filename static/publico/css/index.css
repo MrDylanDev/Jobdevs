@@ -1504,26 +1504,25 @@ details[open] .faq-q::after { content: '−'; }
 }
 
 .logos-wordmark {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--font-display);
-  font-size: 0.92rem; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
-  white-space: nowrap;
-  transition: color 0.25s ease;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 24px; flex: 0 0 auto;
 }
-.logos-wordmark:hover { color: var(--accent); }
-.logos-wordmark-mark {
-  width: 7px; height: 7px; display: inline-block;
-  background: currentColor; opacity: 0.55;
-  transform: rotate(45deg);
+.logos-wordmark.is-square { height: 30px; }
+.logos-wordmark.is-wide { height: 17px; }
+.logos-wordmark img {
+  height: 100%; width: auto; display: block;
+  opacity: 0.5;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
+.logos-wordmark:hover img { opacity: 1; transform: scale(1.04); }
 
 @media (max-width: 900px) {
   .logos-marquee-section { padding: 72px 0 78px; }
   .logos-marquee-head { margin-bottom: 40px; }
   .logos-marquee-track { gap: 40px; padding-right: 40px; }
-  .logos-wordmark { font-size: 0.78rem; letter-spacing: 0.12em; }
+  .logos-wordmark { height: 21px; }
+  .logos-wordmark.is-square { height: 26px; }
+  .logos-wordmark.is-wide { height: 15px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
