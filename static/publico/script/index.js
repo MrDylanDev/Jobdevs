@@ -505,12 +505,12 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     WORKFLOW PRODUCT TOUR (SPLIT WITH REAL PHOTOS)
+     WORKFLOW HERO-STYLE STEPPER
      ============================ */
   const stepItems = document.querySelectorAll('.wf-step-item');
-  const photoFrames = document.querySelectorAll('.wf-photo-frame');
+  const wfBgFrames = document.querySelectorAll('.wf-bg-frame');
 
-  if (stepItems.length && photoFrames.length) {
+  if (stepItems.length && wfBgFrames.length) {
     let currentStep = 1;
     let tourTimer = null;
     let userInteracted = false;
@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
         item.classList.toggle('active', isActive);
         item.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
-      photoFrames.forEach((frame, i) => {
+      wfBgFrames.forEach((frame, i) => {
         frame.classList.toggle('active', i === (stepNum - 1));
       });
       currentStep = stepNum;

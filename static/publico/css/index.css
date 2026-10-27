@@ -600,44 +600,95 @@ section[id] { scroll-margin-top: 80px; }
 }
 .flip-back-sig-desc { font-family: var(--font-main); font-size: 0.8rem; color: var(--fg-dim); margin-top: 6px; }
 
-/* ========== WORKFLOW SPLIT PRODUCT TOUR (STRIPE / LINEAR STYLE) ========== */
-#metodologia .section-inner {
-  max-width: 1400px; width: 100%;
-}
-.wf-split-tour {
-  display: grid;
-  grid-template-columns: 1fr 1.35fr;
-  gap: 48px;
-  align-items: stretch;
-  margin-top: 48px;
+/* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */
+.wf-hero-section {
   position: relative;
+  min-height: 90vh;
+  overflow: hidden;
+  padding: 120px 5% 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.wf-bg-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+.wf-bg-frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(1.0);
+}
+.wf-bg-frame.active {
+  opacity: 1;
+  transform: scale(1.02);
+}
+.wf-full-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 18% center;
+  filter: contrast(1.15) brightness(0.9);
+}
+.wf-bg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /* Fondo transparente a la izquierda para la persona y oscuro a la derecha para el texto */
+  background:
+    linear-gradient(90deg, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.2) 30%, rgba(9,9,11,0.85) 50%, rgba(9,9,11,0.97) 70%, #09090b 100%),
+    linear-gradient(180deg, rgba(9,9,11,0.90) 0%, transparent 15%, transparent 85%, rgba(9,9,11,0.95) 100%);
+}
+.wf-hero-content {
+  position: relative;
+  z-index: 10;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex;
+  justify-content: flex-end;
+}
+.wf-hero-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 680px;
+  margin-left: auto;
+}
+.wf-main-header {
+  margin-bottom: 24px;
 }
 
-/* Columna Izquierda: Los 4 pasos interactivos */
+/* Pasos interactivos a la derecha */
 .wf-steps-stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
 }
 .wf-step-item {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(9,9,11,0.7);
   border: 1px solid var(--border-dim);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: 8px;
-  padding: 22px 24px;
+  padding: 20px 24px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   text-align: left;
 }
 .wf-step-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 .wf-step-item.active {
-  background: rgba(var(--accent-rgb), 0.06);
+  background: rgba(var(--accent-rgb), 0.1);
   border-color: var(--accent);
-  box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.12);
+  box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.16);
 }
 .wf-step-item.active::before {
   content: '';
@@ -653,11 +704,11 @@ section[id] { scroll-margin-top: 80px; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .wf-step-num {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--accent);
@@ -670,7 +721,7 @@ section[id] { scroll-margin-top: 80px; }
   font-size: 0.65rem;
   font-weight: 600;
   color: var(--fg-dim);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   padding: 2px 8px;
   border-radius: 4px;
   letter-spacing: 0.05em;
@@ -694,7 +745,7 @@ section[id] { scroll-margin-top: 80px; }
 }
 .wf-step-details {
   display: none;
-  margin-top: 12px;
+  margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed rgba(255, 255, 255, 0.08);
   font-size: 0.78rem;
@@ -706,85 +757,10 @@ section[id] { scroll-margin-top: 80px; }
   animation: fadeInPane 0.3s ease;
 }
 
-/* Columna Derecha: Visor de Fotografía Real de Alta Definición con Transparencia */
-.wf-visual-stage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 520px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #09090b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-}
-.wf-photo-frame {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: scale(1.0);
-}
-.wf-photo-frame.active {
-  opacity: 1;
-  transform: scale(1.02);
-}
-.wf-cinema-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: contrast(1.15) brightness(0.88);
-  /* Máscara de transparencia suave hacia la izquierda y bordes */
-  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 45%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
-                      linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
-  -webkit-mask-composite: destination-in;
-  mask-image: linear-gradient(to left, rgba(0,0,0,1) 45%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
-              linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
-  mask-composite: intersect;
-}
-.wf-photo-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(270deg, transparent 40%, rgba(9,9,11,0.6) 80%, var(--bg) 100%),
-    linear-gradient(180deg, transparent 75%, var(--bg) 100%);
-}
-.wf-photo-caption {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  z-index: 5;
-  background: rgba(9, 9, 11, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  padding: 8px 16px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-mono);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.wf-caption-step {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-}
-.wf-caption-title {
-  color: var(--fg);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-@media (max-width: 992px) {
-  .wf-split-tour {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-  .wf-visual-stage {
-    min-height: 320px;
+@media (max-width: 900px) {
+  .wf-hero-layout { max-width: 100%; margin-left: 0; }
+  .wf-bg-overlay {
+    background: linear-gradient(180deg, rgba(9,9,11,0.6) 0%, rgba(9,9,11,0.92) 50%, rgba(9,9,11,0.99) 100%);
   }
 }
 

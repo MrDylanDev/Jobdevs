@@ -318,25 +318,40 @@
   </div>
 </section>
 
-<!-- ==================== METHODOLOGY (SPLIT PRODUCT TOUR) ==================== -->
-<section id="metodologia" class="section-tech bg-dim">
-  <div class="section-inner">
-    <div class="section-head reveal" style="align-items: center; text-align: center;">
-      <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
-      <h2 class="sh-title">Cómo funciona JobDevs</h2>
-      <p class="desc-mono" style="text-align:center;max-width:640px;margin: 12px auto 0;">
-        Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.
-      </p>
+<!-- ==================== METHODOLOGY (HERO STYLE FULL BLEED) ==================== -->
+<section id="metodologia" class="section-tech wf-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio a la izquierda con transparencia -->
+  <div class="wf-bg-stage">
+    <div class="wf-bg-frame active" id="bgWfFase01">
+      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="Publicar Proyecto" class="wf-full-bg-img" loading="lazy">
     </div>
+    <div class="wf-bg-frame" id="bgWfFase02">
+      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="Postulación y Contrato" class="wf-full-bg-img" loading="lazy">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase03">
+      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="Hitos con Evidencias" class="wf-full-bg-img" loading="lazy">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase04">
+      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="Cierre y Calificación Mutua" class="wf-full-bg-img" loading="lazy">
+    </div>
+    <div class="wf-bg-overlay"></div>
+  </div>
 
-    <!-- Layout dividido: Recorrido a la izquierda y Consola de software en vivo a la derecha -->
-    <div class="wf-split-tour reveal">
+  <div class="section-inner wf-hero-content">
+    <div class="wf-hero-layout reveal">
+      
+      <!-- Encabezado agrupado a la derecha -->
+      <div class="wf-main-header">
+        <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Cómo funciona JobDevs</h2>
+        <p class="desc-mono" style="font-size: 0.88rem; color: var(--fg-dim); margin-bottom: 24px; line-height: 1.6;">Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.</p>
+      </div>
 
-      <!-- Columna Izquierda: Los 4 pasos interactivos -->
+      <!-- Los 4 pasos interactivos a la derecha -->
       <div class="wf-steps-stack" role="tablist" aria-label="Etapas del proceso">
         
         <!-- Paso 01 -->
-        <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" aria-controls="screen01" tabindex="0">
+        <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" tabindex="0">
           <div class="wf-step-header">
             <span class="wf-step-num">// FASE_01</span>
             <span class="wf-step-tag">Empresa</span>
@@ -350,13 +365,13 @@
         </div>
 
         <!-- Paso 02 -->
-        <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" aria-controls="screen02" tabindex="0">
+        <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
             <span class="wf-step-num">// FASE_02</span>
             <span class="wf-step-tag">Match & Firma</span>
           </div>
           <h3 class="wf-step-title">Postulación y Contrato</h3>
-          <p class="wf-step-desc">Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se genera el Contrato Digital.</p>
+          <p class="wf-step-desc">Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital.</p>
           <div class="wf-step-details">
             <div><i class="fa fa-circle-check text-success me-2"></i>Validación académica contra el padrón oficial SENA.</div>
             <div><i class="fa fa-circle-check text-success me-2"></i>Contrato digital vinculante con doble firma electrónica.</div>
@@ -364,7 +379,7 @@
         </div>
 
         <!-- Paso 03 -->
-        <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" aria-controls="screen03" tabindex="0">
+        <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
             <span class="wf-step-num">// FASE_03</span>
             <span class="wf-step-tag">Desarrollo</span>
@@ -378,7 +393,7 @@
         </div>
 
         <!-- Paso 04 -->
-        <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" aria-controls="screen04" tabindex="0">
+        <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
             <span class="wf-step-num">// FASE_04</span>
             <span class="wf-step-tag">Cierre</span>
@@ -392,49 +407,6 @@
         </div>
 
       </div>
-
-      <!-- Columna Derecha: Visor de Fotografía Real de Alta Definición con Transparencia -->
-      <div class="wf-visual-stage">
-        <div class="wf-photo-frame active" id="photoStep01">
-          <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="Planificación y requerimientos técnicos" class="wf-cinema-img" loading="lazy">
-          <div class="wf-photo-overlay"></div>
-          <div class="wf-photo-caption">
-            <span class="wf-caption-step">FASE 01</span>
-            <span class="wf-caption-title">Planificación Técnica & Arquitectura</span>
-          </div>
-        </div>
-
-        <div class="wf-photo-frame" id="photoStep02">
-          <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="Acuerdo profesional y firma de contrato" class="wf-cinema-img" loading="lazy">
-          <div class="wf-photo-overlay"></div>
-          <div class="wf-photo-caption">
-            <span class="wf-caption-step">FASE 02</span>
-            <span class="wf-caption-title">Match de Talento & Contrato Digital</span>
-          </div>
-        </div>
-
-        <div class="wf-photo-frame" id="photoStep03">
-          <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="Desarrollo de software y entrega de hitos" class="wf-cinema-img" loading="lazy">
-          <div class="wf-photo-overlay"></div>
-          <div class="wf-photo-caption">
-            <span class="wf-caption-step">FASE 03</span>
-            <span class="wf-caption-title">Ejecución de Hitos con Evidencias R2</span>
-          </div>
-        </div>
-
-        <div class="wf-photo-frame" id="photoStep04">
-          <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="Cierre exitoso y calificación mutua" class="wf-cinema-img" loading="lazy">
-          <div class="wf-photo-overlay"></div>
-          <div class="wf-photo-caption">
-            <span class="wf-caption-step">FASE 04</span>
-            <span class="wf-caption-title">Entrega en Producción & Reputación</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
 
     </div>
   </div>
