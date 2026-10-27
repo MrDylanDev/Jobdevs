@@ -1489,10 +1489,10 @@ details[open] .faq-q::after { content: '−'; }
 }
 
 .logos-marquee-track {
-  display: flex; align-items: center; gap: 64px;
+  display: flex; align-items: center; gap: 72px;
   flex: 0 0 auto; width: max-content;
-  padding-right: 64px;
-  animation: marquee-logos 42s linear infinite;
+  padding-right: 72px;
+  animation: marquee-logos 62s linear infinite;
   will-change: transform;
 }
 .logos-marquee-track:hover { animation-play-state: paused; }
@@ -1505,10 +1505,10 @@ details[open] .faq-q::after { content: '−'; }
 
 .logos-wordmark {
   display: inline-flex; align-items: center; justify-content: center;
-  height: 24px; flex: 0 0 auto;
+  height: 34px; flex: 0 0 auto;
 }
-.logos-wordmark.is-square { height: 30px; }
-.logos-wordmark.is-wide { height: 17px; }
+.logos-wordmark.is-square { height: 42px; }
+.logos-wordmark.is-wide { height: 24px; }
 .logos-wordmark img {
   height: 100%; width: auto; display: block;
   opacity: 0.5;
@@ -1519,10 +1519,10 @@ details[open] .faq-q::after { content: '−'; }
 @media (max-width: 900px) {
   .logos-marquee-section { padding: 72px 0 78px; }
   .logos-marquee-head { margin-bottom: 40px; }
-  .logos-marquee-track { gap: 40px; padding-right: 40px; }
-  .logos-wordmark { height: 21px; }
-  .logos-wordmark.is-square { height: 26px; }
-  .logos-wordmark.is-wide { height: 15px; }
+  .logos-marquee-track { gap: 44px; padding-right: 44px; }
+  .logos-wordmark { height: 27px; }
+  .logos-wordmark.is-square { height: 34px; }
+  .logos-wordmark.is-wide { height: 19px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
