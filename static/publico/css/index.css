@@ -511,47 +511,95 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ========== FLIP CARDS (Coach-style) ========== */
 /* ========== GARANTÍAS DE OPERACIÓN (TRUST LEDGER) ========== */
+.trust-panel {
+  position: relative;
+  padding: 6px 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 60%);
+}
 .trust-ledger {
   list-style: none; margin: 0; padding: 0;
-  border-top: 1px solid var(--border-dim);
 }
 .trust-row {
-  display: grid; grid-template-columns: 72px minmax(0, 1fr) auto;
-  align-items: baseline; gap: 24px;
-  padding: 26px 6px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 66px minmax(0, 1fr) auto;
+  align-items: start; gap: 22px;
+  padding: 28px 6px;
   border-bottom: 1px solid var(--border-dim);
   transition: background 0.25s ease, border-color 0.25s ease;
 }
-.trust-row:hover {
-  background: rgba(var(--accent-rgb), 0.035);
-  border-color: var(--accent-dim);
+.trust-row:last-child { border-bottom: 0; }
+.trust-row::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); transform: scaleY(0); transform-origin: top;
+  transition: transform 0.3s ease;
 }
+.trust-row:hover { background: rgba(var(--accent-rgb), 0.035); }
+.trust-row:hover::before { transform: scaleY(1); }
+
+.trust-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px;
+  border: 1px solid var(--border-dim); color: var(--fg-dim);
+  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.trust-row:hover .trust-icon {
+  color: var(--accent); border-color: var(--accent-dim);
+  background: rgba(var(--accent-rgb), 0.07);
+}
+
+.trust-lead { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .trust-idx {
-  font-family: var(--font-mono); font-size: 0.66rem;
+  font-family: var(--font-mono); font-size: 0.62rem;
   letter-spacing: 0.2em; color: var(--muted);
 }
+.trust-state {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.16em;
+  color: var(--fg-dim); border: 1px solid var(--border-dim); padding: 2px 6px;
+}
+.trust-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  animation: trust-pulse 2.4s ease-in-out infinite;
+}
+@keyframes trust-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
 .trust-title {
   font-family: var(--font-display);
-  font-size: clamp(1.05rem, 1.6vw, 1.35rem); font-weight: 700;
+  font-size: clamp(1.12rem, 1.7vw, 1.5rem); font-weight: 700;
   text-transform: uppercase; letter-spacing: -0.01em;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 .trust-desc {
-  font-family: var(--font-main); font-size: 0.86rem; line-height: 1.6;
-  color: var(--fg-dim); margin: 0; max-width: 660px;
+  font-family: var(--font-main); font-size: 0.86rem; line-height: 1.65;
+  color: var(--fg-dim); margin: 0; max-width: 640px;
 }
 .trust-metric {
   justify-self: end; white-space: nowrap;
-  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.16em;
+  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.16em;
   color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.35);
-  padding: 6px 10px;
+  background: rgba(var(--accent-rgb), 0.05);
+  padding: 8px 12px;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
+.trust-row:hover .trust-metric { background: rgba(var(--accent-rgb), 0.12); border-color: var(--accent); }
+
+.trust-foot {
+  margin: 28px 0 0;
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
+
 @media (max-width: 760px) {
+  .trust-panel { padding: 4px 10px; }
   .trust-row {
-    grid-template-columns: 44px minmax(0, 1fr);
-    gap: 14px; padding: 22px 2px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 8px 14px; padding: 24px 2px;
   }
-  .trust-metric { grid-column: 2; justify-self: start; margin-top: 12px; }
+  .trust-icon { width: 40px; height: 40px; }
+  .trust-lead { flex-direction: row; align-items: center; gap: 10px; }
+  .trust-body { grid-column: 2; }
+  .trust-metric { grid-column: 2; justify-self: start; margin-top: 4px; }
 }
 
 /* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */

@@ -67,3 +67,20 @@ class TestGarantiasDeOperacion:
     def test_js_sin_manejadores_de_flip(self):
         js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
         assert 'flip' not in js, 'El JS no debe conservar el toggle de flip cards'
+
+    def test_cada_fila_trae_icono_y_estado_activo(self, bloque_garantias):
+        assert len(re.findall(r'class="trust-icon"', bloque_garantias)) == 6
+        assert len(re.findall(r'lucide-', bloque_garantias)) == 6
+        assert len(re.findall(r'class="trust-state"', bloque_garantias)) == 6
+        assert len(re.findall(r'class="trust-dot"', bloque_garantias)) == 6
+
+    def test_panel_con_marco_y_linea_de_cierre(self, bloque_garantias):
+        assert 'class="trust-panel tech-frame' in bloque_garantias
+        assert 'class="trust-foot' in bloque_garantias
+        assert 'operan en producción' in bloque_garantias
+
+    def test_css_de_icono_estado_y_marco(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        for regla in ('.trust-icon', '.trust-state', '.trust-dot', '.trust-panel',
+                      '.trust-row::before', '.trust-foot'):
+            assert regla in css, f'Falta la regla {regla}'
