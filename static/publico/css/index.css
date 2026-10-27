@@ -1480,7 +1480,14 @@ details[open] .faq-q::after { content: '−'; }
   display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
   padding: 0 5%; margin-bottom: 56px;
 }
-.logos-marquee-head .sh-title { max-width: none; }
+.logos-marquee-head .sh-title {
+  max-width: none;
+  font-size: clamp(1.5rem, 3.3vw, 2.75rem);
+  text-wrap: balance;
+}
+@media (min-width: 1000px) {
+  .logos-marquee-head .sh-title { white-space: nowrap; }
+}
 .logos-marquee-head .desc-mono {
   max-width: 640px; margin: 0;
   font-size: 0.85rem; line-height: 1.65;
@@ -1494,13 +1501,6 @@ details[open] .faq-q::after { content: '−'; }
 }
 .logos-marquee::before { top: 0; }
 .logos-marquee::after { bottom: 0; }
-.logos-rail-label {
-  position: absolute; left: 5%; top: -8px; z-index: 3;
-  padding: 0 10px; background: var(--bg-darker);
-  font-family: var(--font-mono); font-size: 0.56rem;
-  letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent);
-}
-
 .logos-marquee-viewport {
   display: flex; width: 100%; overflow: hidden;
   padding: 40px 0;

@@ -108,7 +108,6 @@ class TestCarruselEmpresasLanding:
     def test_css_aporta_estetica_tecnica_de_la_banda(self, landing_css):
         for regla in (
             '.logos-grid-bg',
-            '.logos-rail-label',
             '.logos-wordmark + .logos-wordmark::before',
             '.logos-wordmark:hover::after',
         ):
