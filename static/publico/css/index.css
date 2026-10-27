@@ -1458,7 +1458,7 @@ details[open] .faq-q::after { content: '−'; }
 }
 /* ========== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ========== */
 .logos-marquee-section {
-  padding: 96px 0 104px;
+  padding: 108px 0 116px;
   background: var(--bg-darker);
   border-bottom: 1px solid var(--border-dim);
   overflow: hidden;
@@ -1489,9 +1489,9 @@ details[open] .faq-q::after { content: '−'; }
 }
 
 .logos-marquee-track {
-  display: flex; align-items: center; gap: 72px;
+  display: flex; align-items: center; gap: 88px;
   flex: 0 0 auto; width: max-content;
-  padding-right: 72px;
+  padding-right: 88px;
   animation: marquee-logos 62s linear infinite;
   will-change: transform;
 }
@@ -1505,10 +1505,10 @@ details[open] .faq-q::after { content: '−'; }
 
 .logos-wordmark {
   display: inline-flex; align-items: center; justify-content: center;
-  height: 34px; flex: 0 0 auto;
+  height: 44px; flex: 0 0 auto;
 }
-.logos-wordmark.is-square { height: 42px; }
-.logos-wordmark.is-wide { height: 24px; }
+.logos-wordmark.is-square { height: 56px; }
+.logos-wordmark.is-wide { height: 31px; }
 .logos-wordmark img {
   height: 100%; width: auto; display: block;
   opacity: 0.5;
@@ -1517,12 +1517,12 @@ details[open] .faq-q::after { content: '−'; }
 .logos-wordmark:hover img { opacity: 1; transform: scale(1.04); }
 
 @media (max-width: 900px) {
-  .logos-marquee-section { padding: 72px 0 78px; }
+  .logos-marquee-section { padding: 84px 0 90px; }
   .logos-marquee-head { margin-bottom: 40px; }
-  .logos-marquee-track { gap: 44px; padding-right: 44px; }
-  .logos-wordmark { height: 27px; }
-  .logos-wordmark.is-square { height: 34px; }
-  .logos-wordmark.is-wide { height: 19px; }
+  .logos-marquee-track { gap: 56px; padding-right: 56px; }
+  .logos-wordmark { height: 34px; }
+  .logos-wordmark.is-square { height: 44px; }
+  .logos-wordmark.is-wide { height: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
