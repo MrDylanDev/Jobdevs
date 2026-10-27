@@ -1456,3 +1456,77 @@ details[open] .faq-q::after { content: '−'; }
   width: 44px; height: 44px;
   border-color: rgba(255,255,255,0.5);
 }
+/* ========== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ========== */
+.logos-marquee-section {
+  padding: 96px 0 104px;
+  background: var(--bg-darker);
+  border-bottom: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+.logos-marquee-head {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 14px;
+  padding: 0 5%; margin-bottom: 56px;
+}
+.logos-marquee-head .desc-mono {
+  max-width: 620px; margin: 0 auto;
+  font-size: 0.85rem; line-height: 1.65;
+}
+
+.logos-marquee { position: relative; }
+.logos-marquee-viewport {
+  display: flex; width: 100%; overflow: hidden;
+}
+.logos-marquee-fade {
+  position: absolute; top: 0; bottom: 0; width: clamp(60px, 10vw, 160px);
+  z-index: 2; pointer-events: none;
+}
+.logos-marquee-fade--left {
+  left: 0; background: linear-gradient(90deg, var(--bg-darker) 10%, rgba(5,5,5,0));
+}
+.logos-marquee-fade--right {
+  right: 0; background: linear-gradient(270deg, var(--bg-darker) 10%, rgba(5,5,5,0));
+}
+
+.logos-marquee-track {
+  display: flex; align-items: center; gap: 64px;
+  flex: 0 0 auto; width: max-content;
+  padding-right: 64px;
+  animation: marquee-logos 42s linear infinite;
+  will-change: transform;
+}
+.logos-marquee-track:hover { animation-play-state: paused; }
+.logos-marquee-viewport:hover .logos-marquee-track { animation-play-state: paused; }
+
+@keyframes marquee-logos {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+.logos-wordmark {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: 0.92rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+.logos-wordmark:hover { color: var(--accent); }
+.logos-wordmark-mark {
+  width: 7px; height: 7px; display: inline-block;
+  background: currentColor; opacity: 0.55;
+  transform: rotate(45deg);
+}
+
+@media (max-width: 900px) {
+  .logos-marquee-section { padding: 72px 0 78px; }
+  .logos-marquee-head { margin-bottom: 40px; }
+  .logos-marquee-track { gap: 40px; padding-right: 40px; }
+  .logos-wordmark { font-size: 0.78rem; letter-spacing: 0.12em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logos-marquee-track { animation: none; }
+  .logos-marquee-viewport { overflow-x: auto; }
+}
