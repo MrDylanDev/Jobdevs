@@ -83,3 +83,13 @@ class TestQueEsJobDevs:
                       '.what-principle-title', '.what-negation'):
             assert regla in css, f'Falta la regla {regla}'
         assert '.trust-' not in css, 'No deben quedar reglas del ledger anterior'
+
+    def test_banda_de_metricas_retirada(self, landing_html):
+        for resto in ('stats-section', 'stats-grid', 'data-count', 'stat-number',
+                      'Proyectos gestionados', 'Desarrolladores SENA verificados'):
+            assert resto not in landing_html, f'Quedó rastro de la banda de métricas: {resto}'
+
+    def test_js_sin_contador_animado(self):
+        js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
+        assert 'number-display' not in js
+        assert 'counterObserver' not in js

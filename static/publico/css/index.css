@@ -89,7 +89,6 @@ body {
 .hidden { display: none; }
 
 /* grid helpers */
-.stats-wrapper { max-width: 1400px; margin: 0 auto; }
 .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .carousel-wrapper { max-width: 1200px; margin: 32px auto 0; padding: 0 5%; }
 
@@ -416,27 +415,6 @@ body {
 }
 .marquee-track span { padding: 0 20px; white-space: nowrap; }
 .marquee-sep { color: var(--accent); padding: 0 8px; }
-
-/* ========== STATS SECTION ========== */
-.stats-section {
-  border-top: 1px solid var(--border-dim); border-bottom: 1px solid var(--border-dim);
-  background: var(--bg-darker); position: relative; overflow: hidden;
-}
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
-.stat-item {
-  border-left: 1px solid var(--border-dim); padding: 56px 40px;
-  position: relative;
-}
-.stat-item:first-child { border-left: none; }
-.stat-number {
-  font-family: var(--font-display); font-size: clamp(2.8rem, 4vw, 4rem);
-  font-weight: 800; line-height: 1; margin-bottom: 10px;
-  font-variant-numeric: tabular-nums;
-}
-.stat-label {
-  font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted);
-  letter-spacing: 0.15em; text-transform: uppercase;
-}
 
 /* ========== SECTION TECH ========== */
 section[id] { scroll-margin-top: 80px; }
@@ -1419,8 +1397,6 @@ details[open] .faq-q::after { content: '−'; }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .stat-item:nth-child(3) { border-left: none; }
   .roles-wrapper { grid-template-columns: 1fr; }
   .role-pane { padding: 40px 30px; }
   .role-pane:first-child { border-right: none; border-bottom: 1px solid var(--border-dim); }
@@ -1445,9 +1421,6 @@ details[open] .faq-q::after { content: '−'; }
   .hero-content { padding: 100px 5% 80px; }
   .foot-grid { grid-template-columns: 1fr; gap: 40px; }
   .story-card { width: 280px; }
-  .stats-grid { grid-template-columns: 1fr; }
-  .stat-item { border-left: none; border-top: 1px solid var(--border-dim); padding: 40px 24px; }
-  .stat-item:first-child { border-top: none; }
   .sticky-text { font-size: 1rem; }
   .method-flow::before { display: none; }
   .flow-step { display: flex; flex-direction: column; align-items: center; gap: 20px; }

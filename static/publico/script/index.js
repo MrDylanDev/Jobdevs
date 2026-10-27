@@ -72,42 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ============================
-     NUMBER COUNTERS
-     ============================ */
-  const counters = document.querySelectorAll('.number-display');
-  const counterObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const raw = el.dataset.count;
-        const suffix = el.dataset.suffix || '';
-        const numeric = parseFloat(raw);
-        if (isNaN(numeric)) { counterObserver.unobserve(el); return; }
-
-        const duration = 1800;
-        const start = performance.now();
-
-        function step(now) {
-          const elapsed = now - start;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const value = Math.floor(eased * numeric);
-          if (progress < 1) {
-            el.textContent = value + suffix;
-            requestAnimationFrame(step);
-          } else {
-            el.textContent = raw + suffix;
-          }
-        }
-        requestAnimationFrame(step);
-        counterObserver.unobserve(el);
-      }
-    });
-  }, { threshold: 0.4 });
-
-  counters.forEach(c => counterObserver.observe(c));
-
-  /* ============================
      STICKY CTA BAR
      ============================ */
   const stickyCta = document.getElementById('stickyCta');
