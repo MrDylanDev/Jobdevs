@@ -55,3 +55,9 @@ class TestHeroStickyScroll:
         assert "prefers-reduced-motion: reduce" in landing_js
         assert 'requestAnimationFrame' in landing_js
         assert '{ passive: true }' in landing_js
+
+    def test_body_no_rompe_sticky_con_overflow(self, landing_css):
+        cuerpo = landing_css[landing_css.index('body {'):landing_css.index('}', landing_css.index('body {'))]
+        assert 'overflow-x: clip' in cuerpo, (
+            'body debe usar overflow-x: clip: overflow-x: hidden rompe position: sticky'
+        )

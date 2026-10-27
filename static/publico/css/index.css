@@ -28,7 +28,10 @@ body {
   font-family: var(--font-main);
   background-color: var(--bg);
   color: var(--fg);
+  /* `hidden` crea un contenedor de scroll que rompe position: sticky en
+     Firefox y Safari; `clip` recorta igual sin romperlo. */
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
