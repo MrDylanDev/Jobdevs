@@ -80,13 +80,9 @@ class TestQueEsJobDevs:
         assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
         assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
 
-    def test_manifiesto_tipografico(self, bloque_que_es):
-        assert 'class="what-manifesto"' in bloque_que_es
-        assert '// MANIFIESTO' in bloque_que_es
-        assert 'Trabajo real para' in bloque_que_es
-        assert 'talento real' in bloque_que_es
-
-    def test_css_del_manifiesto(self):
+    def test_sin_manifiesto(self, bloque_que_es):
+        """El manifiesto se retiró a pedido del operador; no debe volver por accidente."""
+        assert 'what-manifesto' not in bloque_que_es
+        assert 'MANIFIESTO' not in bloque_que_es
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
-        for regla in ('.what-manifesto {', '.what-manifesto-label', '.what-manifesto-text'):
-            assert regla in css, f'Falta la regla {regla}'
+        assert '.what-manifesto' not in css

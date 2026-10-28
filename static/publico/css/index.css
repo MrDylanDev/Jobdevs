@@ -492,27 +492,6 @@ section[id] { scroll-margin-top: 80px; }
 .what-section { padding: 104px 0 96px; }
 .what-head { margin-bottom: 0; }
 
-.what-manifesto {
-  display: flex; flex-direction: column; gap: 14px;
-  margin: 52px 0 0; padding: 0 0 0 24px;
-  border-left: 2px solid var(--accent);
-}
-.what-manifesto-label {
-  font-family: var(--font-mono); font-size: 0.56rem;
-  letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted);
-}
-.what-manifesto-text {
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
-  font-weight: 700; line-height: 1.02;
-  letter-spacing: -0.035em; text-transform: uppercase;
-  color: var(--fg); text-wrap: balance;
-}
-
-@media (max-width: 760px) {
-  .what-manifesto { margin-top: 36px; padding-left: 16px; }
-}
-
 /* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */
 .wf-hero-section {
   position: relative;
