@@ -79,3 +79,14 @@ class TestQueEsJobDevs:
         assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
         assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
         assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
+
+    def test_manifiesto_tipografico(self, bloque_que_es):
+        assert 'class="what-manifesto"' in bloque_que_es
+        assert '// MANIFIESTO' in bloque_que_es
+        assert 'Trabajo real para' in bloque_que_es
+        assert 'talento real' in bloque_que_es
+
+    def test_css_del_manifiesto(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        for regla in ('.what-manifesto {', '.what-manifesto-label', '.what-manifesto-text'):
+            assert regla in css, f'Falta la regla {regla}'
