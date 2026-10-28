@@ -53,3 +53,13 @@ class TestLoginModalInstanciaUnica:
         plantilla = (Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html').read_text()
         assert '{% if messages %}' in plantilla
         assert 'id="django-messages"' in plantilla
+
+    def test_puntero_visible_dentro_del_modal(self):
+        """El cursor custom queda debajo del modal: dentro debe volver el nativo."""
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        assert '.modal-open .cursor-dot' in css and '.modal-open .cursor-ring' in css
+        assert 'body.modal-open' in css
+        assert '.modal-open .modal input' in css
+        assert 'cursor: text !important' in css
+        assert '.modal-open .modal button' in css
+        assert 'cursor: pointer !important' in css

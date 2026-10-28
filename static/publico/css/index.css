@@ -1483,3 +1483,25 @@ details[open] .faq-q::after { content: '−'; }
   .logos-marquee-track { animation: none; }
   .logos-marquee-viewport { overflow-x: auto; }
 }
+
+/* ========== PUNTERO DENTRO DEL MODAL ========== */
+/* El sitio oculta el cursor nativo y dibuja .cursor-dot/.cursor-ring con
+   z-index 9998-9999, pero el modal sube a 99999: al abrirlo no quedaba ningun
+   puntero visible. Dentro del modal vuelve el cursor nativo, con I-beam en los
+   campos y pointer en los controles. */
+.modal-open .cursor-dot,
+.modal-open .cursor-ring { display: none !important; }
+
+body.modal-open,
+.modal-open .modal,
+.modal-open .modal * { cursor: auto !important; }
+
+.modal-open .modal input,
+.modal-open .modal textarea,
+.modal-open .modal select { cursor: text !important; }
+
+.modal-open .modal a,
+.modal-open .modal button,
+.modal-open .modal label,
+.modal-open .modal .btn-close,
+.modal-open .modal [role="button"] { cursor: pointer !important; }
