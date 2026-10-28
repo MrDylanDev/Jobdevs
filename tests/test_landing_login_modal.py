@@ -63,3 +63,25 @@ class TestLoginModalInstanciaUnica:
         assert 'cursor: text !important' in css
         assert '.modal-open .modal button' in css
         assert 'cursor: pointer !important' in css
+
+
+class TestMarqueeHeroInfinito:
+    """La banda del hero debe rellenarse para no cortarse en pantallas anchas."""
+
+    @pytest.fixture(scope='class')
+    def js(self):
+        return (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
+
+    def test_rellena_hasta_cubrir_la_pantalla(self, js):
+        assert 'armarMarquee' in js
+        assert 'marqueeTrack.scrollWidth < window.innerWidth' in js, (
+            'Debe repetir el contenido hasta cubrir el ancho de la pantalla'
+        )
+
+    def test_duplica_la_mitad_y_fija_duracion(self, js):
+        assert 'marqueeTrack.innerHTML += marqueeTrack.innerHTML' in js
+        assert 'animationDuration' in js
+
+    def test_se_rearma_al_redimensionar(self, js):
+        assert "addEventListener('resize'" in js
+        assert 'armarMarquee' in js.split("addEventListener('resize'")[1]

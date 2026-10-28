@@ -8,7 +8,30 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================ */
   const marqueeTrack = document.getElementById('marqueeTrack');
   if (marqueeTrack) {
-    marqueeTrack.insertAdjacentHTML('beforeend', marqueeTrack.innerHTML);
+    // El keyframe mueve la pista un -50%: para que el loop cierre sin hueco, esa
+    // mitad tiene que ser al menos tan ancha como la pantalla. Con una sola copia
+    // de 1578px, en pantallas de 1920px la banda se cortaba.
+    const baseHTML = marqueeTrack.innerHTML;
+
+    function armarMarquee() {
+      marqueeTrack.innerHTML = baseHTML;
+      let copias = 0;
+      while (marqueeTrack.scrollWidth < window.innerWidth && copias < 12) {
+        marqueeTrack.insertAdjacentHTML('beforeend', baseHTML);
+        copias += 1;
+      }
+      const anchoMitad = marqueeTrack.scrollWidth;
+      marqueeTrack.innerHTML += marqueeTrack.innerHTML;  // segunda mitad identica
+      // velocidad constante (~70 px/s) en vez de duracion fija
+      marqueeTrack.style.animationDuration = Math.max(20, Math.round(anchoMitad / 70)) + 's';
+    }
+
+    armarMarquee();
+    let reArmar;
+    window.addEventListener('resize', function() {
+      clearTimeout(reArmar);
+      reArmar = setTimeout(armarMarquee, 200);
+    }, { passive: true });
   }
 
   /* ============================
