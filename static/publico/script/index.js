@@ -565,7 +565,58 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  /* ============================
+     TEMA CLARO / OSCURO
+     El tema inicial ya lo fijó el script de <head> antes del primer paint.
+     Acá solo se sincroniza la UI, se alterna y se recuerda la elección.
+     ============================ */
+  var CLAVE_TEMA = 'jobdevs-theme';
+  var botonTema = document.getElementById('themeToggle');
+  var iconoTema = document.getElementById('themeToggleIcon');
+  var etiquetaTema = document.getElementById('themeToggleLabel');
 
+  function temaActual() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
 
+  function pintarBotonTema(tema) {
+    if (!botonTema) return;
+    var esClaro = tema === 'light';
+    botonTema.setAttribute('aria-pressed', esClaro ? 'true' : 'false');
+    if (iconoTema) iconoTema.className = esClaro ? 'fa fa-sun' : 'fa fa-moon';
+    if (etiquetaTema) etiquetaTema.textContent = esClaro ? 'CLARO' : 'OSCURO';
+  }
+
+  function aplicarTema(tema, recordar) {
+    document.documentElement.setAttribute('data-theme', tema);
+    pintarBotonTema(tema);
+    if (recordar) {
+      try { localStorage.setItem(CLAVE_TEMA, tema); } catch (e) { /* modo privado */ }
+    }
+  }
+
+  pintarBotonTema(temaActual());
+
+  if (botonTema) {
+    botonTema.addEventListener('click', function () {
+      aplicarTema(temaActual() === 'light' ? 'dark' : 'light', true);
+    });
+  }
+
+  // Sin elección guardada, el tema sigue al sistema mientras la página está abierta.
+  if (window.matchMedia) {
+    var consultaSistema = window.matchMedia('(prefers-color-scheme: light)');
+    var seguimientoSistema = function (evento) {
+      var guardado = null;
+      try { guardado = localStorage.getItem(CLAVE_TEMA); } catch (e) { /* modo privado */ }
+      if (guardado === 'light' || guardado === 'dark') return;
+      aplicarTema(evento.matches ? 'light' : 'dark', false);
+    };
+    if (consultaSistema.addEventListener) {
+      consultaSistema.addEventListener('change', seguimientoSistema);
+    } else if (consultaSistema.addListener) {
+      consultaSistema.addListener(seguimientoSistema);
+    }
+  }
 
 });
