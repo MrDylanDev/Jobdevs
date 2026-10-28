@@ -57,12 +57,6 @@ class TestQueEsJobDevs:
         for resto in ('.what-spec', '.what-principle', '.what-negation', '.what-inner'):
             assert resto not in css
 
-    def test_comparte_la_piel_de_la_banda_de_empresas(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
-        assert '.logos-marquee-section,\n.what-section {' in css
-        assert '.logos-marquee-head,\n.what-head {' in css
-        assert '.logos-grid-bg,\n.what-grid-bg {' in css
-
     def test_banda_de_metricas_sigue_fuera(self, landing_html):
         for resto in ('stats-section', 'stats-grid', 'data-count', 'stat-number'):
             assert resto not in landing_html, f'Quedó rastro de la banda de métricas: {resto}'
@@ -70,3 +64,18 @@ class TestQueEsJobDevs:
     def test_js_sin_contador_animado(self):
         js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
         assert 'number-display' not in js and 'counterObserver' not in js
+
+    def test_testimonios_comparte_la_piel_de_la_banda(self, landing_html):
+        inicio = landing_html.index('id="testimonios"')
+        fin = landing_html.index('id="comenzar"') if 'id="comenzar"' in landing_html else len(landing_html)
+        bloque = landing_html[inicio:fin]
+        assert 'class="story-grid-bg"' in bloque, 'Casos de éxito debe tener el fondo de rejilla'
+        assert 'class="section-inner story-head reveal"' in bloque, 'El encabezado debe usar story-head'
+        assert 'section-marker' in bloque and 'sh-title' in bloque and 'desc-mono' in bloque
+        assert 'style="margin-bottom: 48px;"' not in bloque, 'Sin estilos inline del encabezado viejo'
+
+    def test_css_agrupa_las_tres_bandas(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
+        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
+        assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
