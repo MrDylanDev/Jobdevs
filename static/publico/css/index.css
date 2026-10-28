@@ -941,11 +941,7 @@ section[id] { scroll-margin-top: 80px; }
 .booking-layout {
   display: grid; grid-template-columns: 7fr 5fr; gap: 32px; align-items: start;
 }
-.booking-layout-dual {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; align-items: stretch;
-}
 @media (max-width: 900px) {
-  .booking-layout-dual { grid-template-columns: 1fr; gap: 24px; }
 }
 
 .booking-panel {

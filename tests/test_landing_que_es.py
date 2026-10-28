@@ -86,3 +86,20 @@ class TestQueEsJobDevs:
         assert 'MANIFIESTO' not in bloque_que_es
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
         assert '.what-manifesto' not in css
+
+    def test_comenzar_restaurada_desde_main(self, landing_html):
+        """La sección de arranque vuelve a la versión de main (MODULE_06)."""
+        inicio = landing_html.index('id="comenzar"')
+        bloque = landing_html[inicio:]
+        assert 'MODULE_06: BEGIN_PROTOCOL' in bloque
+        assert 'Inicia tu' in bloque and 'Sin' in bloque
+        assert 'REGISTRO Y ACCESO' not in bloque, 'La versión dual ya no debe estar'
+        assert 'booking-layout' in bloque
+        assert 'booking-info' in bloque and 'info-card' in bloque
+
+    def test_css_sin_reglas_de_la_version_dual(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        assert 'booking-layout-dual' not in css
+        for regla in ('.booking-layout', '.booking-panel', '.booking-info',
+                      '.info-card', '.info-row'):
+            assert regla in css, f'Falta la regla {regla}'

@@ -561,91 +561,73 @@
 <!-- ==================== CTA / COMENZAR ==================== -->
 <section id="comenzar" class="section-tech bg-darker">
   <div class="section-inner">
-    <div class="section-head reveal" style="text-align: center; align-items: center;">
-      <span class="section-marker"><span>REGISTRO Y ACCESO</span></span>
-      <h2 class="sh-title">Comienza a construir en <span style="color:var(--accent);">JobDevs</span>.</h2>
-      <p class="desc-mono" style="max-width: 600px; margin: 12px auto 0;">Únete como empresa contratante o como desarrollador SENA. Proceso ágil, seguro y 100% transparente.</p>
+    <div class="section-head reveal">
+      <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
+      <h2 class="sh-title">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
     </div>
 
-    <div class="booking-layout-dual reveal">
-      <!-- Panel Empresas -->
+    <div class="booking-layout reveal">
       <div class="booking-panel">
-        <div class="booking-label">Perfil Empresa / Contratante</div>
-        <h3 class="booking-title" style="font-size: 2rem;">PUBLICA TU PROYECTO</h3>
-        <p class="booking-desc">Conecta tus requerimientos de software con aprendices y egresados calificados del SENA. Gestiona tu equipo, revisa avances por hitos y finaliza con calificación mutua.</p>
+        <div class="booking-label">// Solicitud de proyecto</div>
+        <h3 class="booking-title">PUBLICA TU PROYECTO</h3>
+        <p class="booking-desc">Conecta tu necesidad de desarrollo con talento verificado del SENA. Crea tu cuenta de empresa, define los requerimientos de tu proyecto y recibe postulaciones de desarrolladores calificados.</p>
 
-        <div style="margin: 24px 0; display:flex; flex-direction:column; gap:14px;">
+        <div style="margin: 28px 0; display:flex; flex-direction:column; gap:16px;">
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes y requerimientos técnicos</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes sin costos ocultos</span>
           </div>
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Postulación directa de candidatos con ficha SENA</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Verificación académica y validación de aprendices SENA</span>
           </div>
           <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros y sala de mediación</span>
+            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
+            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros con trazabilidad de hitos</span>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px; margin-top: auto;">
-          <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;">
-            <span>REGISTRAR EMPRESA</span>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <a href="{% url 'registro' %}" class="pulse-btn btn-submit-booking" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <span>CREAR CUENTA DE EMPRESA</span>
             <i class="fa fa-arrow-right"></i>
           </a>
-          <p class="form-disclaimer" style="text-align: center; margin: 0;">
-            ¿Ya tienes cuenta de empresa? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión</a>
+          <p class="form-disclaimer">
+            ¿Ya tienes cuenta? <a href="/?login=1" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión aquí</a>
           </p>
         </div>
       </div>
 
-      <!-- Panel Desarrolladores -->
-      <div class="booking-panel">
-        <div class="booking-label" style="color:var(--fg);">Perfil Desarrollador / SENA</div>
-        <h3 class="booking-title" style="font-size: 2rem;">POSTÚLATE A PROYECTOS</h3>
-        <p class="booking-desc">Demuestra tus competencias técnicas en proyectos de software reales. Trabaja en equipo, entrega avances con evidencia y construye un portafolio profesional verificado.</p>
-
-        <div style="margin: 24px 0; display:flex; flex-direction:column; gap:14px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Validación oficial con tu ficha y programa SENA</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Postulaciones directas con carta de presentación</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:16px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Historial y calificaciones públicas de empresas</span>
+      <!-- Info Panels -->
+      <div class="booking-info">
+        <div class="info-card">
+          <div class="info-label">/ Tiempos estimados</div>
+          <h4 class="info-title">RESPUESTA INICIAL</h4>
+          <div class="info-rows">
+            <div class="info-row">
+              <span>Evaluación de requerimiento</span>
+              <span>24h hábiles</span>
+            </div>
+            <div class="info-row">
+              <span>Propuesta de equipo</span>
+              <span>48h hábiles</span>
+            </div>
+            <div class="info-row">
+              <span>Inicio de trabajo</span>
+              <span>A coordinar</span>
+            </div>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px; margin-top: auto;">
-          <a href="{% url 'registro' %}" class="btn-tech-sec" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;">
-            <span>REGISTRARME COMO DESARROLLADOR</span>
-            <i class="fa fa-code"></i>
-          </a>
-          <p class="form-disclaimer" style="text-align: center; margin: 0;">
-            ¿Ya eres aprendiz registrado? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión</a>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Contact & SLA Strip -->
-    <div class="reveal" style="margin-top: 32px; background: var(--bg-card); border: 1px solid var(--border-dim); padding: 20px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <i class="fa fa-shield-halved" style="color: var(--accent); font-size: 20px;"></i>
-        <div>
-          <div style="font-weight: 600; font-size: 14px;">Plataforma Institucional y Segura</div>
-          <div style="font-size: 12px; color: var(--fg-dim);">Validación de identidad con padrón oficial SENA y soporte continuo.</div>
-        </div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 24px;">
-        <div style="font-size: 13px; color: var(--fg-dim);">
-          <i class="fa fa-envelope" style="color: var(--accent); margin-right: 6px;"></i>
-          <a href="mailto:contacto@jobdevs.co" style="color: var(--fg); text-decoration: none;">contacto@jobdevs.co</a>
+        <div class="info-card">
+          <div class="info-label">/ Contacto</div>
+          <h4 class="info-title">CONTACTO DIRECTO</h4>
+          <div class="info-rows">
+            <a href="mailto:contacto@jobdevs-platform.com" class="info-link">
+              <i class="fa fa-envelope"></i>
+              <span>contacto@jobdevs-platform.com</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
