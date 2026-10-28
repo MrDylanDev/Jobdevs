@@ -92,9 +92,10 @@ class TestQueEsJobDevs:
     def test_css_sin_reglas_de_la_version_dual(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
         assert 'booking-layout-dual' not in css
+        # el layout de paneles se retiro con el cierre full-bleed: su CSS tambien
         for regla in ('.booking-layout', '.booking-panel', '.booking-info',
                       '.info-card', '.info-row'):
-            assert regla in css, f'Falta la regla {regla}'
+            assert regla not in css, f'Quedo CSS muerto: {regla}'
 
     def test_cierre_con_imagen_full_bleed(self, landing_html):
         inicio = landing_html.index('id="comenzar"')
