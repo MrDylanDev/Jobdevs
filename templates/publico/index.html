@@ -559,78 +559,14 @@
 </section>
 
 <!-- ==================== CTA / COMENZAR ==================== -->
-<section id="comenzar" class="section-tech cta-section bg-darker" aria-labelledby="tituloComenzar">
-  <div class="cta-grid-bg" aria-hidden="true"></div>
-  <div class="section-inner cta-head reveal">
-      <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
-      <h2 class="sh-title" id="tituloComenzar">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
-    </div>
+<section id="comenzar" class="section-tech cta-hero" aria-labelledby="tituloComenzar">
+  <img class="cta-hero-img" src="{% static 'IMG/cta-final.jpg' %}" alt="Equipo de desarrollo trabajando en una oficina" loading="lazy" decoding="async">
+  <div class="cta-hero-overlay" aria-hidden="true"></div>
 
-    <div class="booking-layout reveal">
-      <div class="booking-panel">
-        <div class="booking-label">// Solicitud de proyecto</div>
-        <h3 class="booking-title">PUBLICA TU PROYECTO</h3>
-        <p class="booking-desc">Conecta tu necesidad de desarrollo con talento verificado del SENA. Crea tu cuenta de empresa, define los requerimientos de tu proyecto y recibe postulaciones de desarrolladores calificados.</p>
-
-        <div style="margin: 28px 0; display:flex; flex-direction:column; gap:16px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes sin costos ocultos</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Verificación académica y validación de aprendices SENA</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros con trazabilidad de hitos</span>
-          </div>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <a href="{% url 'registro' %}" class="pulse-btn btn-submit-booking" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <span>CREAR CUENTA DE EMPRESA</span>
-            <i class="fa fa-arrow-right"></i>
-          </a>
-          <p class="form-disclaimer">
-            ¿Ya tienes cuenta? <a href="/?login=1" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión aquí</a>
-          </p>
-        </div>
-      </div>
-
-      <!-- Info Panels -->
-      <div class="booking-info">
-        <div class="info-card">
-          <div class="info-label">/ Tiempos estimados</div>
-          <h4 class="info-title">RESPUESTA INICIAL</h4>
-          <div class="info-rows">
-            <div class="info-row">
-              <span>Evaluación de requerimiento</span>
-              <span>24h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Propuesta de equipo</span>
-              <span>48h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Inicio de trabajo</span>
-              <span>A coordinar</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-card">
-          <div class="info-label">/ Contacto</div>
-          <h4 class="info-title">CONTACTO DIRECTO</h4>
-          <div class="info-rows">
-            <a href="mailto:contacto@jobdevs-platform.com" class="info-link">
-              <i class="fa fa-envelope"></i>
-              <span>contacto@jobdevs-platform.com</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="section-inner cta-hero-content reveal">
+    <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
+    <h2 class="sh-title" id="tituloComenzar">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
+    <a href="{% url 'registro' %}" class="cta-hero-btn">[ CREAR CUENTA ]</a>
   </div>
 </section>
 

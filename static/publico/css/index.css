@@ -488,6 +488,62 @@ section[id] { scroll-margin-top: 80px; }
 .module-link i { font-size: 0.65rem; }
 
 /* ========== FLIP CARDS (Coach-style) ========== */
+/* ========== CIERRE: HERO FULL-BLEED ========== */
+.cta-hero {
+  position: relative;
+  padding: 0;
+  min-height: min(82vh, 780px);
+  display: grid; place-items: center;
+  overflow: hidden;
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--bg-darker);
+}
+.cta-hero-img {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(70%) brightness(0.52) contrast(1.08);
+  transform: scale(1.02);
+}
+.cta-hero-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(5, 5, 5, 0.35), rgba(5, 5, 5, 0.85) 75%),
+    linear-gradient(180deg, rgba(5, 5, 5, 0.75), rgba(5, 5, 5, 0.45) 45%, rgba(5, 5, 5, 0.9));
+}
+.cta-hero-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 26px; padding: 110px 5%;
+}
+.cta-hero-content .section-marker { justify-content: center; }
+.cta-hero-content .sh-title {
+  max-width: 22ch;
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  text-wrap: balance;
+}
+.cta-hero-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 10px; margin-top: 8px; padding: 16px 34px;
+  border: 1px solid var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  font-family: var(--font-mono); font-size: 0.8rem;
+  letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+.cta-hero-btn:hover {
+  background: var(--accent); color: #05100a;
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.35);
+}
+
+@media (max-width: 760px) {
+  .cta-hero { min-height: 68vh; }
+  .cta-hero-content { gap: 20px; padding: 84px 6%; }
+  .cta-hero-content .sh-title { max-width: none; }
+  .cta-hero-btn { padding: 14px 24px; font-size: 0.72rem; letter-spacing: 0.12em; }
+}
+
 /* ========== QUÉ ES JOBDEVS (hereda la piel de la banda de empresas) ========== */
 .what-section { padding: 104px 0 96px; }
 .what-head { margin-bottom: 0; }
@@ -877,9 +933,6 @@ section[id] { scroll-margin-top: 80px; }
 /* ========== TESTIMONIALS CAROUSEL ========== */
 .story-section { overflow: hidden; }
 
-/* #comenzar comparte la piel pero tiene layout propio: padding lateral propio */
-#comenzar { padding: 112px 5% 96px; }
-#comenzar .cta-head { padding-left: 0; padding-right: 0; }
 .story-track {
   display: flex; gap: 24px; cursor: grab; user-select: none;
   will-change: transform; padding: 0 5%;
@@ -1344,8 +1397,7 @@ details[open] .faq-q::after { content: '−'; }
 /* ========== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ========== */
 .logos-marquee-section,
 .what-section,
-.story-section,
-.cta-section {
+.story-section {
   position: relative;
   padding: 112px 0 96px;
   background: var(--bg-darker);
@@ -1354,8 +1406,7 @@ details[open] .faq-q::after { content: '−'; }
 }
 .logos-grid-bg,
 .what-grid-bg,
-.story-grid-bg,
-.cta-grid-bg {
+.story-grid-bg {
   position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background-image:
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
@@ -1368,16 +1419,14 @@ details[open] .faq-q::after { content: '−'; }
 
 .logos-marquee-head,
 .what-head,
-.story-head,
-.cta-head {
+.story-head {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
   padding: 0 5%; margin-bottom: 56px;
 }
 .logos-marquee-head .sh-title,
 .what-head .sh-title,
-.story-head .sh-title,
-.cta-head .sh-title {
+.story-head .sh-title {
   max-width: none;
   font-size: clamp(1.5rem, 3.3vw, 2.75rem);
   text-wrap: balance;
@@ -1389,8 +1438,7 @@ details[open] .faq-q::after { content: '−'; }
 }
 .logos-marquee-head .desc-mono,
 .what-head .desc-mono,
-.story-head .desc-mono,
-.cta-head .desc-mono {
+.story-head .desc-mono {
   max-width: 640px; margin: 0;
   font-size: 0.85rem; line-height: 1.65;
 }
@@ -1465,12 +1513,10 @@ details[open] .faq-q::after { content: '−'; }
   .logos-marquee-section { padding: 84px 0 76px; }
   .logos-marquee-head,
   .what-head,
-  .story-head,
-  .cta-head { gap: 12px; margin-bottom: 40px; }
+  .story-head { gap: 12px; margin-bottom: 40px; }
   .logos-marquee-head .desc-mono,
   .what-head .desc-mono,
-  .story-head .desc-mono,
-  .cta-head .desc-mono { font-size: 0.8rem; }
+  .story-head .desc-mono { font-size: 0.8rem; }
   .logos-marquee-viewport { padding: 32px 0; }
   .logos-marquee-track { gap: 56px; padding-right: 56px; }
   .logos-wordmark { height: 34px; }

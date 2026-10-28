@@ -76,17 +76,10 @@ class TestQueEsJobDevs:
 
     def test_css_agrupa_las_bandas(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
-        assert '.logos-marquee-section,\n.what-section,\n.story-section,\n.cta-section {' in css
-        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg,\n.cta-grid-bg {' in css
-        assert '.logos-marquee-head,\n.what-head,\n.story-head,\n.cta-head {' in css
+        assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
+        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
+        assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
 
-    def test_comenzar_comparte_la_piel(self, landing_html):
-        inicio = landing_html.index('id="comenzar"')
-        bloque = landing_html[inicio:]
-        assert 'class="cta-grid-bg"' in bloque
-        assert 'class="section-inner cta-head reveal"' in bloque
-        assert 'cta-section' in bloque
-        assert 'section-marker' in bloque and 'sh-title' in bloque
 
     def test_sin_manifiesto(self, bloque_que_es):
         """El manifiesto se retiró a pedido del operador; no debe volver por accidente."""
@@ -95,15 +88,6 @@ class TestQueEsJobDevs:
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
         assert '.what-manifesto' not in css
 
-    def test_comenzar_restaurada_desde_main(self, landing_html):
-        """La sección de arranque vuelve a la versión de main (MODULE_06)."""
-        inicio = landing_html.index('id="comenzar"')
-        bloque = landing_html[inicio:]
-        assert 'MODULE_06: BEGIN_PROTOCOL' in bloque
-        assert 'Inicia tu' in bloque and 'Sin' in bloque
-        assert 'REGISTRO Y ACCESO' not in bloque, 'La versión dual ya no debe estar'
-        assert 'booking-layout' in bloque
-        assert 'booking-info' in bloque and 'info-card' in bloque
 
     def test_css_sin_reglas_de_la_version_dual(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
@@ -111,3 +95,28 @@ class TestQueEsJobDevs:
         for regla in ('.booking-layout', '.booking-panel', '.booking-info',
                       '.info-card', '.info-row'):
             assert regla in css, f'Falta la regla {regla}'
+
+    def test_cierre_con_imagen_full_bleed(self, landing_html):
+        inicio = landing_html.index('id="comenzar"')
+        bloque = landing_html[inicio:]
+        assert 'class="section-tech cta-hero"' in bloque
+        assert 'cta-hero-img' in bloque and 'IMG/cta-final.jpg' in bloque
+        assert 'cta-hero-overlay' in bloque
+        assert 'alt="Equipo de desarrollo trabajando en una oficina"' in bloque
+
+    def test_cierre_titulo_centrado_y_boton_a_registro(self, landing_html):
+        inicio = landing_html.index('id="comenzar"')
+        bloque = landing_html[inicio:]
+        assert 'cta-hero-content' in bloque
+        assert 'id="tituloComenzar"' in bloque
+        assert re.search(r'<a href="[^"]*registro[^"]*" class="cta-hero-btn">\[ CREAR CUENTA \]</a>', bloque), (
+            'El botón debe apuntar al registro y decir CREAR CUENTA'
+        )
+        assert 'booking-layout' not in bloque, 'La sección ya no usa el layout de paneles'
+
+    def test_css_del_cierre(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        for regla in ('.cta-hero {', '.cta-hero-img', '.cta-hero-overlay',
+                      '.cta-hero-content', '.cta-hero-btn'):
+            assert regla in css, f'Falta la regla {regla}'
+        assert 'object-fit: cover' in css
