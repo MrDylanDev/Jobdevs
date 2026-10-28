@@ -74,11 +74,19 @@ class TestQueEsJobDevs:
         assert 'section-marker' in bloque and 'sh-title' in bloque and 'desc-mono' in bloque
         assert 'style="margin-bottom: 48px;"' not in bloque, 'Sin estilos inline del encabezado viejo'
 
-    def test_css_agrupa_las_tres_bandas(self):
+    def test_css_agrupa_las_bandas(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
-        assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
-        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
-        assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
+        assert '.logos-marquee-section,\n.what-section,\n.story-section,\n.cta-section {' in css
+        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg,\n.cta-grid-bg {' in css
+        assert '.logos-marquee-head,\n.what-head,\n.story-head,\n.cta-head {' in css
+
+    def test_comenzar_comparte_la_piel(self, landing_html):
+        inicio = landing_html.index('id="comenzar"')
+        bloque = landing_html[inicio:]
+        assert 'class="cta-grid-bg"' in bloque
+        assert 'class="section-inner cta-head reveal"' in bloque
+        assert 'cta-section' in bloque
+        assert 'section-marker' in bloque and 'sh-title' in bloque
 
     def test_sin_manifiesto(self, bloque_que_es):
         """El manifiesto se retiró a pedido del operador; no debe volver por accidente."""

@@ -876,6 +876,10 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ========== TESTIMONIALS CAROUSEL ========== */
 .story-section { overflow: hidden; }
+
+/* #comenzar comparte la piel pero tiene layout propio: padding lateral propio */
+#comenzar { padding: 112px 5% 96px; }
+#comenzar .cta-head { padding-left: 0; padding-right: 0; }
 .story-track {
   display: flex; gap: 24px; cursor: grab; user-select: none;
   will-change: transform; padding: 0 5%;
@@ -1340,7 +1344,8 @@ details[open] .faq-q::after { content: '−'; }
 /* ========== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ========== */
 .logos-marquee-section,
 .what-section,
-.story-section {
+.story-section,
+.cta-section {
   position: relative;
   padding: 112px 0 96px;
   background: var(--bg-darker);
@@ -1349,7 +1354,8 @@ details[open] .faq-q::after { content: '−'; }
 }
 .logos-grid-bg,
 .what-grid-bg,
-.story-grid-bg {
+.story-grid-bg,
+.cta-grid-bg {
   position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background-image:
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
@@ -1362,14 +1368,16 @@ details[open] .faq-q::after { content: '−'; }
 
 .logos-marquee-head,
 .what-head,
-.story-head {
+.story-head,
+.cta-head {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
   padding: 0 5%; margin-bottom: 56px;
 }
 .logos-marquee-head .sh-title,
 .what-head .sh-title,
-.story-head .sh-title {
+.story-head .sh-title,
+.cta-head .sh-title {
   max-width: none;
   font-size: clamp(1.5rem, 3.3vw, 2.75rem);
   text-wrap: balance;
@@ -1381,7 +1389,8 @@ details[open] .faq-q::after { content: '−'; }
 }
 .logos-marquee-head .desc-mono,
 .what-head .desc-mono,
-.story-head .desc-mono {
+.story-head .desc-mono,
+.cta-head .desc-mono {
   max-width: 640px; margin: 0;
   font-size: 0.85rem; line-height: 1.65;
 }
@@ -1456,10 +1465,12 @@ details[open] .faq-q::after { content: '−'; }
   .logos-marquee-section { padding: 84px 0 76px; }
   .logos-marquee-head,
   .what-head,
-  .story-head { gap: 12px; margin-bottom: 40px; }
+  .story-head,
+  .cta-head { gap: 12px; margin-bottom: 40px; }
   .logos-marquee-head .desc-mono,
   .what-head .desc-mono,
-  .story-head .desc-mono { font-size: 0.8rem; }
+  .story-head .desc-mono,
+  .cta-head .desc-mono { font-size: 0.8rem; }
   .logos-marquee-viewport { padding: 32px 0; }
   .logos-marquee-track { gap: 56px; padding-right: 56px; }
   .logos-wordmark { height: 34px; }
