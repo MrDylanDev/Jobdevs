@@ -92,7 +92,9 @@ RUN mkdir -p /app/staticfiles /app/media/perfiles /app/backups && \
 RUN chown -R appuser:appuser /app/staticfiles /app/media
 
 # Cambiar al usuario no-root
-USER appuser
+# El entrypoint arranca como root solo para normalizar el dueno del volumen de
+# estaticos y despues se re-ejecuta como appuser con setpriv. Por eso no hay
+# USER aqui: si se sobreescribe el entrypoint, el contenedor quedaria como root.
 
 # Exponer el puerto de Gunicorn
 EXPOSE 8000
