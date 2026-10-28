@@ -56,50 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
-     HERO STICKY SCROLL PROGRESS
-     ============================ */
-  (function heroStickyProgress() {
-    const wrap = document.getElementById('heroSticky');
-    if (!wrap) return;
-
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const narrow = window.matchMedia('(max-width: 860px)');
-    const root = document.documentElement;
-    let ticking = false;
-
-    function update() {
-      ticking = false;
-      if (reduce.matches || narrow.matches) {
-        root.style.setProperty('--hero-progress', '0');
-        return;
-      }
-      const rect = wrap.getBoundingClientRect();
-      const recorrido = rect.height - window.innerHeight;
-      if (recorrido <= 0) {
-        root.style.setProperty('--hero-progress', '0');
-        return;
-      }
-      const progreso = Math.min(Math.max(-rect.top / recorrido, 0), 1);
-      root.style.setProperty('--hero-progress', progreso.toFixed(4));
-    }
-
-    function onScroll() {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    if (reduce.addEventListener) {
-      reduce.addEventListener('change', update);
-      narrow.addEventListener('change', update);
-    }
-    update();
-  })();
-
-  /* ============================
      REVEAL ON SCROLL
      ============================ */
   const revealObserver = new IntersectionObserver((entries) => {
