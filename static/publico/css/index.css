@@ -489,15 +489,12 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ========== FLIP CARDS (Coach-style) ========== */
 /* ========== QUÉ ES JOBDEVS (hereda la piel de la banda de empresas) ========== */
-/* Ritmo propio: esta banda tiene poco contenido y necesita el aire distribuido,
-   no padding simetrico. Los overrides usan #que-es para ganar la cascada. */
+.what-section { padding: 104px 0 96px; }
 .what-head { margin-bottom: 0; }
-#que-es { padding-top: 136px; padding-bottom: 92px; }
-#que-es .what-head { gap: 26px; }
 
 .what-manifesto {
   display: flex; flex-direction: column; gap: 14px;
-  margin: 72px 0 0; padding: 0 0 0 24px;
+  margin: 52px 0 0; padding: 0 0 0 24px;
   border-left: 2px solid var(--accent);
 }
 .what-manifesto-label {
@@ -513,7 +510,7 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 @media (max-width: 760px) {
-  .what-manifesto { margin-top: 44px; padding-left: 16px; }
+  .what-manifesto { margin-top: 36px; padding-left: 16px; }
 }
 
 /* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */
