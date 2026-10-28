@@ -325,6 +325,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
+     LOGIN MODAL — instancia unica
+     ============================ */
+  // Instanciar el modal por separado en cada bloque creaba objetos paralelos
+  // sobre el mismo elemento: doble backdrop y body bloqueado con `modal-open`
+  // al cerrar. Una sola instancia compartida para todo el archivo.
+  function abrirLoginModal() {
+    var el = document.getElementById('loginModal');
+    if (el && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(el).show();
+    }
+  }
+
+  /* ============================
      DJANGO MESSAGES MODAL
      ============================ */
   var djangoMsgs = document.getElementById('django-messages');
@@ -346,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
         msgContainer.appendChild(msgDiv);
       });
       form.insertBefore(msgContainer, form.firstChild);
-      new bootstrap.Modal(document.getElementById('loginModal')).show();
+      abrirLoginModal();
     }
   }
 
@@ -354,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
      URL PARAM MODAL
      ============================ */
   if (new URLSearchParams(window.location.search).get('login') === '1') {
-    new bootstrap.Modal(document.getElementById('loginModal')).show();
+    abrirLoginModal();
   }
 
   /* ============================
@@ -531,15 +544,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-  /* ============================
-     Auto-open login modal via ?login=1
-     ============================ */
-  if (window.location.search.includes('login=1')) {
-    var loginModal = document.getElementById('loginModal');
-    if (loginModal && typeof bootstrap !== 'undefined') {
-      var modal = new bootstrap.Modal(loginModal);
-      modal.show();
-    }
-  }
 
 });
