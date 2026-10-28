@@ -1139,21 +1139,40 @@ details[open] .faq-q::after { content: '−'; }
    densificar el velo donde el titular grande cae directo sobre la imagen.
    ========================================================================== */
 [data-theme="light"] .reel-frame img {
-  filter: grayscale(100%) contrast(1.1) brightness(1.15);
+  filter: grayscale(100%) contrast(1.06) brightness(1.02);
 }
+/* Velo base del hero: por debajo de 1200px el titular ocupa el 93-95% del
+   ancho, así que no queda zona libre donde la foto pueda respirar y el velo
+   sigue siendo uniforme. Se mantiene el valor anterior: ahí no hay nada
+   que ganar sin cambiar el layout del hero. */
 [data-theme="light"] .hero-overlay {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.60) 30%, rgba(255,255,255,0.70) 65%, rgba(255,255,255,0.92) 100%),
     linear-gradient(90deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.30) 50%, rgba(255,255,255,0.55) 100%),
     radial-gradient(ellipse at 25% 60%, rgba(var(--accent-rgb), 0.06) 0%, transparent 50%);
 }
+/* A partir de 1200px el titular termina en ~68% y las acciones en ~78%:
+   el tercio derecho queda libre de texto y ahí la foto se muestra entera. */
+@media (min-width: 1200px) {
+  [data-theme="light"] .hero-overlay {
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.92) 52%, rgba(255,255,255,0.80) 70%, rgba(255,255,255,0.26) 84%, rgba(255,255,255,0.04) 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 16%),
+      linear-gradient(0deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0) 26%),
+      radial-gradient(ellipse at 25% 60%, rgba(var(--accent-rgb), 0.05) 0%, transparent 50%);
+  }
+}
 [data-theme="light"] .hero-marquee { background: rgba(255, 255, 255, 0.82); }
 
-[data-theme="light"] .cta-hero-img { filter: grayscale(70%) brightness(1.05) contrast(1.02); }
+/* Cierre: el título está centrado y mide ~74% del ancho, así que el halo se
+   ajusta a su caja y desaparece antes de los bordes. Es la banda donde más se
+   gana: antes el velo era casi opaco en toda el área (luminancia 254/255
+   plana) y ahora la foto llega a los cuatro márgenes. */
+[data-theme="light"] .cta-hero-img { filter: grayscale(60%) brightness(1.0) contrast(1.02); }
 [data-theme="light"] .cta-hero-overlay {
   background:
-    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(255,255,255,0.80), rgba(255,255,255,0.94) 75%),
-    linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.82) 45%, rgba(255,255,255,0.95));
+    radial-gradient(ellipse 42% 40% at 50% 50%, rgba(255,255,255,0.93) 0%, rgba(255,255,255,0.90) 55%, rgba(255,255,255,0.52) 78%, rgba(255,255,255,0.10) 100%),
+    linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 22%, rgba(255,255,255,0) 78%, rgba(255,255,255,0.45) 100%);
 }
 
 [data-theme="light"] .wf-full-bg-img,
@@ -1172,6 +1191,11 @@ details[open] .faq-q::after { content: '−'; }
 [data-theme="light"] .modal-tech { box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18); }
 /* El aspa de Bootstrap es una imagen negra invertida para fondo oscuro. */
 [data-theme="light"] .btn-close-tech { filter: none; }
+
+/* Las etiquetas de caso viven siempre sobre la foto de la tarjeta, no sobre el
+   fondo de la página. En claro el acento se oscurece para el blanco y ahí
+   quedaba en 3:1, así que conservan el acento brillante del tema oscuro. */
+[data-theme="light"] .story-img-tag { color: #69f0ae; }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {

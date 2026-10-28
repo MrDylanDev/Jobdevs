@@ -252,3 +252,41 @@ class TestComportamiento:
 
     def test_la_transicion_respeta_prefers_reduced_motion(self, css):
         assert 'prefers-reduced-motion: no-preference' in css
+
+
+class TestTextoSobreFoto:
+    """S5: los elementos que siempre viven sobre una foto no pueden heredar el
+    color del tema, porque el fondo que tienen detrás no cambia con el tema."""
+
+    def test_la_etiqueta_de_caso_conserva_el_acento_brillante(self, css):
+        assert '[data-theme="light"] .story-img-tag { color: #69f0ae; }' in css, (
+            'Sobre la foto de la tarjeta, el acento oscuro del tema claro queda en 3:1'
+        )
+
+    def test_el_aspa_del_modal_no_queda_invertida_en_claro(self, css):
+        assert '[data-theme="light"] .btn-close-tech { filter: none; }' in css, (
+            'La imagen del aspa es negra: invertirla en claro la vuelve invisible'
+        )
+
+
+class TestVeloPosicional:
+    """S3: el velo cubre donde está el texto y deja la foto al natural donde no."""
+
+    def test_el_cierre_usa_un_halo_que_se_apaga_antes_del_borde(self, css):
+        bloque_cta = css[css.index('[data-theme="light"] .cta-hero-overlay'):]
+        bloque_cta = bloque_cta[:bloque_cta.index('}')]
+        assert 'radial-gradient' in bloque_cta
+        assert 'rgba(255,255,255,0.10) 100%' in bloque_cta or 'rgba(255,255,255,0) 100%' in bloque_cta, (
+            'El halo tiene que desvanecerse hacia los bordes para que la foto se vea'
+        )
+
+    def test_el_hero_solo_usa_velo_posicional_en_pantallas_anchas(self, css):
+        assert '@media (min-width: 1200px)' in css, (
+            'Por debajo de 1200px el titular ocupa el 93-95% del ancho y no hay zona libre'
+        )
+        bloque = css[css.index('@media (min-width: 1200px)'):]
+        bloque = bloque[:bloque.index('[data-theme="light"] .hero-marquee')]
+        assert 'linear-gradient(90deg' in bloque
+        assert 'rgba(255,255,255,0.04) 100%' in bloque, (
+            'El extremo derecho del hero tiene que quedar casi sin velo'
+        )
