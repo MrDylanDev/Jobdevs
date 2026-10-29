@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -83,12 +85,11 @@ def login_view(request):
         messages.error(request, "Correo o contraseña incorrectos.")
         return redirect('inicio')
             
-    # Si viene del admin, mostrar login estilo admin
+    # Un solo login para todos los roles: el modal de la landing. Si venía un
+    # `next` (por ejemplo desde /django-admin/), se conserva para volver ahí.
     next_url = request.GET.get('next', '')
-    if '/admin/' in next_url:
-        from django.contrib.auth.forms import AuthenticationForm
-        form = AuthenticationForm()
-        return render(request, 'admin/login.html', {'form': form, 'next': next_url})
+    if next_url:
+        return redirect(f'/?login=1&next={quote(next_url, safe="/")}')
     return redirect('/?login=1')
 
 from django.views.decorators.http import require_http_methods

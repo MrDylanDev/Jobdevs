@@ -1101,3 +1101,21 @@ git push origin feat/nombre-feature
 1. Agregar la variable en `config/settings.py` con `os.environ.get('NOMBRE', 'default')`
 2. Documentarla en `docker/.env.docker.example`
 3. Agregarla a la tabla en la sección 11 de este manual
+
+## Acceso de administración
+
+Hay **un solo formulario de login**: el de la página (`/login/`, que abre el modal
+de la landing). Cualquier usuario entra por ahí y el sistema lo redirige según su
+rol; un administrador termina en `/admin/dashboard/`.
+
+El **admin nativo de Django** (`/django-admin/`) queda como herramienta de
+operación y reparación de datos, con dos reglas:
+
+- **Sólo superusuarios.** En el modelo `Usuario`, `is_staff` es una propiedad que
+  devuelve `is_superuser`, y `save()` fuerza `is_superuser = (rol == 'administrador')`.
+  No existe el estado "staff sin superusuario".
+- **Sin pantalla de login propia.** `/django-admin/login/` redirige al login del
+  sitio conservando el `next`, así se vuelve al panel después de entrar.
+
+La lógica vive en `config/admin_acceso.py` y en `config/urls.py`; los tests que la
+fijan están en `usuarios/tests/test_admin.py`.

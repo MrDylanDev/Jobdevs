@@ -5,8 +5,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
-# El admin nativo queda fuera de i18n_patterns: /django-admin/ no lleva prefijo.
+from config.admin_acceso import restringir_admin_a_superusuarios
+
+# El admin nativo queda fuera de i18n_patterns y restringido a superusuarios:
+# es la herramienta de operación, no el panel de administración del negocio.
+restringir_admin_a_superusuarios()
 urlpatterns = [
+    # Un solo formulario de acceso: el login del admin nativo redirige al del
+    # sitio conservando el `next`, así se vuelve al panel después de entrar.
+    path(
+        'django-admin/login/',
+        RedirectView.as_view(pattern_name='login', query_string=True, permanent=False),
+    ),
     path('django-admin/', admin.site.urls),
 ]
 

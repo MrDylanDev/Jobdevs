@@ -717,6 +717,7 @@
 
         <div id="loginForm">
           <form method="POST" action="{% url 'login' %}">
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
             {% csrf_token %}
 
             <div style="margin-bottom: 24px;">
