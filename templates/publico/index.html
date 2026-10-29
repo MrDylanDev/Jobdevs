@@ -1,25 +1,25 @@
-{% load static %}
+{% load static i18n idioma assets %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="JobDevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable.">
-  <title>JobDevs — El sistema operativo del talento SENA</title>
+  <meta name="description" content="{% trans "JobDevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable." %}">
+  <title>{% trans "JobDevs — El sistema operativo del talento SENA" %}</title>
 
   <!-- Open Graph / redes sociales -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="JobDevs">
   <meta property="og:locale" content="es_CO">
   <meta property="og:title" content="JobDevs — El sistema operativo del talento SENA">
-  <meta property="og:description" content="Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable.">
+  <meta property="og:description" content="{% trans "Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable." %}">
   <meta property="og:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="JobDevs — El sistema operativo del talento SENA">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="JobDevs — El sistema operativo del talento SENA">
-  <meta name="twitter:description" content="Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable.">
+  <meta name="twitter:description" content="{% trans "Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable." %}">
   <meta name="twitter:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
 {% if request %}
   <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
@@ -46,7 +46,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
-  <link rel="stylesheet" href="{% static 'publico/css/index.css' %}">
+  <link rel="stylesheet" href="{% asset 'publico/css/index.css' %}">
 </head>
 <body>
 
@@ -65,23 +65,30 @@
 
 <!-- ==================== NAVBAR ==================== -->
 <nav class="nav-tech" id="navbar">
+  {% get_current_language as IDIOMA %}
+  {% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
   <a href="#inicio" class="nav-brand">
     <div class="brand-square blink"></div> JobDevs
     <div class="brand-dot"></div>
   </a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#que-es">Qué es</a></li>
-    <li><a href="#metodologia">Cómo funciona</a></li>
-    <li><a href="#roles">Roles</a></li>
-    <li><a href="#testimonios">Casos de éxito</a></li>
-    <li><a href="#comenzar">Comenzar</a></li>
-    <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">Ingresar</a></li>
+    <li><a href="#que-es">{% trans "Qué es" %}</a></li>
+    <li><a href="#metodologia">{% trans "Cómo funciona" %}</a></li>
+    <li><a href="#roles">{% trans "Roles" %}</a></li>
+    <li><a href="#testimonios">{% trans "Casos de éxito" %}</a></li>
+    <li><a href="#comenzar">{% trans "Comenzar" %}</a></li>
+    <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">{% trans "Ingresar" %}</a></li>
+    <li class="d-md-none"><a href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}">{% if IDIOMA == 'en' %}Español{% else %}English{% endif %}</a></li>
   </ul>
   <div class="nav-right">
+    <a class="lang-switch" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" aria-label="{% trans 'Cambiar idioma' %}" title="{% trans 'Cambiar idioma' %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+      <span class="lang-switch-code">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
+    </a>
     <!-- Switch de dos posiciones: las dos opciones están a la vista y el estado
          lo dice aria-pressed. Sin texto de estado, que se leía como una etiqueta
          pasiva y no como un control. -->
-    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Tema claro" title="Cambiar entre tema oscuro y claro">
+    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="{% trans "Tema claro" %}" title="{% trans "Cambiar entre tema oscuro y claro" %}">
       <span class="theme-toggle-icon theme-toggle-icon--dark">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
       </span>
@@ -89,8 +96,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
       </span>
     </button>
-    <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">[ INGRESAR ]</button>
-    <button class="btn-mobile-menu" id="mobileMenuBtn">[ MENU ]</button>
+    <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">{% trans "[ INGRESAR ]" %}</button>
+    <button class="btn-mobile-menu" id="mobileMenuBtn">{% trans "[ MENU ]" %}</button>
   </div>
 </nav>
 
@@ -98,25 +105,25 @@
 <section id="inicio" class="hero-section">
   <div id="reelContainer">
     <div class="reel-frame active">
-      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="Development team collaboration" loading="eager" fetchpriority="high">
+      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="{% trans "Development team collaboration" %}" loading="eager" fetchpriority="high">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="Code review session" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="{% trans "Code review session" %}" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-3.jpg' %}" alt="Tech professionals working" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-3.jpg' %}" alt="{% trans "Tech professionals working" %}" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="Software architecture planning" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="{% trans "Software architecture planning" %}" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-5.jpg' %}" alt="Agile team standup" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-5.jpg' %}" alt="{% trans "Agile team standup" %}" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-6.jpg' %}" alt="Developer deep work" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-6.jpg' %}" alt="{% trans "Developer deep work" %}" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="System architecture review" loading="lazy" decoding="async">
+      <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="{% trans "System architecture review" %}" loading="lazy" decoding="async">
     </div>
   </div>
 
@@ -129,19 +136,18 @@
     <div class="hero-copy">
 
       <h1 class="hero-title">
-        <span class="headline-line"><span>CÓDIGO.</span></span>
-        <span class="headline-line"><span class="text-stroke">DISCIPLINA.</span></span>
-        <span class="headline-line"><span class="hero-accent">TALENTO.</span></span>
+        <span class="headline-line"><span>{% trans "CÓDIGO." %}</span></span>
+        <span class="headline-line"><span class="text-stroke">{% trans "DISCIPLINA." %}</span></span>
+        <span class="headline-line"><span class="hero-accent">{% trans "TALENTO." %}</span></span>
       </h1>
 
       <p class="hero-subtitle">
-        El puente directo entre empresas y desarrolladores SENA.
-        Sin&nbsp;intermediarios, solo resultados.
+        {% trans "El puente directo entre empresas y desarrolladores SENA. Sin&nbsp;intermediarios, solo resultados." %}
       </p>
 
       <div class="hero-actions">
         <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
-          <span>Inicializar Proyecto</span>
+          <span>{% trans "Inicializar Proyecto" %}</span>
         </a>
       </div>
 
@@ -149,15 +155,15 @@
       <div class="hero-bottom-strip">
         <div class="hero-strip-side">
           <div class="avatar-stack">
-            <div class="avatar-chip">JD</div>
-            <div class="avatar-chip">ML</div>
-            <div class="avatar-chip">AR</div>
-            <div class="avatar-chip">CP</div>
+            <div class="avatar-chip">{% trans "JD" %}</div>
+            <div class="avatar-chip">{% trans "ML" %}</div>
+            <div class="avatar-chip">{% trans "AR" %}</div>
+            <div class="avatar-chip">{% trans "CP" %}</div>
             <div class="avatar-chip avatar-chip--accent">+50</div>
           </div>
           <div>
-            <div class="talent-label">Talento SENA verificado</div>
-            <div class="talent-value">Perfiles activos</div>
+            <div class="talent-label">{% trans "Talento SENA verificado" %}</div>
+            <div class="talent-value">{% trans "Perfiles activos" %}</div>
           </div>
         </div>
       </div>
@@ -167,12 +173,12 @@
   <!-- Marquee -->
   <div class="hero-marquee">
     <div class="marquee-track" id="marqueeTrack">
-      <span>TALENTO SENA VERIFICADO</span><span class="marquee-sep">/</span>
-      <span>CERO BUROCRACIA</span><span class="marquee-sep">/</span>
-      <span>TRAZABILIDAD</span><span class="marquee-sep">/</span>
-      <span>EVALUACIÓN BIDIRECCIONAL</span><span class="marquee-sep">/</span>
-      <span>POSTULACIÓN DIRECTA</span><span class="marquee-sep">/</span>
-      <span>FLUJO ÁGIL</span><span class="marquee-sep">/</span>
+      <span>{% trans "TALENTO SENA VERIFICADO" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "CERO BUROCRACIA" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "TRAZABILIDAD" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "EVALUACIÓN BIDIRECCIONAL" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "POSTULACIÓN DIRECTA" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "FLUJO ÁGIL" %}</span><span class="marquee-sep">/</span>
     </div>
   </div>
 </section>
@@ -182,9 +188,9 @@
 <section id="que-es" class="section-tech what-section" aria-labelledby="tituloQueEs">
   <div class="what-grid-bg" aria-hidden="true"></div>
   <div class="section-inner what-head reveal">
-    <span class="section-marker"><span>// WHAT_IS_JOBDEVS</span></span>
-    <h2 class="sh-title" id="tituloQueEs">¿Qué es <span style="color:var(--accent);">JobDevs</span>?</h2>
-    <p class="desc-mono">La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios.</p>
+    <span class="section-marker"><span>{% trans "// WHAT_IS_JOBDEVS" %}</span></span>
+    <h2 class="sh-title" id="tituloQueEs">{% trans "¿Qué es" %} <span style="color:var(--accent);">JobDevs</span>?</h2>
+    <p class="desc-mono">{% trans "La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios." %}</p>
   </div>
 </section>
 
@@ -193,16 +199,16 @@
   <!-- Fondo cinemático estilo Hero que cubre todo el espacio a la izquierda con transparencia -->
   <div class="wf-bg-stage">
     <div class="wf-bg-frame active" id="bgWfFase01">
-      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="Publicar Proyecto" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="{% trans "Publicar Proyecto" %}" class="wf-full-bg-img" loading="lazy">
     </div>
     <div class="wf-bg-frame" id="bgWfFase02">
-      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="Postulación y Contrato" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="{% trans "Postulación y Contrato" %}" class="wf-full-bg-img" loading="lazy">
     </div>
     <div class="wf-bg-frame" id="bgWfFase03">
-      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="Hitos con Evidencias" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="{% trans "Hitos con Evidencias" %}" class="wf-full-bg-img" loading="lazy">
     </div>
     <div class="wf-bg-frame" id="bgWfFase04">
-      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="Cierre y Calificación Mutua" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="{% trans "Cierre y Calificación Mutua" %}" class="wf-full-bg-img" loading="lazy">
     </div>
     <div class="wf-bg-overlay"></div>
   </div>
@@ -212,67 +218,67 @@
       
       <!-- Encabezado agrupado a la derecha -->
       <div class="wf-main-header">
-        <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Cómo funciona <span class="acento-marca">JobDevs</span></h2>
-        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.</p>
+        <span class="section-marker"><span>{% trans "MODELO DE OPERACIÓN" %}</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">{% trans "Cómo funciona" %} <span class="acento-marca">JobDevs</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">{% trans "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios." %}</p>
       </div>
 
       <!-- Los 4 pasos interactivos a la derecha -->
-      <div class="wf-steps-stack" role="tablist" aria-label="Etapas del proceso">
+      <div class="wf-steps-stack" role="tablist" aria-label="{% trans "Etapas del proceso" %}">
         
         <!-- Paso 01 -->
         <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" tabindex="0">
           <div class="wf-step-header">
-            <span class="wf-step-num">// FASE_01</span>
-            <span class="wf-step-tag">Empresa</span>
+            <span class="wf-step-num">{% trans "// FASE_01" %}</span>
+            <span class="wf-step-tag">{% trans "Empresa" %}</span>
           </div>
-          <h3 class="wf-step-title">Publicar Proyecto</h3>
-          <p class="wf-step-desc">La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas.</p>
+          <h3 class="wf-step-title">{% trans "Publicar Proyecto" %}</h3>
+          <p class="wf-step-desc">{% trans "La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas." %}</p>
           <div class="wf-step-details">
-            <div><i class="fa fa-circle-check text-success me-2"></i>Publicación ágil sin costos de registro.</div>
-            <div><i class="fa fa-circle-check text-success me-2"></i>Segmentación por tipo: Web, Móvil, Cloud, Datos.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Publicación ágil sin costos de registro." %}</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Segmentación por tipo: Web, Móvil, Cloud, Datos." %}</div>
           </div>
         </div>
 
         <!-- Paso 02 -->
         <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
-            <span class="wf-step-num">// FASE_02</span>
-            <span class="wf-step-tag">Match & Firma</span>
+            <span class="wf-step-num">{% trans "// FASE_02" %}</span>
+            <span class="wf-step-tag">{% trans "Match & Firma" %}</span>
           </div>
-          <h3 class="wf-step-title">Postulación y Contrato</h3>
-          <p class="wf-step-desc">Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital.</p>
+          <h3 class="wf-step-title">{% trans "Postulación y Contrato" %}</h3>
+          <p class="wf-step-desc">{% trans "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital." %}</p>
           <div class="wf-step-details">
-            <div><i class="fa fa-circle-check text-success me-2"></i>Validación académica contra el padrón oficial SENA.</div>
-            <div><i class="fa fa-circle-check text-success me-2"></i>Contrato digital vinculante con doble firma electrónica.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Validación académica contra el padrón oficial SENA." %}</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Contrato digital vinculante con doble firma electrónica." %}</div>
           </div>
         </div>
 
         <!-- Paso 03 -->
         <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
-            <span class="wf-step-num">// FASE_03</span>
-            <span class="wf-step-tag">Desarrollo</span>
+            <span class="wf-step-num">{% trans "// FASE_03" %}</span>
+            <span class="wf-step-tag">{% trans "Desarrollo" %}</span>
           </div>
-          <h3 class="wf-step-title">Hitos con Evidencias</h3>
-          <p class="wf-step-desc">Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2.</p>
+          <h3 class="wf-step-title">{% trans "Hitos con Evidencias" %}</h3>
+          <p class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2." %}</p>
           <div class="wf-step-details">
-            <div><i class="fa fa-circle-check text-success me-2"></i>Revisión obligatoria: aprobar o solicitar corrección.</div>
-            <div><i class="fa fa-circle-check text-success me-2"></i>Almacenamiento seguro de código y documentación.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Revisión obligatoria: aprobar o solicitar corrección." %}</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Almacenamiento seguro de código y documentación." %}</div>
           </div>
         </div>
 
         <!-- Paso 04 -->
         <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" tabindex="0">
           <div class="wf-step-header">
-            <span class="wf-step-num">// FASE_04</span>
-            <span class="wf-step-tag">Cierre</span>
+            <span class="wf-step-num">{% trans "// FASE_04" %}</span>
+            <span class="wf-step-tag">{% trans "Cierre" %}</span>
           </div>
-          <h3 class="wf-step-title">Cierre y Calificación Mutua</h3>
-          <p class="wf-step-desc">100% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación.</p>
+          <h3 class="wf-step-title">{% trans "Cierre y Calificación Mutua" %}</h3>
+          <p class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación." %}</p>
           <div class="wf-step-details">
-            <div><i class="fa fa-circle-check text-success me-2"></i>Sello inmutable del contrato para validez legal.</div>
-            <div><i class="fa fa-circle-check text-success me-2"></i>Reputación pública acumulable para el portafolio.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Sello inmutable del contrato para validez legal." %}</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>{% trans "Reputación pública acumulable para el portafolio." %}</div>
           </div>
         </div>
 
@@ -287,9 +293,9 @@
   <div class="logos-grid-bg" aria-hidden="true"></div>
 
   <div class="section-inner logos-marquee-head reveal">
-    <span class="section-marker"><span>CONFIANZA CORPORATIVA</span></span>
-    <h2 class="sh-title" id="tituloEmpresas">Empresas que <span class="acento-marca">confían en nosotros</span></h2>
-    <p class="desc-mono">Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs.</p>
+    <span class="section-marker"><span>{% trans "CONFIANZA CORPORATIVA" %}</span></span>
+    <h2 class="sh-title" id="tituloEmpresas">{% trans "Empresas que" %} <span class="acento-marca">{% trans "confían en nosotros" %}</span></h2>
+    <p class="desc-mono">{% trans "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs." %}</p>
   </div>
 
   <div class="logos-marquee">
@@ -298,51 +304,51 @@
 
     <div class="logos-marquee-viewport">
       <!-- Pista visible -->
-      <div class="logos-marquee-track" role="list" aria-label="Empresas colombianas que contratan talento SENA">
+      <div class="logos-marquee-track" role="list" aria-label="{% trans "Empresas colombianas que contratan talento SENA" %}">
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="Logo de Alpina" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="{% trans "Logo de Alpina" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="Logo de Bavaria" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="{% trans "Logo de Bavaria" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="Logo de Colanta" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="{% trans "Logo de Colanta" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="Logo de Colsubsidio" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="{% trans "Logo de Colsubsidio" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/corona.svg' %}" alt="Logo de Corona" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="{% trans "Logo de Corona" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/dian.svg' %}" alt="Logo de DIAN" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="{% trans "Logo de DIAN" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/epm.svg' %}" alt="Logo de EPM" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="{% trans "Logo de EPM" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/etb.svg' %}" alt="Logo de ETB" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="{% trans "Logo de ETB" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="Logo de Ecopetrol" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="{% trans "Logo de Ecopetrol" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="Logo de Frisby" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="{% trans "Logo de Frisby" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="Logo de Grupo Argos" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="{% trans "Logo de Grupo Argos" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="Logo de Postobón" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="{% trans "Logo de Postobón" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/presto.svg' %}" alt="Logo de Presto" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="{% trans "Logo de Presto" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="Logo de Rappi" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="{% trans "Logo de Rappi" %}" loading="lazy" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="Logo de Tiendas D1" loading="lazy" decoding="async">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="{% trans "Logo de Tiendas D1" %}" loading="lazy" decoding="async">
         </span>
       </div>
 
@@ -404,10 +410,10 @@
   <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
   <div class="roles-bg-stage">
     <div class="role-bg-frame active" id="bgRoleEmpresa">
-      <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy">
     </div>
     <div class="role-bg-frame" id="bgRoleDev">
-      <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy">
     </div>
     <div class="roles-bg-overlay"></div>
   </div>
@@ -417,25 +423,25 @@
       
       <!-- Todo el encabezado agrupado a la derecha -->
       <div class="roles-main-header">
-        <span class="section-marker"><span>MODELO BILATERAL</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Diseñado para Empresas<br>y <span class="acento-marca">Desarrolladores SENA</span></h2>
-        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
+        <span class="section-marker"><span>{% trans "MODELO BILATERAL" %}</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">{% trans "Diseñado para Empresas" %}<br>y <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti." %}</p>
       </div>
 
       <!-- Selector de rol interactivo con iconos Lucide -->
-      <div class="roles-role-switcher" role="tablist" aria-label="Selector de rol">
+      <div class="roles-role-switcher" role="tablist" aria-label="{% trans "Selector de rol" %}">
         <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
           <span class="role-nav-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           </span>
-          <span class="role-nav-label">EMPRESA</span>
+          <span class="role-nav-label">{% trans "EMPRESA" %}</span>
         </button>
 
         <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
           <span class="role-nav-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
           </span>
-          <span class="role-nav-label">APRENDIZ</span>
+          <span class="role-nav-label">{% trans "APRENDIZ" %}</span>
         </button>
       </div>
 
@@ -444,15 +450,15 @@
         <!-- Panel Empresa -->
         <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
           <div class="role-info-col">
-            <div class="rp-label">Para Empresas y Startups</div>
-            <h3 class="role-stage-title">Impulsa tus proyectos con <span class="acento-marca">talento SENA</span> verificado</h3>
-            <p class="role-stage-desc">Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total.</p>
+            <div class="rp-label">{% trans "Para Empresas y Startups" %}</div>
+            <h3 class="role-stage-title">{% trans "Impulsa tus proyectos con" %} <span class="acento-marca">{% trans "talento SENA" %}</span> {% trans "verificado" %}</h3>
+            <p class="role-stage-desc">{% trans "Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total." %}</p>
             
             <ul class="role-stage-features">
-              <li><i class="fa fa-circle-check"></i> <span><strong>Publicación ágil:</strong> define stack técnico, vacantes y fechas estimadas sin costos de registro.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Selección directa:</strong> recibe cartas de presentación y perfiles con ficha SENA oficial.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Control por hitos:</strong> aprueba avances con evidencia técnica documentada antes de liberar pagos.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Seguridad jurídica:</strong> contratos digitales con hash criptográfico SHA-256 y mediación formal.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Publicación ágil:" %}</strong> {% trans "define stack técnico, vacantes y fechas estimadas sin costos de registro." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Selección directa:" %}</strong> {% trans "recibe cartas de presentación y perfiles con ficha SENA oficial." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Control por hitos:" %}</strong> {% trans "aprueba avances con evidencia técnica documentada antes de liberar pagos." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Seguridad jurídica:" %}</strong> {% trans "contratos digitales con hash criptográfico SHA-256 y mediación formal." %}</span></li>
             </ul>
           </div>
         </div>
@@ -460,15 +466,15 @@
         <!-- Panel Desarrollador / Aprendiz -->
         <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
           <div class="role-info-col">
-            <div class="rp-label rp-label--accent">Para Aprendices y Egresados SENA</div>
-            <h3 class="role-stage-title">Construye tu carrera profesional con <span class="acento-marca">proyectos reales</span></h3>
-            <p class="role-stage-desc">Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales.</p>
+            <div class="rp-label rp-label--accent">{% trans "Para Aprendices y Egresados SENA" %}</div>
+            <h3 class="role-stage-title">{% trans "Construye tu carrera profesional con" %} <span class="acento-marca">{% trans "proyectos reales" %}</span></h3>
+            <p class="role-stage-desc">{% trans "Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales." %}</p>
             
             <ul class="role-stage-features">
-              <li><i class="fa fa-circle-check"></i> <span><strong>Validación oficial:</strong> verificación de identidad académica contra el padrón oficial del SENA.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Postulación directa:</strong> carta de presentación técnica y límite responsable de 3 vacantes simultáneas.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Experiencia en producción:</strong> entrega de código y avances por hitos con evidencias auditadas en R2.</span></li>
-              <li><i class="fa fa-circle-check"></i> <span><strong>Reputación verificable:</strong> calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Validación oficial:" %}</strong> {% trans "verificación de identidad académica contra el padrón oficial del SENA." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Postulación directa:" %}</strong> {% trans "carta de presentación técnica y límite responsable de 3 vacantes simultáneas." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Experiencia en producción:" %}</strong> {% trans "entrega de código y avances por hitos con evidencias auditadas en R2." %}</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>{% trans "Reputación verificable:" %}</strong> {% trans "calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones." %}</span></li>
             </ul>
           </div>
         </div>
@@ -482,9 +488,9 @@
 <section id="testimonios" class="section-tech story-section bg-dim" aria-labelledby="tituloTestimonios">
   <div class="story-grid-bg" aria-hidden="true"></div>
   <div class="section-inner story-head reveal">
-    <span class="section-marker"><span>CASOS DE ÉXITO</span></span>
-    <h2 class="sh-title" id="tituloTestimonios">Resultados <span style="color:var(--accent);">comprobables</span> en producción.</h2>
-    <p class="desc-mono">Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs.</p>
+    <span class="section-marker"><span>{% trans "CASOS DE ÉXITO" %}</span></span>
+    <h2 class="sh-title" id="tituloTestimonios">{% trans "Resultados" %} <span style="color:var(--accent);">{% trans "comprobables" %}</span> {% trans "en producción." %}</h2>
+    <p class="desc-mono">{% trans "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs." %}</p>
   </div>
 
   <div style="position: relative; overflow: hidden;">
@@ -492,108 +498,108 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="FINTECH" loading="lazy">
-          <div class="story-img-tag">CASO / 01</div>
-          <div class="story-img-badge">-80% TIEMPO</div>
+          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="{% trans "FINTECH" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 01" %}</div>
+          <div class="story-img-badge">{% trans "-80% TIEMPO" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">FINTECH COLOMBIA</div>
-          <div class="story-role">Backend & Pagos · 6 meses</div>
+          <div class="story-name">{% trans "FINTECH COLOMBIA" %}</div>
+          <div class="story-role">{% trans "Backend & Pagos · 6 meses" %}</div>
           <p class="story-quote">"El equipo del SENA entregó una API de pagos más robusta que la de nuestro proveedor anterior. En 6 meses ya estábamos en producción."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">100%</div><div class="story-stat-label">A tiempo</div></div>
-            <div><div class="story-stat-val">3</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">6</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">100%</div><div class="story-stat-label">{% trans "A tiempo" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">6</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="ECOMMERCE" loading="lazy">
-          <div class="story-img-tag">CASO / 02</div>
-          <div class="story-img-badge">+34% CONVERSIÓN</div>
+          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="{% trans "ECOMMERCE" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 02" %}</div>
+          <div class="story-img-badge">{% trans "+34% CONVERSIÓN" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">ECOMMERCE NACIONAL</div>
-          <div class="story-role">Frontend & Checkout · 4 meses</div>
+          <div class="story-name">{% trans "ECOMMERCE NACIONAL" %}</div>
+          <div class="story-role">{% trans "Frontend & Checkout · 4 meses" %}</div>
           <p class="story-quote">"Rediseñamos todo el checkout con un equipo de 2 devs del SENA. La tasa de conversión subió 34% en el primer trimestre."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">+34%</div><div class="story-stat-label">Conversión</div></div>
-            <div><div class="story-stat-val">2</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">4</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">+34%</div><div class="story-stat-label">{% trans "Conversión" %}</div></div>
+            <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/ia.png' %}" class="story-img" alt="AGROTECH" loading="lazy">
-          <div class="story-img-tag">CASO / 03</div>
-          <div class="story-img-badge">-60% COSTOS</div>
+          <img src="{% static 'IMG/ia.png' %}" class="story-img" alt="{% trans "AGROTECH" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 03" %}</div>
+          <div class="story-img-badge">{% trans "-60% COSTOS" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">AGROTECH STARTUP</div>
-          <div class="story-role">Full Stack & IoT · 8 meses</div>
+          <div class="story-name">{% trans "AGROTECH STARTUP" %}</div>
+          <div class="story-role">{% trans "Full Stack & IoT · 8 meses" %}</div>
           <p class="story-quote">"Necesitábamos un dashboard IoT para monitoreo de cultivos. El equipo SENA armó una solución mejor que la que cotizamos afuera."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">-60%</div><div class="story-stat-label">Costo vs ext</div></div>
-            <div><div class="story-stat-val">4</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">8</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">-60%</div><div class="story-stat-label">{% trans "Costo vs ext" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">8</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/Personalizado.png' %}" class="story-img" alt="LOGISTICA" loading="lazy">
-          <div class="story-img-tag">CASO / 04</div>
-          <div class="story-img-badge">-93% DEPLOY</div>
+          <img src="{% static 'IMG/Personalizado.png' %}" class="story-img" alt="{% trans "LOGISTICA" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 04" %}</div>
+          <div class="story-img-badge">{% trans "-93% DEPLOY" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">LOGÍSTICA EXPRESS</div>
-          <div class="story-role">Cloud & DevOps · 5 meses</div>
+          <div class="story-name">{% trans "LOGÍSTICA EXPRESS" %}</div>
+          <div class="story-role">{% trans "Cloud & DevOps · 5 meses" %}</div>
           <p class="story-quote">"Migraron nuestra infraestructura a AWS con CI/CD completo. El tiempo de deploy pasó de 2 horas a 8 minutos."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">-93%</div><div class="story-stat-label">Tiempo deploy</div></div>
-            <div><div class="story-stat-val">2</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">5</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">-93%</div><div class="story-stat-label">{% trans "Tiempo deploy" %}</div></div>
+            <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">5</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="EDTECH" loading="lazy">
-          <div class="story-img-tag">CASO / 05</div>
-          <div class="story-img-badge">50K+ USUARIOS</div>
+          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="{% trans "EDTECH" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 05" %}</div>
+          <div class="story-img-badge">{% trans "50K+ USUARIOS" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">EDTECH PLATFORM</div>
-          <div class="story-role">Mobile & API · 7 meses</div>
+          <div class="story-name">{% trans "EDTECH PLATFORM" %}</div>
+          <div class="story-role">{% trans "Mobile & API · 7 meses" %}</div>
           <p class="story-quote">"El equipo desarrolló nuestra app de quizzes interactivos con +50k usuarios. Estabilidad y performance impecables desde el día 1."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">50k+</div><div class="story-stat-label">Usuarios</div></div>
-            <div><div class="story-stat-val">5</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">7</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">50k+</div><div class="story-stat-label">{% trans "Usuarios" %}</div></div>
+            <div><div class="story-stat-val">5</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">7</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="INSURTECH" loading="lazy">
-          <div class="story-img-tag">CASO / 06</div>
-          <div class="story-img-badge">2M REG/DÍA</div>
+          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="{% trans "INSURTECH" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 06" %}</div>
+          <div class="story-img-badge">{% trans "2M REG/DÍA" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">INSURTECH CORP</div>
-          <div class="story-role">Data Engineering · 6 meses</div>
+          <div class="story-name">{% trans "INSURTECH CORP" %}</div>
+          <div class="story-role">{% trans "Data Engineering · 6 meses" %}</div>
           <p class="story-quote">"Implementaron nuestro pipeline de datos con Python y Airflow. Procesamos 2M de registros diarios sin incidencias."</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">2M</div><div class="story-stat-label">Registros/día</div></div>
-            <div><div class="story-stat-val">3</div><div class="story-stat-label">Devs</div></div>
-            <div><div class="story-stat-val">6</div><div class="story-stat-label">Meses</div></div>
+            <div><div class="story-stat-val">2M</div><div class="story-stat-label">{% trans "Registros/día" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">6</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
@@ -604,8 +610,8 @@
       <div class="carousel-controls">
         <div class="carousel-dots" id="storyDots"></div>
         <div class="carousel-btns">
-          <button class="carousel-btn" id="storyPrev">&larr;</button>
-          <button class="carousel-btn" id="storyNext">&rarr;</button>
+          <button class="carousel-btn" id="storyPrev">{% trans "&larr;" %}</button>
+          <button class="carousel-btn" id="storyNext">{% trans "&rarr;" %}</button>
         </div>
       </div>
     </div>
@@ -614,13 +620,13 @@
 
 <!-- ==================== CTA / COMENZAR ==================== -->
 <section id="comenzar" class="section-tech cta-hero" aria-labelledby="tituloComenzar">
-  <img class="cta-hero-img" src="{% static 'IMG/cta-final.jpg' %}" alt="Equipo de desarrollo trabajando en una oficina" loading="lazy" decoding="async">
+  <img class="cta-hero-img" src="{% static 'IMG/cta-final.jpg' %}" alt="{% trans "Equipo de desarrollo trabajando en una oficina" %}" loading="lazy" decoding="async">
   <div class="cta-hero-overlay" aria-hidden="true"></div>
 
   <div class="section-inner cta-hero-content reveal">
-    <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
-    <h2 class="sh-title" id="tituloComenzar">Inicia tu <span class="cta-accent">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
-    <a href="{% url 'registro' %}" class="cta-hero-btn">[ CREAR CUENTA ]</a>
+    <span class="section-marker"><span>{% trans "// MODULE_06: BEGIN_PROTOCOL" %}</span></span>
+    <h2 class="sh-title" id="tituloComenzar">{% trans "Inicia tu" %} <span class="cta-accent">{% trans "proyecto" %}</span>.<br><span class="text-stroke">{% trans "Sin" %}</span> {% trans "vueltas." %}</h2>
+    <a href="{% url 'registro' %}" class="cta-hero-btn">{% trans "[ CREAR CUENTA ]" %}</a>
   </div>
 </section>
 
@@ -629,57 +635,57 @@
   <div class="foot-grid">
     <div class="foot-col">
       <div class="foot-brand"><div class="brand-square"></div> JobDevs</div>
-      <p class="foot-desc">Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia.</p>
+      <p class="foot-desc">{% trans "Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia." %}</p>
       <div class="newsletter-box">
-        <p>Contacto y Soporte</p>
-        <p style="font-size:13px; color:var(--text-muted); margin:0;">
-          <i class="fa fa-envelope" style="margin-right:6px; color:var(--accent);"></i>contacto@jobdevs.co
+        <p>{% trans "Contacto y Soporte" %}</p>
+        <p style="font-size:13px; color:var(--fg-dim); margin:0;">
+          <i class="fa fa-envelope" style="margin-right:6px; color:var(--accent);"></i>{% trans "contacto@jobdevs.co" %}
         </p>
       </div>
     </div>
 
     <div class="foot-col">
-      <h5>Preguntas frecuentes</h5>
+      <h5>{% trans "Preguntas frecuentes" %}</h5>
       <div class="faq-list">
         <details class="faq-item">
-          <summary class="faq-q">¿Qué es JobDevs?</summary>
-          <p class="faq-a">Plataforma que conecta empresas con talento del SENA para el desarrollo de software colaborativo.</p>
+          <summary class="faq-q">{% trans "¿Qué es JobDevs?" %}</summary>
+          <p class="faq-a">{% trans "Plataforma que conecta empresas con talento del SENA para el desarrollo de software colaborativo." %}</p>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">¿Cómo funciona?</summary>
-          <p class="faq-a">La empresa publica un proyecto, los desarrolladores SENA postulan, la empresa elige y se trabaja por hitos verificables.</p>
+          <summary class="faq-q">{% trans "¿Cómo funciona?" %}</summary>
+          <p class="faq-a">{% trans "La empresa publica un proyecto, los desarrolladores SENA postulan, la empresa elige y se trabaja por hitos verificables." %}</p>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">¿Tiene costo?</summary>
-          <p class="faq-a">El registro en la plataforma es gratuito. Los términos del proyecto se acuerdan entre empresa y desarrollador.</p>
+          <summary class="faq-q">{% trans "¿Tiene costo?" %}</summary>
+          <p class="faq-a">{% trans "El registro en la plataforma es gratuito. Los términos del proyecto se acuerdan entre empresa y desarrollador." %}</p>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">¿Quiénes pueden participar?</summary>
-          <p class="faq-a">Empresas con necesidades de desarrollo de software y desarrolladores vinculados al SENA.</p>
+          <summary class="faq-q">{% trans "¿Quiénes pueden participar?" %}</summary>
+          <p class="faq-a">{% trans "Empresas con necesidades de desarrollo de software y desarrolladores vinculados al SENA." %}</p>
         </details>
       </div>
     </div>
 
     <div class="foot-col">
-      <h5>Perfiles</h5>
+      <h5>{% trans "Perfiles" %}</h5>
       <ul>
-        <li><a href="{% url 'registro' %}">Empresa</a></li>
-        <li><a href="{% url 'registro' %}">Desarrolladores</a></li>
+        <li><a href="{% url 'registro' %}">{% trans "Empresa" %}</a></li>
+        <li><a href="{% url 'registro' %}">{% trans "Desarrolladores" %}</a></li>
       </ul>
     </div>
 
     <div class="foot-col">
-      <h5>Acceso</h5>
+      <h5>{% trans "Acceso" %}</h5>
       <ul>
-        <li><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar sesión</a></li>
-        <li><a href="{% url 'registro' %}">Registrarse</a></li>
-        <li><a href="{% url 'recuperar' %}">Recuperar contraseña</a></li>
+        <li><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Iniciar sesión" %}</a></li>
+        <li><a href="{% url 'registro' %}">{% trans "Registrarse" %}</a></li>
+        <li><a href="{% url 'recuperar' %}">{% trans "Recuperar contraseña" %}</a></li>
       </ul>
     </div>
   </div>
   <div class="foot-bot">
-    <span>Medellín, Colombia</span>
-    <span>© 2026 JobDevs</span>
+    <span>{% trans "Medellín, Colombia" %}</span>
+    <span>{% trans "© 2026 JobDevs" %}</span>
   </div>
 </footer>
 
@@ -689,12 +695,12 @@
     <div class="hero-strip-side">
       <span class="rec-dot"></span>
       <div>
-        <div class="sticky-text">JobDevs · Ecosistema SENA</div>
-        <div class="sticky-sub">Conectando empresas y talento verificado</div>
+        <div class="sticky-text">{% trans "JobDevs · Ecosistema SENA" %}</div>
+        <div class="sticky-sub">{% trans "Conectando empresas y talento verificado" %}</div>
       </div>
     </div>
     <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="white-space:nowrap;">
-      <span>CREAR CUENTA</span>
+      <span>{% trans "CREAR CUENTA" %}</span>
     </a>
   </div>
 </div>
@@ -704,33 +710,34 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-tech tech-frame">
       <div class="modal-header">
-        <h4 class="modal-title">AUTENTICACIÓN</h4>
-        <button type="button" class="btn-close btn-close-tech" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h4 class="modal-title">{% trans "AUTENTICACIÓN" %}</h4>
+        <button type="button" class="btn-close btn-close-tech" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
       </div>
       <div class="modal-body">
 
         <div id="loginForm">
           <form method="POST" action="{% url 'login' %}">
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
             {% csrf_token %}
 
             <div style="margin-bottom: 24px;">
-              <label class="label-tech">CORREO O USUARIO</label>
-              <input required type="text" class="input-tech" id="username" name="username" placeholder="ejemplo@correo.com o tu usuario" autocomplete="username">
+              <label class="label-tech">{% trans "CORREO O USUARIO" %}</label>
+              <input required type="text" class="input-tech" id="username" name="username" placeholder="{% trans "ejemplo@correo.com o tu usuario" %}" autocomplete="username">
             </div>
 
             <div style="position: relative; margin-bottom: 16px;">
-              <label class="label-tech">CONTRASEÑA</label>
+              <label class="label-tech">{% trans "CONTRASEÑA" %}</label>
               <input required type="password" class="input-tech" id="password" name="password" placeholder="••••••••">
               <button type="button" id="togglePassTech" class="pass-toggle"><i class="fa fa-eye"></i></button>
             </div>
 
-            <button type="submit" class="btn-submit-tech">[ INGRESAR ]</button>
+            <button type="submit" class="btn-submit-tech">{% trans "[ INGRESAR ]" %}</button>
           </form>
 
           <div style="margin-top: 24px; text-align: center;">
-            <a href="{% url 'registro' %}" class="login-link">¿Primera vez? Regístrate</a>
-            <span style="color: var(--border); margin: 0 8px;">|</span>
-            <a href="#" id="recoveryLink" class="login-link">RECUPERAR ACCESO</a>
+            <a href="{% url 'registro' %}" class="login-link">{% trans "¿Primera vez? Regístrate" %}</a>
+            <span style="color: var(--border-mid); margin: 0 8px;">|</span>
+            <a href="#" id="recoveryLink" class="login-link">{% trans "RECUPERAR ACCESO" %}</a>
           </div>
         </div>
 
@@ -738,13 +745,13 @@
           <form id="recoveryFormInner" method="POST" action="{% url 'recuperar' %}">
             {% csrf_token %}
             <div style="margin-bottom: 24px;">
-              <label class="label-tech">CORREO ELECTRÓNICO</label>
-              <input type="email" name="email" class="input-tech" placeholder="ejemplo@correo.com" required autocomplete="email">
+              <label class="label-tech">{% trans "CORREO ELECTRÓNICO" %}</label>
+              <input type="email" name="email" class="input-tech" placeholder="{% trans "ejemplo@correo.com" %}" required autocomplete="email">
             </div>
-            <button type="submit" class="btn-submit-tech">[ ENVIAR INSTRUCCIONES ]</button>
+            <button type="submit" class="btn-submit-tech">{% trans "[ ENVIAR INSTRUCCIONES ]" %}</button>
           </form>
           <div style="margin-top: 24px; text-align: center;">
-            <a href="#" id="backToLoginLink" class="login-link">&larr; VOLVER AL INICIO DE SESIÓN</a>
+            <a href="#" id="backToLoginLink" class="login-link">{% trans "&larr; VOLVER AL INICIO DE SESIÓN" %}</a>
           </div>
         </div>
 
@@ -760,14 +767,27 @@
       <i class="fa fa-check" style="color:#000; font-size:0.7rem;"></i>
     </div>
     <div>
-      <div id="toastTitle" class="toast-title">Solicitud recibida</div>
-      <div id="toastMsg" class="toast-msg">Recibimos tu solicitud. Te contactaremos pronto.</div>
+      <div id="toastTitle" class="toast-title">{% trans "Solicitud recibida" %}</div>
+      <div id="toastMsg" class="toast-msg">{% trans "Recibimos tu solicitud. Te contactaremos pronto." %}</div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'publico/script/index.js' %}"></script>
+<!-- Textos que el JavaScript necesita traducidos: se leen desde acá en vez de
+     quedar hardcodeados en el script. -->
+<script type="application/json" id="textos-i18n">
+{
+  "authTitle": "{% trans 'AUTENTICACIÓN SEGURA' %}",
+  "recoveryTitle": "{% trans 'RECUPERAR CONTRASEÑA' %}",
+  "sending": "{% trans '[ ENVIANDO... ]' %}",
+  "recoveryOk": "{% trans 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' %}",
+  "backToLogin": "{% trans '&larr; VOLVER AL INICIO DE SESIÓN' %}",
+  "connectionError": "{% trans 'Error de conexión. Intenta de nuevo.' %}"
+}
+</script>
+
+<script src="{% asset 'publico/script/index.js' %}"></script>
 
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>

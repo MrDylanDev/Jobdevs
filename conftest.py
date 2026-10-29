@@ -140,3 +140,18 @@ def suspended_user(db):
         estado='suspendido',
         password='TestPass123!',
     )
+
+
+@pytest.fixture(autouse=True)
+def _restaurar_idioma_activo():
+    """Deja el idioma por defecto al terminar cada test.
+
+    `LocaleMiddleware` activa el idioma del request pero no lo restaura: en
+    producción cada request corre en su propio contexto, mientras que en tests el
+    hilo se comparte y el idioma se filtra a las pruebas siguientes (una visita a
+    /en/ hacía que el resto viera la landing en inglés).
+    """
+    yield
+    from django.utils import translation
+
+    translation.deactivate_all()

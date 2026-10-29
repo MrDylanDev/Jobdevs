@@ -19,17 +19,17 @@ CSS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css'
 JS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js'
 
 # Tokens que el tema oscuro tenía hardcodeados y ahora salen de la capa semántica.
+# `--bg-card-hover` y `--border-high` ya no están: se borraron por no tener ningún
+# uso (ni en CSS, ni en plantillas, ni en JS) durante la limpieza del frontend.
 TOKENS_OSCUROS = {
     '--bg': '#000000',
     '--bg-darker': '#050505',
     '--bg-card': '#0a0a0a',
-    '--bg-card-hover': '#111111',
     '--fg': '#ffffff',
     '--fg-dim': '#a0a0a0',
     '--muted': '#555555',
     '--border-dim': '#1a1a1a',
     '--border-mid': '#333333',
-    '--border-high': '#ffffff',
     '--accent': '#00e676',
     '--accent-dim': '#00c853',
     '--scrim-rgb': '0, 0, 0',
@@ -379,7 +379,11 @@ class TestHeaderTransparente:
 
     def test_al_hacer_scroll_recupera_el_tema(self, css):
         assert '[data-theme="light"] .nav-cta,' in css
-        assert '[data-theme="light"] .theme-toggle {' in css
+        assert '[data-theme="light"] .theme-toggle,' in css, (
+            'El switch de tema comparte el grupo de superficies opacas con el '
+            'conmutador de idioma; el grupo creció y el test tiene que seguirlo'
+        )
+        assert '[data-theme="light"] .lang-switch {' in css
 
 
 class TestSuperficiesSinVelo:
@@ -470,3 +474,17 @@ class TestGranoSoloEnOscuro:
         bloque = bloque[:bloque.index('}')]
         assert 'opacity: 0.045' in bloque
         assert 'mix-blend-mode: overlay' in bloque
+
+
+class TestTokensInexistentes:
+    """Un `var(--x)` que no existe no rompe nada visible: el navegador descarta la
+    declaración y el elemento hereda el color. Eso lo vuelve invisible al ojo y a
+    los tests de contraste, así que se fija acá."""
+
+    def test_las_plantillas_solo_referencian_tokens_existentes(self, css, html):
+        declarados = set(re.findall(r'(--[\w-]+):', css))
+        referenciados = set(re.findall(r'var\((--[\w-]+)', html))
+        inexistentes = sorted(referenciados - declarados)
+        assert not inexistentes, (
+            f'La plantilla usa tokens que no existen y el estilo se descarta: {inexistentes}'
+        )

@@ -30,10 +30,50 @@ class TestDashboardAdmin:
         assert response.status_code == 200
 
     def test_django_admin_route_blocked_para_usuarios_comunes(self, auth_client, dev_client, client):
-        """SCRUM-183: Usuarios no-staff son redirigidos al login de admin en /django-admin/."""
+        """Usuarios comunes y anónimos quedan fuera del admin nativo y terminan en
+        el modal de login de la landing: no hay pantalla de acceso aparte."""
         for c in [auth_client, dev_client, client]:
-            response = c.get('/django-admin/')
-            assert response.status_code == 302
+            response = c.get('/django-admin/', follow=True)
+            assert response.status_code == 200
+            assert response.redirect_chain, 'Tiene que pasar por un redirect'
+            assert response.redirect_chain[-1][0].startswith('/?login=1'), response.redirect_chain
+
+    def test_el_admin_nativo_no_tiene_login_propio(self, client):
+        """Un solo formulario de acceso: el del sitio, no /django-admin/login/."""
+        respuesta = client.get('/django-admin/login/?next=/django-admin/')
+        assert respuesta.status_code == 302
+        assert respuesta['Location'] == '/login/?next=/django-admin/', respuesta['Location']
+
+    def test_django_admin_solo_superusuarios(self, admin_client, admin_user, empresa_user):
+        """El admin nativo queda para superusuarios: `is_staff` es una propiedad
+        mapeada a `is_superuser`, así que un rol común no entra."""
+        assert admin_client.get('/django-admin/').status_code == 200
+        assert admin_user.is_superuser is True
+
+    def test_is_staff_es_alias_de_is_superuser(self, admin_user, empresa_user):
+        """Contrato del modelo: no existe "staff sin superusuario"."""
+        assert admin_user.is_staff == admin_user.is_superuser == True
+        assert empresa_user.is_staff == empresa_user.is_superuser == False
+
+
+class TestLoginUnico:
+    """La administración entra por el mismo login de la página."""
+
+    def test_no_existe_la_pantalla_de_login_de_admin(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        assert not (Path(settings.BASE_DIR) / 'templates' / 'admin' / 'login.html').exists()
+
+    def test_login_con_next_invita_al_modal_de_la_landing(self, client):
+        respuesta = client.get('/login/?next=/django-admin/')
+        assert respuesta.status_code == 302
+        assert respuesta['Location'] == '/?login=1&next=/django-admin/'
+
+    def test_el_modal_conserva_el_next(self, client):
+        contenido = client.get('/?login=1&next=/django-admin/').content.decode()
+        assert 'name="next" value="/django-admin/"' in contenido
 
 
     def test_dashboard_shows_stats(self, admin_client, empresa_user, desarrollador_user):

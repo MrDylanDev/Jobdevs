@@ -1,4 +1,16 @@
-const rolSelect = document.getElementById('id_rol');
+// Textos traducidos por el template (ver el bloque #textos-i18n).
+    const TEXTOS = (function () {
+      const nodo = document.getElementById('textos-i18n');
+      if (!nodo) return {};
+      try { return JSON.parse(nodo.textContent) || {}; } catch (e) { return {}; }
+    })();
+
+    function texto(clave, porDefecto) {
+      const valor = TEXTOS[clave];
+      return (typeof valor === 'string' && valor) ? valor : porDefecto;
+    }
+
+    const rolSelect = document.getElementById('id_rol');
     const typeDocContainer = document.getElementById('container_tipo_documento');
     const typeDocSelect = document.getElementById('id_tipo_documento');
     const labelCedula = document.getElementById('label_cedula');
@@ -11,13 +23,13 @@ const rolSelect = document.getElementById('id_rol');
         typeDocContainer.style.display = 'block';
         if (sectorCont) sectorCont.style.display = 'block';
         if (ciudadCont) ciudadCont.style.display = 'block';
-        labelCedula.innerText = 'NIT O NÚMERO DE IDENTIFICACIÓN';
+        labelCedula.innerText = texto('docNit', 'NIT O NÚMERO DE IDENTIFICACIÓN');
       } else {
         typeDocContainer.style.display = 'none';
         if (sectorCont) sectorCont.style.display = 'none';
         if (ciudadCont) ciudadCont.style.display = 'none';
         if (typeDocSelect) typeDocSelect.value = 'cedula';
-        labelCedula.innerText = 'NÚMERO DE IDENTIFICACIÓN';
+        labelCedula.innerText = texto('docNumero', 'NÚMERO DE IDENTIFICACIÓN');
       }
     }
 
@@ -43,7 +55,7 @@ const rolSelect = document.getElementById('id_rol');
 
       if (password1 !== password2) {
         e.preventDefault();
-        alert('Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar.');
+        alert(texto('passwordMismatch', 'Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar.'));
         return;
       }
     });

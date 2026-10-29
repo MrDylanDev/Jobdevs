@@ -44,6 +44,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    # Después de LocaleMiddleware: fija el idioma por defecto en las URLs sin
+    # prefijo, para que Accept-Language no decida el contenido de "/".
+    'config.middleware_idioma.IdiomaPorDefectoSinPrefijo',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -76,6 +80,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -196,6 +201,16 @@ PASSWORD_HASHERS = [
 ]
 
 LANGUAGE_CODE = 'es-co'
+
+# Internacionalización: la landing y las pantallas de acceso se ofrecen en
+# español (por defecto) e inglés. El español sigue en / y el inglés en /en/.
+LANGUAGES = [
+    # El código de la variante por defecto tiene que coincidir con LANGUAGE_CODE:
+    # con prefix_default_language=False, la lengua por defecto no lleva prefijo.
+    ('es-co', 'Español'),
+    ('en', 'English'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 TIME_ZONE = 'America/Bogota'
 USE_I18N = True
 USE_TZ = True
