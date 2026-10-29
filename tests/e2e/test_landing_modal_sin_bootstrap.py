@@ -129,3 +129,56 @@ class TestChecklistSinBootstrap:
         assert 'data:image/svg+xml' in info['fondo'], (
             'El aspa tiene que ser un SVG en línea: Bootstrap la traía como imagen'
         )
+
+
+@pytest.mark.e2e
+class TestIconosSinCdn:
+    """SCRUM-426: el modal no puede depender de un CDN externo para sus iconos. El
+    ojo de la contraseña y los avisos venian de Font Awesome."""
+
+    def test_no_queda_ningun_enlace_a_font_awesome(self, page, live_server):
+        abrir_desde_navbar(page, live_server)
+        externos = page.evaluate(
+            """() => Array.from(document.querySelectorAll('link[rel="stylesheet"], script[src]'))
+                .map(el => el.getAttribute('href') || el.getAttribute('src'))
+                .filter(u => u && /font-?awesome|bootstrap/i.test(u))"""
+        )
+        assert externos == [], f'La landing sigue cargando CDN de terceros: {externos}'
+
+    def test_el_ojo_cambia_de_icono_y_de_tipo(self, page, live_server):
+        abrir_desde_navbar(page, live_server)
+        ojo = page.locator('#togglePassTech')
+        campo = page.locator('#password')
+
+        funcion = """(sel) => {
+            const el = document.querySelector(sel);
+            return el ? getComputedStyle(el).display !== 'none' : false;
+        }"""
+        assert campo.get_attribute('type') == 'password'
+        assert ojo.get_attribute('aria-pressed') == 'false'
+        assert page.evaluate(funcion, '#togglePassTech .lucide-eye') is True
+        assert page.evaluate(funcion, '#togglePassTech .lucide-eye-off') is False
+
+        ojo.click()
+        page.wait_for_timeout(150)
+        assert campo.get_attribute('type') == 'text'
+        assert ojo.get_attribute('aria-pressed') == 'true'
+        assert page.evaluate(funcion, '#togglePassTech .lucide-eye') is False
+        assert page.evaluate(funcion, '#togglePassTech .lucide-eye-off') is True
+
+        ojo.click()
+        page.wait_for_timeout(150)
+        assert campo.get_attribute('type') == 'password'
+
+    def test_los_iconos_visibles_se_pintan_con_tamano(self, page, live_server):
+        # Los iconos de los paneles ocultos miden cero a propósito: sólo se
+        # revisan los que el usuario ve.
+        page.goto(live_server.url, wait_until='load')
+        page.wait_for_timeout(600)
+        chicos = page.evaluate(
+            """() => Array.from(document.querySelectorAll('svg.lucide'))
+                .filter(s => s.checkVisibility && s.checkVisibility())
+                .map(s => s.getBoundingClientRect())
+                .filter(r => r.width < 4 || r.height < 4).length"""
+        )
+        assert chicos == 0, f'{chicos} iconos visibles de Lucide se pintaron sin tamaño'

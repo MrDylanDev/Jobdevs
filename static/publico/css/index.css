@@ -178,7 +178,13 @@ body {
 .pass-toggle {
   position: absolute; right: 15px; bottom: 12px;
   background: none; border: none; color: var(--fg-dim); cursor: pointer;
+  display: flex; align-items: center;
 }
+/* El boton lleva los dos ojos y el estado lo comunica aria-pressed: el CSS
+   decide cual se ve, igual que en el switch de tema. */
+.pass-toggle .lucide-eye-off { display: none; }
+.pass-toggle[aria-pressed="true"] .lucide-eye { display: none; }
+.pass-toggle[aria-pressed="true"] .lucide-eye-off { display: block; }
 
 /* hero strip helpers */
 .hero-strip-side { display: flex; align-items: center; gap: 16px; }
@@ -1058,6 +1064,10 @@ details[open] .faq-q::after { content: '−'; }
    que sigan al claro/oscuro como el resto de la piel. */
 .text-success { color: var(--accent); }
 .me-2 { margin-right: 0.5rem; }
+/* Los iconos de la landing son SVG de Lucide en linea. Font Awesome los pintaba
+   como glifo tipografico con su propio line-height; un SVG se apoya en la linea
+   base y queda alto, asi que se baja un octavo de em como hace Lucide. */
+.icono-linea { vertical-align: -0.125em; }
 @media (min-width: 768px) {
   .d-md-none { display: none !important; }
 }

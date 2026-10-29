@@ -341,9 +341,10 @@ document.addEventListener('DOMContentLoaded', function () {
   if (togglePassBtn) {
     togglePassBtn.addEventListener('click', function() {
       var input = document.getElementById('password');
-      var ico = this.querySelector('i');
-      if (input.type === 'password') { input.type = 'text'; ico.classList.replace('fa-eye', 'fa-eye-slash'); }
-      else { input.type = 'password'; ico.classList.replace('fa-eye-slash', 'fa-eye'); }
+      var mostrando = this.getAttribute('aria-pressed') === 'true';
+      input.type = mostrando ? 'password' : 'text';
+      // El estado lo pinta el CSS con aria-pressed; los dos ojos ya estan en el DOM.
+      this.setAttribute('aria-pressed', mostrando ? 'false' : 'true');
     });
   }
 
@@ -444,9 +445,9 @@ document.addEventListener('DOMContentLoaded', function () {
       spans.forEach(function(s) {
         var msgDiv = document.createElement('div');
         msgDiv.style.cssText = 'background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15);padding:10px 14px;margin-bottom:8px;font-size:13px;color:#fca5a5;display:flex;align-items:center;gap:8px;';
-        var icon = document.createElement('i');
-        icon.className = 'fa fa-circle-exclamation';
-        icon.style.color = '#ef4444';
+        var icon = document.createElement('span');
+        icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+        icon.style.display = 'flex';
         msgDiv.appendChild(icon);
         var textNode = document.createTextNode(' ' + s.textContent.trim());
         msgDiv.appendChild(textNode);
@@ -509,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         fetch(this.action, { method: 'POST', body: new FormData(this) })
           .then(function() {
-            recoveryFormDiv.innerHTML = '<div style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa fa-check-circle"></i> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
+            recoveryFormDiv.innerHTML = '<div style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
             document.getElementById('backToLoginLink2').addEventListener('click', function(e) { e.preventDefault(); showLogin(); });
           })
           .catch(function() {
