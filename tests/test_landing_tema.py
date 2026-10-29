@@ -16,7 +16,6 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 CSS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css'
-TEMPLATE_PATH = Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html'
 JS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js'
 
 # Tokens que el tema oscuro tenía hardcodeados y ahora salen de la capa semántica.
@@ -47,11 +46,6 @@ BLANCO, NEGRO = '#ffffff', '#000000'
 @pytest.fixture(scope='module')
 def css():
     return CSS_PATH.read_text(encoding='utf-8')
-
-
-@pytest.fixture(scope='module')
-def html():
-    return TEMPLATE_PATH.read_text(encoding='utf-8')
 
 
 @pytest.fixture(scope='module')
