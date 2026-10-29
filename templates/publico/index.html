@@ -1,6 +1,6 @@
-{% load static %}
+{% load static i18n idioma %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,6 +65,8 @@
 
 <!-- ==================== NAVBAR ==================== -->
 <nav class="nav-tech" id="navbar">
+  {% get_current_language as IDIOMA %}
+  {% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
   <a href="#inicio" class="nav-brand">
     <div class="brand-square blink"></div> JobDevs
     <div class="brand-dot"></div>
@@ -76,8 +78,13 @@
     <li><a href="#testimonios">Casos de éxito</a></li>
     <li><a href="#comenzar">Comenzar</a></li>
     <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">Ingresar</a></li>
+    <li class="d-md-none"><a href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}">{% if IDIOMA == 'en' %}Español{% else %}English{% endif %}</a></li>
   </ul>
   <div class="nav-right">
+    <a class="lang-switch" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" aria-label="{% trans 'Cambiar idioma' %}" title="{% trans 'Cambiar idioma' %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+      <span class="lang-switch-code">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
+    </a>
     <!-- Switch de dos posiciones: las dos opciones están a la vista y el estado
          lo dice aria-pressed. Sin texto de estado, que se leía como una etiqueta
          pasiva y no como un control. -->

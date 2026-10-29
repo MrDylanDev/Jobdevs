@@ -385,7 +385,11 @@ class TestHeaderTransparente:
 
     def test_al_hacer_scroll_recupera_el_tema(self, css):
         assert '[data-theme="light"] .nav-cta,' in css
-        assert '[data-theme="light"] .theme-toggle {' in css
+        assert '[data-theme="light"] .theme-toggle,' in css, (
+            'El switch de tema comparte el grupo de superficies opacas con el '
+            'conmutador de idioma; el grupo creció y el test tiene que seguirlo'
+        )
+        assert '[data-theme="light"] .lang-switch {' in css
 
 
 class TestSuperficiesSinVelo:

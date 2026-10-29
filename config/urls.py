@@ -1,10 +1,17 @@
+from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
+# El admin nativo queda fuera de i18n_patterns: /django-admin/ no lleva prefijo.
 urlpatterns = [
+    path('django-admin/', admin.site.urls),
+]
+
+# Todo el contenido vive detrás del idioma: español en /, inglés en /en/.
+urlpatterns += i18n_patterns(
     # Módulos de Aplicación (Modularizados)
     path('', include('usuarios.urls')), 
     path('proyectos/', include('proyectos.urls')),
@@ -17,12 +24,10 @@ urlpatterns = [
     path('favoritos/', include('favoritos.urls')),
     path('disputas/', include('disputas.urls')),
     
-    # Django Admin nativo para superusuarios (SCRUM-183)
-    path('django-admin/', admin.site.urls),
-
     # Admin → redirige al dashboard custom
     path('admin/', RedirectView.as_view(url='/admin/dashboard/', permanent=False)),
-]
+    prefix_default_language=False,
+)
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
