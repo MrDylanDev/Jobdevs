@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
+  document.querySelectorAll('.reveal').forEach(el => {
     revealObserver.observe(el);
   });
 
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.style.left = mx + 'px';
         dot.style.top = my + 'px';
       });
-      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech, .story-card, .goal-pill, input, textarea, select, [role="button"]');
+      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .nav-cta, .story-card, input, textarea, select, [role="button"]');
       hoverTargets.forEach(function(el) {
         el.addEventListener('mouseenter', function() { dot.classList.add('hover'); ring.classList.add('hover'); });
         el.addEventListener('mouseleave', function() { dot.classList.remove('hover'); ring.classList.remove('hover'); });

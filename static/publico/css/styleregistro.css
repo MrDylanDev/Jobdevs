@@ -4,7 +4,6 @@
 
 :root {
   --bg: #000000;
-  --bg-darker: #050505;
   --bg-card: #0a0a0a;
   --bg-card-hover: #111111;
   --fg: #ffffff;
@@ -15,7 +14,6 @@
   --accent: #00e676;
   --accent-rgb: 0, 230, 118;
   --accent-bright: #69f0ae;
-  --accent-dim: #00c853;
   --font-main: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -407,7 +405,6 @@ button[type="submit"]:active {
    blanco; el verde brillante de la piel oscura queda en 1.6:1 y no sirve acá. */
 [data-theme="light"] {
   --bg: #ffffff;
-  --bg-darker: #f7f7f8;
   --bg-card: #ffffff;
   --bg-card-hover: #f1f2f4;
   --fg: #0b0f0c;
@@ -418,7 +415,6 @@ button[type="submit"]:active {
   --accent: #00713f;
   --accent-rgb: 0, 113, 63;
   --accent-bright: #00713f;
-  --accent-dim: #005c33;
 }
 /* El panel izquierdo vive siempre sobre la foto: su texto no puede heredar el
    color del tema o queda oscuro sobre una imagen oscura. En oscuro ya era
@@ -435,7 +431,6 @@ button[type="submit"]:active {
 [data-theme="light"] .error-msg,
 [data-theme="light"] .form-group.error label { color: #b91c1c; }
 [data-theme="light"] .form-group.error input { border-color: #dc2626; }
-[data-theme="light"] .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); }
 /* El botón principal usaba texto negro sobre el verde brillante del tema oscuro.
    Sobre el verde oscuro del tema claro el texto va en blanco: 6.1:1. */
 [data-theme="light"] .register-wrapper.theme-dev button[type="submit"] { color: #ffffff; }

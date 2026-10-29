@@ -6,13 +6,11 @@
   --bg: #000000;
   --bg-darker: #050505;
   --bg-card: #0a0a0a;
-  --bg-card-hover: #111111;
   --fg: #ffffff;
   --fg-dim: #a0a0a0;
   --muted: #555555;
   --border-dim: #1a1a1a;
   --border-mid: #333333;
-  --border-high: #ffffff;
   --accent: #00e676;
   --accent-rgb: 0, 230, 118;
   --accent-bright: #69f0ae;
@@ -57,13 +55,11 @@
   --bg: #ffffff;
   --bg-darker: #f7f8f7;
   --bg-card: #ffffff;
-  --bg-card-hover: #f2f4f2;
   --fg: #0b0f0c;
   --fg-dim: #4b5563;          /* 7.6:1 sobre blanco */
   --muted: #5f6673;           /* 5.8:1 sobre blanco, 5.4:1 sobre --bg-darker */
   --border-dim: #e4e7e5;
   --border-mid: #cfd4d1;
-  --border-high: #0b0f0c;
 
   /* Verde propio del tema claro: 6.1:1 sobre blanco como texto y 6.1:1 con
      texto blanco encima cuando hace de relleno. Un solo valor cubre ambos usos. */
@@ -151,12 +147,10 @@ body {
 
 /* ========== UTILS ========== */
 .text-muted { color: var(--muted); }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 .hidden { display: none; }
 .carousel-wrapper { max-width: 1200px; margin: 32px auto 0; padding: 0 5%; }
 
 /* section backgrounds */
-.bg-darker { background: var(--bg-darker); }
 .bg-dim { background: rgba(var(--scrim-rgb), 0.4); }
 
 /* desc mono paragraph */
@@ -226,15 +220,6 @@ body {
 .btn-tech span { position: relative; z-index: 2; transition: color 0.25s; }
 .btn-tech:hover span { color: var(--bg); }
 
-.btn-tech-sec {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  background: transparent; color: var(--fg-dim);
-  padding: 14px 28px; border: 1px dashed var(--border-mid);
-  font-family: var(--font-mono); font-size: 0.8rem; font-weight: 400;
-  text-transform: uppercase; text-decoration: none; cursor: pointer;
-  transition: all 0.25s;
-}
-.btn-tech-sec:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
 
 .pulse-btn { animation: pulse-cta 2.8s ease-out infinite; }
 .pulse-btn::before { background: var(--accent) !important; }
@@ -269,17 +254,6 @@ body {
 }
 .reveal.in-view { opacity: 1; transform: translateY(0); }
 
-.reveal-stagger > * {
-  opacity: 0; transform: translateY(30px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.reveal-stagger.in-view > * { opacity: 1; transform: translateY(0); }
-.reveal-stagger.in-view > *:nth-child(1) { transition-delay: 0s; }
-.reveal-stagger.in-view > *:nth-child(2) { transition-delay: 0.1s; }
-.reveal-stagger.in-view > *:nth-child(3) { transition-delay: 0.2s; }
-.reveal-stagger.in-view > *:nth-child(4) { transition-delay: 0.3s; }
-.reveal-stagger.in-view > *:nth-child(5) { transition-delay: 0.4s; }
-.reveal-stagger.in-view > *:nth-child(6) { transition-delay: 0.5s; }
 
 /* ========== NAVBAR ========== */
 .nav-tech {
@@ -1011,29 +985,6 @@ section[id] { scroll-margin-top: 80px; }
 @media (max-width: 900px) {
 }
 
-.form-label {
-  font-family: var(--font-mono); font-size: 0.65rem;
-  color: var(--muted); letter-spacing: 0.15em;
-  text-transform: uppercase; display: block; margin-bottom: 8px;
-}
-.form-input {
-  background: transparent; border: none; border-bottom: 1px solid var(--border-mid);
-  color: var(--fg); padding: 12px 0; font-family: var(--font-main);
-  font-size: 0.9rem; width: 100%; transition: border-color 0.3s;
-}
-.form-input:focus { outline: none; border-color: var(--accent); }
-.form-input::placeholder { color: var(--muted); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; }
-.goal-pill {
-  cursor: pointer; padding: 8px 16px; border: 1px solid var(--border-mid);
-  background: transparent; color: var(--fg-dim);
-  font-family: var(--font-mono); font-size: 0.7rem;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  transition: all 0.25s;
-}
-.goal-pill:hover { border-color: var(--fg-dim); color: var(--fg); }
-.goal-pill.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
-#comenzar .goal-pill.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-#comenzar .form-input:focus { border-color: var(--fg); }
 #comenzar .pulse-btn { animation: none; box-shadow: 0 0 32px rgba(var(--ink-rgb), 0.06); }
 #comenzar .pulse-btn::before { display: none; }
 
@@ -1166,14 +1117,6 @@ details[open] .faq-q::after { content: '−'; }
 .btn-close-tech { filter: invert(1) grayscale(100%) brightness(200%); border-radius: 0; opacity: 0.7; }
 .btn-close-tech:hover { opacity: 1; }
 .modal-tech .modal-body { padding: 30px; }
-.tab-tech {
-  flex: 1; background: transparent; border: none; border-right: 1px solid var(--border-dim);
-  color: var(--fg-dim); font-family: var(--font-mono); font-size: 0.72rem;
-  padding: 14px 0; cursor: pointer; text-transform: uppercase;
-  transition: all 0.25s; letter-spacing: 0.1em;
-}
-.tab-tech:last-child { border-right: none; }
-.tab-tech.active { background: var(--fg); color: var(--bg); font-weight: 700; }
 
 .label-tech { font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-dim); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.1em; }
 .input-tech {
@@ -1191,7 +1134,6 @@ details[open] .faq-q::after { content: '−'; }
 .btn-submit-tech:hover { border-color: var(--fg); background: rgba(var(--ink-rgb), 0.05); }
 
 /* ── DEV green theme ── */
-#loginModal.theme-dev .tab-tech.active { background: rgba(var(--accent-rgb), 0.08); color: var(--accent); border-bottom: 2px solid var(--accent); }
 #loginModal.theme-dev .input-tech:focus { border-color: var(--accent); }
 #loginModal.theme-dev .btn-submit-tech:hover { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.06); }
 
@@ -1462,8 +1404,8 @@ details[open] .faq-q::after { content: '−'; }
 /* ========== CUSTOM CURSOR ========== */
 @media (hover: hover) {
   body { cursor: none !important; }
-  a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech,
-  .story-card, .goal-pill, .nav-links a,
+  a, button, .btn-tech, .nav-cta,
+  .story-card, .nav-links a,
   input, textarea, select, [role="button"] { cursor: none !important; }
 }
 

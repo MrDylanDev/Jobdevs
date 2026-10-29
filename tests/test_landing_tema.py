@@ -20,17 +20,17 @@ TEMPLATE_PATH = Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html'
 JS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js'
 
 # Tokens que el tema oscuro tenía hardcodeados y ahora salen de la capa semántica.
+# `--bg-card-hover` y `--border-high` ya no están: se borraron por no tener ningún
+# uso (ni en CSS, ni en plantillas, ni en JS) durante la limpieza del frontend.
 TOKENS_OSCUROS = {
     '--bg': '#000000',
     '--bg-darker': '#050505',
     '--bg-card': '#0a0a0a',
-    '--bg-card-hover': '#111111',
     '--fg': '#ffffff',
     '--fg-dim': '#a0a0a0',
     '--muted': '#555555',
     '--border-dim': '#1a1a1a',
     '--border-mid': '#333333',
-    '--border-high': '#ffffff',
     '--accent': '#00e676',
     '--accent-dim': '#00c853',
     '--scrim-rgb': '0, 0, 0',
