@@ -480,3 +480,17 @@ class TestGranoSoloEnOscuro:
         bloque = bloque[:bloque.index('}')]
         assert 'opacity: 0.045' in bloque
         assert 'mix-blend-mode: overlay' in bloque
+
+
+class TestTokensInexistentes:
+    """Un `var(--x)` que no existe no rompe nada visible: el navegador descarta la
+    declaración y el elemento hereda el color. Eso lo vuelve invisible al ojo y a
+    los tests de contraste, así que se fija acá."""
+
+    def test_las_plantillas_solo_referencian_tokens_existentes(self, css, html):
+        declarados = set(re.findall(r'(--[\w-]+):', css))
+        referenciados = set(re.findall(r'var\((--[\w-]+)', html))
+        inexistentes = sorted(referenciados - declarados)
+        assert not inexistentes, (
+            f'La plantilla usa tokens que no existen y el estilo se descarta: {inexistentes}'
+        )
