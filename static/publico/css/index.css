@@ -169,10 +169,20 @@ body {
 .toast-msg { font-size: 0.8rem; color: var(--fg-dim); margin-top: 4px; }
 
 /* login */
+/* --muted (#555555) sobre el fondo casi negro del modal da 2.73:1: por debajo
+   de AA. --fg-dim (#a0a0a0) da 8.03:1 en oscuro y 7.56:1 en claro, así que los
+   enlaces del modal usan el tono de texto secundario. El token --muted no se
+   toca: lo comparten otros componentes. */
 .login-link {
-  color: var(--muted); font-size: 0.72rem; text-decoration: none;
+  color: var(--fg-dim); font-size: 0.72rem; text-decoration: none;
   font-family: var(--font-mono); text-transform: uppercase;
 }
+.login-link:hover { color: var(--fg); }
+/* Separador entre los enlaces del modal. Es un glifo, no un borde: con
+   --border-mid quedaba en 1.5:1 sobre el blanco del tema claro y en 1.4:1 sobre
+   el negro del oscuro, es decir invisible en los dos. Va en el tono del texto
+   secundario, que sí está pensado para leerse. */
+.login-sep { color: var(--fg-dim); margin: 0 8px; }
 
 /* pass toggle */
 .pass-toggle {
@@ -265,6 +275,14 @@ body {
   box-shadow: none !important;
   transition: background 0.3s ease;
 }
+/* Sobre el hero la barra no tiene fondo y el texto se apoya en la foto: el peor
+   píxel de la caja de un enlace llega a luminancia 0.23, y ahí ni el blanco puro
+   alcanza 4.5:1 (da 3.8:1). Ningún color de texto lo garantiza, así que la barra
+   lleva un velo propio, más suave que el del estado .scrolled. Va sólo en el tema
+   oscuro: en claro el velo del hero ya cubre la zona del nav y medía 15:1. */
+:root:not([data-theme="light"]) .nav-tech:not(.scrolled) {
+  background: linear-gradient(180deg, rgba(var(--scrim-rgb), 0.55) 0%, rgba(var(--scrim-rgb), 0.28) 70%, rgba(var(--scrim-rgb), 0) 100%) !important;
+}
 .nav-tech.scrolled {
   background: rgba(var(--scrim-rgb), 0.80) !important;
   backdrop-filter: blur(12px) !important;
@@ -298,6 +316,15 @@ body {
 }
 .nav-links a:hover { background: rgba(var(--accent-rgb), 0.05); color: var(--fg); }
 .nav-links a:hover::before { transform: translateY(-50%) scaleY(1); }
+/* Sobre el hero (nav sin fondo) --fg-dim (#a0a0a0) se apoyaba en la foto y el
+   peor glifo medido caía a 4.28:1 en 1920x1080, 2.60:1 en 1440x900 y 1.69:1 en
+   1024x768: ilegible. El blanco al 90% más el velo de la barra dejan ese peor caso
+   en 8.27:1, 7.91:1 y 7.93:1, medido bajo los glifos en las siete fotos del reel
+   con Chromium y Firefox: el margen cubre la variación de tipografía. En el estado
+   .scrolled el nav ya tiene fondo casi opaco y --fg-dim alcanza; en el tema claro
+   hay su propia regla, con más especificidad, y no cambia. */
+.nav-tech:not(.scrolled) .nav-links a { color: rgba(var(--ink-rgb), 0.9); }
+.nav-tech:not(.scrolled) .nav-links a:hover { color: var(--fg); }
 
 .nav-right { display: flex; height: 100%; border: none !important; z-index: 1001; align-items: center; }
 .nav-tech.scrolled .nav-right { border-left: 1px solid rgba(var(--ink-rgb), 0.05) !important; }
@@ -1396,6 +1423,25 @@ details[open] .faq-q::after { content: '−'; }
   .btn-mobile-menu { display: flex; align-items: center; height: 100%; }
   .hero-title { font-size: 2.5rem; }
   .hero-content { padding: 100px 5% 80px; }
+  /* En una columna el titular ocupa todo el ancho y el párrafo cruza la foto
+     entera, así que el velo horizontal de escritorio (0.40 -> 0.02 -> 0.30) deja
+     el centro casi al natural: el peor píxel bajo un glifo caía a 3.1:1. En
+     móvil el velo pasa a ser vertical con un piso alto, medido en 5.4:1 sobre las
+     siete fotos del reel a 390x844. */
+  .hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(var(--scrim-rgb), 0.72) 0%, rgba(var(--scrim-rgb), 0.76) 55%, rgba(var(--scrim-rgb), 0.92) 100%),
+      radial-gradient(ellipse at 25% 60%, rgba(var(--accent-rgb), 0.10) 0%, transparent 50%);
+  }
+  /* El hero del tema claro es blanco sobre la misma foto, con la imagen al
+     natural y sin el brightness(0.65) del oscuro: el velo horizontal de 1200px
+     abajo se apaga al 93% del ancho justo donde el párrafo ya ocupa todo, y el
+     peor glifo caía a 1.35:1. Acá el velo es negro explícito porque el texto es
+     blanco: --scrim-rgb invertido a blanco lo borraría. */
+  [data-theme="light"] .hero-overlay {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.80) 55%, rgba(0, 0, 0, 0.92) 100%);
+  }
   .foot-grid { grid-template-columns: 1fr; gap: 40px; }
   .story-card { width: 280px; }
   .sticky-text { font-size: 1rem; }
