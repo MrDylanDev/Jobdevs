@@ -153,3 +153,54 @@ class TestSeparadorDelModal:
             f'El piso del velo claro en móvil ({min(alfas)}) deja el párrafo por '
             f'debajo de 4.5:1; medido, el de escritorio daba 1.35:1'
         )
+
+
+class TestEnlacesDelNavSobreElHero:
+    """SCRUM-427: arriba el nav es transparente y los enlaces se apoyan en la foto
+    del reel. --fg-dim (#a0a0a0) a 0.75rem daba 1.69:1 en 1024x768."""
+
+    def test_el_estado_sobre_el_hero_sube_el_tono(self, css):
+        bloque = regla(css, '.nav-tech:not(.scrolled) .nav-links a')
+        alfas = [float(a) for a in re.findall(r'rgba\(var\(--ink-rgb\),\s*([\d.]+)\)', bloque)]
+        assert alfas, 'Sobre el hero el enlace tiene que fijar su propio tono'
+        assert min(alfas) >= 0.85, (
+            f'Con menos de 0.85 de tinta el peor glifo cae por debajo de 4.5:1; '
+            f'medido, --fg-dim daba 1.69:1 a 1024x768'
+        )
+
+    def test_con_fondo_el_enlace_conserva_el_tono_secundario(self, css):
+        # En .scrolled el nav ya tiene un velo casi opaco: ahí --fg-dim alcanza y
+        # subir el tono rompería la jerarquía del nav cerrado.
+        assert '.nav-tech:not(.scrolled) .nav-links a' in css
+        assert '.nav-tech.scrolled .nav-links a { color' not in css
+
+    def test_el_tema_claro_conserva_su_propia_regla(self, css):
+        # Su selector lleva el prefijo del tema, así que gana por especificidad
+        # sin importar el orden. Si cae a un selector de clase, la regla de
+        # oscuro le gana y el nav claro cambia sin que nadie lo pida.
+        assert '[data-theme="light"] .nav-tech:not(.scrolled) .nav-links a' in css
+
+
+class TestEnlacesDelModal:
+    """En tema oscuro los enlaces del modal usaban --muted (#555555), que sobre el
+    fondo casi negro da 2.73:1: el separador quedaba más visible que los enlaces
+    que separa."""
+
+    def test_usan_el_tono_de_texto_secundario(self, css):
+        bloque = regla(css, '.login-link')
+        assert 'var(--fg-dim)' in bloque
+        assert 'var(--muted)' not in bloque
+
+    @pytest.mark.parametrize('tema', ['oscuro', 'claro'])
+    def test_el_tono_del_enlace_pasa_aa(self, css, tema):
+        tokens = tokens_tema(css, tema)
+        ratio = contraste(tokens['--fg-dim'], tokens['--bg'])
+        assert ratio >= 4.5, f'Los enlaces del modal dan {ratio:.2f}:1 en tema {tema}'
+
+    @pytest.mark.parametrize('tema,valor', [('oscuro', '#555555'), ('claro', '#5f6673')])
+    def test_el_token_muted_no_se_toca(self, css, tema, valor):
+        # Lo comparten otros componentes y los tests de tema fijan su valor.
+        assert tokens_tema(css, tema)['--muted'] == valor
+
+    def test_el_hover_vuelve_al_texto_principal(self, css):
+        assert 'var(--fg)' in regla(css, '.login-link:hover')

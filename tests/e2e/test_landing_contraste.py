@@ -152,3 +152,60 @@ class TestContrasteBajoGlifos:
             f'El separador en tema {tema} da {peor:.2f}:1 (mediana {mediana:.2f}:1): '
             f'un divisor no necesita 4.5:1, pero sí tiene que percibirse'
         )
+
+
+def peor_en_todas_las_fotos(page, locator):
+    """El peor contraste bajo glifos recorriendo las siete fotos del reel."""
+    peores = []
+    for indice in range(FOTOS):
+        forzar_foto(page, indice)
+        peor, _ = peor_contraste_bajo_glifos(page, locator)
+        peores.append(peor)
+    return min(peores)
+
+
+@pytest.mark.e2e
+class TestEnlacesDelNavSobreElHero:
+    """SCRUM-427: arriba el nav es transparente y los enlaces viven sobre la foto
+    del reel. --fg-dim sobre esa foto daba 2.06:1 en el peor glifo medido."""
+
+    @pytest.mark.parametrize('ancho,alto', [(1920, 1080), (1440, 900), (1024, 768)])
+    def test_los_enlaces_se_leen_sobre_las_siete_fotos(self, page, live_server, ancho, alto):
+        abrir_landing(page, live_server, 'dark', ancho=ancho, alto=alto)
+
+        enlace = page.locator('.nav-links a').first
+        peor = peor_en_todas_las_fotos(page, enlace)
+        assert peor >= UMBRAL_NORMAL, (
+            f'El enlace del nav sobre el hero da {peor:.2f}:1 a {ancho}x{alto}: '
+            f'sin fondo, el texto se apoya en la foto'
+        )
+
+
+@pytest.mark.e2e
+class TestEnlacesDelModal:
+    """--muted (#555555) sobre el fondo del modal oscuro da 2.73:1: los enlaces
+    del login no se leían en el tema oscuro."""
+
+    @pytest.mark.parametrize('tema', ['dark', 'light'])
+    def test_los_enlaces_del_modal_se_leen(self, page, live_server, tema):
+        page.set_viewport_size({'width': 1440, 'height': 900})
+        page.goto(live_server.url, wait_until='load')
+        page.evaluate(f"localStorage.setItem('jobdevs-theme', '{tema}')")
+        page.reload(wait_until='load')
+        page.locator('.nav-cta').first.click()
+        page.wait_for_timeout(800)
+        congelar(page)
+
+        enlaces = page.locator('.login-link')
+        medidos = 0
+        for indice in range(enlaces.count()):
+            enlace = enlaces.nth(indice)
+            if not enlace.is_visible():
+                continue
+            peor, mediana = peor_contraste_bajo_glifos(page, enlace)
+            assert peor >= UMBRAL_NORMAL, (
+                f'El enlace {indice} del modal en tema {tema} da {peor:.2f}:1 '
+                f'(mediana {mediana:.2f}:1)'
+            )
+            medidos += 1
+        assert medidos, 'No se midió ningún enlace visible del modal'

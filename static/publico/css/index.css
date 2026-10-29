@@ -169,10 +169,15 @@ body {
 .toast-msg { font-size: 0.8rem; color: var(--fg-dim); margin-top: 4px; }
 
 /* login */
+/* --muted (#555555) sobre el fondo casi negro del modal da 2.73:1: por debajo
+   de AA. --fg-dim (#a0a0a0) da 8.03:1 en oscuro y 7.56:1 en claro, así que los
+   enlaces del modal usan el tono de texto secundario. El token --muted no se
+   toca: lo comparten otros componentes. */
 .login-link {
-  color: var(--muted); font-size: 0.72rem; text-decoration: none;
+  color: var(--fg-dim); font-size: 0.72rem; text-decoration: none;
   font-family: var(--font-mono); text-transform: uppercase;
 }
+.login-link:hover { color: var(--fg); }
 /* Separador entre los enlaces del modal. Es un glifo, no un borde: con
    --border-mid quedaba en 1.5:1 sobre el blanco del tema claro y en 1.4:1 sobre
    el negro del oscuro, es decir invisible en los dos. Va en el tono del texto
@@ -303,6 +308,15 @@ body {
 }
 .nav-links a:hover { background: rgba(var(--accent-rgb), 0.05); color: var(--fg); }
 .nav-links a:hover::before { transform: translateY(-50%) scaleY(1); }
+/* Sobre el hero (nav sin fondo) --fg-dim (#a0a0a0) se apoya en la foto y el
+   peor glifo medido caía a 4.28:1 en 1920x1080, 2.60:1 en 1440x900 y 1.69:1 en
+   1024x768: ilegible. Un blanco al 90% sube ese peor caso a 5.74:1, 5.12:1 y
+   5.41:1 respectivamente, medido bajo los glifos en las siete fotos del reel.
+   En el estado .scrolled el nav ya tiene fondo casi opaco y --fg-dim alcanza;
+   en el tema claro hay su propia regla, con más especificidad, y no cambia. */
+.nav-tech:not(.scrolled) .nav-links a { color: rgba(var(--ink-rgb), 0.9); }
+.nav-tech:not(.scrolled) .nav-links a:hover { color: var(--fg); }
+
 .nav-right { display: flex; height: 100%; border: none !important; z-index: 1001; align-items: center; }
 .nav-tech.scrolled .nav-right { border-left: 1px solid rgba(var(--ink-rgb), 0.05) !important; }
 .nav-cta {
