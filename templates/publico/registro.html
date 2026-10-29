@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n assets %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
@@ -23,7 +23,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
-  <link rel="stylesheet" href="{% static 'publico/css/styleregistro.css' %}">
+  <link rel="stylesheet" href="{% asset 'publico/css/styleregistro.css' %}">
 </head>
 <body>
   <div class="register-wrapper theme-dev">

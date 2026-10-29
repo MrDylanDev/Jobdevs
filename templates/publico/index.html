@@ -1,4 +1,4 @@
-{% load static i18n idioma %}
+{% load static i18n idioma assets %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
@@ -46,7 +46,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
-  <link rel="stylesheet" href="{% static 'publico/css/index.css' %}">
+  <link rel="stylesheet" href="{% asset 'publico/css/index.css' %}">
 </head>
 <body>
 
@@ -786,7 +786,7 @@
 }
 </script>
 
-<script src="{% static 'publico/script/index.js' %}"></script>
+<script src="{% asset 'publico/script/index.js' %}"></script>
 
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>

@@ -57,3 +57,25 @@ class TestPaletaClara:
         assert '[data-theme="light"] .register-wrapper.theme-dev button[type="submit"] { color: #ffffff; }' in css, (
             'El verde oscuro del tema claro con texto negro queda en 3.4:1'
         )
+
+
+class TestCacheDeLosEstaticos:
+    """nginx sirve /static/ con `immutable, max-age=30d`. Sin versión en la URL,
+    un cambio de CSS no llega al navegador aunque se recargue."""
+
+    def test_el_css_del_registro_lleva_version(self, html):
+        assert "{% asset 'publico/css/styleregistro.css' %}" in html, (
+            'La URL del CSS tiene que cambiar cuando cambia el archivo'
+        )
+
+    def test_la_landing_tambien_versiona_css_y_js(self):
+        landing = (Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html').read_text(encoding='utf-8')
+        assert "{% asset 'publico/css/index.css' %}" in landing
+        assert "{% asset 'publico/script/index.js' %}" in landing
+
+    def test_la_etiqueta_agrega_la_fecha_de_modificacion(self):
+        from django.template import Context, Template
+
+        salida = Template("{% load assets %}{% asset 'publico/css/styleregistro.css' %}").render(Context())
+        assert salida.startswith('/static/publico/css/styleregistro.css?v='), salida
+        assert salida.split('?v=')[1].isdigit()
