@@ -79,3 +79,22 @@ class TestCacheDeLosEstaticos:
         salida = Template("{% load assets %}{% asset 'publico/css/styleregistro.css' %}").render(Context())
         assert salida.startswith('/static/publico/css/styleregistro.css?v='), salida
         assert salida.split('?v=')[1].isdigit()
+
+
+class TestPanelSobreLaFoto:
+    """El panel izquierdo del registro vive siempre sobre la foto: su texto no
+    puede heredar el color del tema o queda oscuro sobre una imagen oscura."""
+
+    def test_el_texto_del_panel_es_blanco_en_claro(self, css):
+        bloque = css[css.index('[data-theme="light"] .register-image-content,'):]
+        bloque = bloque[:bloque.index('}')]
+        assert '.register-image-content .logo' in bloque
+        assert '.register-image-content h2' in bloque
+        assert 'color: #ffffff' in bloque
+        assert '[data-theme="light"] .register-image-content p { color: rgba(255, 255, 255, 0.80); }' in css
+
+    def test_el_oscuro_no_cambia(self, css):
+        assert '[data-theme="light"] .register-image-content' in css
+        assert '.register-image-content h2 {\n  font-family: var(--font-main);\n  font-size: 2.2rem;\n  font-weight: 700;\n  color: var(--fg);' in css, (
+            'La regla base del oscuro tiene que seguir usando --fg'
+        )

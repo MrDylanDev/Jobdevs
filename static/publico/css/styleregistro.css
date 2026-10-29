@@ -420,6 +420,14 @@ button[type="submit"]:active {
   --accent-bright: #00713f;
   --accent-dim: #005c33;
 }
+/* El panel izquierdo vive siempre sobre la foto: su texto no puede heredar el
+   color del tema o queda oscuro sobre una imagen oscura. En oscuro ya era
+   blanco, así que el override va sólo en claro. */
+[data-theme="light"] .register-image-content,
+[data-theme="light"] .register-image-content .logo,
+[data-theme="light"] .register-image-content h2 { color: #ffffff; }
+[data-theme="light"] .register-image-content p { color: rgba(255, 255, 255, 0.80); }
+
 /* El grano es parte de la piel oscura: sobre blanco se lee como papel sucio. */
 [data-theme="light"] body::before { display: none; }
 /* Los rojos de error y el hover fantasma estaban pensados para fondo negro. */
