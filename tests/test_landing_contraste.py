@@ -164,8 +164,8 @@ class TestEnlacesDelNavSobreElHero:
         alfas = [float(a) for a in re.findall(r'rgba\(var\(--ink-rgb\),\s*([\d.]+)\)', bloque)]
         assert alfas, 'Sobre el hero el enlace tiene que fijar su propio tono'
         assert min(alfas) >= 0.85, (
-            f'Con menos de 0.85 de tinta el peor glifo cae por debajo de 4.5:1; '
-            f'medido, --fg-dim daba 1.69:1 a 1024x768'
+            'Con menos de 0.85 de tinta el peor glifo cae por debajo de 4.5:1; '
+            'medido, --fg-dim daba 1.69:1 a 1024x768'
         )
 
     def test_con_fondo_el_enlace_conserva_el_tono_secundario(self, css):
@@ -204,3 +204,23 @@ class TestEnlacesDelModal:
 
     def test_el_hover_vuelve_al_texto_principal(self, css):
         assert 'var(--fg)' in regla(css, '.login-link:hover')
+
+    def test_la_barra_lleva_velo_propio_sobre_el_hero(self, css):
+        # El color del enlace solo no alcanza: el peor píxel de la caja llega a
+        # luminancia 0.23 y ahí ni el blanco puro da 4.5:1 (3.8:1). El velo de la
+        # barra es lo que baja ese fondo.
+        bloque = regla(css, ':root:not([data-theme="light"]) .nav-tech:not(.scrolled)')
+        assert 'linear-gradient' in bloque
+        alfas = [float(a) for a in re.findall(r'rgba\(var\(--scrim-rgb\),\s*([\d.]+)\)', bloque)]
+        assert alfas, 'El velo de la barra sale de --scrim-rgb para seguir al tema'
+        assert max(alfas) >= 0.5, (
+            'Sin un piso de 0.5 el velo no baja el fondo lo suficiente; el peor '
+            'glifo quedaba en 5.12:1 y con otra tipografía cruzaba AA'
+        )
+
+    def test_el_velo_no_toca_el_tema_claro(self, css):
+        # En claro el velo del hero ya cubre la zona del nav (medía 15:1) y el
+        # header tiene que seguir transparente.
+        assert '[data-theme="light"] .nav-tech:not(.scrolled) {' not in css
+        bloque = regla(css, ':root:not([data-theme="light"]) .nav-tech:not(.scrolled)')
+        assert bloque.startswith(':root:not([data-theme="light"])')

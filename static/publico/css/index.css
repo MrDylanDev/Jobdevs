@@ -275,6 +275,14 @@ body {
   box-shadow: none !important;
   transition: background 0.3s ease;
 }
+/* Sobre el hero la barra no tiene fondo y el texto se apoya en la foto: el peor
+   píxel de la caja de un enlace llega a luminancia 0.23, y ahí ni el blanco puro
+   alcanza 4.5:1 (da 3.8:1). Ningún color de texto lo garantiza, así que la barra
+   lleva un velo propio, más suave que el del estado .scrolled. Va sólo en el tema
+   oscuro: en claro el velo del hero ya cubre la zona del nav y medía 15:1. */
+:root:not([data-theme="light"]) .nav-tech:not(.scrolled) {
+  background: linear-gradient(180deg, rgba(var(--scrim-rgb), 0.55) 0%, rgba(var(--scrim-rgb), 0.28) 70%, rgba(var(--scrim-rgb), 0) 100%) !important;
+}
 .nav-tech.scrolled {
   background: rgba(var(--scrim-rgb), 0.80) !important;
   backdrop-filter: blur(12px) !important;
@@ -308,12 +316,13 @@ body {
 }
 .nav-links a:hover { background: rgba(var(--accent-rgb), 0.05); color: var(--fg); }
 .nav-links a:hover::before { transform: translateY(-50%) scaleY(1); }
-/* Sobre el hero (nav sin fondo) --fg-dim (#a0a0a0) se apoya en la foto y el
+/* Sobre el hero (nav sin fondo) --fg-dim (#a0a0a0) se apoyaba en la foto y el
    peor glifo medido caía a 4.28:1 en 1920x1080, 2.60:1 en 1440x900 y 1.69:1 en
-   1024x768: ilegible. Un blanco al 90% sube ese peor caso a 5.74:1, 5.12:1 y
-   5.41:1 respectivamente, medido bajo los glifos en las siete fotos del reel.
-   En el estado .scrolled el nav ya tiene fondo casi opaco y --fg-dim alcanza;
-   en el tema claro hay su propia regla, con más especificidad, y no cambia. */
+   1024x768: ilegible. El blanco al 90% más el velo de la barra dejan ese peor caso
+   en 8.27:1, 7.91:1 y 7.93:1, medido bajo los glifos en las siete fotos del reel
+   con Chromium y Firefox: el margen cubre la variación de tipografía. En el estado
+   .scrolled el nav ya tiene fondo casi opaco y --fg-dim alcanza; en el tema claro
+   hay su propia regla, con más especificidad, y no cambia. */
 .nav-tech:not(.scrolled) .nav-links a { color: rgba(var(--ink-rgb), 0.9); }
 .nav-tech:not(.scrolled) .nav-links a:hover { color: var(--fg); }
 
