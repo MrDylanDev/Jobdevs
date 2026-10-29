@@ -1,10 +1,10 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Admin</title>
+  <title>{% trans "JobDevs | Admin" %}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
@@ -99,14 +99,14 @@
   <div class="login-container">
     <div class="login-header">
       <div class="login-brand">JobDevs</div>
-      <div class="login-sub">Panel de Administración</div>
+      <div class="login-sub">{% trans "Panel de Administración" %}</div>
     </div>
 
     <div class="login-card">
       {% if form.errors and not form.non_field_errors %}
         <div class="errornote">
           <i class="fa fa-triangle-exclamation"></i>
-          Usuario o contraseña incorrectos.
+          {% trans "Usuario o contraseña incorrectos." %}
         </div>
       {% endif %}
 
@@ -118,31 +118,31 @@
 
       {% if user.is_authenticated %}
         <div class="errornote">
-          <strong>{{ user.nombre|default:user.username }}</strong>, no tenés permisos de administrador.<br>
-          <a href="{% url 'inicio' %}" style="color:var(--accent); display:inline-block; margin-top:8px;">← Volver al inicio</a>
+          <strong>{{ user.nombre|default:user.username }}</strong>{% trans ", no tenés permisos de administrador." %}<br>
+          <a href="{% url 'inicio' %}" style="color:var(--accent); display:inline-block; margin-top:8px;">{% trans "← Volver al inicio" %}</a>
         </div>
       {% endif %}
 
       <form action="{% url 'login' %}" method="post" id="login-form">
         {% csrf_token %}
         <div class="form-group">
-          <label class="form-label">USUARIO</label>
-          <input type="text" name="username" class="form-input" placeholder="admin" required autofocus>
+          <label class="form-label">{% trans "USUARIO" %}</label>
+          <input type="text" name="username" class="form-input" placeholder="{% trans "admin" %}" required autofocus>
         </div>
         <div class="form-group">
-          <label class="form-label">CONTRASEÑA</label>
+          <label class="form-label">{% trans "CONTRASEÑA" %}</label>
           <input type="password" name="password" class="form-input" placeholder="••••••••" required>
         </div>
         <input type="hidden" name="rol_seleccionado" value="administrador">
         {% if next %}
           <input type="hidden" name="next" value="{{ next }}">
         {% endif %}
-        <button type="submit" class="btn-login">[ INGRESAR ]</button>
+        <button type="submit" class="btn-login">{% trans "[ INGRESAR ]" %}</button>
       </form>
     </div>
 
     <div class="login-footer">
-      <a href="{% url 'inicio' %}">← Volver al inicio</a>
+      <a href="{% url 'inicio' %}">{% trans "← Volver al inicio" %}</a>
     </div>
   </div>
 

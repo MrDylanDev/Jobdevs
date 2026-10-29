@@ -1,0 +1,1006 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-28 22:41-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: templates/admin/base_site.html:3
+msgid "Django site admin"
+msgstr "Django site admin"
+
+#: templates/admin/base_site.html:6
+msgid "Django administration"
+msgstr "Django administration"
+
+#: templates/admin/login.html:7
+msgid "JobDevs | Admin"
+msgstr "JobDevs | Admin"
+
+#: templates/admin/login.html:102
+msgid "Panel de Administración"
+msgstr "Administration Panel"
+
+#: templates/admin/login.html:109
+msgid "Usuario o contraseña incorrectos."
+msgstr "Incorrect username or password."
+
+#: templates/admin/login.html:121
+msgid ", no tenés permisos de administrador."
+msgstr ", you do not have administrator permissions."
+
+#: templates/admin/login.html:122 templates/admin/login.html:145
+msgid "← Volver al inicio"
+msgstr "← Back to home"
+
+#: templates/admin/login.html:129
+msgid "USUARIO"
+msgstr "USERNAME"
+
+#: templates/admin/login.html:130
+msgid "admin"
+msgstr "admin"
+
+#: templates/admin/login.html:133 templates/publico/index.html:728
+#: templates/publico/registro.html:119
+msgid "CONTRASEÑA"
+msgstr "PASSWORD"
+
+#: templates/admin/login.html:140 templates/publico/index.html:99
+#: templates/publico/index.html:733
+msgid "[ INGRESAR ]"
+msgstr "[ SIGN IN ]"
+
+#: templates/publico/index.html:7
+msgid "JobDevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable."
+msgstr "JobDevs — The operating system for SENA talent. Hire verified apprentices or build your portfolio with real projects: digital contracts, milestone evidence and verifiable reputation."
+
+#: templates/publico/index.html:8
+msgid "JobDevs — El sistema operativo del talento SENA"
+msgstr "JobDevs — The operating system for SENA talent"
+
+#: templates/publico/index.html:15 templates/publico/index.html:22
+msgid "Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable."
+msgstr "Hire verified SENA talent or build your portfolio with real projects. Digital contracts, milestone evidence and verifiable reputation."
+
+#: templates/publico/index.html:75
+msgid "Qué es"
+msgstr "What it is"
+
+#: templates/publico/index.html:76 templates/publico/index.html:222
+msgid "Cómo funciona"
+msgstr "How it works"
+
+#: templates/publico/index.html:77
+msgid "Roles"
+msgstr "Roles"
+
+#: templates/publico/index.html:78
+msgid "Casos de éxito"
+msgstr "Success stories"
+
+#: templates/publico/index.html:79
+msgid "Comenzar"
+msgstr "Get started"
+
+#: templates/publico/index.html:80
+msgid "Ingresar"
+msgstr "Sign in"
+
+#: templates/publico/index.html:84
+msgid "Cambiar idioma"
+msgstr "Change language"
+
+#: templates/publico/index.html:91
+msgid "Tema claro"
+msgstr "Light theme"
+
+#: templates/publico/index.html:91
+msgid "Cambiar entre tema oscuro y claro"
+msgstr "Switch between dark and light theme"
+
+#: templates/publico/index.html:100
+msgid "[ MENU ]"
+msgstr "[ MENU ]"
+
+#: templates/publico/index.html:108
+msgid "Development team collaboration"
+msgstr "Development team collaboration"
+
+#: templates/publico/index.html:111
+msgid "Code review session"
+msgstr "Code review session"
+
+#: templates/publico/index.html:114
+msgid "Tech professionals working"
+msgstr "Tech professionals working"
+
+#: templates/publico/index.html:117
+msgid "Software architecture planning"
+msgstr "Software architecture planning"
+
+#: templates/publico/index.html:120
+msgid "Agile team standup"
+msgstr "Agile team standup"
+
+#: templates/publico/index.html:123
+msgid "Developer deep work"
+msgstr "Developer deep work"
+
+#: templates/publico/index.html:126
+msgid "System architecture review"
+msgstr "System architecture review"
+
+#: templates/publico/index.html:139
+msgid "CÓDIGO."
+msgstr "CODE."
+
+#: templates/publico/index.html:140
+msgid "DISCIPLINA."
+msgstr "DISCIPLINE."
+
+#: templates/publico/index.html:141
+msgid "TALENTO."
+msgstr "TALENT."
+
+#: templates/publico/index.html:145
+msgid "El puente directo entre empresas y desarrolladores SENA. Sin&nbsp;intermediarios, solo resultados."
+msgstr "The direct bridge between companies and SENA developers. No&nbsp;middlemen, just results."
+
+#: templates/publico/index.html:150
+msgid "Inicializar Proyecto"
+msgstr "Start a project"
+
+#: templates/publico/index.html:158
+msgid "JD"
+msgstr "JD"
+
+#: templates/publico/index.html:159
+msgid "ML"
+msgstr "ML"
+
+#: templates/publico/index.html:160
+msgid "AR"
+msgstr "AR"
+
+#: templates/publico/index.html:161
+msgid "CP"
+msgstr "CP"
+
+#: templates/publico/index.html:165
+msgid "Talento SENA verificado"
+msgstr "Verified SENA talent"
+
+#: templates/publico/index.html:166
+msgid "Perfiles activos"
+msgstr "Active profiles"
+
+#: templates/publico/index.html:176
+msgid "TALENTO SENA VERIFICADO"
+msgstr "VERIFIED SENA TALENT"
+
+#: templates/publico/index.html:177
+msgid "CERO BUROCRACIA"
+msgstr "ZERO BUREAUCRACY"
+
+#: templates/publico/index.html:178
+msgid "TRAZABILIDAD"
+msgstr "TRACEABILITY"
+
+#: templates/publico/index.html:179
+msgid "EVALUACIÓN BIDIRECCIONAL"
+msgstr "TWO-WAY REVIEW"
+
+#: templates/publico/index.html:180
+msgid "POSTULACIÓN DIRECTA"
+msgstr "DIRECT APPLICATION"
+
+#: templates/publico/index.html:181
+msgid "FLUJO ÁGIL"
+msgstr "AGILE FLOW"
+
+#: templates/publico/index.html:191
+msgid "// WHAT_IS_JOBDEVS"
+msgstr "// WHAT_IS_JOBDEVS"
+
+#: templates/publico/index.html:192
+msgid "¿Qué es"
+msgstr "What is"
+
+#: templates/publico/index.html:193
+msgid "La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios."
+msgstr "The infrastructure where a company and an apprentice sign a software contract, execute it in milestones and leave evidence of every delivery. Verified SENA talent, no middlemen."
+
+#: templates/publico/index.html:202 templates/publico/index.html:235
+msgid "Publicar Proyecto"
+msgstr "Publish a project"
+
+#: templates/publico/index.html:205 templates/publico/index.html:249
+msgid "Postulación y Contrato"
+msgstr "Application and contract"
+
+#: templates/publico/index.html:208 templates/publico/index.html:263
+msgid "Hitos con Evidencias"
+msgstr "Milestones with evidence"
+
+#: templates/publico/index.html:211 templates/publico/index.html:277
+msgid "Cierre y Calificación Mutua"
+msgstr "Closing and mutual rating"
+
+#: templates/publico/index.html:221
+msgid "MODELO DE OPERACIÓN"
+msgstr "OPERATING MODEL"
+
+#: templates/publico/index.html:223
+msgid "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios."
+msgstr "End-to-end traceability, step by step. From the technical requirement to the audited delivery in production, with no middlemen."
+
+#: templates/publico/index.html:227
+msgid "Etapas del proceso"
+msgstr "Process stages"
+
+#: templates/publico/index.html:232
+msgid "// FASE_01"
+msgstr "// PHASE_01"
+
+#: templates/publico/index.html:233 templates/publico/index.html:672
+#: templates/publico/registro.html:56
+msgid "Empresa"
+msgstr "Company"
+
+#: templates/publico/index.html:236
+msgid "La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas."
+msgstr "The company defines the required technical solution, open positions, suggested stack and estimated dates."
+
+#: templates/publico/index.html:238
+msgid "Publicación ágil sin costos de registro."
+msgstr "Fast publishing with no registration fees."
+
+#: templates/publico/index.html:239
+msgid "Segmentación por tipo: Web, Móvil, Cloud, Datos."
+msgstr "Filter by type: Web, Mobile, Cloud, Data."
+
+#: templates/publico/index.html:246
+msgid "// FASE_02"
+msgstr "// PHASE_02"
+
+#: templates/publico/index.html:247
+msgid "Match & Firma"
+msgstr "Match & signing"
+
+#: templates/publico/index.html:250
+msgid "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital."
+msgstr "SENA apprentices with an official record apply. The company evaluates, accepts and the digital contract is formalized."
+
+#: templates/publico/index.html:252
+msgid "Validación académica contra el padrón oficial SENA."
+msgstr "Academic validation against the official SENA registry."
+
+#: templates/publico/index.html:253
+msgid "Contrato digital vinculante con doble firma electrónica."
+msgstr "Binding digital contract with dual electronic signature."
+
+#: templates/publico/index.html:260
+msgid "// FASE_03"
+msgstr "// PHASE_03"
+
+#: templates/publico/index.html:261
+msgid "Desarrollo"
+msgstr "Development"
+
+#: templates/publico/index.html:264
+msgid "Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2."
+msgstr "Structured execution by deliverables. Every progress update includes technical evidence auditable in Cloudflare R2."
+
+#: templates/publico/index.html:266
+msgid "Revisión obligatoria: aprobar o solicitar corrección."
+msgstr "Mandatory review: approve or request changes."
+
+#: templates/publico/index.html:267
+msgid "Almacenamiento seguro de código y documentación."
+msgstr "Secure storage of code and documentation."
+
+#: templates/publico/index.html:274
+msgid "// FASE_04"
+msgstr "// PHASE_04"
+
+#: templates/publico/index.html:275
+msgid "Cierre"
+msgstr "Closing"
+
+#: templates/publico/index.html:278
+#, python-format
+msgid "100%% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación."
+msgstr "100%% of milestones completed. Formal contract closing with SHA-256 hashing and two-way reputation rating."
+
+#: templates/publico/index.html:280
+msgid "Sello inmutable del contrato para validez legal."
+msgstr "Immutable contract seal for legal validity."
+
+#: templates/publico/index.html:281
+msgid "Reputación pública acumulable para el portafolio."
+msgstr "Public reputation that builds your portfolio."
+
+#: templates/publico/index.html:296
+msgid "CONFIANZA CORPORATIVA"
+msgstr "CORPORATE TRUST"
+
+#: templates/publico/index.html:297
+msgid "Empresas que"
+msgstr "Companies that"
+
+#: templates/publico/index.html:297
+msgid "confían en nosotros"
+msgstr "trust in us"
+
+#: templates/publico/index.html:298
+msgid "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs."
+msgstr "Colombian companies already building their software with verified SENA apprentices and graduates through JobDevs."
+
+#: templates/publico/index.html:307
+msgid "Empresas colombianas que contratan talento SENA"
+msgstr "Colombian companies hiring SENA talent"
+
+#: templates/publico/index.html:309
+msgid "Logo de Alpina"
+msgstr "Alpina logo"
+
+#: templates/publico/index.html:312
+msgid "Logo de Bavaria"
+msgstr "Bavaria logo"
+
+#: templates/publico/index.html:315
+msgid "Logo de Colanta"
+msgstr "Colanta logo"
+
+#: templates/publico/index.html:318
+msgid "Logo de Colsubsidio"
+msgstr "Colsubsidio logo"
+
+#: templates/publico/index.html:321
+msgid "Logo de Corona"
+msgstr "Corona logo"
+
+#: templates/publico/index.html:324
+msgid "Logo de DIAN"
+msgstr "DIAN logo"
+
+#: templates/publico/index.html:327
+msgid "Logo de EPM"
+msgstr "EPM logo"
+
+#: templates/publico/index.html:330
+msgid "Logo de ETB"
+msgstr "ETB logo"
+
+#: templates/publico/index.html:333
+msgid "Logo de Ecopetrol"
+msgstr "Ecopetrol logo"
+
+#: templates/publico/index.html:336
+msgid "Logo de Frisby"
+msgstr "Frisby logo"
+
+#: templates/publico/index.html:339
+msgid "Logo de Grupo Argos"
+msgstr "Grupo Argos logo"
+
+#: templates/publico/index.html:342
+msgid "Logo de Postobón"
+msgstr "Postobón logo"
+
+#: templates/publico/index.html:345
+msgid "Logo de Presto"
+msgstr "Presto logo"
+
+#: templates/publico/index.html:348
+msgid "Logo de Rappi"
+msgstr "Rappi logo"
+
+#: templates/publico/index.html:351
+msgid "Logo de Tiendas D1"
+msgstr "Tiendas D1 logo"
+
+#: templates/publico/index.html:413
+msgid "Empresas colaborando con talento SENA"
+msgstr "Companies collaborating with SENA talent"
+
+#: templates/publico/index.html:416
+msgid "Desarrollador SENA trabajando en proyectos de software"
+msgstr "SENA developer working on software projects"
+
+#: templates/publico/index.html:426
+msgid "MODELO BILATERAL"
+msgstr "TWO-SIDED MODEL"
+
+#: templates/publico/index.html:427
+msgid "Diseñado para Empresas"
+msgstr "Designed for Companies"
+
+#: templates/publico/index.html:427
+msgid "Desarrolladores SENA"
+msgstr "SENA Developers"
+
+#: templates/publico/index.html:428
+msgid "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti."
+msgstr "Pick your role to see the flow, the tools and the guarantees JobDevs has for you."
+
+#: templates/publico/index.html:432
+msgid "Selector de rol"
+msgstr "Role selector"
+
+#: templates/publico/index.html:437 templates/publico/registro.html:31
+msgid "EMPRESA"
+msgstr "COMPANY"
+
+#: templates/publico/index.html:444
+msgid "APRENDIZ"
+msgstr "APPRENTICE"
+
+#: templates/publico/index.html:453
+msgid "Para Empresas y Startups"
+msgstr "For Companies and Startups"
+
+#: templates/publico/index.html:454
+msgid "Impulsa tus proyectos con"
+msgstr "Grow your projects with"
+
+#: templates/publico/index.html:454
+msgid "talento SENA"
+msgstr "SENA talent"
+
+#: templates/publico/index.html:454
+msgid "verificado"
+msgstr "verified"
+
+#: templates/publico/index.html:455
+msgid "Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total."
+msgstr "Publish real software requirements, evaluate apprentice applications with portfolios and verified ratings, and manage deliveries through auditable milestones with full traceability."
+
+#: templates/publico/index.html:458
+msgid "Publicación ágil:"
+msgstr "Fast publishing:"
+
+#: templates/publico/index.html:458
+msgid "define stack técnico, vacantes y fechas estimadas sin costos de registro."
+msgstr "set the technical stack, open positions and estimated dates with no registration fees."
+
+#: templates/publico/index.html:459
+msgid "Selección directa:"
+msgstr "Direct selection:"
+
+#: templates/publico/index.html:459
+msgid "recibe cartas de presentación y perfiles con ficha SENA oficial."
+msgstr "receive cover letters and profiles with an official SENA record."
+
+#: templates/publico/index.html:460
+msgid "Control por hitos:"
+msgstr "Milestone control:"
+
+#: templates/publico/index.html:460
+msgid "aprueba avances con evidencia técnica documentada antes de liberar pagos."
+msgstr "approve progress with documented technical evidence before releasing payments."
+
+#: templates/publico/index.html:461
+msgid "Seguridad jurídica:"
+msgstr "Legal certainty:"
+
+#: templates/publico/index.html:461
+msgid "contratos digitales con hash criptográfico SHA-256 y mediación formal."
+msgstr "digital contracts with SHA-256 cryptographic hashing and formal mediation."
+
+#: templates/publico/index.html:469
+msgid "Para Aprendices y Egresados SENA"
+msgstr "For SENA Apprentices and Graduates"
+
+#: templates/publico/index.html:470
+msgid "Construye tu carrera profesional con"
+msgstr "Build your career with"
+
+#: templates/publico/index.html:470
+msgid "proyectos reales"
+msgstr "real projects"
+
+#: templates/publico/index.html:471
+msgid "Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales."
+msgstr "Validate your academic record number, apply to software requirements at active companies and build real production experience with public ratings and formal contracts."
+
+#: templates/publico/index.html:474
+msgid "Validación oficial:"
+msgstr "Official validation:"
+
+#: templates/publico/index.html:474
+msgid "verificación de identidad académica contra el padrón oficial del SENA."
+msgstr "academic identity verification against the official SENA registry."
+
+#: templates/publico/index.html:475
+msgid "Postulación directa:"
+msgstr "Direct application:"
+
+#: templates/publico/index.html:475
+msgid "carta de presentación técnica y límite responsable de 3 vacantes simultáneas."
+msgstr "technical cover letter and a responsible limit of 3 simultaneous openings."
+
+#: templates/publico/index.html:476
+msgid "Experiencia en producción:"
+msgstr "Production experience:"
+
+#: templates/publico/index.html:476
+msgid "entrega de código y avances por hitos con evidencias auditadas en R2."
+msgstr "code delivery and milestone progress with evidence audited in R2."
+
+#: templates/publico/index.html:477
+msgid "Reputación verificable:"
+msgstr "Verifiable reputation:"
+
+#: templates/publico/index.html:477
+msgid "calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones."
+msgstr "mutual star ratings and a portfolio visible for future hirings."
+
+#: templates/publico/index.html:491
+msgid "CASOS DE ÉXITO"
+msgstr "SUCCESS STORIES"
+
+#: templates/publico/index.html:492
+msgid "Resultados"
+msgstr "Results"
+
+#: templates/publico/index.html:492
+msgid "comprobables"
+msgstr "you can verify"
+
+#: templates/publico/index.html:492
+msgid "en producción."
+msgstr "in production."
+
+#: templates/publico/index.html:493
+msgid "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs."
+msgstr "Companies that trusted SENA developers with their critical platforms through JobDevs."
+
+#: templates/publico/index.html:501
+msgid "FINTECH"
+msgstr "FINTECH"
+
+#: templates/publico/index.html:502
+msgid "CASO / 01"
+msgstr "CASE / 01"
+
+#: templates/publico/index.html:503
+#, python-format
+msgid "-80%% TIEMPO"
+msgstr "-80%% TIME"
+
+#: templates/publico/index.html:506
+msgid "FINTECH COLOMBIA"
+msgstr "FINTECH COLOMBIA"
+
+#: templates/publico/index.html:507
+msgid "Backend & Pagos · 6 meses"
+msgstr "Backend & Payments · 6 months"
+
+#: templates/publico/index.html:510
+msgid "A tiempo"
+msgstr "On time"
+
+#: templates/publico/index.html:511 templates/publico/index.html:529
+#: templates/publico/index.html:547 templates/publico/index.html:565
+#: templates/publico/index.html:583 templates/publico/index.html:601
+msgid "Devs"
+msgstr "Devs"
+
+#: templates/publico/index.html:512 templates/publico/index.html:530
+#: templates/publico/index.html:548 templates/publico/index.html:566
+#: templates/publico/index.html:584 templates/publico/index.html:602
+msgid "Meses"
+msgstr "Months"
+
+#: templates/publico/index.html:519
+msgid "ECOMMERCE"
+msgstr "ECOMMERCE"
+
+#: templates/publico/index.html:520
+msgid "CASO / 02"
+msgstr "CASE / 02"
+
+#: templates/publico/index.html:521
+#, python-format
+msgid "+34%% CONVERSIÓN"
+msgstr "+34%% CONVERSION"
+
+#: templates/publico/index.html:524
+msgid "ECOMMERCE NACIONAL"
+msgstr "NATIONAL ECOMMERCE"
+
+#: templates/publico/index.html:525
+msgid "Frontend & Checkout · 4 meses"
+msgstr "Frontend & Checkout · 4 months"
+
+#: templates/publico/index.html:528
+msgid "Conversión"
+msgstr "Conversion"
+
+#: templates/publico/index.html:537
+msgid "AGROTECH"
+msgstr "AGROTECH"
+
+#: templates/publico/index.html:538
+msgid "CASO / 03"
+msgstr "CASE / 03"
+
+#: templates/publico/index.html:539
+#, python-format
+msgid "-60%% COSTOS"
+msgstr "-60%% COSTS"
+
+#: templates/publico/index.html:542
+msgid "AGROTECH STARTUP"
+msgstr "AGROTECH STARTUP"
+
+#: templates/publico/index.html:543
+msgid "Full Stack & IoT · 8 meses"
+msgstr "Full Stack & IoT · 8 months"
+
+#: templates/publico/index.html:546
+msgid "Costo vs ext"
+msgstr "Cost vs outsourced"
+
+#: templates/publico/index.html:555
+msgid "LOGISTICA"
+msgstr "LOGISTICS"
+
+#: templates/publico/index.html:556
+msgid "CASO / 04"
+msgstr "CASE / 04"
+
+#: templates/publico/index.html:557
+#, python-format
+msgid "-93%% DEPLOY"
+msgstr "-93%% DEPLOY TIME"
+
+#: templates/publico/index.html:560
+msgid "LOGÍSTICA EXPRESS"
+msgstr "EXPRESS LOGISTICS"
+
+#: templates/publico/index.html:561
+msgid "Cloud & DevOps · 5 meses"
+msgstr "Cloud & DevOps · 5 months"
+
+#: templates/publico/index.html:564
+msgid "Tiempo deploy"
+msgstr "Deploy time"
+
+#: templates/publico/index.html:573
+msgid "EDTECH"
+msgstr "EDTECH"
+
+#: templates/publico/index.html:574
+msgid "CASO / 05"
+msgstr "CASE / 05"
+
+#: templates/publico/index.html:575
+msgid "50K+ USUARIOS"
+msgstr "50K+ USERS"
+
+#: templates/publico/index.html:578
+msgid "EDTECH PLATFORM"
+msgstr "EDTECH PLATFORM"
+
+#: templates/publico/index.html:579
+msgid "Mobile & API · 7 meses"
+msgstr "Mobile & API · 7 months"
+
+#: templates/publico/index.html:582
+msgid "Usuarios"
+msgstr "Users"
+
+#: templates/publico/index.html:591
+msgid "INSURTECH"
+msgstr "INSURTECH"
+
+#: templates/publico/index.html:592
+msgid "CASO / 06"
+msgstr "CASE / 06"
+
+#: templates/publico/index.html:593
+msgid "2M REG/DÍA"
+msgstr "2M ROWS/DAY"
+
+#: templates/publico/index.html:596
+msgid "INSURTECH CORP"
+msgstr "INSURTECH CORP"
+
+#: templates/publico/index.html:597
+msgid "Data Engineering · 6 meses"
+msgstr "Data Engineering · 6 months"
+
+#: templates/publico/index.html:600
+msgid "Registros/día"
+msgstr "Records/day"
+
+#: templates/publico/index.html:613
+msgid "&larr;"
+msgstr "&larr;"
+
+#: templates/publico/index.html:614
+msgid "&rarr;"
+msgstr "&rarr;"
+
+#: templates/publico/index.html:623
+msgid "Equipo de desarrollo trabajando en una oficina"
+msgstr "Development team working in an office"
+
+#: templates/publico/index.html:627
+msgid "// MODULE_06: BEGIN_PROTOCOL"
+msgstr "// MODULE_06: BEGIN_PROTOCOL"
+
+#: templates/publico/index.html:628
+msgid "Inicia tu"
+msgstr "Start your"
+
+#: templates/publico/index.html:628
+msgid "proyecto"
+msgstr "project"
+
+#: templates/publico/index.html:628
+msgid "Sin"
+msgstr "No"
+
+#: templates/publico/index.html:628
+msgid "vueltas."
+msgstr "detours."
+
+#: templates/publico/index.html:629
+msgid "[ CREAR CUENTA ]"
+msgstr "[ CREATE ACCOUNT ]"
+
+#: templates/publico/index.html:638
+msgid "Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia."
+msgstr "Platform connecting companies with SENA talent for software development. Medellín, Colombia."
+
+#: templates/publico/index.html:640
+msgid "Contacto y Soporte"
+msgstr "Contact and Support"
+
+#: templates/publico/index.html:642
+msgid "contacto@jobdevs.co"
+msgstr "contacto@jobdevs.co"
+
+#: templates/publico/index.html:648
+msgid "Preguntas frecuentes"
+msgstr "Frequently asked questions"
+
+#: templates/publico/index.html:651
+msgid "¿Qué es JobDevs?"
+msgstr "What is JobDevs?"
+
+#: templates/publico/index.html:652
+msgid "Plataforma que conecta empresas con talento del SENA para el desarrollo de software colaborativo."
+msgstr "Platform connecting companies with SENA talent for collaborative software development."
+
+#: templates/publico/index.html:655
+msgid "¿Cómo funciona?"
+msgstr "How does it work?"
+
+#: templates/publico/index.html:656
+msgid "La empresa publica un proyecto, los desarrolladores SENA postulan, la empresa elige y se trabaja por hitos verificables."
+msgstr "The company publishes a project, SENA developers apply, the company chooses and work proceeds in verifiable milestones."
+
+#: templates/publico/index.html:659
+msgid "¿Tiene costo?"
+msgstr "Does it cost anything?"
+
+#: templates/publico/index.html:660
+msgid "El registro en la plataforma es gratuito. Los términos del proyecto se acuerdan entre empresa y desarrollador."
+msgstr "Registration on the platform is free. Project terms are agreed between company and developer."
+
+#: templates/publico/index.html:663
+msgid "¿Quiénes pueden participar?"
+msgstr "Who can participate?"
+
+#: templates/publico/index.html:664
+msgid "Empresas con necesidades de desarrollo de software y desarrolladores vinculados al SENA."
+msgstr "Companies with software development needs and developers linked to SENA."
+
+#: templates/publico/index.html:670
+msgid "Perfiles"
+msgstr "Profiles"
+
+#: templates/publico/index.html:673
+msgid "Desarrolladores"
+msgstr "Developers"
+
+#: templates/publico/index.html:678
+msgid "Acceso"
+msgstr "Access"
+
+#: templates/publico/index.html:680
+msgid "Iniciar sesión"
+msgstr "Sign in"
+
+#: templates/publico/index.html:681
+msgid "Registrarse"
+msgstr "Sign up"
+
+#: templates/publico/index.html:682
+msgid "Recuperar contraseña"
+msgstr "Reset password"
+
+#: templates/publico/index.html:687
+msgid "Medellín, Colombia"
+msgstr "Medellín, Colombia"
+
+#: templates/publico/index.html:688
+msgid "© 2026 JobDevs"
+msgstr "© 2026 JobDevs"
+
+#: templates/publico/index.html:698
+msgid "JobDevs · Ecosistema SENA"
+msgstr "JobDevs · SENA Ecosystem"
+
+#: templates/publico/index.html:699
+msgid "Conectando empresas y talento verificado"
+msgstr "Connecting companies and verified talent"
+
+#: templates/publico/index.html:703 templates/publico/registro.html:18
+msgid "CREAR CUENTA"
+msgstr "CREATE ACCOUNT"
+
+#: templates/publico/index.html:713
+msgid "AUTENTICACIÓN"
+msgstr "AUTHENTICATION"
+
+#: templates/publico/index.html:714
+msgid "Close"
+msgstr "Close"
+
+#: templates/publico/index.html:723
+msgid "CORREO O USUARIO"
+msgstr "EMAIL OR USERNAME"
+
+#: templates/publico/index.html:724
+msgid "ejemplo@correo.com o tu usuario"
+msgstr "name@email.com or your username"
+
+#: templates/publico/index.html:737
+msgid "¿Primera vez? Regístrate"
+msgstr "First time here? Sign up"
+
+#: templates/publico/index.html:739
+msgid "RECUPERAR ACCESO"
+msgstr "RECOVER ACCESS"
+
+#: templates/publico/index.html:747 templates/publico/registro.html:69
+msgid "CORREO ELECTRÓNICO"
+msgstr "EMAIL ADDRESS"
+
+#: templates/publico/index.html:748 templates/publico/registro.html:70
+msgid "ejemplo@correo.com"
+msgstr "name@email.com"
+
+#: templates/publico/index.html:750
+msgid "[ ENVIAR INSTRUCCIONES ]"
+msgstr "[ SEND INSTRUCTIONS ]"
+
+#: templates/publico/index.html:753
+msgid "&larr; VOLVER AL INICIO DE SESIÓN"
+msgstr "&larr; BACK TO SIGN IN"
+
+#: templates/publico/index.html:769
+msgid "Solicitud recibida"
+msgstr "Request received"
+
+#: templates/publico/index.html:770
+msgid "Recibimos tu solicitud. Te contactaremos pronto."
+msgstr "We received your request. We will contact you soon."
+
+#: templates/publico/registro.html:7
+msgid "Registro | JobDevs"
+msgstr "Sign up | JobDevs"
+
+#: templates/publico/registro.html:19
+msgid "Únete al ecosistema profesional de talento SENA y empresas en Colombia."
+msgstr "Join the professional ecosystem of SENA talent and companies in Colombia."
+
+#: templates/publico/registro.html:27
+msgid "DESARROLLADOR"
+msgstr "DEVELOPER"
+
+#: templates/publico/registro.html:55
+msgid "Desarrollador"
+msgstr "Developer"
+
+#: templates/publico/registro.html:61
+msgid "NOMBRE COMPLETO"
+msgstr "FULL NAME"
+
+#: templates/publico/registro.html:62
+msgid "Ej: Alejandro Pérez"
+msgstr "e.g. Alejandro Pérez"
+
+#: templates/publico/registro.html:77
+msgid "TIPO DE DOCUMENTO"
+msgstr "DOCUMENT TYPE"
+
+#: templates/publico/registro.html:85
+msgid "SECTOR EMPRESARIAL"
+msgstr "INDUSTRY"
+
+#: templates/publico/registro.html:86
+msgid "Ej: Tecnología, Salud, Alimentos..."
+msgstr "e.g. Technology, Health, Food..."
+
+#: templates/publico/registro.html:93
+msgid "CIUDAD DE OPERACIÓN"
+msgstr "CITY OF OPERATION"
+
+#: templates/publico/registro.html:94
+msgid "Ej: Bogotá, Medellín, Cali..."
+msgstr "e.g. Bogotá, Medellín, Cali..."
+
+#: templates/publico/registro.html:101
+msgid "NÚMERO DE IDENTIFICACIÓN"
+msgstr "ID NUMBER"
+
+#: templates/publico/registro.html:102
+msgid "Ej: 1002345678"
+msgstr "e.g. 1002345678"
+
+#: templates/publico/registro.html:109
+msgid "FECHA DE NACIMIENTO"
+msgstr "DATE OF BIRTH"
+
+#: templates/publico/registro.html:114
+msgid "Recuerda que debes ser mayor de edad."
+msgstr "Remember you must be of legal age."
+
+#: templates/publico/registro.html:124
+msgid "Mín. 8 caracteres alfanuméricos."
+msgstr "Min. 8 alphanumeric characters."
+
+#: templates/publico/registro.html:129
+msgid "CONFIRMAR CONTRASEÑA"
+msgstr "CONFIRM PASSWORD"
+
+#: templates/publico/registro.html:136
+msgid "[ COMPLETAR REGISTRO ]"
+msgstr "[ COMPLETE SIGN UP ]"
+
+#: templates/publico/registro.html:140
+msgid "¿Ya tienes una cuenta?"
+msgstr "Already have an account?"
+
+#: templates/publico/registro.html:140
+msgid "INICIA SESIÓN"
+msgstr "SIGN IN"
+
+#: usuarios/validators.py:9
+msgid "La contraseña debe tener al menos 8 caracteres."
+msgstr "The password must be at least 8 characters long."
+
+#: usuarios/validators.py:14
+msgid "La contraseña debe contener al menos una letra mayúscula."
+msgstr "The password must contain at least one uppercase letter."
+
+#: usuarios/validators.py:19
+msgid "La contraseña debe contener al menos una letra minúscula."
+msgstr "The password must contain at least one lowercase letter."
+
+#: usuarios/validators.py:24
+msgid "La contraseña debe contener al menos un número."
+msgstr "The password must contain at least one number."
+
+#: usuarios/validators.py:30
+msgid "Tu contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula y un número."
+msgstr "Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter and a number."
