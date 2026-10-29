@@ -708,19 +708,24 @@ usuarios/views/
 | `DJANGO_SECRET_KEY` | Clave secreta Django | Obligatorio en prod |
 | `DJANGO_DEBUG` | Modo debug | `False` |
 | `DJANGO_ALLOWED_HOSTS` | Hosts permitidos (separados por coma) | `localhost,127.0.0.1` |
-| `DB_NAME` | Nombre BD | `tem_dbv2` |
-| `DB_USER` | Usuario MySQL | `root` |
-| `DB_PASSWORD` | Contraseña MySQL | — |
-| `DB_HOST` | Host MySQL | `127.0.0.1` |
-| `DB_PORT` | Puerto MySQL | `3306` |
+| `DB_NAME` | Nombre BD PostgreSQL | `jobdevs_db` |
+| `DB_USER` | Usuario PostgreSQL | `postgres` |
+| `DB_PASSWORD` | Contraseña PostgreSQL | — |
+| `DB_HOST` | Host PostgreSQL | `127.0.0.1` |
+| `DB_PORT` | Puerto PostgreSQL | `5432` |
+| `REDIS_URL` | URL de broker Redis para Channels y Celery | `redis://127.0.0.1:6379/0` |
+| `CELERY_BROKER_URL` | Broker para tareas asíncronas | `redis://127.0.0.1:6379/0` |
 | `EMAIL_BACKEND` | Backend de email | `console.EmailBackend` |
-| `EMAIL_HOST` | Servidor SMTP | `smtp.gmail.com` |
-| `EMAIL_PORT` | Puerto SMTP | `587` |
-| `EMAIL_USE_TLS` | Usar TLS | `True` |
-| `EMAIL_HOST_USER` | Usuario SMTP | — |
-| `EMAIL_HOST_PASSWORD` | Contraseña SMTP | — |
+| `EMAIL_HOST` | Servidor SMTP (Mailpit en dev) | `localhost` |
+| `EMAIL_PORT` | Puerto SMTP (1025 en Mailpit) | `1025` |
 | `DEFAULT_FROM_EMAIL` | Remitente default | `JobDevs <noreply@jobdevs.edu.co>` |
-| `MYSQL_ROOT_PASSWORD` | Root MySQL (Docker) | — |
+| `CLOUDFLARE_R2_ACCOUNT_ID` | Account ID de Cloudflare | Vacío (modo local) |
+| `CLOUDFLARE_R2_ACCESS_KEY_ID` | Access Key ID de token R2 | Vacío (modo local) |
+| `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | Secret Access Key de token R2 | Vacío (modo local) |
+| `CLOUDFLARE_R2_BUCKET_NAME` | Nombre del bucket R2 privado | Vacío (modo local) |
+| `CLOUDFLARE_R2_ENDPOINT_URL` | Endpoint S3 de R2 | `https://{ACCOUNT_ID}.r2.cloudflarestorage.com` |
+| `R2_UPLOAD_URL_EXPIRACION_SEGUNDOS` | Tiempo de vida para URL PUT de subida directa | `300` (5 minutos) |
+| `R2_DOWNLOAD_URL_EXPIRACION_SEGUNDOS` | Tiempo de vida para URL GET de descarga protegida | `900` (15 minutos) |
 
 ---
 
@@ -999,6 +1004,26 @@ El módulo de contratación digital gestiona la transición formal entre la post
 3. **Reportes Administrativos CSV**: Generación y descarga bajo demanda de reportes en streaming de proyectos (`/logs/reporte/proyectos/`), aprendices (`/logs/reporte/aprendices/`) y empresas (`/logs/reporte/empresas/`).
 4. **Visor de Logs Técnicos**: Endpoint `/logs/tecnico/` protegido para administradores que realiza lectura acotada tipo tail del archivo de logging rotativo del servidor (`var/log/jobdevs.log`), registrando el acceso en `LogAuditoria`.
 5. **Tareas en Segundo Plano (Celery & Beat)**: Purga periódica de notificaciones antiguas (`cleanup_notifications`) y expiración de negociaciones vencidas.
+
+### 15.5 Almacenamiento Privado en la Nube con Cloudflare R2 (`usuarios/services_storage.py`)
+Para desacoplar el almacenamiento de documentos sensibles (RUT, certificados de Cámara de Comercio, diplomas y actas de grado) de la memoria y disco del servidor web, JobDevs implementa una arquitectura pluggable basada en **Cloudflare R2 (Object Storage S3-compatible)** con **Presigned URLs**:
+
+1. **Ventajas Clave**:
+   - **Zero Egress Fees**: Cloudflare R2 no cobra tarifas por transferencia saliente (a diferencia de AWS S3).
+   - **Desacoplamiento Total**: Las cargas de archivos pesados no consumen memoria ni hilos de Gunicorn.
+   - **Privacidad y Expiración**: Los archivos son 100% privados; el acceso solo es posible mediante tokens criptográficos temporales.
+
+2. **Flujo de Subida Directa (Presigned PUT)**:
+   - El cliente solicita una URL de subida a `/api/storage/presigned-upload/` (`api_generar_url_subida_prefirmada`).
+   - El servidor valida la sesión y permisos, y genera una URL temporal firmada con validez de 5 minutos (`R2_UPLOAD_URL_EXPIRACION_SEGUNDOS=300`) con prefijo sanitizado `soportes/<rol>/<uuid>_<archivo>`.
+   - El navegador sube el archivo directamente hacia Cloudflare R2 vía HTTP PUT.
+
+3. **Flujo de Descarga y Visor Protegido (Presigned GET)**:
+   - Los endpoints `/empresa/<id>/documento/` y `/desarrollador/<id>/documento/` validan que el solicitante sea el dueño del documento o un administrador activo.
+   - Si R2 está activo (`esta_configurado_r2() == True`), el servidor genera una URL GET temporal firmada con validez de 15 minutos (`R2_DOWNLOAD_URL_EXPIRACION_SEGUNDOS=900`) y redirige al navegador para descarga directa desde la red global de Cloudflare.
+
+4. **Fallback Local Transparente**:
+   - En entornos locales de desarrollo, testing automatizado o despliegues sin credenciales R2 configuradas, el servicio degrada automáticamente al almacenamiento local en `/media/` sirviendo los archivos mediante `FileResponse`, garantizando que la suite de pruebas y el desarrollo offline funcionen al 100% sin requerir conexión a internet.
 
 ---
 

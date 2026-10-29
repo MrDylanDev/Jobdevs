@@ -8,7 +8,30 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================ */
   const marqueeTrack = document.getElementById('marqueeTrack');
   if (marqueeTrack) {
-    marqueeTrack.insertAdjacentHTML('beforeend', marqueeTrack.innerHTML);
+    // El keyframe mueve la pista un -50%: para que el loop cierre sin hueco, esa
+    // mitad tiene que ser al menos tan ancha como la pantalla. Con una sola copia
+    // de 1578px, en pantallas de 1920px la banda se cortaba.
+    const baseHTML = marqueeTrack.innerHTML;
+
+    function armarMarquee() {
+      marqueeTrack.innerHTML = baseHTML;
+      let copias = 0;
+      while (marqueeTrack.scrollWidth < window.innerWidth && copias < 12) {
+        marqueeTrack.insertAdjacentHTML('beforeend', baseHTML);
+        copias += 1;
+      }
+      const anchoMitad = marqueeTrack.scrollWidth;
+      marqueeTrack.innerHTML += marqueeTrack.innerHTML;  // segunda mitad identica
+      // velocidad constante (~70 px/s) en vez de duracion fija
+      marqueeTrack.style.animationDuration = Math.max(20, Math.round(anchoMitad / 70)) + 's';
+    }
+
+    armarMarquee();
+    let reArmar;
+    window.addEventListener('resize', function() {
+      clearTimeout(reArmar);
+      reArmar = setTimeout(armarMarquee, 200);
+    }, { passive: true });
   }
 
   /* ============================
@@ -70,42 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => {
     revealObserver.observe(el);
   });
-
-  /* ============================
-     NUMBER COUNTERS
-     ============================ */
-  const counters = document.querySelectorAll('.number-display');
-  const counterObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const raw = el.dataset.count;
-        const suffix = el.dataset.suffix || '';
-        const numeric = parseFloat(raw);
-        if (isNaN(numeric)) { counterObserver.unobserve(el); return; }
-
-        const duration = 1800;
-        const start = performance.now();
-
-        function step(now) {
-          const elapsed = now - start;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const value = Math.floor(eased * numeric);
-          if (progress < 1) {
-            el.textContent = value + suffix;
-            requestAnimationFrame(step);
-          } else {
-            el.textContent = raw + suffix;
-          }
-        }
-        requestAnimationFrame(step);
-        counterObserver.unobserve(el);
-      }
-    });
-  }, { threshold: 0.4 });
-
-  counters.forEach(c => counterObserver.observe(c));
 
   /* ============================
      STICKY CTA BAR
@@ -361,6 +348,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================
+     LOGIN MODAL — instancia unica
+     ============================ */
+  // Instanciar el modal por separado en cada bloque creaba objetos paralelos
+  // sobre el mismo elemento: doble backdrop y body bloqueado con `modal-open`
+  // al cerrar. Una sola instancia compartida para todo el archivo.
+  function abrirLoginModal() {
+    var el = document.getElementById('loginModal');
+    if (el && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(el).show();
+    }
+  }
+
+  /* ============================
      DJANGO MESSAGES MODAL
      ============================ */
   var djangoMsgs = document.getElementById('django-messages');
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function () {
         msgContainer.appendChild(msgDiv);
       });
       form.insertBefore(msgContainer, form.firstChild);
-      new bootstrap.Modal(document.getElementById('loginModal')).show();
+      abrirLoginModal();
     }
   }
 
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
      URL PARAM MODAL
      ============================ */
   if (new URLSearchParams(window.location.search).get('login') === '1') {
-    new bootstrap.Modal(document.getElementById('loginModal')).show();
+    abrirLoginModal();
   }
 
   /* ============================
@@ -447,19 +447,94 @@ document.addEventListener('DOMContentLoaded', function () {
   var loginModalEl = document.getElementById('loginModal');
   if (loginModalEl) {
     loginModalEl.addEventListener('hidden.bs.modal', function() { showLogin(); });
+    loginModalEl.addEventListener('click', function(e) {
+      if (e.target === loginModalEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          var inst = bootstrap.Modal.getInstance(loginModalEl);
+          if (inst) inst.hide();
+          else loginModalEl.classList.remove('show');
+        } else {
+          loginModalEl.classList.remove('show');
+        }
+      }
+    });
   }
 
   /* ============================
-     FLIP CARDS TOUCH
+     ROLES INTERACTIVE SWITCHER
      ============================ */
-  var isTouchDevice = !window.matchMedia('(hover: hover)').matches;
-  document.querySelectorAll('.flip-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      if (isTouchDevice && !e.target.closest('a')) {
-        card.classList.toggle('flipped');
-      }
+  const roleNavBtns = document.querySelectorAll('.role-nav-btn');
+  const rolePanes = document.querySelectorAll('.role-stage-pane');
+  const roleBgFrames = document.querySelectorAll('.role-bg-frame');
+  if (roleNavBtns.length && rolePanes.length) {
+    roleNavBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetRole = this.dataset.role;
+        roleNavBtns.forEach(b => {
+          const isActive = (b === this);
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        rolePanes.forEach(pane => {
+          const isTarget = (pane.id === (targetRole === 'empresa' ? 'paneEmpresa' : 'paneDev'));
+          pane.classList.toggle('active', isTarget);
+        });
+        roleBgFrames.forEach(frame => {
+          const isTarget = (frame.id === (targetRole === 'empresa' ? 'bgRoleEmpresa' : 'bgRoleDev'));
+          frame.classList.toggle('active', isTarget);
+        });
+      });
     });
-  });
+  }
+
+  /* ============================
+     WORKFLOW HERO-STYLE STEPPER
+     ============================ */
+  const stepItems = document.querySelectorAll('.wf-step-item');
+  const wfBgFrames = document.querySelectorAll('.wf-bg-frame');
+
+  if (stepItems.length && wfBgFrames.length) {
+    let currentStep = 1;
+    let tourTimer = null;
+    let userInteracted = false;
+
+    function selectStep(stepNum) {
+      stepItems.forEach(item => {
+        const isActive = (item.dataset.step === String(stepNum));
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      wfBgFrames.forEach((frame, i) => {
+        frame.classList.toggle('active', i === (stepNum - 1));
+      });
+      currentStep = stepNum;
+    }
+
+    stepItems.forEach(item => {
+      item.addEventListener('click', function() {
+        userInteracted = true;
+        if (tourTimer) clearInterval(tourTimer);
+        const stepNum = parseInt(this.dataset.step, 10);
+        selectStep(stepNum);
+      });
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          userInteracted = true;
+          if (tourTimer) clearInterval(tourTimer);
+          selectStep(parseInt(this.dataset.step, 10));
+        }
+      });
+    });
+
+    // Auto-advance softly every 6s unless user interacted
+    tourTimer = setInterval(function() {
+      if (!userInteracted) {
+        currentStep = (currentStep % stepItems.length) + 1;
+        selectStep(currentStep);
+      }
+    }, 6000);
+  }
 
   /* ============================
      CUSTOM CURSOR
@@ -474,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.style.left = mx + 'px';
         dot.style.top = my + 'px';
       });
-      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech, .flip-card, .story-card, .goal-pill, input, textarea, select, [role="button"]');
+      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .btn-tech-sec, .nav-cta, .tab-tech, .story-card, .goal-pill, input, textarea, select, [role="button"]');
       hoverTargets.forEach(function(el) {
         el.addEventListener('mouseenter', function() { dot.classList.add('hover'); ring.classList.add('hover'); });
         el.addEventListener('mouseleave', function() { dot.classList.remove('hover'); ring.classList.remove('hover'); });
@@ -490,16 +565,54 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-
-
   /* ============================
-     Auto-open login modal via ?login=1
+     TEMA CLARO / OSCURO
+     El tema inicial ya lo fijó el script de <head> antes del primer paint.
+     Acá solo se sincroniza la UI, se alterna y se recuerda la elección.
      ============================ */
-  if (window.location.search.includes('login=1')) {
-    var loginModal = document.getElementById('loginModal');
-    if (loginModal && typeof bootstrap !== 'undefined') {
-      var modal = new bootstrap.Modal(loginModal);
-      modal.show();
+  var CLAVE_TEMA = 'jobdevs-theme';
+  var botonTema = document.getElementById('themeToggle');
+
+  function temaActual() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  // El switch muestra las dos posiciones: el estado lo comunica aria-pressed y
+  // el CSS enciende el icono que corresponde, así que acá sólo se expone el estado.
+  function pintarBotonTema(tema) {
+    if (!botonTema) return;
+    botonTema.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
+  }
+
+  function aplicarTema(tema, recordar) {
+    document.documentElement.setAttribute('data-theme', tema);
+    pintarBotonTema(tema);
+    if (recordar) {
+      try { localStorage.setItem(CLAVE_TEMA, tema); } catch (e) { /* modo privado */ }
+    }
+  }
+
+  pintarBotonTema(temaActual());
+
+  if (botonTema) {
+    botonTema.addEventListener('click', function () {
+      aplicarTema(temaActual() === 'light' ? 'dark' : 'light', true);
+    });
+  }
+
+  // Sin elección guardada, el tema sigue al sistema mientras la página está abierta.
+  if (window.matchMedia) {
+    var consultaSistema = window.matchMedia('(prefers-color-scheme: light)');
+    var seguimientoSistema = function (evento) {
+      var guardado = null;
+      try { guardado = localStorage.getItem(CLAVE_TEMA); } catch (e) { /* modo privado */ }
+      if (guardado === 'light' || guardado === 'dark') return;
+      aplicarTema(evento.matches ? 'light' : 'dark', false);
+    };
+    if (consultaSistema.addEventListener) {
+      consultaSistema.addEventListener('change', seguimientoSistema);
+    } else if (consultaSistema.addListener) {
+      consultaSistema.addListener(seguimientoSistema);
     }
   }
 

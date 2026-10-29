@@ -4,11 +4,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="JobDevs — Plataforma que conecta empresas con los mejores desarrolladores aprendices del SENA.">
-  <title>JobDevs</title>
+  <meta name="description" content="JobDevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable.">
+  <title>JobDevs — El sistema operativo del talento SENA</title>
+
+  <!-- Open Graph / redes sociales -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JobDevs">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:title" content="JobDevs — El sistema operativo del talento SENA">
+  <meta property="og:description" content="Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable.">
+  <meta property="og:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="JobDevs — El sistema operativo del talento SENA">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JobDevs — El sistema operativo del talento SENA">
+  <meta name="twitter:description" content="Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable.">
+  <meta name="twitter:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
+{% if request %}
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+{% endif %}
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script>
+    /* Resuelve el tema antes del primer paint: sin esto se ve un parpadeo del
+       tema equivocado mientras carga index.js. Prioridad: elección guardada
+       del usuario > preferencia del sistema operativo > oscuro. */
+    (function () {
+      var tema = 'dark';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          tema = 'light';
+        }
+      } catch (e) {
+        /* localStorage bloqueado (modo privado): se queda en el tema oscuro. */
+      }
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
   <link rel="stylesheet" href="{% static 'publico/css/index.css' %}">
 </head>
 <body>
@@ -33,8 +70,25 @@
     <div class="brand-dot"></div>
   </a>
   <ul class="nav-links" id="navLinks">
+    <li><a href="#que-es">Qué es</a></li>
+    <li><a href="#metodologia">Cómo funciona</a></li>
+    <li><a href="#roles">Roles</a></li>
+    <li><a href="#testimonios">Casos de éxito</a></li>
+    <li><a href="#comenzar">Comenzar</a></li>
+    <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">Ingresar</a></li>
   </ul>
   <div class="nav-right">
+    <!-- Switch de dos posiciones: las dos opciones están a la vista y el estado
+         lo dice aria-pressed. Sin texto de estado, que se leía como una etiqueta
+         pasiva y no como un control. -->
+    <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Tema claro" title="Cambiar entre tema oscuro y claro">
+      <span class="theme-toggle-icon theme-toggle-icon--dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </span>
+      <span class="theme-toggle-icon theme-toggle-icon--light">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      </span>
+    </button>
     <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">[ INGRESAR ]</button>
     <button class="btn-mobile-menu" id="mobileMenuBtn">[ MENU ]</button>
   </div>
@@ -44,25 +98,25 @@
 <section id="inicio" class="hero-section">
   <div id="reelContainer">
     <div class="reel-frame active">
-      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="Development team collaboration" loading="eager">
+      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="Development team collaboration" loading="eager" fetchpriority="high">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="Code review session">
+      <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="Code review session" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-3.jpg' %}" alt="Tech professionals working">
+      <img src="{% static 'IMG/reel/reel-3.jpg' %}" alt="Tech professionals working" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="Software architecture planning">
+      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="Software architecture planning" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-5.jpg' %}" alt="Agile team standup">
+      <img src="{% static 'IMG/reel/reel-5.jpg' %}" alt="Agile team standup" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-6.jpg' %}" alt="Developer deep work">
+      <img src="{% static 'IMG/reel/reel-6.jpg' %}" alt="Developer deep work" loading="lazy" decoding="async">
     </div>
     <div class="reel-frame">
-      <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="System architecture review">
+      <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="System architecture review" loading="lazy" decoding="async">
     </div>
   </div>
 
@@ -70,343 +124,367 @@
 
   <div class="hero-content in-view">
 
-    <h1 class="hero-title">
-      <span class="headline-line"><span>CÓDIGO.</span></span>
-      <span class="headline-line"><span class="text-stroke">DISCIPLINA.</span></span>
-      <span class="headline-line"><span style="color:var(--accent);">TALENTO.</span></span>
-    </h1>
+    <!-- En tema claro el blanco no se pinta sobre la foto: se pinta esta caja,
+         que abraza el texto y deja la fotografía intacta en todo el perímetro. -->
+    <div class="hero-copy">
 
-    <p class="hero-subtitle">
-      El puente directo entre empresas y desarrolladores SENA. Sin intermediarios, solo resultados.
-    </p>
+      <h1 class="hero-title">
+        <span class="headline-line"><span>CÓDIGO.</span></span>
+        <span class="headline-line"><span class="text-stroke">DISCIPLINA.</span></span>
+        <span class="headline-line"><span class="hero-accent">TALENTO.</span></span>
+      </h1>
 
-    <div class="hero-actions">
-      <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
-        <span>Inicializar Proyecto</span>
-      </a>
-    </div>
+      <p class="hero-subtitle">
+        El puente directo entre empresas y desarrolladores SENA.
+        Sin&nbsp;intermediarios, solo resultados.
+      </p>
 
-    <!-- Bottom strip: tech stack + reel progress -->
-    <div class="hero-bottom-strip">
-      <div class="hero-strip-side">
-        <div class="avatar-stack">
-          <div class="avatar-chip">JD</div>
-          <div class="avatar-chip">ML</div>
-          <div class="avatar-chip">AR</div>
-          <div class="avatar-chip">CP</div>
-          <div class="avatar-chip avatar-chip--accent">+50</div>
-        </div>
-        <div>
-          <div class="talent-label">Talento SENA verificado</div>
-          <div class="talent-value">Perfiles activos</div>
+      <div class="hero-actions">
+        <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
+          <span>Inicializar Proyecto</span>
+        </a>
+      </div>
+
+      <!-- Bottom strip: tech stack + reel progress -->
+      <div class="hero-bottom-strip">
+        <div class="hero-strip-side">
+          <div class="avatar-stack">
+            <div class="avatar-chip">JD</div>
+            <div class="avatar-chip">ML</div>
+            <div class="avatar-chip">AR</div>
+            <div class="avatar-chip">CP</div>
+            <div class="avatar-chip avatar-chip--accent">+50</div>
+          </div>
+          <div>
+            <div class="talent-label">Talento SENA verificado</div>
+            <div class="talent-value">Perfiles activos</div>
+          </div>
         </div>
       </div>
-  </div>
+    </div>
   </div>
 
   <!-- Marquee -->
   <div class="hero-marquee">
     <div class="marquee-track" id="marqueeTrack">
+      <span>TALENTO SENA VERIFICADO</span><span class="marquee-sep">/</span>
+      <span>CERO BUROCRACIA</span><span class="marquee-sep">/</span>
       <span>TRAZABILIDAD</span><span class="marquee-sep">/</span>
       <span>EVALUACIÓN BIDIRECCIONAL</span><span class="marquee-sep">/</span>
       <span>POSTULACIÓN DIRECTA</span><span class="marquee-sep">/</span>
       <span>FLUJO ÁGIL</span><span class="marquee-sep">/</span>
-      <span>TALENTO SENA VERIFICADO</span><span class="marquee-sep">/</span>
-      <span>CERO BUROCRACIA</span><span class="marquee-sep">/</span>
     </div>
   </div>
 </section>
 
-<!-- ==================== STATS ==================== -->
-<section class="stats-section">
-  <div class="stats-grid stats-wrapper in-view">
-    <div class="stat-item">
-      <div class="stat-number number-display" data-count="12" data-suffix="" style="color:var(--fg);">0</div>
-      <div class="stat-label">Meses operando</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number number-display" data-count="35" data-suffix="" style="color:var(--accent);">0</div>
-      <div class="stat-label">Funcionalidades activas</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number number-display" data-count="99" data-suffix="%" style="color:var(--fg);">0</div>
-      <div class="stat-label">Uptime del sistema</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number number-display" data-count="3" data-suffix="" style="color:var(--fg);">0</div>
-      <div class="stat-label">Tipos de nodo</div>
-    </div>
+
+<!-- ==================== QUÉ ES JOBDEVS ==================== -->
+<section id="que-es" class="section-tech what-section" aria-labelledby="tituloQueEs">
+  <div class="what-grid-bg" aria-hidden="true"></div>
+  <div class="section-inner what-head reveal">
+    <span class="section-marker"><span>// WHAT_IS_JOBDEVS</span></span>
+    <h2 class="sh-title" id="tituloQueEs">¿Qué es <span style="color:var(--accent);">JobDevs</span>?</h2>
+    <p class="desc-mono">La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios.</p>
   </div>
 </section>
 
-<!-- ==================== FLIP CARDS — CORE SYSTEMS ==================== -->
-<section id="sistemas" class="section-tech bg-darker">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_02: SYSTEM_CORE</span></span>
-      <h2 class="sh-title">Módulos que <span style="color:var(--accent);">construyen</span><br>módulos que <span class="text-stroke">transforman.</span></h2>
+<!-- ==================== METHODOLOGY (HERO STYLE FULL BLEED) ==================== -->
+<section id="metodologia" class="section-tech wf-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio a la izquierda con transparencia -->
+  <div class="wf-bg-stage">
+    <div class="wf-bg-frame active" id="bgWfFase01">
+      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="Publicar Proyecto" class="wf-full-bg-img" loading="lazy">
     </div>
-    <div class="reveal" style="margin-bottom:24px;">
-      <p class="desc-mono desc-mono--lg">Cada módulo del sistema está diseñado para un propósito específico dentro del ecosistema JobDevs. Pasa el cursor sobre cada tarjeta para ver sus capacidades.</p>
+    <div class="wf-bg-frame" id="bgWfFase02">
+      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="Postulación y Contrato" class="wf-full-bg-img" loading="lazy">
     </div>
+    <div class="wf-bg-frame" id="bgWfFase03">
+      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="Hitos con Evidencias" class="wf-full-bg-img" loading="lazy">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase04">
+      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="Cierre y Calificación Mutua" class="wf-full-bg-img" loading="lazy">
+    </div>
+    <div class="wf-bg-overlay"></div>
+  </div>
 
-    <div class="reveal-stagger flip-grid">
-
-      <!-- Sistema 1: Gestión de Proyectos -->
-      <div class="flip-card">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/website.png' %}" alt="Gestión de proyectos" loading="lazy">
-              <div class="flip-label">/ 01</div>
-              <div class="flip-badge">CORE</div>
-              <div class="flip-specialty">Gestión & Seguimiento</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">GESTIÓN DE<br>PROYECTOS</h3>
-                <p class="flip-role">Registro · Avances · Hitos</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">3 ENTIDADES · REGISTRO</span>
-                <span class="flip-meta-hint">HOVER →</span>
-              </div>
-            </div>
-          </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Gestión — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Registro completo de proyectos</li>
-              <li><i class="fa fa-circle-check"></i> Sistema de hitos y entregables</li>
-              <li><i class="fa fa-circle-check"></i> Avances con evidencia documentada</li>
-              <li><i class="fa fa-circle-check"></i> Dashboard por rol (Admin/Empresa/Dev)</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">CENTRO DE PROYECTOS</div>
-              <div class="flip-back-sig-desc">Ciclo completo de gestión con trazabilidad documentada.</div>
-            </div>
-          </div>
-        </div>
+  <div class="section-inner wf-hero-content">
+    <div class="wf-hero-layout reveal">
+      
+      <!-- Encabezado agrupado a la derecha -->
+      <div class="wf-main-header">
+        <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Cómo funciona <span class="acento-marca">JobDevs</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.</p>
       </div>
 
-      <!-- Sistema 2: Control de Acceso -->
-      <div class="flip-card">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/Personalizado.png' %}" alt="Control de acceso" loading="lazy">
-              <div class="flip-label">/ 02</div>
-              <div class="flip-badge">Ingresar</div>
-              <div class="flip-specialty">Usuarios & Permisos</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">CONTROL DE<br>ACCESO</h3>
-                <p class="flip-role">Perfiles verificados con reputación pública</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">3 ROLES · SESIÓN</span>
-                <span class="flip-meta-hint">HOVER →</span>
-              </div>
-            </div>
+      <!-- Los 4 pasos interactivos a la derecha -->
+      <div class="wf-steps-stack" role="tablist" aria-label="Etapas del proceso">
+        
+        <!-- Paso 01 -->
+        <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_01</span>
+            <span class="wf-step-tag">Empresa</span>
           </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Acceso — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Registro con portafolio y stack tecnológico</li>
-              <li><i class="fa fa-circle-check"></i> Perfil público verificable para empresas</li>
-              <li><i class="fa fa-circle-check"></i> Control de acceso segmentado por rol</li>
-              <li><i class="fa fa-circle-check"></i> Suspensión y bloqueo de cuentas</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">PERFIL VERIFICABLE</div>
-              <div class="flip-back-sig-desc">Tu identidad profesional, validada dentro del ecosistema JobDevs.</div>
-            </div>
+          <h3 class="wf-step-title">Publicar Proyecto</h3>
+          <p class="wf-step-desc">La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Publicación ágil sin costos de registro.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Segmentación por tipo: Web, Móvil, Cloud, Datos.</div>
           </div>
         </div>
-      </div>
 
-      <!-- Sistema 3: Motor de Vinculación -->
-      <div class="flip-card">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/automatizacion.png' %}" alt="Motor de vinculación" loading="lazy">
-              <div class="flip-label">/ 03</div>
-              <div class="flip-badge">MATCH</div>
-              <div class="flip-specialty">Postulaciones & Contratos</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">MOTOR DE<br>VINCULACIÓN</h3>
-                <p class="flip-role">Postular · Contratar · Evaluar</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">3 FLUJOS · CONTRATO</span>
-                <span class="flip-meta-hint">HOVER →</span>
-              </div>
-            </div>
+        <!-- Paso 02 -->
+        <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_02</span>
+            <span class="wf-step-tag">Match & Firma</span>
           </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Vinculación — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Postulación directa con carta de presentación</li>
-              <li><i class="fa fa-circle-check"></i> Contratación directa con acuerdos por proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Evaluación de empresas por devs</li>
-              <li><i class="fa fa-circle-check"></i> Estados transicionales con triggers</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">FLUJO DE VINCULACIÓN</div>
-              <div class="flip-back-sig-desc">Selección manual con carta de presentación.</div>
-            </div>
+          <h3 class="wf-step-title">Postulación y Contrato</h3>
+          <p class="wf-step-desc">Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Validación académica contra el padrón oficial SENA.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Contrato digital vinculante con doble firma electrónica.</div>
           </div>
         </div>
-      </div>
 
-      <!-- Sistema 4: Centro de Comunicación -->
-      <div class="flip-card">
-        <div class="flip-card-inner">
-          <div class="flip-face flip-front">
-            <div class="flip-img-box">
-              <img src="{% static 'IMG/ia.png' %}" alt="Centro de comunicación" loading="lazy">
-              <div class="flip-label">/ 04</div>
-              <div class="flip-badge">COMMS</div>
-              <div class="flip-specialty">Mensajería & Notificaciones</div>
-            </div>
-            <div class="flip-info">
-              <div>
-                <h3 class="flip-name">CENTRO DE<br>COMUNICACIÓN</h3>
-                <p class="flip-role">Chat · Notif · Auditoría</p>
-              </div>
-              <div class="flip-meta">
-                <span class="flip-meta-stats">MENSAJERÍA · LOGS</span>
-                <span class="flip-meta-hint">HOVER →</span>
-              </div>
-            </div>
+        <!-- Paso 03 -->
+        <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_03</span>
+            <span class="wf-step-tag">Desarrollo</span>
           </div>
-          <div class="flip-face flip-back flip-back-content">
-            <div class="flip-back-label">/ Comunicación — Ficha técnica</div>
-            <h3 class="flip-back-title">Capacidades</h3>
-            <ul class="flip-back-list">
-              <li><i class="fa fa-circle-check"></i> Chat privado por proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Sistema de notificaciones por rol</li>
-              <li><i class="fa fa-circle-check"></i> Registro de actividad del proyecto</li>
-              <li><i class="fa fa-circle-check"></i> Favoritos y seguimiento</li>
-            </ul>
-            <div class="flip-back-footer">
-              <div class="flip-back-sig">Módulo principal</div>
-              <div class="flip-back-sig-name">MOTOR DE COMUNICACIÓN</div>
-              <div class="flip-back-sig-desc">Comunicación directa con historial.</div>
-            </div>
+          <h3 class="wf-step-title">Hitos con Evidencias</h3>
+          <p class="wf-step-desc">Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Revisión obligatoria: aprobar o solicitar corrección.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Almacenamiento seguro de código y documentación.</div>
           </div>
         </div>
+
+        <!-- Paso 04 -->
+        <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" tabindex="0">
+          <div class="wf-step-header">
+            <span class="wf-step-num">// FASE_04</span>
+            <span class="wf-step-tag">Cierre</span>
+          </div>
+          <h3 class="wf-step-title">Cierre y Calificación Mutua</h3>
+          <p class="wf-step-desc">100% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación.</p>
+          <div class="wf-step-details">
+            <div><i class="fa fa-circle-check text-success me-2"></i>Sello inmutable del contrato para validez legal.</div>
+            <div><i class="fa fa-circle-check text-success me-2"></i>Reputación pública acumulable para el portafolio.</div>
+          </div>
+        </div>
+
       </div>
 
     </div>
   </div>
 </section>
 
-<!-- ==================== METHODOLOGY ==================== -->
-<section id="metodologia" class="section-tech bg-dim">
-  <div class="section-inner">
-    <div class="section-head reveal" style="align-items: center; text-align: center;">
-      <span class="section-marker"><span>// MODULE_03: CÓMO_FUNCIONA</span></span>
-      <h2 class="sh-title">Cómo Funciona.</h2>
-    </div>
-    <p class="reveal desc-mono" style="text-align:center;max-width:520px;margin:-20px auto 50px;">
-       Cuatro pasos. Del requerimiento a la entrega. Simple, directo, sin intermediarios.
-    </p>
+<!-- ==================== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ==================== -->
+<section id="empresas" class="section-tech logos-marquee-section" aria-labelledby="tituloEmpresas">
+  <div class="logos-grid-bg" aria-hidden="true"></div>
 
-    <div class="method-flow reveal-stagger">
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-file-code"></i></div>
-        <div class="step-content tech-frame">
-          <h4>[ 01 · PUBLICAR_PROYECTO ]</h4>
-          <p>La empresa registra su necesidad técnica: tipo de solución, stack tecnológico y fecha límite.</p>
-        </div>
+  <div class="section-inner logos-marquee-head reveal">
+    <span class="section-marker"><span>CONFIANZA CORPORATIVA</span></span>
+    <h2 class="sh-title" id="tituloEmpresas">Empresas que <span class="acento-marca">confían en nosotros</span></h2>
+    <p class="desc-mono">Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs.</p>
+  </div>
+
+  <div class="logos-marquee">
+    <div class="logos-marquee-fade logos-marquee-fade--left" aria-hidden="true"></div>
+    <div class="logos-marquee-fade logos-marquee-fade--right" aria-hidden="true"></div>
+
+    <div class="logos-marquee-viewport">
+      <!-- Pista visible -->
+      <div class="logos-marquee-track" role="list" aria-label="Empresas colombianas que contratan talento SENA">
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="Logo de Alpina" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="Logo de Bavaria" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="Logo de Colanta" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="Logo de Colsubsidio" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="Logo de Corona" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="Logo de DIAN" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="Logo de EPM" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="Logo de ETB" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="Logo de Ecopetrol" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="Logo de Frisby" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="Logo de Grupo Argos" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="Logo de Postobón" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="Logo de Presto" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="Logo de Rappi" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="Logo de Tiendas D1" loading="lazy" decoding="async">
+        </span>
       </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-users"></i></div>
-        <div class="step-content tech-frame">
-          <h4>[ 02 · POSTULARSE ]</h4>
-          <p>Desarrolladores del SENA envían su carta de presentación, experiencia y portafolio. La empresa elige al candidato.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-code-pull-request"></i></div>
-        <div class="step-content tech-frame">
-          <h4>[ 03 · EJECUTAR ]</h4>
-          <p>Trabajo por hitos. El equipo entrega avances con evidencia. La empresa revisa y aprueba cada etapa.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="step-node"><i class="fa fa-rocket"></i></div>
-        <div class="step-content tech-frame">
-          <h4>[ 04 · CERRAR ]</h4>
-          <p>Proyecto finalizado. Se emiten calificaciones y certificados de reputación para ambas partes.</p>
-        </div>
+
+      <!-- Copia para el loop infinito (oculta a lectores de pantalla) -->
+      <div class="logos-marquee-track" aria-hidden="true">
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="" loading="lazy" decoding="async">
+        </span>
       </div>
     </div>
   </div>
+
 </section>
 
-<!-- ==================== ROLES ==================== -->
-<section id="roles" class="section-tech">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_04: ROLES</span></span>
-      <h2 class="sh-title">Dos formas de<br>participar.</h2>
+<!-- ==================== ROLES (HERO STYLE FULL BLEED) ==================== -->
+<section id="roles" class="section-tech roles-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
+  <div class="roles-bg-stage">
+    <div class="role-bg-frame active" id="bgRoleEmpresa">
+      <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="Empresas colaborando con talento SENA" class="role-full-bg-img" loading="lazy">
     </div>
+    <div class="role-bg-frame" id="bgRoleDev">
+      <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="Desarrollador SENA trabajando en proyectos de software" class="role-full-bg-img" loading="lazy">
+    </div>
+    <div class="roles-bg-overlay"></div>
+  </div>
 
-    <div class="roles-wrapper reveal">
-      <div class="role-pane tech-frame role-pane-corp">
-        <div class="rp-header">
-          <span class="rp-label">Para empresas</span>
-          <h3 class="rp-title">Corp</h3>
-          <p class="rp-desc">Publica tu proyecto, recibe postulaciones de talento SENA, elige al candidato y gestiona entregas por hitos.</p>
-        </div>
-        <ul class="rp-data">
-          <li><span>Publicación</span> <span>Requerimientos técnicos</span></li>
-          <li><span>Selección</span> <span>Directa del equipo</span></li>
-          <li><span>Seguimiento</span> <span>Por hitos verificables</span></li>
-          <li><span>Evaluación</span> <span>Del trabajo recibido</span></li>
-        </ul>
-        <a href="{% url 'registro' %}" class="btn-tech-sec" style="margin-top: 40px; width: 100%;">PUBLICAR PROYECTO</a>
+  <div class="section-inner roles-hero-content">
+    <div class="roles-hero-layout reveal">
+      
+      <!-- Todo el encabezado agrupado a la derecha -->
+      <div class="roles-main-header">
+        <span class="section-marker"><span>MODELO BILATERAL</span></span>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Diseñado para Empresas<br>y <span class="acento-marca">Desarrolladores SENA</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
       </div>
-      <div class="role-pane tech-frame">
-        <div class="rp-header">
-          <span class="rp-label">Para desarrolladores</span>
-          <h3 class="rp-title">Dev</h3>
-          <p class="rp-desc">Crea tu perfil con portafolio y stack, postúlate a proyectos reales y construye reputación verificable dentro del ecosistema.</p>
-        </div>
-        <ul class="rp-data">
-          <li><span>Perfil</span> <span>Público con stack tecnológico</span></li>
-          <li><span>Postulación</span> <span>Con carta de presentación</span></li>
-          <li><span>Ejecución</span> <span>Por hitos con evidencia</span></li>
-          <li><span>Reputación</span> <span>Calificación acumulable</span></li>
-        </ul>
-        <a href="{% url 'registro' %}" class="btn-tech" style="margin-top: 40px; width: 100%;"><span>CREAR PERFIL</span></a>
+
+      <!-- Selector de rol interactivo con iconos Lucide -->
+      <div class="roles-role-switcher" role="tablist" aria-label="Selector de rol">
+        <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          </span>
+          <span class="role-nav-label">EMPRESA</span>
+        </button>
+
+        <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+          </span>
+          <span class="role-nav-label">APRENDIZ</span>
+        </button>
       </div>
+
+      <!-- Contenido detallado del rol seleccionado -->
+      <div class="roles-right-stage">
+        <!-- Panel Empresa -->
+        <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
+          <div class="role-info-col">
+            <div class="rp-label">Para Empresas y Startups</div>
+            <h3 class="role-stage-title">Impulsa tus proyectos con <span class="acento-marca">talento SENA</span> verificado</h3>
+            <p class="role-stage-desc">Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total.</p>
+            
+            <ul class="role-stage-features">
+              <li><i class="fa fa-circle-check"></i> <span><strong>Publicación ágil:</strong> define stack técnico, vacantes y fechas estimadas sin costos de registro.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Selección directa:</strong> recibe cartas de presentación y perfiles con ficha SENA oficial.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Control por hitos:</strong> aprueba avances con evidencia técnica documentada antes de liberar pagos.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Seguridad jurídica:</strong> contratos digitales con hash criptográfico SHA-256 y mediación formal.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Panel Desarrollador / Aprendiz -->
+        <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
+          <div class="role-info-col">
+            <div class="rp-label rp-label--accent">Para Aprendices y Egresados SENA</div>
+            <h3 class="role-stage-title">Construye tu carrera profesional con <span class="acento-marca">proyectos reales</span></h3>
+            <p class="role-stage-desc">Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales.</p>
+            
+            <ul class="role-stage-features">
+              <li><i class="fa fa-circle-check"></i> <span><strong>Validación oficial:</strong> verificación de identidad académica contra el padrón oficial del SENA.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Postulación directa:</strong> carta de presentación técnica y límite responsable de 3 vacantes simultáneas.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Experiencia en producción:</strong> entrega de código y avances por hitos con evidencias auditadas en R2.</span></li>
+              <li><i class="fa fa-circle-check"></i> <span><strong>Reputación verificable:</strong> calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
 <!-- ==================== TESTIMONIALS ==================== -->
-<section id="testimonios" class="section-tech story-section bg-dim">
-  <div class="section-inner" style="margin-bottom: 48px;">
-    <div class="section-head reveal">
-      <h2 class="sh-title">Resultados <span style="color:var(--accent);">comprobables.</span></h2>
-    </div>
-    <div class="reveal" style="max-width: 600px;">
-      <p class="desc-mono">Cada caso representa una implemtación éxitosa</p>
-
-    </div>
+<section id="testimonios" class="section-tech story-section bg-dim" aria-labelledby="tituloTestimonios">
+  <div class="story-grid-bg" aria-hidden="true"></div>
+  <div class="section-inner story-head reveal">
+    <span class="section-marker"><span>CASOS DE ÉXITO</span></span>
+    <h2 class="sh-title" id="tituloTestimonios">Resultados <span style="color:var(--accent);">comprobables</span> en producción.</h2>
+    <p class="desc-mono">Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs.</p>
   </div>
 
   <div style="position: relative; overflow: hidden;">
@@ -415,12 +493,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/website.png' %}" class="story-img" alt="FINTECH" loading="lazy">
-          <div class="story-img-tag">CASE / 01</div>
-          <div class="story-img-badge">-80% TIME</div>
+          <div class="story-img-tag">CASO / 01</div>
+          <div class="story-img-badge">-80% TIEMPO</div>
         </div>
         <div class="story-body">
           <div class="story-name">FINTECH COLOMBIA</div>
-          <div class="story-role">Backend · 6 meses</div>
+          <div class="story-role">Backend & Pagos · 6 meses</div>
           <p class="story-quote">"El equipo del SENA entregó una API de pagos más robusta que la de nuestro proveedor anterior. En 6 meses ya estábamos en producción."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">100%</div><div class="story-stat-label">A tiempo</div></div>
@@ -433,12 +511,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="ECOMMERCE" loading="lazy">
-          <div class="story-img-tag">CASE / 02</div>
-          <div class="story-img-badge">+34% CONV</div>
+          <div class="story-img-tag">CASO / 02</div>
+          <div class="story-img-badge">+34% CONVERSIÓN</div>
         </div>
         <div class="story-body">
           <div class="story-name">ECOMMERCE NACIONAL</div>
-          <div class="story-role">Frontend · 4 meses</div>
+          <div class="story-role">Frontend & Checkout · 4 meses</div>
           <p class="story-quote">"Rediseñamos todo el checkout con un equipo de 2 devs del SENA. La tasa de conversión subió 34% en el primer trimestre."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">+34%</div><div class="story-stat-label">Conversión</div></div>
@@ -451,12 +529,12 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/ia.png' %}" class="story-img" alt="AGROTECH" loading="lazy">
-          <div class="story-img-tag">CASE / 03</div>
-          <div class="story-img-badge">-60% COST</div>
+          <div class="story-img-tag">CASO / 03</div>
+          <div class="story-img-badge">-60% COSTOS</div>
         </div>
         <div class="story-body">
           <div class="story-name">AGROTECH STARTUP</div>
-          <div class="story-role">Full Stack · 8 meses</div>
+          <div class="story-role">Full Stack & IoT · 8 meses</div>
           <p class="story-quote">"Necesitábamos un dashboard IoT para monitoreo de cultivos. El equipo SENA armó una solución mejor que la que cotizamos afuera."</p>
           <div class="story-stats">
             <div><div class="story-stat-val">-60%</div><div class="story-stat-label">Costo vs ext</div></div>
@@ -469,7 +547,7 @@
       <article class="story-card">
         <div class="story-img-box">
           <img src="{% static 'IMG/Personalizado.png' %}" class="story-img" alt="LOGISTICA" loading="lazy">
-          <div class="story-img-tag">CASE / 04</div>
+          <div class="story-img-tag">CASO / 04</div>
           <div class="story-img-badge">-93% DEPLOY</div>
         </div>
         <div class="story-body">
@@ -486,9 +564,9 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <div class="story-placeholder"></div>
-          <div class="story-img-tag">CASE / 05</div>
-          <div class="story-img-badge">50K+ USERS</div>
+          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="EDTECH" loading="lazy">
+          <div class="story-img-tag">CASO / 05</div>
+          <div class="story-img-badge">50K+ USUARIOS</div>
         </div>
         <div class="story-body">
           <div class="story-name">EDTECH PLATFORM</div>
@@ -504,9 +582,9 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <div class="story-placeholder"></div>
-          <div class="story-img-tag">CASE / 06</div>
-          <div class="story-img-badge">2M REG/DAY</div>
+          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="INSURTECH" loading="lazy">
+          <div class="story-img-tag">CASO / 06</div>
+          <div class="story-img-badge">2M REG/DÍA</div>
         </div>
         <div class="story-body">
           <div class="story-name">INSURTECH CORP</div>
@@ -535,78 +613,14 @@
 </section>
 
 <!-- ==================== CTA / COMENZAR ==================== -->
-<section id="comenzar" class="section-tech bg-darker">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
-      <h2 class="sh-title">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
-    </div>
+<section id="comenzar" class="section-tech cta-hero" aria-labelledby="tituloComenzar">
+  <img class="cta-hero-img" src="{% static 'IMG/cta-final.jpg' %}" alt="Equipo de desarrollo trabajando en una oficina" loading="lazy" decoding="async">
+  <div class="cta-hero-overlay" aria-hidden="true"></div>
 
-    <div class="booking-layout reveal">
-      <div class="booking-panel">
-        <div class="booking-label">// Solicitud de proyecto</div>
-        <h3 class="booking-title">PUBLICA TU PROYECTO</h3>
-        <p class="booking-desc">Conecta tu necesidad de desarrollo con talento verificado del SENA. Crea tu cuenta de empresa, define los requerimientos de tu proyecto y recibe postulaciones de desarrolladores calificados.</p>
-
-        <div style="margin: 28px 0; display:flex; flex-direction:column; gap:16px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Publicación de vacantes sin costos ocultos</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Verificación académica y validación de aprendices SENA</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-circle-check" style="color:var(--accent); font-size:18px;"></i>
-            <span style="font-size:14px; color:var(--fg-dim);">Contratos digitales seguros con trazabilidad de hitos</span>
-          </div>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <a href="{% url 'registro' %}" class="pulse-btn btn-submit-booking" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <span>CREAR CUENTA DE EMPRESA</span>
-            <i class="fa fa-arrow-right"></i>
-          </a>
-          <p class="form-disclaimer">
-            ¿Ya tienes cuenta? <a href="/?login=1" style="color:var(--accent); text-decoration:none; font-weight:600;">Inicia sesión aquí</a>
-          </p>
-        </div>
-      </div>
-
-      <!-- Info Panels -->
-      <div class="booking-info">
-        <div class="info-card">
-          <div class="info-label">/ Tiempos estimados</div>
-          <h4 class="info-title">RESPUESTA INICIAL</h4>
-          <div class="info-rows">
-            <div class="info-row">
-              <span>Evaluación de requerimiento</span>
-              <span>24h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Propuesta de equipo</span>
-              <span>48h hábiles</span>
-            </div>
-            <div class="info-row">
-              <span>Inicio de trabajo</span>
-              <span>A coordinar</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-card">
-          <div class="info-label">/ Contacto</div>
-          <h4 class="info-title">CONTACTO DIRECTO</h4>
-          <div class="info-rows">
-            <a href="mailto:contacto@jobdevs-platform.com" class="info-link">
-              <i class="fa fa-envelope"></i>
-              <span>contacto@jobdevs-platform.com</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="section-inner cta-hero-content reveal">
+    <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
+    <h2 class="sh-title" id="tituloComenzar">Inicia tu <span class="cta-accent">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
+    <a href="{% url 'registro' %}" class="cta-hero-btn">[ CREAR CUENTA ]</a>
   </div>
 </section>
 
@@ -675,12 +689,12 @@
     <div class="hero-strip-side">
       <span class="rec-dot"></span>
       <div>
-        <div class="sticky-text">Iniciar proyecto ahora</div>
-        <div class="sticky-sub">Sin costo de registro · Sin compromiso</div>
+        <div class="sticky-text">JobDevs · Ecosistema SENA</div>
+        <div class="sticky-sub">Conectando empresas y talento verificado</div>
       </div>
     </div>
     <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="white-space:nowrap;">
-      <span>REGISTRAR PROYECTO</span>
+      <span>CREAR CUENTA</span>
     </a>
   </div>
 </div>
