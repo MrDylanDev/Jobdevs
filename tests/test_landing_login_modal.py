@@ -1,8 +1,10 @@
 """
-Landing — el modal de login debe usar una sola instancia de Bootstrap.
+Landing — el modal de login no depende de Bootstrap (SCRUM-421).
 
-Instanciar el modal varias veces sobre el mismo elemento producía dos backdrops
-y dejaba el `body` con `modal-open` después de cerrar (página bloqueada).
+Antes lo abría `bootstrap.Modal`, que costaba 80 KB de JS desde un segundo CDN y
+sólo se usaba para este modal. Ahora hay un controlador propio; estos tests fijan
+el checklist de accesibilidad que Bootstrap cubría, para que sacarlo no degrade
+el comportamiento.
 """
 
 from pathlib import Path
@@ -22,22 +24,19 @@ def landing_html():
     return render_to_string('publico/index.html')
 
 
-class TestLoginModalInstanciaUnica:
-    def test_usa_get_or_create_instance(self, landing_js):
-        assert 'bootstrap.Modal.getOrCreateInstance' in landing_js
+class TestLoginModalSinBootstrap:
+    def test_no_queda_ninguna_referencia_a_bootstrap(self, landing_js):
+        assert 'bootstrap.Modal' not in landing_js, (
+            'Mientras quede una referencia, el bundle sigue siendo necesario'
+        )
+        assert 'data-bs-' not in landing_js
 
-    def test_no_crea_instancias_sueltas(self, landing_js):
-        sueltas = [
-            linea.strip()
-            for linea in landing_js.splitlines()
-            if 'bootstrap.Modal(' in linea and not linea.strip().startswith('//')
-        ]
-        assert not sueltas, f'No debe instanciarse el modal directamente: {sueltas}'
-
-    def test_un_unico_helper_de_apertura(self, landing_js):
+    def test_un_unico_par_de_apertura_y_cierre(self, landing_js):
         assert landing_js.count('function abrirLoginModal()') == 1
-        assert landing_js.count('abrirLoginModal()') == 3, (
-            'El helper se define una vez y se usa en los dos puntos de apertura'
+        assert landing_js.count('function cerrarLoginModal()') == 1
+        assert landing_js.count('abrirLoginModal()') == 4, (
+            'Se define una vez y se usa en los tres puntos de apertura: mensajes '
+            'de Django, el parámetro ?login=1 y el botón [ INGRESAR ]'
         )
 
     def test_el_parametro_login_se_atiende_una_sola_vez(self, landing_js):
@@ -85,3 +84,50 @@ class TestMarqueeHeroInfinito:
     def test_se_rearma_al_redimensionar(self, js):
         assert "addEventListener('resize'" in js
         assert 'armarMarquee' in js.split("addEventListener('resize'")[1]
+
+
+class TestChecklistDelModal:
+    """El checklist de accesibilidad del ticket, punto por punto. El e2e lo prueba
+    además en navegador con teclado real."""
+
+    def test_escape_cierra(self, landing_js):
+        assert "e.key === 'Escape'" in landing_js
+
+    def test_clic_en_el_fondo_cierra_y_dentro_no(self, landing_js):
+        assert 'e.target === loginModalEl' in landing_js, (
+            'El velo lo pinta el propio .modal, así que el fondo es el elemento'
+        )
+
+    def test_bloquea_el_scroll_del_body(self, landing_js):
+        assert "classList.add('modal-open')" in landing_js
+        assert "classList.remove('modal-open')" in landing_js
+
+    def test_la_clase_de_bloqueo_hace_algo(self):
+        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        assert 'body.modal-open { overflow: hidden; }' in css, (
+            'La clase la ponía Bootstrap y el overflow venía de su CSS'
+        )
+
+    def test_aria_al_abrir_y_cerrar(self, landing_js, landing_html):
+        assert "setAttribute('aria-hidden', 'false')" in landing_js
+        assert "setAttribute('aria-hidden', 'true')" in landing_js
+        assert 'aria-modal="true"' in landing_html
+        assert 'role="dialog"' in landing_html
+
+    def test_el_foco_entra_al_primer_campo(self, landing_js):
+        assert "querySelector('#username')" in landing_js
+
+    def test_el_foco_vuelve_al_que_abrio(self, landing_js):
+        assert 'focoPrevio = document.activeElement' in landing_js
+        assert 'focoPrevio.focus()' in landing_js
+
+    def test_tabulacion_contenida(self, landing_js):
+        assert "e.key !== 'Tab'" in landing_js
+        assert 'e.shiftKey' in landing_js
+
+    def test_el_foco_sale_antes_de_ocultar_el_modal(self, landing_js):
+        # Al revés, el foco queda dentro de un nodo aria-hidden y los lectores de
+        # pantalla lo pierden.
+        cuerpo = landing_js[landing_js.index('function cerrarLoginModal()'):]
+        cuerpo = cuerpo[:cuerpo.index('document.querySelectorAll')]
+        assert cuerpo.index('focoPrevio.focus()') < cuerpo.index("setAttribute('aria-hidden', 'true')")

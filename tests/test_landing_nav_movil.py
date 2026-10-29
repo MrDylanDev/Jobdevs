@@ -43,4 +43,4 @@ class TestNavMovil:
     def test_markup_del_menu_con_ingreso(self, html):
         assert 'id="mobileMenuBtn"' in html
         assert 'id="navLinks"' in html
-        assert 'data-bs-target="#loginModal"' in html
+        assert 'data-abrir-login' in html

@@ -26,7 +26,6 @@
 {% endif %}
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script>
     /* Resuelve el tema antes del primer paint: sin esto se ve un parpadeo del
        tema equivocado mientras carga index.js. Prioridad: elección guardada
@@ -77,7 +76,7 @@
     <li><a href="#roles">{% trans "Roles" %}</a></li>
     <li><a href="#testimonios">{% trans "Casos de éxito" %}</a></li>
     <li><a href="#comenzar">{% trans "Comenzar" %}</a></li>
-    <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">{% trans "Ingresar" %}</a></li>
+    <li class="d-md-none"><a href="#" data-abrir-login style="color:var(--accent);">{% trans "Ingresar" %}</a></li>
     <li class="d-md-none"><a href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}">{% if IDIOMA == 'en' %}Español{% else %}English{% endif %}</a></li>
   </ul>
   <div class="nav-right">
@@ -96,7 +95,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
       </span>
     </button>
-    <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">{% trans "[ INGRESAR ]" %}</button>
+    <button type="button" data-abrir-login class="nav-cta border-right">{% trans "[ INGRESAR ]" %}</button>
     <button class="btn-mobile-menu" id="mobileMenuBtn">{% trans "[ MENU ]" %}</button>
   </div>
 </nav>
@@ -677,7 +676,7 @@
     <div class="foot-col">
       <h5>{% trans "Acceso" %}</h5>
       <ul>
-        <li><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Iniciar sesión" %}</a></li>
+        <li><a href="#" data-abrir-login>{% trans "Iniciar sesión" %}</a></li>
         <li><a href="{% url 'registro' %}">{% trans "Registrarse" %}</a></li>
         <li><a href="{% url 'recuperar' %}">{% trans "Recuperar contraseña" %}</a></li>
       </ul>
@@ -706,12 +705,12 @@
 </div>
 
 <!-- ==================== LOGIN MODAL ==================== -->
-<div class="modal fade theme-dev" id="loginModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade theme-dev" id="loginModal" role="dialog" aria-modal="true" aria-label="{% trans "AUTENTICACIÓN" %}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-tech tech-frame">
       <div class="modal-header">
         <h4 class="modal-title">{% trans "AUTENTICACIÓN" %}</h4>
-        <button type="button" class="btn-close btn-close-tech" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
+        <button type="button" class="btn-close btn-close-tech" data-cerrar-login aria-label="{% trans "Close" %}"></button>
       </div>
       <div class="modal-body">
 
@@ -773,7 +772,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Textos que el JavaScript necesita traducidos: se leen desde acá en vez de
      quedar hardcodeados en el script. -->
 <script type="application/json" id="textos-i18n">
