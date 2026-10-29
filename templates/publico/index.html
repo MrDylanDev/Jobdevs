@@ -78,9 +78,16 @@
     <li class="d-md-none"><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="color:var(--accent);">Ingresar</a></li>
   </ul>
   <div class="nav-right">
+    <!-- Switch de dos posiciones: las dos opciones están a la vista y el estado
+         lo dice aria-pressed. Sin texto de estado, que se leía como una etiqueta
+         pasiva y no como un control. -->
     <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Tema claro" title="Cambiar entre tema oscuro y claro">
-      <i class="fa fa-moon" id="themeToggleIcon" aria-hidden="true"></i>
-      <span class="theme-toggle-label" id="themeToggleLabel">OSCURO</span>
+      <span class="theme-toggle-icon theme-toggle-icon--dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </span>
+      <span class="theme-toggle-icon theme-toggle-icon--light">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      </span>
     </button>
     <button data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-cta border-right">[ INGRESAR ]</button>
     <button class="btn-mobile-menu" id="mobileMenuBtn">[ MENU ]</button>
@@ -117,49 +124,55 @@
 
   <div class="hero-content in-view">
 
-    <h1 class="hero-title">
-      <span class="headline-line"><span>CÓDIGO.</span></span>
-      <span class="headline-line"><span class="text-stroke">DISCIPLINA.</span></span>
-      <span class="headline-line"><span style="color:var(--accent);">TALENTO.</span></span>
-    </h1>
+    <!-- En tema claro el blanco no se pinta sobre la foto: se pinta esta caja,
+         que abraza el texto y deja la fotografía intacta en todo el perímetro. -->
+    <div class="hero-copy">
 
-    <p class="hero-subtitle">
-      El puente directo entre empresas y desarrolladores SENA. Sin intermediarios, solo resultados.
-    </p>
+      <h1 class="hero-title">
+        <span class="headline-line"><span>CÓDIGO.</span></span>
+        <span class="headline-line"><span class="text-stroke">DISCIPLINA.</span></span>
+        <span class="headline-line"><span class="hero-accent">TALENTO.</span></span>
+      </h1>
 
-    <div class="hero-actions">
-      <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
-        <span>Inicializar Proyecto</span>
-      </a>
-    </div>
+      <p class="hero-subtitle">
+        El puente directo entre empresas y desarrolladores SENA.
+        Sin&nbsp;intermediarios, solo resultados.
+      </p>
 
-    <!-- Bottom strip: tech stack + reel progress -->
-    <div class="hero-bottom-strip">
-      <div class="hero-strip-side">
-        <div class="avatar-stack">
-          <div class="avatar-chip">JD</div>
-          <div class="avatar-chip">ML</div>
-          <div class="avatar-chip">AR</div>
-          <div class="avatar-chip">CP</div>
-          <div class="avatar-chip avatar-chip--accent">+50</div>
-        </div>
-        <div>
-          <div class="talent-label">Talento SENA verificado</div>
-          <div class="talent-value">Perfiles activos</div>
+      <div class="hero-actions">
+        <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
+          <span>Inicializar Proyecto</span>
+        </a>
+      </div>
+
+      <!-- Bottom strip: tech stack + reel progress -->
+      <div class="hero-bottom-strip">
+        <div class="hero-strip-side">
+          <div class="avatar-stack">
+            <div class="avatar-chip">JD</div>
+            <div class="avatar-chip">ML</div>
+            <div class="avatar-chip">AR</div>
+            <div class="avatar-chip">CP</div>
+            <div class="avatar-chip avatar-chip--accent">+50</div>
+          </div>
+          <div>
+            <div class="talent-label">Talento SENA verificado</div>
+            <div class="talent-value">Perfiles activos</div>
+          </div>
         </div>
       </div>
-  </div>
+    </div>
   </div>
 
   <!-- Marquee -->
   <div class="hero-marquee">
     <div class="marquee-track" id="marqueeTrack">
+      <span>TALENTO SENA VERIFICADO</span><span class="marquee-sep">/</span>
+      <span>CERO BUROCRACIA</span><span class="marquee-sep">/</span>
       <span>TRAZABILIDAD</span><span class="marquee-sep">/</span>
       <span>EVALUACIÓN BIDIRECCIONAL</span><span class="marquee-sep">/</span>
       <span>POSTULACIÓN DIRECTA</span><span class="marquee-sep">/</span>
       <span>FLUJO ÁGIL</span><span class="marquee-sep">/</span>
-      <span>TALENTO SENA VERIFICADO</span><span class="marquee-sep">/</span>
-      <span>CERO BUROCRACIA</span><span class="marquee-sep">/</span>
     </div>
   </div>
 </section>
@@ -200,8 +213,8 @@
       <!-- Encabezado agrupado a la derecha -->
       <div class="wf-main-header">
         <span class="section-marker"><span>MODELO DE OPERACIÓN</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Cómo funciona JobDevs</h2>
-        <p class="desc-mono" style="font-size: 0.88rem; color: var(--fg-dim); margin-bottom: 24px; line-height: 1.6;">Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.</p>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Cómo funciona <span class="acento-marca">JobDevs</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios.</p>
       </div>
 
       <!-- Los 4 pasos interactivos a la derecha -->
@@ -275,7 +288,7 @@
 
   <div class="section-inner logos-marquee-head reveal">
     <span class="section-marker"><span>CONFIANZA CORPORATIVA</span></span>
-    <h2 class="sh-title" id="tituloEmpresas">Empresas que confían en nosotros</h2>
+    <h2 class="sh-title" id="tituloEmpresas">Empresas que <span class="acento-marca">confían en nosotros</span></h2>
     <p class="desc-mono">Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs.</p>
   </div>
 
@@ -405,8 +418,8 @@
       <!-- Todo el encabezado agrupado a la derecha -->
       <div class="roles-main-header">
         <span class="section-marker"><span>MODELO BILATERAL</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Diseñado para Empresas<br>y Desarrolladores SENA</h2>
-        <p class="desc-mono" style="font-size: 0.88rem; color: var(--fg-dim); margin-bottom: 24px; line-height: 1.6;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
+        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">Diseñado para Empresas<br>y <span class="acento-marca">Desarrolladores SENA</span></h2>
+        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti.</p>
       </div>
 
       <!-- Selector de rol interactivo con iconos Lucide -->
@@ -432,7 +445,7 @@
         <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
           <div class="role-info-col">
             <div class="rp-label">Para Empresas y Startups</div>
-            <h3 class="role-stage-title">Impulsa tus proyectos con talento SENA verificado</h3>
+            <h3 class="role-stage-title">Impulsa tus proyectos con <span class="acento-marca">talento SENA</span> verificado</h3>
             <p class="role-stage-desc">Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total.</p>
             
             <ul class="role-stage-features">
@@ -447,8 +460,8 @@
         <!-- Panel Desarrollador / Aprendiz -->
         <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
           <div class="role-info-col">
-            <div class="rp-label" style="color:var(--accent);">Para Aprendices y Egresados SENA</div>
-            <h3 class="role-stage-title">Construye tu carrera profesional con proyectos reales</h3>
+            <div class="rp-label rp-label--accent">Para Aprendices y Egresados SENA</div>
+            <h3 class="role-stage-title">Construye tu carrera profesional con <span class="acento-marca">proyectos reales</span></h3>
             <p class="role-stage-desc">Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales.</p>
             
             <ul class="role-stage-features">
@@ -606,7 +619,7 @@
 
   <div class="section-inner cta-hero-content reveal">
     <span class="section-marker"><span>// MODULE_06: BEGIN_PROTOCOL</span></span>
-    <h2 class="sh-title" id="tituloComenzar">Inicia tu <span style="color:var(--accent);">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
+    <h2 class="sh-title" id="tituloComenzar">Inicia tu <span class="cta-accent">proyecto</span>.<br><span class="text-stroke">Sin</span> vueltas.</h2>
     <a href="{% url 'registro' %}" class="cta-hero-btn">[ CREAR CUENTA ]</a>
   </div>
 </section>

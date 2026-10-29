@@ -572,19 +572,16 @@ document.addEventListener('DOMContentLoaded', function () {
      ============================ */
   var CLAVE_TEMA = 'jobdevs-theme';
   var botonTema = document.getElementById('themeToggle');
-  var iconoTema = document.getElementById('themeToggleIcon');
-  var etiquetaTema = document.getElementById('themeToggleLabel');
 
   function temaActual() {
     return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
   }
 
+  // El switch muestra las dos posiciones: el estado lo comunica aria-pressed y
+  // el CSS enciende el icono que corresponde, así que acá sólo se expone el estado.
   function pintarBotonTema(tema) {
     if (!botonTema) return;
-    var esClaro = tema === 'light';
-    botonTema.setAttribute('aria-pressed', esClaro ? 'true' : 'false');
-    if (iconoTema) iconoTema.className = esClaro ? 'fa fa-sun' : 'fa fa-moon';
-    if (etiquetaTema) etiquetaTema.textContent = esClaro ? 'CLARO' : 'OSCURO';
+    botonTema.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
   }
 
   function aplicarTema(tema, recordar) {

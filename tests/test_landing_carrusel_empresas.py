@@ -48,7 +48,9 @@ class TestCarruselEmpresasLanding:
         )
 
     def test_titular_visible_empresas_que_confian(self, bloque_empresas):
-        assert 'Empresas que confían en nosotros' in bloque_empresas
+        # La frase puede venir con la parte de marca envuelta en un span.
+        assert 'Empresas que' in bloque_empresas
+        assert 'confían en nosotros' in bloque_empresas
 
     def test_pista_duplicada_para_desplazamiento_continuo(self, bloque_empresas):
         pistas = re.findall(r'class="[^"]*logos-marquee-track[^"]*"', bloque_empresas)

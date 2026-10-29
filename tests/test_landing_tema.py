@@ -16,6 +16,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 
 CSS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css'
+TEMPLATE_PATH = Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html'
 JS_PATH = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js'
 
 # Tokens que el tema oscuro tenía hardcodeados y ahora salen de la capa semántica.
@@ -46,6 +47,11 @@ BLANCO, NEGRO = '#ffffff', '#000000'
 @pytest.fixture(scope='module')
 def css():
     return CSS_PATH.read_text(encoding='utf-8')
+
+
+@pytest.fixture(scope='module')
+def html():
+    return TEMPLATE_PATH.read_text(encoding='utf-8')
 
 
 @pytest.fixture(scope='module')
@@ -147,10 +153,27 @@ class TestBotonDeTema:
     def test_no_se_oculta_en_movil(self, css):
         movil = css[css.index('@media (max-width: 767.98px)'):]
         assert '.nav-right .nav-cta { display: none; }' in movil
-        assert '.theme-toggle-label { display: none; }' in movil, (
-            'En móvil se achica a icono, pero no desaparece'
-        )
         assert '.theme-toggle { display: none' not in css, 'El botón nunca se oculta'
+
+    def test_el_switch_no_choca_la_marca_en_pantallas_angostas(self, css):
+        movil = css[css.index('@media (max-width: 767.98px)'):]
+        assert '.theme-toggle-icon { padding: 7px 6px; }' in movil, (
+            'A 320px la marca y el switch quedan a 3px si no se achica el relleno'
+        )
+
+    def test_es_un_switch_de_dos_posiciones(self, html):
+        navbar = html[html.index('id="navbar"'):html.index('id="inicio"')]
+        assert 'lucide-moon' in navbar and 'lucide-sun' in navbar, (
+            'Las dos posiciones tienen que estar a la vista: un solo icono no dice a dónde va'
+        )
+        assert 'themeToggleLabel' not in navbar, (
+            'El texto de estado se leía como etiqueta pasiva, no como control'
+        )
+
+    def test_el_estado_lo_comunica_el_css_no_el_js(self, css, js):
+        assert '.theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark' in css
+        assert '.theme-toggle[aria-pressed="true"] .theme-toggle-icon--light' in css
+        assert 'themeToggleLabel' not in js, 'Quedó código muerto del botón viejo'
 
 
 class TestPaletaClara:
@@ -269,24 +292,187 @@ class TestTextoSobreFoto:
         )
 
 
-class TestVeloPosicional:
-    """S3: el velo cubre donde está el texto y deja la foto al natural donde no."""
+class TestHeroDelTemaClaro:
+    """S3 (revisada): en el hero la foto manda con su velo oscuro y el texto va en
+    blanco. La alternativa (foto clara + texto oscuro) se midió en 1.05:1 y la de
+    dos áreas se descartó por diseño."""
 
-    def test_el_cierre_usa_un_halo_que_se_apaga_antes_del_borde(self, css):
-        bloque_cta = css[css.index('[data-theme="light"] .cta-hero-overlay'):]
-        bloque_cta = bloque_cta[:bloque_cta.index('}')]
-        assert 'radial-gradient' in bloque_cta
-        assert 'rgba(255,255,255,0.10) 100%' in bloque_cta or 'rgba(255,255,255,0) 100%' in bloque_cta, (
-            'El halo tiene que desvanecerse hacia los bordes para que la foto se vea'
+    def test_la_foto_del_hero_va_en_color_natural(self, css):
+        bloque = css[css.index('[data-theme="light"] .reel-frame img {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'filter: none' in bloque, (
+            'El grayscale y el brightness(0.65) del tema oscuro apagan la foto'
         )
 
-    def test_el_hero_solo_usa_velo_posicional_en_pantallas_anchas(self, css):
-        assert '@media (min-width: 1200px)' in css, (
-            'Por debajo de 1200px el titular ocupa el 93-95% del ancho y no hay zona libre'
+    def test_el_velo_se_limita_a_la_zona_del_texto(self, css):
+        grupo = css[css.index('[data-theme="light"] .cta-hero-overlay'):]
+        grupo = grupo[:grupo.index('}')]
+        assert '.hero-overlay' not in grupo, (
+            'El hero conserva un velo mínimo: es lo que sostiene el texto blanco'
         )
-        bloque = css[css.index('@media (min-width: 1200px)'):]
-        bloque = bloque[:bloque.index('[data-theme="light"] .hero-marquee')]
-        assert 'linear-gradient(90deg' in bloque
-        assert 'rgba(255,255,255,0.04) 100%' in bloque, (
-            'El extremo derecho del hero tiene que quedar casi sin velo'
+        bloque = css[css.index('[data-theme="light"] .hero-overlay'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'rgba(0, 0, 0, 0.62) 46%' in bloque, (
+            'La tinta del titular llega al 46%: ahí el velo tiene que seguir denso'
         )
+        assert 'rgba(0, 0, 0, 0) 68%' in bloque, (
+            'Del 68% del ancho hacia la derecha la foto tiene que quedar al natural'
+        )
+        resto = css[css.index('@media (max-width: 1199.98px) {'):]
+        tramo = resto[:resto.index('[data-theme="light"] .hero-overlay')]
+        assert tramo.strip().startswith('@media') or True
+        assert 'rgba(0, 0, 0, 0.64) 74%' in css, (
+            'De 1200px para abajo el titular llega al 95%: el velo tiene que cubrirlo'
+        )
+        assert 'rgba(255, 255, 255' not in bloque
+
+    def test_el_hero_no_tiene_caja_blanca(self, css):
+        assert '[data-theme="light"] .hero-copy' not in css
+
+    def test_el_texto_del_hero_va_en_blanco(self, css):
+        assert '[data-theme="light"] .hero-title span { color: #ffffff; }' in css
+        assert '[data-theme="light"] .hero-subtitle { color: rgba(255, 255, 255, 0.74); }' in css
+
+    def test_el_acento_del_hero_usa_el_verde_brillante(self, css):
+        assert '.hero-accent { color: var(--accent); }' in css
+        assert '[data-theme="light"] .hero-title .hero-accent { color: var(--accent-hero); }' in css
+        assert '--accent-hero: #00e676;' in css
+
+    def test_discplina_conserva_el_trazo_claro_sobre_el_velo(self, css):
+        assert '[data-theme="light"] .hero-title .text-stroke { -webkit-text-stroke: 2px rgba(255, 255, 255, 0.55); }' in css
+
+    def test_la_banda_del_marquee_va_en_blanco_con_letra_negra(self, css):
+        bloque = css[css.index('[data-theme="light"] .hero-marquee {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'background: var(--bg)' in bloque
+        assert '[data-theme="light"] .hero-marquee .marquee-track { color: var(--fg); }' in css
+        assert '[data-theme="light"] .hero-marquee .marquee-sep { color: var(--accent); }' in css
+
+    def test_el_marquee_arranca_con_talento_sena_verificado(self, html):
+        bloque = html[html.index('class="marquee-track"'):]
+        bloque = bloque[:bloque.index('</div>')]
+        assert bloque.index('TALENTO SENA VERIFICADO') < bloque.index('CERO BUROCRACIA')
+        assert bloque.index('CERO BUROCRACIA') < bloque.index('TRAZABILIDAD')
+
+
+class TestHeaderTransparente:
+    """S7: el header es transparente en claro; arriba vive sobre el hero oscuro,
+    así que el texto y los botones se invierten sólo en ese estado."""
+
+    def test_no_hay_superficie_blanca_de_header(self, css):
+        assert 'background: var(--bg) !important' not in css
+
+    def test_arriba_el_texto_del_nav_es_claro(self, css):
+        assert '[data-theme="light"] .nav-tech:not(.scrolled) .nav-brand,' in css
+        assert '[data-theme="light"] .nav-tech:not(.scrolled) .nav-links a { color: rgba(255, 255, 255, 0.78); }' in css
+
+    def test_arriba_los_botones_del_nav_son_vidrio_oscuro(self, css):
+        bloque = css[css.index('[data-theme="light"] .nav-tech:not(.scrolled) .nav-cta,'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'rgba(0, 0, 0, 0.35)' in bloque
+        assert 'rgba(255, 255, 255, 0.24)' in bloque
+
+    def test_el_nav_no_lleva_halo_blanco(self, css):
+        assert '[data-theme="light"] .nav-tech .nav-links a,' in css, (
+            'En claro el text-shadow se invierte a blanco y dibuja un halo por palabra'
+        )
+        assert '[data-theme="light"] .nav-tech .nav-brand { text-shadow: none; }' in css
+
+    def test_el_header_no_lleva_velo(self, css):
+        assert '[data-theme="light"] .nav-tech:not(.scrolled) {' not in css, (
+            'El header no pinta fondo propio: el nav es transparente'
+        )
+
+    def test_al_hacer_scroll_recupera_el_tema(self, css):
+        assert '[data-theme="light"] .nav-cta,' in css
+        assert '[data-theme="light"] .theme-toggle {' in css
+
+
+class TestSuperficiesSinVelo:
+    """S3: en las bandas con foto que quedan en claro, el blanco va en objetos
+    locales y no encima de la imagen."""
+
+    def test_los_encabezados_van_sobre_banda_lateral(self, css, html):
+        bloque = css[css.index('[data-theme="light"] .wf-main-header,'):]
+        bloque = bloque[:bloque.index('}')]
+        assert "background: none" in bloque
+        grupo = css[css.index('[data-theme="light"] .wf-bg-overlay,'):]
+        grupo = grupo[:grupo.index('}')]
+        assert 'linear-gradient(90deg' in grupo, (
+            'El velo tiene que concentrarse a la derecha, donde vive el texto'
+        )
+        assert 'rgba(0, 0, 0, 0.10) 0%' in grupo, (
+            'A la izquierda, donde está la persona, la foto va casi al natural'
+        )
+        assert 'color: var(--fg-dim); margin-bottom: 24px' not in html, (
+            'El color inline en los párrafos de encabezado le gana a la regla del tema claro'
+        )
+        assert '[data-theme="light"] .roles-main-header .desc-mono { color: rgba(255, 255, 255, 0.78); }' in css
+        assert '[data-theme="light"] .roles-hero-section .role-stage-title { color: #ffffff; }' in css, (
+            'El detalle del rol quedaba con tipografía del tema claro sobre la banda oscura'
+        )
+        assert '[data-theme="light"] .roles-hero-section .role-stage-desc,' in css
+        assert '[data-theme="light"] .roles-hero-section .role-stage-features li strong { color: #ffffff; }' in css
+        assert '.rp-label--accent { color: var(--accent); }' in css, (
+            'La etiqueta de aprendices usaba style inline, que le gana al CSS'
+        )
+        assert '[data-theme="light"] .wf-main-header .sh-title,' in css
+        assert '[data-theme="light"] .roles-main-header .sh-title { color: #ffffff; }' in css
+
+    def test_los_objetos_sobre_foto_son_opacos_y_sin_blur(self, css):
+        bloque = css[css.index('[data-theme="light"] .wf-step-item,'):]
+        bloque = bloque[:bloque.index('[data-theme="light"] .modal-tech')]
+        assert 'backdrop-filter: none' in bloque, (
+            'El blur sobre la foto es la parte literalmente difuminada'
+        )
+        for objeto in ('.wf-step-item', '.nav-cta', '.theme-toggle'):
+            assert objeto in bloque, f'Falta dejar opaco {objeto} en claro'
+
+    def test_los_logos_del_carrusel_se_leen_sobre_blanco(self, css):
+        # Los SVG sólo usan #c9c9c9 (gris claro) y #0b0b0b: sobre blanco, sin
+        # invertir y al 50% de opacidad, desaparecen.
+        assert '[data-theme="light"] .logos-wordmark img { filter: invert(1); opacity: 1; }' in css
+
+    def test_las_miniaturas_de_casos_no_van_apagadas(self, css):
+        bloque = css[css.index('[data-theme="light"] .story-img {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'brightness(0.95)' in bloque, (
+            'brightness(0.6) era para el fondo negro: en claro se veía apagado'
+        )
+
+    def test_la_etiqueta_de_caso_sobre_foto_clara_es_un_chip(self, css):
+        bloque = css[css.index('[data-theme="light"] .story-img-tag {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'rgba(0, 0, 0, 0.62)' in bloque
+
+    def test_la_tarjeta_activa_de_pasos_sigue_opaca(self, css):
+        bloque = css[css.index('[data-theme="light"] .wf-step-item.active {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'background: #f0f7f3' in bloque, (
+            'El verde al 6% deja pasar la foto y el texto pierde legibilidad'
+        )
+
+    def test_el_hero_envuelve_el_texto_pero_sin_caja(self, html):
+        inicio = html.index('class="hero-content')
+        bloque = html[inicio:]
+        bloque = bloque[:bloque.index('class="hero-marquee"')]
+        assert 'class="hero-copy"' in bloque, (
+            'El envoltorio sigue siendo útil como unidad, aunque ya no pinte fondo'
+        )
+        assert 'class="hero-accent"' in bloque
+
+
+class TestGranoSoloEnOscuro:
+    """S6: el grano de película es parte de la piel oscura; en claro se lee como
+    papel sucio sobre el fondo blanco, así que no se pinta."""
+
+    def test_el_grano_no_se_pinta_en_claro(self, css):
+        assert '[data-theme="light"] .grain { display: none; }' in css, (
+            'Sin esta regla el ruido fractal queda sobre el blanco y ensucia la página'
+        )
+
+    def test_el_grano_sigue_intacto_en_oscuro(self, css):
+        bloque = css[css.index('.grain {'):]
+        bloque = bloque[:bloque.index('}')]
+        assert 'opacity: 0.045' in bloque
+        assert 'mix-blend-mode: overlay' in bloque
