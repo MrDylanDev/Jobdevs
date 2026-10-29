@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 22:49-0500\n"
+"POT-Creation-Date: 2026-10-29 00:38-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,50 +25,15 @@ msgstr "Django site admin"
 msgid "Django administration"
 msgstr "Django administration"
 
-#: templates/admin/login.html:7
-msgid "JobDevs | Admin"
-msgstr "JobDevs | Admin"
-
-#: templates/admin/login.html:102
-msgid "Panel de Administración"
-msgstr "Administration Panel"
-
-#: templates/admin/login.html:109
-msgid "Usuario o contraseña incorrectos."
-msgstr "Incorrect username or password."
-
-#: templates/admin/login.html:121
-msgid ", no tenés permisos de administrador."
-msgstr ", you do not have administrator permissions."
-
-#: templates/admin/login.html:122 templates/admin/login.html:145
-msgid "← Volver al inicio"
-msgstr "← Back to home"
-
-#: templates/admin/login.html:129
-msgid "USUARIO"
-msgstr "USERNAME"
-
-#: templates/admin/login.html:130
-msgid "admin"
-msgstr "admin"
-
-#: templates/admin/login.html:133 templates/publico/index.html:728
-#: templates/publico/registro.html:119
-msgid "CONTRASEÑA"
-msgstr "PASSWORD"
-
-#: templates/admin/login.html:140 templates/publico/index.html:99
-#: templates/publico/index.html:733
-msgid "[ INGRESAR ]"
-msgstr "[ SIGN IN ]"
-
 #: templates/publico/index.html:7
 msgid ""
 "JobDevs — El sistema operativo del talento SENA. Contrata aprendices "
 "verificados o construye tu portafolio con proyectos reales: contratos "
 "digitales, hitos con evidencia y reputación verificable."
-msgstr "JobDevs — The operating system for SENA talent. Hire verified apprentices or build your portfolio with real projects: digital contracts, milestone evidence and verifiable reputation."
+msgstr ""
+"JobDevs — The operating system for SENA talent. Hire verified apprentices or "
+"build your portfolio with real projects: digital contracts, milestone "
+"evidence and verifiable reputation."
 
 #: templates/publico/index.html:8
 msgid "JobDevs — El sistema operativo del talento SENA"
@@ -78,7 +43,9 @@ msgstr "JobDevs — The operating system for SENA talent"
 msgid ""
 "Contrata talento SENA verificado o construye tu portafolio con proyectos "
 "reales. Contratos digitales, hitos con evidencia y reputación verificable."
-msgstr "Hire verified SENA talent or build your portfolio with real projects. Digital contracts, milestone evidence and verifiable reputation."
+msgstr ""
+"Hire verified SENA talent or build your portfolio with real projects. "
+"Digital contracts, milestone evidence and verifiable reputation."
 
 #: templates/publico/index.html:75
 msgid "Qué es"
@@ -115,6 +82,10 @@ msgstr "Light theme"
 #: templates/publico/index.html:91
 msgid "Cambiar entre tema oscuro y claro"
 msgstr "Switch between dark and light theme"
+
+#: templates/publico/index.html:99 templates/publico/index.html:734
+msgid "[ INGRESAR ]"
+msgstr "[ SIGN IN ]"
 
 #: templates/publico/index.html:100
 msgid "[ MENU ]"
@@ -164,7 +135,9 @@ msgstr "TALENT."
 msgid ""
 "El puente directo entre empresas y desarrolladores SENA. "
 "Sin&nbsp;intermediarios, solo resultados."
-msgstr "The direct bridge between companies and SENA developers. No&nbsp;middlemen, just results."
+msgstr ""
+"The direct bridge between companies and SENA developers. No&nbsp;middlemen, "
+"just results."
 
 #: templates/publico/index.html:150
 msgid "Inicializar Proyecto"
@@ -231,7 +204,10 @@ msgid ""
 "La infraestructura donde una empresa y un aprendiz firman un contrato de "
 "software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento "
 "SENA verificado, sin intermediarios."
-msgstr "The infrastructure where a company and an apprentice sign a software contract, execute it in milestones and leave evidence of every delivery. Verified SENA talent, no middlemen."
+msgstr ""
+"The infrastructure where a company and an apprentice sign a software "
+"contract, execute it in milestones and leave evidence of every delivery. "
+"Verified SENA talent, no middlemen."
 
 #: templates/publico/index.html:202 templates/publico/index.html:235
 msgid "Publicar Proyecto"
@@ -257,7 +233,9 @@ msgstr "OPERATING MODEL"
 msgid ""
 "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega "
 "auditada en producción sin intermediarios."
-msgstr "End-to-end traceability, step by step. From the technical requirement to the audited delivery in production, with no middlemen."
+msgstr ""
+"End-to-end traceability, step by step. From the technical requirement to the "
+"audited delivery in production, with no middlemen."
 
 #: templates/publico/index.html:227
 msgid "Etapas del proceso"
@@ -268,7 +246,7 @@ msgid "// FASE_01"
 msgstr "// PHASE_01"
 
 #: templates/publico/index.html:233 templates/publico/index.html:672
-#: templates/publico/registro.html:56
+#: templates/publico/registro.html:72
 msgid "Empresa"
 msgstr "Company"
 
@@ -276,7 +254,9 @@ msgstr "Company"
 msgid ""
 "La empresa define la solución técnica requerida, vacantes, stack sugerido y "
 "fechas estimadas."
-msgstr "The company defines the required technical solution, open positions, suggested stack and estimated dates."
+msgstr ""
+"The company defines the required technical solution, open positions, "
+"suggested stack and estimated dates."
 
 #: templates/publico/index.html:238
 msgid "Publicación ágil sin costos de registro."
@@ -298,7 +278,9 @@ msgstr "Match & signing"
 msgid ""
 "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y "
 "se formaliza el Contrato Digital."
-msgstr "SENA apprentices with an official record apply. The company evaluates, accepts and the digital contract is formalized."
+msgstr ""
+"SENA apprentices with an official record apply. The company evaluates, "
+"accepts and the digital contract is formalized."
 
 #: templates/publico/index.html:252
 msgid "Validación académica contra el padrón oficial SENA."
@@ -320,7 +302,9 @@ msgstr "Development"
 msgid ""
 "Ejecución estructurada por entregables. Cada avance incluye evidencia "
 "técnica auditable en Cloudflare R2."
-msgstr "Structured execution by deliverables. Every progress update includes technical evidence auditable in Cloudflare R2."
+msgstr ""
+"Structured execution by deliverables. Every progress update includes "
+"technical evidence auditable in Cloudflare R2."
 
 #: templates/publico/index.html:266
 msgid "Revisión obligatoria: aprobar o solicitar corrección."
@@ -343,7 +327,9 @@ msgstr "Closing"
 msgid ""
 "100%% de hitos completados. Cierre formal del contrato con hash SHA-256 y "
 "valoración bilateral de reputación."
-msgstr "100%% of milestones completed. Formal contract closing with SHA-256 hashing and two-way reputation rating."
+msgstr ""
+"100%% of milestones completed. Formal contract closing with SHA-256 hashing "
+"and two-way reputation rating."
 
 #: templates/publico/index.html:280
 msgid "Sello inmutable del contrato para validez legal."
@@ -369,7 +355,9 @@ msgstr "trust in us"
 msgid ""
 "Compañías colombianas que ya construyen su software con aprendices y "
 "egresados SENA verificados a través de JobDevs."
-msgstr "Colombian companies already building their software with verified SENA apprentices and graduates through JobDevs."
+msgstr ""
+"Colombian companies already building their software with verified SENA "
+"apprentices and graduates through JobDevs."
 
 #: templates/publico/index.html:307
 msgid "Empresas colombianas que contratan talento SENA"
@@ -459,13 +447,15 @@ msgstr "SENA Developers"
 msgid ""
 "Selecciona tu rol para conocer el flujo, las herramientas y las garantías "
 "que JobDevs tiene para ti."
-msgstr "Pick your role to see the flow, the tools and the guarantees JobDevs has for you."
+msgstr ""
+"Pick your role to see the flow, the tools and the guarantees JobDevs has for "
+"you."
 
 #: templates/publico/index.html:432
 msgid "Selector de rol"
 msgstr "Role selector"
 
-#: templates/publico/index.html:437 templates/publico/registro.html:31
+#: templates/publico/index.html:437 templates/publico/registro.html:47
 msgid "EMPRESA"
 msgstr "COMPANY"
 
@@ -494,7 +484,10 @@ msgid ""
 "Publica requerimientos de software reales, evalúa postulaciones de "
 "aprendices con portafolio y calificaciones verificadas, y gestiona entregas "
 "mediante hitos auditables con trazabilidad total."
-msgstr "Publish real software requirements, evaluate apprentice applications with portfolios and verified ratings, and manage deliveries through auditable milestones with full traceability."
+msgstr ""
+"Publish real software requirements, evaluate apprentice applications with "
+"portfolios and verified ratings, and manage deliveries through auditable "
+"milestones with full traceability."
 
 #: templates/publico/index.html:458
 msgid "Publicación ágil:"
@@ -503,7 +496,9 @@ msgstr "Fast publishing:"
 #: templates/publico/index.html:458
 msgid ""
 "define stack técnico, vacantes y fechas estimadas sin costos de registro."
-msgstr "set the technical stack, open positions and estimated dates with no registration fees."
+msgstr ""
+"set the technical stack, open positions and estimated dates with no "
+"registration fees."
 
 #: templates/publico/index.html:459
 msgid "Selección directa:"
@@ -520,7 +515,9 @@ msgstr "Milestone control:"
 #: templates/publico/index.html:460
 msgid ""
 "aprueba avances con evidencia técnica documentada antes de liberar pagos."
-msgstr "approve progress with documented technical evidence before releasing payments."
+msgstr ""
+"approve progress with documented technical evidence before releasing "
+"payments."
 
 #: templates/publico/index.html:461
 msgid "Seguridad jurídica:"
@@ -528,7 +525,8 @@ msgstr "Legal certainty:"
 
 #: templates/publico/index.html:461
 msgid "contratos digitales con hash criptográfico SHA-256 y mediación formal."
-msgstr "digital contracts with SHA-256 cryptographic hashing and formal mediation."
+msgstr ""
+"digital contracts with SHA-256 cryptographic hashing and formal mediation."
 
 #: templates/publico/index.html:469
 msgid "Para Aprendices y Egresados SENA"
@@ -547,7 +545,10 @@ msgid ""
 "Valida tu número de ficha académica, postúlate a requerimientos de software "
 "en empresas activas y acumula experiencia real en producción con "
 "calificaciones públicas y contratos formales."
-msgstr "Validate your academic record number, apply to software requirements at active companies and build real production experience with public ratings and formal contracts."
+msgstr ""
+"Validate your academic record number, apply to software requirements at "
+"active companies and build real production experience with public ratings "
+"and formal contracts."
 
 #: templates/publico/index.html:474
 msgid "Validación oficial:"
@@ -564,7 +565,8 @@ msgstr "Direct application:"
 #: templates/publico/index.html:475
 msgid ""
 "carta de presentación técnica y límite responsable de 3 vacantes simultáneas."
-msgstr "technical cover letter and a responsible limit of 3 simultaneous openings."
+msgstr ""
+"technical cover letter and a responsible limit of 3 simultaneous openings."
 
 #: templates/publico/index.html:476
 msgid "Experiencia en producción:"
@@ -604,7 +606,9 @@ msgstr "in production."
 msgid ""
 "Empresas que confiaron el desarrollo de sus plataformas críticas a "
 "desarrolladores del SENA a través de JobDevs."
-msgstr "Companies that trusted SENA developers with their critical platforms through JobDevs."
+msgstr ""
+"Companies that trusted SENA developers with their critical platforms through "
+"JobDevs."
 
 #: templates/publico/index.html:501
 msgid "FINTECH"
@@ -806,7 +810,9 @@ msgstr "[ CREATE ACCOUNT ]"
 msgid ""
 "Plataforma que conecta empresas con talento SENA para el desarrollo de "
 "software. Medellín, Colombia."
-msgstr "Platform connecting companies with SENA talent for software development. Medellín, Colombia."
+msgstr ""
+"Platform connecting companies with SENA talent for software development. "
+"Medellín, Colombia."
 
 #: templates/publico/index.html:640
 msgid "Contacto y Soporte"
@@ -828,7 +834,9 @@ msgstr "What is JobDevs?"
 msgid ""
 "Plataforma que conecta empresas con talento del SENA para el desarrollo de "
 "software colaborativo."
-msgstr "Platform connecting companies with SENA talent for collaborative software development."
+msgstr ""
+"Platform connecting companies with SENA talent for collaborative software "
+"development."
 
 #: templates/publico/index.html:655
 msgid "¿Cómo funciona?"
@@ -838,7 +846,9 @@ msgstr "How does it work?"
 msgid ""
 "La empresa publica un proyecto, los desarrolladores SENA postulan, la "
 "empresa elige y se trabaja por hitos verificables."
-msgstr "The company publishes a project, SENA developers apply, the company chooses and work proceeds in verifiable milestones."
+msgstr ""
+"The company publishes a project, SENA developers apply, the company chooses "
+"and work proceeds in verifiable milestones."
 
 #: templates/publico/index.html:659
 msgid "¿Tiene costo?"
@@ -848,7 +858,9 @@ msgstr "Does it cost anything?"
 msgid ""
 "El registro en la plataforma es gratuito. Los términos del proyecto se "
 "acuerdan entre empresa y desarrollador."
-msgstr "Registration on the platform is free. Project terms are agreed between company and developer."
+msgstr ""
+"Registration on the platform is free. Project terms are agreed between "
+"company and developer."
 
 #: templates/publico/index.html:663
 msgid "¿Quiénes pueden participar?"
@@ -858,7 +870,8 @@ msgstr "Who can participate?"
 msgid ""
 "Empresas con necesidades de desarrollo de software y desarrolladores "
 "vinculados al SENA."
-msgstr "Companies with software development needs and developers linked to SENA."
+msgstr ""
+"Companies with software development needs and developers linked to SENA."
 
 #: templates/publico/index.html:670
 msgid "Perfiles"
@@ -900,7 +913,7 @@ msgstr "JobDevs · SENA Ecosystem"
 msgid "Conectando empresas y talento verificado"
 msgstr "Connecting companies and verified talent"
 
-#: templates/publico/index.html:703 templates/publico/registro.html:18
+#: templates/publico/index.html:703 templates/publico/registro.html:34
 msgid "CREAR CUENTA"
 msgstr "CREATE ACCOUNT"
 
@@ -912,64 +925,69 @@ msgstr "AUTHENTICATION"
 msgid "Close"
 msgstr "Close"
 
-#: templates/publico/index.html:723
+#: templates/publico/index.html:724
 msgid "CORREO O USUARIO"
 msgstr "EMAIL OR USERNAME"
 
-#: templates/publico/index.html:724
+#: templates/publico/index.html:725
 msgid "ejemplo@correo.com o tu usuario"
 msgstr "name@email.com or your username"
 
-#: templates/publico/index.html:737
+#: templates/publico/index.html:729 templates/publico/registro.html:135
+msgid "CONTRASEÑA"
+msgstr "PASSWORD"
+
+#: templates/publico/index.html:738
 msgid "¿Primera vez? Regístrate"
 msgstr "First time here? Sign up"
 
-#: templates/publico/index.html:739
+#: templates/publico/index.html:740
 msgid "RECUPERAR ACCESO"
 msgstr "RECOVER ACCESS"
 
-#: templates/publico/index.html:747 templates/publico/registro.html:69
+#: templates/publico/index.html:748 templates/publico/registro.html:85
 msgid "CORREO ELECTRÓNICO"
 msgstr "EMAIL ADDRESS"
 
-#: templates/publico/index.html:748 templates/publico/registro.html:70
+#: templates/publico/index.html:749 templates/publico/registro.html:86
 msgid "ejemplo@correo.com"
 msgstr "name@email.com"
 
-#: templates/publico/index.html:750
+#: templates/publico/index.html:751
 msgid "[ ENVIAR INSTRUCCIONES ]"
 msgstr "[ SEND INSTRUCTIONS ]"
 
-#: templates/publico/index.html:753 templates/publico/index.html:784
+#: templates/publico/index.html:754 templates/publico/index.html:785
 msgid "&larr; VOLVER AL INICIO DE SESIÓN"
 msgstr "&larr; BACK TO SIGN IN"
 
-#: templates/publico/index.html:769
+#: templates/publico/index.html:770
 msgid "Solicitud recibida"
 msgstr "Request received"
 
-#: templates/publico/index.html:770
+#: templates/publico/index.html:771
 msgid "Recibimos tu solicitud. Te contactaremos pronto."
 msgstr "We received your request. We will contact you soon."
 
-#: templates/publico/index.html:780
+#: templates/publico/index.html:781
 msgid "AUTENTICACIÓN SEGURA"
 msgstr "SECURE AUTHENTICATION"
 
-#: templates/publico/index.html:781
+#: templates/publico/index.html:782
 msgid "RECUPERAR CONTRASEÑA"
 msgstr "RECOVER PASSWORD"
 
-#: templates/publico/index.html:782
+#: templates/publico/index.html:783
 msgid "[ ENVIANDO... ]"
 msgstr "[ SENDING... ]"
 
-#: templates/publico/index.html:783
+#: templates/publico/index.html:784
 msgid ""
 "Si el correo existe, recibirás instrucciones para restablecer tu contraseña."
-msgstr "If the email exists, you will receive instructions to reset your password."
+msgstr ""
+"If the email exists, you will receive instructions to reset your password."
 
-#: templates/publico/index.html:785
+#: templates/publico/index.html:786
 msgid "Error de conexión. Intenta de nuevo."
 msgstr "Connection error. Please try again."
 
@@ -977,81 +995,92 @@ msgstr "Connection error. Please try again."
 msgid "Registro | JobDevs"
 msgstr "Sign up | JobDevs"
 
-#: templates/publico/registro.html:19
+#: templates/publico/registro.html:35
 msgid "Únete al ecosistema profesional de talento SENA y empresas en Colombia."
-msgstr "Join the professional ecosystem of SENA talent and companies in Colombia."
+msgstr ""
+"Join the professional ecosystem of SENA talent and companies in Colombia."
 
-#: templates/publico/registro.html:27
+#: templates/publico/registro.html:43
 msgid "DESARROLLADOR"
 msgstr "DEVELOPER"
 
-#: templates/publico/registro.html:55
+#: templates/publico/registro.html:71
 msgid "Desarrollador"
 msgstr "Developer"
 
-#: templates/publico/registro.html:61
+#: templates/publico/registro.html:77
 msgid "NOMBRE COMPLETO"
 msgstr "FULL NAME"
 
-#: templates/publico/registro.html:62
+#: templates/publico/registro.html:78
 msgid "Ej: Alejandro Pérez"
 msgstr "e.g. Alejandro Pérez"
 
-#: templates/publico/registro.html:77
+#: templates/publico/registro.html:93
 msgid "TIPO DE DOCUMENTO"
 msgstr "DOCUMENT TYPE"
 
-#: templates/publico/registro.html:85
+#: templates/publico/registro.html:101
 msgid "SECTOR EMPRESARIAL"
 msgstr "INDUSTRY"
 
-#: templates/publico/registro.html:86
+#: templates/publico/registro.html:102
 msgid "Ej: Tecnología, Salud, Alimentos..."
 msgstr "e.g. Technology, Health, Food..."
 
-#: templates/publico/registro.html:93
+#: templates/publico/registro.html:109
 msgid "CIUDAD DE OPERACIÓN"
 msgstr "CITY OF OPERATION"
 
-#: templates/publico/registro.html:94
+#: templates/publico/registro.html:110
 msgid "Ej: Bogotá, Medellín, Cali..."
 msgstr "e.g. Bogotá, Medellín, Cali..."
 
-#: templates/publico/registro.html:101
+#: templates/publico/registro.html:117 templates/publico/registro.html:166
 msgid "NÚMERO DE IDENTIFICACIÓN"
 msgstr "ID NUMBER"
 
-#: templates/publico/registro.html:102
+#: templates/publico/registro.html:118
 msgid "Ej: 1002345678"
 msgstr "e.g. 1002345678"
 
-#: templates/publico/registro.html:109
+#: templates/publico/registro.html:125
 msgid "FECHA DE NACIMIENTO"
 msgstr "DATE OF BIRTH"
 
-#: templates/publico/registro.html:114
+#: templates/publico/registro.html:130
 msgid "Recuerda que debes ser mayor de edad."
 msgstr "Remember you must be of legal age."
 
-#: templates/publico/registro.html:124
+#: templates/publico/registro.html:140
 msgid "Mín. 8 caracteres alfanuméricos."
 msgstr "Min. 8 alphanumeric characters."
 
-#: templates/publico/registro.html:129
+#: templates/publico/registro.html:145
 msgid "CONFIRMAR CONTRASEÑA"
 msgstr "CONFIRM PASSWORD"
 
-#: templates/publico/registro.html:136
+#: templates/publico/registro.html:152
 msgid "[ COMPLETAR REGISTRO ]"
 msgstr "[ COMPLETE SIGN UP ]"
 
-#: templates/publico/registro.html:140
+#: templates/publico/registro.html:156
 msgid "¿Ya tienes una cuenta?"
 msgstr "Already have an account?"
 
-#: templates/publico/registro.html:140
+#: templates/publico/registro.html:156
 msgid "INICIA SESIÓN"
 msgstr "SIGN IN"
+
+#: templates/publico/registro.html:165
+msgid "NIT O NÚMERO DE IDENTIFICACIÓN"
+msgstr "NIT OR ID NUMBER"
+
+#: templates/publico/registro.html:167
+msgid ""
+"Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar."
+msgstr ""
+"The passwords you entered do not match. Please check them and try again."
 
 #: usuarios/validators.py:9
 msgid "La contraseña debe tener al menos 8 caracteres."
@@ -1073,4 +1102,13 @@ msgstr "The password must contain at least one number."
 msgid ""
 "Tu contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una "
 "minúscula y un número."
-msgstr "Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter and a number."
+msgstr ""
+"Your password must be at least 8 characters long and include an uppercase "
+"letter, a lowercase letter and a number."
+
+
+
+
+
+
+

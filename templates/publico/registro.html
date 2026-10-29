@@ -158,6 +158,15 @@
     </div>
   </div>
 
-  <script src="{% static 'publico/script/registro.js' %}"></script>
+  <!-- Textos que el JavaScript necesita traducidos: el JS no guarda copias en
+       español, los lee de acá. -->
+  <script type="application/json" id="textos-i18n">
+  {
+    "docNit": "{% trans 'NIT O NÚMERO DE IDENTIFICACIÓN' %}",
+    "docNumero": "{% trans 'NÚMERO DE IDENTIFICACIÓN' %}",
+    "passwordMismatch": "{% trans 'Las contraseñas ingresadas no coinciden. Verifícalas y vuelve a intentar.' %}"
+  }
+  </script>
+  <script src="{% asset 'publico/script/registro.js' %}"></script>
 </body>
 </html>

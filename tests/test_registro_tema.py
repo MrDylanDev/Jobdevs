@@ -98,3 +98,32 @@ class TestPanelSobreLaFoto:
         assert '.register-image-content h2 {\n  font-family: var(--font-main);\n  font-size: 2.2rem;\n  font-weight: 700;\n  color: var(--fg);' in css, (
             'La regla base del oscuro tiene que seguir usando --fg'
         )
+
+
+class TestJsDelRegistro:
+    """El JS del registro no guarda copias en español y su URL lleva versión."""
+
+    def test_el_script_lleva_version(self, html):
+        assert "{% asset 'publico/script/registro.js' %}" in html, (
+            'Sin versión en la URL, el navegador sigue usando el JS viejo'
+        )
+
+    def test_los_textos_viven_en_el_bloque_traduducible(self, html):
+        assert 'id="textos-i18n"' in html
+        for clave in ('docNit', 'docNumero', 'passwordMismatch'):
+            assert f'"{clave}"' in html, f'Falta el texto {clave}'
+
+    def test_el_js_ya_no_hardcodea_etiquetas(self):
+        js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'registro.js').read_text(encoding='utf-8')
+        assert "texto('docNit'" in js and "texto('passwordMismatch'" in js
+        assert "innerText = 'NIT O NÚMERO" not in js
+        assert "alert('Las contraseñas" not in js
+
+    def test_en_ingles_sirve_los_textos_en_ingles(self, client):
+        contenido = client.get('/en/registro/').content.decode()
+        assert '"docNit": "NIT OR ID NUMBER"' in contenido
+        assert 'The passwords you entered do not match' in contenido
+
+    def test_en_espanol_sirve_los_textos_en_espanol(self, client):
+        contenido = client.get('/registro/').content.decode()
+        assert '"docNit": "NIT O NÚMERO DE IDENTIFICACIÓN"' in contenido
