@@ -45,6 +45,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    # Después de LocaleMiddleware: fija el idioma por defecto en las URLs sin
+    # prefijo, para que Accept-Language no decida el contenido de "/".
+    'config.middleware_idioma.IdiomaPorDefectoSinPrefijo',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

@@ -773,6 +773,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Textos que el JavaScript necesita traducidos: se leen desde acá en vez de
+     quedar hardcodeados en el script. -->
+<script type="application/json" id="textos-i18n">
+{
+  "authTitle": "{% trans 'AUTENTICACIÓN SEGURA' %}",
+  "recoveryTitle": "{% trans 'RECUPERAR CONTRASEÑA' %}",
+  "sending": "{% trans '[ ENVIANDO... ]' %}",
+  "recoveryOk": "{% trans 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' %}",
+  "backToLogin": "{% trans '&larr; VOLVER AL INICIO DE SESIÓN' %}",
+  "connectionError": "{% trans 'Error de conexión. Intenta de nuevo.' %}"
+}
+</script>
+
 <script src="{% static 'publico/script/index.js' %}"></script>
 
 <div class="cursor-dot" id="cursorDot"></div>

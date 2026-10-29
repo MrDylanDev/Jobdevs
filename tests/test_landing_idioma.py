@@ -85,3 +85,63 @@ class TestConmutador:
         assert 'English' in menu or 'Español' in menu, (
             'En móvil el conmutador se esconde de la barra: tiene que estar en el menú'
         )
+
+
+class TestTextosDelJs:
+    """El JS no guarda copias en español: los textos traducibles viven en un
+    bloque JSON que llena el template."""
+
+    CLAVES = ('authTitle', 'recoveryTitle', 'sending', 'recoveryOk', 'backToLogin', 'connectionError')
+
+    def _json(self, contenido):
+        import json
+
+        trozo = contenido.split('id="textos-i18n">', 1)[1].split('</script>', 1)[0]
+        return json.loads(trozo)
+
+    def test_el_bloque_de_textos_existe_y_esta_completo(self, client):
+        datos = self._json(client.get('/').content.decode())
+        for clave in self.CLAVES:
+            assert datos.get(clave), f'Falta el texto {clave}'
+
+    def test_en_espanol_trae_los_textos_en_espanol(self, client):
+        datos = self._json(client.get('/').content.decode())
+        assert datos['authTitle'] == 'AUTENTICACIÓN SEGURA'
+        assert datos['sending'] == '[ ENVIANDO... ]'
+
+    def test_en_ingles_trae_los_textos_en_ingles(self, client):
+        datos = self._json(client.get('/en/').content.decode())
+        assert datos['authTitle'] == 'SECURE AUTHENTICATION'
+        assert datos['sending'] == '[ SENDING... ]'
+
+    def test_el_js_ya_no_hardcodea_los_titulos(self):
+        from django.conf import settings
+
+        js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text(encoding='utf-8')
+        assert "texto('authTitle'" in js and "texto('recoveryTitle'" in js
+        assert "= 'AUTENTICACIÓN SEGURA'" not in js, 'Quedó el literal en español en el JS'
+
+
+class TestUrlDeterminaElIdioma:
+    """La URL manda: `/` es español aunque el navegador pida inglés, y `/en/` es
+    inglés aunque el navegador pida español. Sin esto, Accept-Language decidía el
+    contenido de la raíz y el español se quedaba sin URL canónica."""
+
+    def test_la_raiz_ignora_accept_language_ingles(self, client):
+        respuesta = client.get('/', headers={'accept-language': 'en-US,en;q=0.9'})
+        contenido = respuesta.content.decode()
+        assert '<html lang="es-co">' in contenido
+        assert 'Qué es' in contenido and 'What it is' not in contenido
+
+    def test_el_prefijo_ingles_ignora_accept_language_espanol(self, client):
+        respuesta = client.get('/en/', headers={'accept-language': 'es-CO,es;q=0.9'})
+        contenido = respuesta.content.decode()
+        assert '<html lang="en">' in contenido
+        assert 'What it is' in contenido
+
+    def test_el_middleware_esta_despues_del_de_idioma(self):
+        middleware = settings.MIDDLEWARE
+        assert 'config.middleware_idioma.IdiomaPorDefectoSinPrefijo' in middleware
+        assert middleware.index('django.middleware.locale.LocaleMiddleware') < middleware.index(
+            'config.middleware_idioma.IdiomaPorDefectoSinPrefijo'
+        )

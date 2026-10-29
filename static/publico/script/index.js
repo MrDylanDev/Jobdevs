@@ -397,6 +397,18 @@ document.addEventListener('DOMContentLoaded', function () {
      RECOVERY FORM TOGGLE (inside modal)
      ============================ */
   var recoveryLink = document.getElementById('recoveryLink');
+  // Textos traducidos por el template: el JS no guarda copias en español.
+  var TEXTOS_I18N = (function () {
+    var nodo = document.getElementById('textos-i18n');
+    if (!nodo) return {};
+    try { return JSON.parse(nodo.textContent) || {}; } catch (e) { return {}; }
+  })();
+
+  function texto(clave, porDefecto) {
+    var valor = TEXTOS_I18N[clave];
+    return (typeof valor === 'string' && valor) ? valor : porDefecto;
+  }
+
   var loginFormDiv = document.getElementById('loginForm');
   var recoveryFormDiv = document.getElementById('recoveryForm');
   var recoveryInner;
@@ -406,13 +418,13 @@ document.addEventListener('DOMContentLoaded', function () {
   function showLogin() {
     if (loginFormDiv) loginFormDiv.style.display = 'block';
     if (recoveryFormDiv) recoveryFormDiv.style.display = 'none';
-    if (modalTitle) modalTitle.textContent = 'AUTENTICACIÓN SEGURA';
+    if (modalTitle) modalTitle.textContent = texto('authTitle', 'AUTENTICACIÓN SEGURA');
   }
 
   function showRecovery() {
     if (loginFormDiv) loginFormDiv.style.display = 'none';
     if (recoveryFormDiv) { recoveryFormDiv.style.display = 'block'; recoveryFormDiv.innerHTML = recoveryOriginalHTML; reattachRecovery(); }
-    if (modalTitle) modalTitle.textContent = 'RECUPERAR CONTRASEÑA';
+    if (modalTitle) modalTitle.textContent = texto('recoveryTitle', 'RECUPERAR CONTRASEÑA');
   }
 
   function reattachRecovery() {
@@ -422,17 +434,17 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         var btn = this.querySelector('button');
         var orig = btn.textContent;
-        btn.textContent = '[ ENVIANDO... ]';
+        btn.textContent = texto('sending', '[ ENVIANDO... ]');
         btn.disabled = true;
         fetch(this.action, { method: 'POST', body: new FormData(this) })
           .then(function() {
-            recoveryFormDiv.innerHTML = '<div class="alert alert-success" style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa fa-check-circle"></i> Si el correo existe, recibirás instrucciones para restablecer tu contraseña.</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">&larr; VOLVER AL INICIO DE SESIÓN</a></div>';
+            recoveryFormDiv.innerHTML = '<div class="alert alert-success" style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa fa-check-circle"></i> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
             document.getElementById('backToLoginLink2').addEventListener('click', function(e) { e.preventDefault(); showLogin(); });
           })
           .catch(function() {
             btn.textContent = orig;
             btn.disabled = false;
-            alert('Error de conexión. Intenta de nuevo.');
+            alert(texto('connectionError', 'Error de conexión. Intenta de nuevo.'));
           });
       });
     }
