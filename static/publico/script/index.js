@@ -341,24 +341,96 @@ document.addEventListener('DOMContentLoaded', function () {
   if (togglePassBtn) {
     togglePassBtn.addEventListener('click', function() {
       var input = document.getElementById('password');
-      var ico = this.querySelector('i');
-      if (input.type === 'password') { input.type = 'text'; ico.classList.replace('fa-eye', 'fa-eye-slash'); }
-      else { input.type = 'password'; ico.classList.replace('fa-eye-slash', 'fa-eye'); }
+      var mostrando = this.getAttribute('aria-pressed') === 'true';
+      input.type = mostrando ? 'password' : 'text';
+      // El estado lo pinta el CSS con aria-pressed; los dos ojos ya estan en el DOM.
+      this.setAttribute('aria-pressed', mostrando ? 'false' : 'true');
     });
   }
 
   /* ============================
-     LOGIN MODAL — instancia unica
+     MODAL DE LOGIN — controlador propio
      ============================ */
-  // Instanciar el modal por separado en cada bloque creaba objetos paralelos
-  // sobre el mismo elemento: doble backdrop y body bloqueado con `modal-open`
-  // al cerrar. Una sola instancia compartida para todo el archivo.
+  // Bootstrap se cargaba entero (80 KB desde un segundo CDN) solo para abrir este
+  // modal. Este controlador cubre lo que aportaba: ESC, clic en el fondo, bloqueo
+  // del scroll del body, aria correcto, foco inicial, retorno del foco y trampa
+  // de tabulacion. Un unico estado, sin instancias paralelas sobre el elemento.
+  var loginModalEl = document.getElementById('loginModal');
+  var focoPrevio = null;
+
+  var SELECTOR_FOCALIZABLES = [
+    'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+    'select:not([disabled])', 'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+
+  function focalizablesDelModal() {
+    if (!loginModalEl) return [];
+    return Array.prototype.filter.call(
+      loginModalEl.querySelectorAll(SELECTOR_FOCALIZABLES),
+      function (el) { return el.offsetWidth > 0 || el.offsetHeight > 0; }
+    );
+  }
+
+  function modalAbierto() {
+    return !!(loginModalEl && loginModalEl.classList.contains('show'));
+  }
+
   function abrirLoginModal() {
-    var el = document.getElementById('loginModal');
-    if (el && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-      bootstrap.Modal.getOrCreateInstance(el).show();
+    if (!loginModalEl || modalAbierto()) return;
+    focoPrevio = document.activeElement;
+    loginModalEl.classList.add('show');
+    loginModalEl.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    var primero = loginModalEl.querySelector('#username') || focalizablesDelModal()[0];
+    if (primero) primero.focus();
+  }
+
+  function cerrarLoginModal() {
+    if (!modalAbierto()) return;
+    loginModalEl.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    // El foco vuelve al control que abrio el modal y recien despues se oculta
+    // para lectores de pantalla: al reves, quedaria dentro de un nodo aria-hidden.
+    if (focoPrevio && typeof focoPrevio.focus === 'function') focoPrevio.focus();
+    focoPrevio = null;
+    loginModalEl.setAttribute('aria-hidden', 'true');
+    showLogin();
+  }
+
+  document.querySelectorAll('[data-abrir-login]').forEach(function (abridor) {
+    abridor.addEventListener('click', function (e) {
+      e.preventDefault();
+      abrirLoginModal();
+    });
+  });
+
+  if (loginModalEl) {
+    // Clic en el fondo: el velo lo pinta el propio .modal, asi que el blanco es
+    // el elemento y no un backdrop aparte.
+    loginModalEl.addEventListener('click', function (e) {
+      if (e.target === loginModalEl) cerrarLoginModal();
+    });
+    var botonCerrar = loginModalEl.querySelector('[data-cerrar-login]');
+    if (botonCerrar) {
+      botonCerrar.addEventListener('click', function () { cerrarLoginModal(); });
     }
   }
+
+  document.addEventListener('keydown', function (e) {
+    if (!modalAbierto()) return;
+    if (e.key === 'Escape') { e.preventDefault(); cerrarLoginModal(); return; }
+    if (e.key !== 'Tab') return;
+    var focos = focalizablesDelModal();
+    if (!focos.length) return;
+    var primero = focos[0];
+    var ultimo = focos[focos.length - 1];
+    if (e.shiftKey && document.activeElement === primero) {
+      e.preventDefault(); ultimo.focus();
+    } else if (!e.shiftKey && document.activeElement === ultimo) {
+      e.preventDefault(); primero.focus();
+    }
+  });
 
   /* ============================
      DJANGO MESSAGES MODAL
@@ -373,9 +445,9 @@ document.addEventListener('DOMContentLoaded', function () {
       spans.forEach(function(s) {
         var msgDiv = document.createElement('div');
         msgDiv.style.cssText = 'background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15);padding:10px 14px;margin-bottom:8px;font-size:13px;color:#fca5a5;display:flex;align-items:center;gap:8px;';
-        var icon = document.createElement('i');
-        icon.className = 'fa fa-circle-exclamation';
-        icon.style.color = '#ef4444';
+        var icon = document.createElement('span');
+        icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+        icon.style.display = 'flex';
         msgDiv.appendChild(icon);
         var textNode = document.createTextNode(' ' + s.textContent.trim());
         msgDiv.appendChild(textNode);
@@ -438,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         fetch(this.action, { method: 'POST', body: new FormData(this) })
           .then(function() {
-            recoveryFormDiv.innerHTML = '<div class="alert alert-success" style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i class="fa fa-check-circle"></i> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
+            recoveryFormDiv.innerHTML = '<div style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
             document.getElementById('backToLoginLink2').addEventListener('click', function(e) { e.preventDefault(); showLogin(); });
           })
           .catch(function() {
@@ -454,22 +526,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (recoveryLink) {
     recoveryLink.addEventListener('click', function(e) { e.preventDefault(); showRecovery(); });
-  }
-
-  var loginModalEl = document.getElementById('loginModal');
-  if (loginModalEl) {
-    loginModalEl.addEventListener('hidden.bs.modal', function() { showLogin(); });
-    loginModalEl.addEventListener('click', function(e) {
-      if (e.target === loginModalEl) {
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-          var inst = bootstrap.Modal.getInstance(loginModalEl);
-          if (inst) inst.hide();
-          else loginModalEl.classList.remove('show');
-        } else {
-          loginModalEl.classList.remove('show');
-        }
-      }
-    });
   }
 
   /* ============================

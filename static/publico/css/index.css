@@ -188,7 +188,13 @@ body {
 .pass-toggle {
   position: absolute; right: 15px; bottom: 12px;
   background: none; border: none; color: var(--fg-dim); cursor: pointer;
+  display: flex; align-items: center;
 }
+/* El boton lleva los dos ojos y el estado lo comunica aria-pressed: el CSS
+   decide cual se ve, igual que en el switch de tema. */
+.pass-toggle .lucide-eye-off { display: none; }
+.pass-toggle[aria-pressed="true"] .lucide-eye { display: none; }
+.pass-toggle[aria-pressed="true"] .lucide-eye-off { display: block; }
 
 /* hero strip helpers */
 .hero-strip-side { display: flex; align-items: center; gap: 16px; }
@@ -1078,6 +1084,30 @@ details[open] .faq-q::after { content: '−'; }
 }
 .sticky-text { font-family: var(--font-display); font-size: 1.3rem; text-transform: uppercase; font-weight: 700; }
 .sticky-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ========== UTILIDADES QUE VENIAN DE BOOTSTRAP ==========
+   La landing cargaba 227 KB de CSS y 80 KB de JS desde dos CDN para usar un
+   puñado de clases. Estas son todas: se replican con los tokens del tema para
+   que sigan al claro/oscuro como el resto de la piel. */
+.text-success { color: var(--accent); }
+.me-2 { margin-right: 0.5rem; }
+/* Los iconos de la landing son SVG de Lucide en linea. Font Awesome los pintaba
+   como glifo tipografico con su propio line-height; un SVG se apoya en la linea
+   base y queda alto, asi que se baja un octavo de em como hace Lucide. */
+.icono-linea { vertical-align: -0.125em; }
+@media (min-width: 768px) {
+  .d-md-none { display: none !important; }
+}
+/* Bootstrap bloqueaba el scroll del body con esta clase; el controlador del
+   modal en index.js la pone y la saca. */
+body.modal-open { overflow: hidden; }
+/* El aspa del modal venía como imagen de fondo de Bootstrap. Es un SVG en línea
+   para no depender de ningún CDN; .btn-close-tech la invierte en tema oscuro. */
+.btn-close {
+  box-sizing: content-box; width: 1em; height: 1em; padding: 0.25em;
+  border: 0; cursor: pointer;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2l12 12M14 2L2 14' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / 1em no-repeat;
+}
 
 /* ========== MODAL BASE (DEFENSIVE ISOLATION) ========== */
 .modal {

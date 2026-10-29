@@ -58,11 +58,11 @@ class TestAvanceWorkflowE2E:
         modal = page.locator('#loginModal')
         if not modal.is_visible():
             # Click AUTH button to open
-            page.locator('[data-bs-target="#loginModal"]').click()
+            page.locator('[data-abrir-login]').first.click()
             page.wait_for_timeout(1000)
         if not modal.is_visible():
             # Force via JS
-            page.evaluate('() => new bootstrap.Modal(document.getElementById("loginModal")).show()')
+            page.evaluate('() => document.querySelector("[data-abrir-login]").click()')
             page.wait_for_timeout(1000)
         page.fill('#username', username)
         page.fill('#password', password)
