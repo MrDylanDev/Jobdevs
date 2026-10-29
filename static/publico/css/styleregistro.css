@@ -400,3 +400,37 @@ button[type="submit"]:active {
 
   .form-group.full-width { grid-column: 1; }
 }
+
+/* ── Tema claro ─────────────────────────────────────────────────────────────
+   El registro tiene su propia piel (no comparte index.css), así que necesita
+   su propio juego de tokens. El acento oscuro del tema claro da 6.1:1 sobre
+   blanco; el verde brillante de la piel oscura queda en 1.6:1 y no sirve acá. */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-darker: #f7f7f8;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f2f4;
+  --fg: #0b0f0c;
+  --fg-dim: #4b5563;
+  --muted: #5f6673;
+  --border-dim: #e4e7e5;
+  --border-mid: #d1d5db;
+  --accent: #00713f;
+  --accent-rgb: 0, 113, 63;
+  --accent-bright: #00713f;
+  --accent-dim: #005c33;
+}
+/* El grano es parte de la piel oscura: sobre blanco se lee como papel sucio. */
+[data-theme="light"] body::before { display: none; }
+/* Los rojos de error y el hover fantasma estaban pensados para fondo negro. */
+[data-theme="light"] .alert-error,
+[data-theme="light"] .error-msg,
+[data-theme="light"] .form-group.error label { color: #b91c1c; }
+[data-theme="light"] .form-group.error input { border-color: #dc2626; }
+[data-theme="light"] .btn-ghost:hover { background: rgba(0, 0, 0, 0.05); }
+/* El botón principal usaba texto negro sobre el verde brillante del tema oscuro.
+   Sobre el verde oscuro del tema claro el texto va en blanco: 6.1:1. */
+[data-theme="light"] .register-wrapper.theme-dev button[type="submit"] { color: #ffffff; }
+/* En claro el acento del rol activo necesita el verde oscuro, no el brillante. */
+[data-theme="light"] .role-card.active { border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .role-card.active i { color: var(--accent); }

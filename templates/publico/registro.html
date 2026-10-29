@@ -1,12 +1,28 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% trans "Registro | JobDevs" %}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <script>
+    /* Resuelve el tema antes del primer paint: preferencia guardada > sistema > oscuro.
+       Mismo criterio que la landing, para que las dos pantallas no se contradigan. */
+    (function () {
+      var tema = 'dark';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          tema = 'light';
+        }
+      } catch (e) { /* localStorage bloqueado: se queda en oscuro */ }
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
   <link rel="stylesheet" href="{% static 'publico/css/styleregistro.css' %}">
 </head>
 <body>
