@@ -1,0 +1,34 @@
+# Normalización de fin de línea para el proyecto JobDevs
+# Los archivos de texto usan LF en el repositorio (checkout según OS)
+* text=auto
+
+# Scripts de shell siempre con LF (Linux containers)
+*.sh text eol=lf
+
+# Archivos de configuración de texto plano
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.env text eol=lf
+
+# Python siempre con LF
+*.py text eol=lf
+
+# HTML/CSS/JS con LF
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Archivos binarios: sin conversión
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
