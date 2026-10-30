@@ -588,8 +588,13 @@ section[id] { scroll-margin-top: 80px; }
 .what-section { padding: 104px 0 96px; }
 .what-head { margin-bottom: 0; }
 
-/* ========== WORKFLOW SECTION (HERO-STYLE FULL BLEED) ========== */
-.wf-hero-section {
+/* ========== WORKFLOW Y ROLES (HERO-STYLE FULL BLEED) ==========
+   Metodología y roles comparten el mismo esqueleto de banda: escenario de
+   fondo, marco que se alterna, velo lateral y layout de texto a la derecha.
+   Las reglas base se agrupan; lo propio de cada sección (pasos, selector de
+   rol) queda separado más abajo. */
+.wf-hero-section,
+.roles-hero-section {
   position: relative;
   min-height: 90vh;
   overflow: hidden;
@@ -598,31 +603,36 @@ section[id] { scroll-margin-top: 80px; }
   flex-direction: column;
   justify-content: center;
 }
-.wf-bg-stage {
+.wf-bg-stage,
+.roles-bg-stage {
   position: absolute;
   inset: 0;
   overflow: hidden;
   z-index: 1;
 }
-.wf-bg-frame {
+.wf-bg-frame,
+.role-bg-frame {
   position: absolute;
   inset: 0;
   opacity: 0;
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   transform: scale(1.0);
 }
-.wf-bg-frame.active {
+.wf-bg-frame.active,
+.role-bg-frame.active {
   opacity: 1;
   transform: scale(1.02);
 }
-.wf-full-bg-img {
+.wf-full-bg-img,
+.role-full-bg-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 18% center;
   filter: contrast(1.15) brightness(0.9);
 }
-.wf-bg-overlay {
+.wf-bg-overlay,
+.roles-bg-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -631,7 +641,8 @@ section[id] { scroll-margin-top: 80px; }
     linear-gradient(90deg, rgba(var(--scrim-panel-rgb), 0.08) 0%, rgba(var(--scrim-panel-rgb), 0.2) 30%, rgba(var(--scrim-panel-rgb), 0.85) 50%, rgba(var(--scrim-panel-rgb), 0.97) 70%, var(--band-bg) 100%),
     linear-gradient(180deg, rgba(var(--scrim-panel-rgb), 0.90) 0%, transparent 15%, transparent 85%, rgba(var(--scrim-panel-rgb), 0.95) 100%);
 }
-.wf-hero-content {
+.wf-hero-content,
+.roles-hero-content {
   position: relative;
   z-index: 10;
   width: 100%;
@@ -639,14 +650,16 @@ section[id] { scroll-margin-top: 80px; }
   display: flex;
   justify-content: flex-end;
 }
-.wf-hero-layout {
+.wf-hero-layout,
+.roles-hero-layout {
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 680px;
   margin-left: auto;
 }
-.wf-main-header {
+.wf-main-header,
+.roles-main-header {
   margin-bottom: 24px;
 }
 
@@ -745,77 +758,10 @@ section[id] { scroll-margin-top: 80px; }
   animation: fadeInPane 0.3s ease;
 }
 
-@media (max-width: 900px) {
-  .wf-hero-layout { max-width: 100%; margin-left: 0; }
-  .wf-bg-overlay {
-    background: linear-gradient(180deg, rgba(var(--scrim-panel-rgb), 0.6) 0%, rgba(var(--scrim-panel-rgb), 0.92) 50%, rgba(var(--scrim-panel-rgb), 0.99) 100%);
-  }
-}
-
 .rp-label { font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; display: block; letter-spacing: 0.15em; text-transform: uppercase; }
 .rp-label--accent { color: var(--accent); }
 
-/* ========== ROLES SECTION (HERO-STYLE FULL BLEED) ========== */
-.roles-hero-section {
-  position: relative;
-  min-height: 90vh;
-  overflow: hidden;
-  padding: 120px 5% 100px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.roles-bg-stage {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 1;
-}
-.role-bg-frame {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: scale(1.0);
-}
-.role-bg-frame.active {
-  opacity: 1;
-  transform: scale(1.02);
-}
-.role-full-bg-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 18% center;
-  filter: contrast(1.15) brightness(0.9);
-}
-.roles-bg-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  /* Fondo transparente a la izquierda para la persona y oscuro a la derecha para el texto */
-  background:
-    linear-gradient(90deg, rgba(var(--scrim-panel-rgb), 0.08) 0%, rgba(var(--scrim-panel-rgb), 0.2) 30%, rgba(var(--scrim-panel-rgb), 0.85) 50%, rgba(var(--scrim-panel-rgb), 0.97) 70%, var(--band-bg) 100%),
-    linear-gradient(180deg, rgba(var(--scrim-panel-rgb), 0.90) 0%, transparent 15%, transparent 85%, rgba(var(--scrim-panel-rgb), 0.95) 100%);
-}
-.roles-hero-content {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-.roles-hero-layout {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 680px;
-  margin-left: auto;
-}
-.roles-main-header {
-  margin-bottom: 24px;
-}
+/* ========== ROLES: SELECTOR Y DETALLE ========== */
 .roles-role-switcher {
   display: flex;
   gap: 14px;
@@ -934,9 +880,11 @@ section[id] { scroll-margin-top: 80px; }
 .role-stage-features li strong { color: var(--fg); font-weight: 600; }
 
 @media (max-width: 900px) {
+  .wf-hero-layout,
   .roles-hero-layout { max-width: 100%; margin-left: 0; }
   .roles-role-switcher { width: 100%; }
   .roles-role-switcher .role-nav-btn { flex: 1; justify-content: center; }
+  .wf-bg-overlay,
   .roles-bg-overlay {
     background: linear-gradient(180deg, rgba(var(--scrim-panel-rgb), 0.6) 0%, rgba(var(--scrim-panel-rgb), 0.92) 50%, rgba(var(--scrim-panel-rgb), 0.99) 100%);
   }
