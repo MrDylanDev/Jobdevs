@@ -238,7 +238,6 @@ body {
 
 
 .pulse-btn { animation: pulse-cta 2.8s ease-out infinite; }
-.pulse-btn::before { background: var(--accent) !important; }
 
 /* ========== TECH FRAME (4-corner crosshairs) ========== */
 .tech-frame {
@@ -499,7 +498,6 @@ section[id] { scroll-margin-top: 80px; }
 .section-tech { padding: 130px 5%; border-top: 1px solid var(--border-dim); position: relative; }
 .section-inner { max-width: 1200px; margin: 0 auto; }
 
-/* ========== FLIP CARDS (Coach-style) ========== */
 /* ========== CIERRE: HERO FULL-BLEED ========== */
 .cta-hero {
   position: relative;
@@ -557,8 +555,6 @@ section[id] { scroll-margin-top: 80px; }
   pointer-events: none;
 }
 .cta-hero-content > * { position: relative; }
-/* El botón del cierre gana un brillo de marca al pasar el mouse. */
-.cta-hero-btn:hover { box-shadow: 0 0 32px rgba(0, 230, 118, 0.34); }
 .cta-hero-content .section-marker { justify-content: center; }
 .cta-hero-content .cta-accent { color: var(--accent); }
 .cta-hero-content .sh-title {
@@ -638,8 +634,8 @@ section[id] { scroll-margin-top: 80px; }
 .wf-hero-content {
   position: relative;
   z-index: 10;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: flex-end;
 }
@@ -805,8 +801,8 @@ section[id] { scroll-margin-top: 80px; }
 .roles-hero-content {
   position: relative;
   z-index: 10;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: flex-end;
 }
@@ -935,9 +931,6 @@ section[id] { scroll-margin-top: 80px; }
 #paneEmpresa .role-stage-features li i {
   color: var(--slate-dim);
 }
-#paneDev .role-stage-features li i {
-  color: var(--accent);
-}
 .role-stage-features li strong { color: var(--fg); font-weight: 600; }
 
 @media (max-width: 900px) {
@@ -1015,8 +1008,6 @@ section[id] { scroll-margin-top: 80px; }
   transition: all 0.3s; font-family: var(--font-mono);
 }
 .carousel-btn:hover { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-@media (max-width: 900px) {
-}
 
 #comenzar .pulse-btn { animation: none; box-shadow: 0 0 32px rgba(var(--ink-rgb), 0.06); }
 #comenzar .pulse-btn::before { display: none; }
@@ -1096,7 +1087,7 @@ details[open] .faq-q::after { content: '−'; }
    base y queda alto, asi que se baja un octavo de em como hace Lucide. */
 .icono-linea { vertical-align: -0.125em; }
 @media (min-width: 768px) {
-  .d-md-none { display: none !important; }
+  .d-md-none { display: none; }
 }
 /* Bootstrap bloqueaba el scroll del body con esta clase; el controlador del
    modal en index.js la pone y la saca. */
@@ -1109,17 +1100,17 @@ body.modal-open { overflow: hidden; }
   background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2l12 12M14 2L2 14' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / 1em no-repeat;
 }
 
-/* ========== MODAL BASE (DEFENSIVE ISOLATION) ========== */
+/* ========== MODAL BASE ========== */
 .modal {
-  display: none !important;
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99999 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  outline: 0 !important;
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
   background: rgba(var(--scrim-rgb), 0.85);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -1129,18 +1120,18 @@ body.modal-open { overflow: hidden; }
   transition: opacity 0.25s linear;
 }
 .modal.fade:not(.show) {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 .modal.show {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .modal-dialog {
   position: relative;
@@ -1389,7 +1380,7 @@ body.modal-open { overflow: hidden; }
 /* La etiqueta vive siempre sobre la foto: con la imagen más clara, el verde
    brillante ya no se lee, así que pasa a chip oscuro. */
 [data-theme="light"] .story-img-tag {
-  color: #ffffff; background: rgba(0, 0, 0, 0.62);
+  background: rgba(0, 0, 0, 0.62);
   padding: 4px 8px; letter-spacing: 0.12em;
 }
 
@@ -1400,10 +1391,6 @@ body.modal-open { overflow: hidden; }
 
 /* Las tarjetas de pasos y el selector de rol viven sobre la foto: en claro van
    opacas, para que no se lea la imagen a través de ellas. */
-[data-theme="light"] .wf-step-item {
-  background: var(--bg);
-  border-color: rgba(0, 0, 0, 0.12);
-}
 [data-theme="light"] .wf-step-item:hover { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.2); }
 /* La tarjeta activa tiene que seguir siendo opaca: un verde al 6% deja ver la
    foto detrás y el título pierde el contraste. Este es ese verde ya mezclado
@@ -1424,6 +1411,7 @@ body.modal-open { overflow: hidden; }
    fondo de la página. En claro el acento se oscurece para el blanco y ahí
    quedaba en 3:1, así que conservan el acento brillante del tema oscuro. */
 [data-theme="light"] .story-img-tag { color: #69f0ae; }
+
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
@@ -1446,9 +1434,8 @@ body.modal-open { overflow: hidden; }
   .nav-right .nav-cta { display: none; }
   /* En móvil el botón de tema queda visible pero solo con el icono. */
   .nav-right .lang-switch { display: none; }
-  .theme-toggle { padding: 0 6px; margin-right: 8px; }
   /* A 320px la marca y el switch quedaban a 3px: se achica el relleno del icono. */
-  .theme-toggle { padding: 0 4px; }
+  .theme-toggle { padding: 0 4px; margin-right: 8px; }
   .theme-toggle-icon { padding: 7px 6px; }
   .btn-mobile-menu { display: flex; align-items: center; height: 100%; }
   .hero-title { font-size: 2.5rem; }
