@@ -125,6 +125,7 @@ class PerfilEmpresa(models.Model):
         related_name='empresas_verificadas',
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificada(self):
@@ -221,6 +222,7 @@ class PerfilDesarrollador(models.Model):
         related_name='desarrolladores_verificados'
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificado_sena(self):
