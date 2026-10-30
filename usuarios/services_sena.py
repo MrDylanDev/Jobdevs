@@ -288,6 +288,8 @@ def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_f
             )
             for admin in Usuario.objects.filter(rol='administrador')
         ])
+        from usuarios.tasks import analizar_documento_soporte_task
+        transaction.on_commit(lambda: analizar_documento_soporte_task.delay(perfil_locked.id, 'desarrollador'))
 
     return True, 'Solicitud enviada a revisión por el equipo administrativo.', {}
 
