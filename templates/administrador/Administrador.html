@@ -922,7 +922,7 @@
           {% if empresas_en_revision %}
           <table style="width:100%;">
             <thead>
-              <tr><th>Empresa</th><th>Tipo</th><th>Documento</th><th>Razón Social</th><th>Soporte</th><th>Acciones</th></tr>
+              <tr><th>Empresa</th><th>Tipo</th><th>Documento</th><th>Razón Social</th><th>Soporte</th><th>Triaje Asistido</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {% for e in empresas_en_revision %}
@@ -935,6 +935,51 @@
                   {% if e.documento_soporte %}
                   <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver PDF</a>
                   {% else %}Sin documento{% endif %}
+                </td>
+                <td>
+                  {% if e.dictamen_ia %}
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      {% if e.dictamen_ia.score_confianza >= 90 %}
+                        <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-circle-check me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% elif e.dictamen_ia.score_confianza >= 70 %}
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i class="fa fa-circle-exclamation me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% elif e.dictamen_ia.score_confianza >= 40 %}
+                        <span class="badge bg-secondary" style="font-size:11px;"><i class="fa fa-circle-question me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% else %}
+                        <span class="badge bg-danger" style="font-size:11px;"><i class="fa fa-triangle-exclamation me-1"></i>Score: {{ e.dictamen_ia.score_confianza|default:0 }}/100</span>
+                      {% endif %}
+                      {% if e.dictamen_ia.calidad_imagen == 'borrosa' %}
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i class="fa fa-camera"></i> Borrosa</span>
+                      {% endif %}
+                    </div>
+                    <details style="margin-top:6px;font-size:12px;cursor:pointer;">
+                      <summary style="color:#2563eb;font-weight:600;">Ver comparación documental</summary>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:6px;margin-top:4px;">
+                        <div style="font-size:11px;"><strong>Estado:</strong> {{ e.dictamen_ia.estado_triaje }}</div>
+                        <div style="font-size:11px;"><strong>Calidad:</strong> {{ e.dictamen_ia.calidad_imagen }}</div>
+                        {% if e.dictamen_ia.comparacion %}
+                          <table style="width:100%;font-size:11px;margin-top:6px;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #cbd5e1;text-align:left;"><th>Campo</th><th>Registrado</th><th>Extraído</th></tr>
+                            {% for campo, vals in e.dictamen_ia.comparacion.items %}
+                              <tr style="border-bottom:1px solid #f1f5f9;"><td><strong>{{ campo }}</strong></td><td>{{ vals.registrado|default:'—' }}</td><td>{{ vals.extraido|default:'—' }}</td></tr>
+                            {% endfor %}
+                          </table>
+                        {% endif %}
+                        {% if e.dictamen_ia.alertas %}
+                          <div style="margin-top:6px;color:#dc2626;font-size:11px;">
+                            {% for alt in e.dictamen_ia.alertas %}
+                              <div>• {{ alt.mensaje }}</div>
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                        {% if e.dictamen_ia.justificacion %}
+                          <div style="margin-top:4px;font-style:italic;font-size:10.5px;color:#64748b;">{{ e.dictamen_ia.justificacion }}</div>
+                        {% endif %}
+                      </div>
+                    </details>
+                  {% else %}
+                    <span style="color:#94a3b8;font-size:11px;">Pendiente de análisis</span>
+                  {% endif %}
                 </td>
                 <td>
                   <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" style="display:inline-block;margin-bottom:6px;">
@@ -974,7 +1019,7 @@
           {% if desarrolladores_en_revision %}
           <table style="width:100%;">
             <thead>
-              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Acciones</th></tr>
+              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Triaje Asistido (Local)</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {% for d in desarrolladores_en_revision %}
@@ -999,6 +1044,51 @@
                     {% if d.condicion_sena == 'egresado' %}Ver Diploma{% else %}Ver Soporte{% endif %}
                   </a>
                   {% else %}Sin documento{% endif %}
+                </td>
+                <td>
+                  {% if d.dictamen_ia %}
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      {% if d.dictamen_ia.score_confianza >= 90 %}
+                        <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-circle-check me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% elif d.dictamen_ia.score_confianza >= 70 %}
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i class="fa fa-circle-exclamation me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% elif d.dictamen_ia.score_confianza >= 40 %}
+                        <span class="badge bg-secondary" style="font-size:11px;"><i class="fa fa-circle-question me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% else %}
+                        <span class="badge bg-danger" style="font-size:11px;"><i class="fa fa-triangle-exclamation me-1"></i>Score: {{ d.dictamen_ia.score_confianza|default:0 }}/100</span>
+                      {% endif %}
+                      {% if d.dictamen_ia.calidad_imagen == 'borrosa' %}
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i class="fa fa-camera"></i> Borrosa</span>
+                      {% endif %}
+                    </div>
+                    <details style="margin-top:6px;font-size:12px;cursor:pointer;">
+                      <summary style="color:#2563eb;font-weight:600;">Ver comparación documental</summary>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:6px;margin-top:4px;">
+                        <div style="font-size:11px;"><strong>Estado:</strong> {{ d.dictamen_ia.estado_triaje }}</div>
+                        <div style="font-size:11px;"><strong>Calidad:</strong> {{ d.dictamen_ia.calidad_imagen }}</div>
+                        {% if d.dictamen_ia.comparacion %}
+                          <table style="width:100%;font-size:11px;margin-top:6px;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #cbd5e1;text-align:left;"><th>Campo</th><th>Registrado</th><th>Extraído</th></tr>
+                            {% for campo, vals in d.dictamen_ia.comparacion.items %}
+                              <tr style="border-bottom:1px solid #f1f5f9;"><td><strong>{{ campo }}</strong></td><td>{{ vals.registrado|default:'—' }}</td><td>{{ vals.extraido|default:'—' }}</td></tr>
+                            {% endfor %}
+                          </table>
+                        {% endif %}
+                        {% if d.dictamen_ia.alertas %}
+                          <div style="margin-top:6px;color:#dc2626;font-size:11px;">
+                            {% for alt in d.dictamen_ia.alertas %}
+                              <div>• {{ alt.mensaje }}</div>
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                        {% if d.dictamen_ia.justificacion %}
+                          <div style="margin-top:4px;font-style:italic;font-size:10.5px;color:#64748b;">{{ d.dictamen_ia.justificacion }}</div>
+                        {% endif %}
+                      </div>
+                    </details>
+                  {% else %}
+                    <span style="color:#94a3b8;font-size:11px;">Pendiente de análisis</span>
+                  {% endif %}
                 </td>
                 <td>
                   <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" style="display:inline-block;margin-bottom:6px;">
