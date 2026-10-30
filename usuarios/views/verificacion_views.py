@@ -148,6 +148,8 @@ def solicitar_verificacion_empresa(request):
                     )
                     for admin in Usuario.objects.filter(rol='administrador')
                 ])
+                from usuarios.tasks import analizar_documento_soporte_task
+                transaction.on_commit(lambda: analizar_documento_soporte_task.delay(perfil.id, 'empresa'))
             messages.success(
                 request,
                 'Tu solicitud fue enviada y está en revisión. Te notificaremos el resultado.',
