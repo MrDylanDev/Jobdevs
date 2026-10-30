@@ -17,7 +17,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"  # Solo accesible localmente para evitar exposición en interfaces externas
+      - "127.0.0.1:5433:5432"  # Solo accesible localmente para evitar exposición en interfaces externas
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-teir_user} -d ${DB_NAME:-teir_db}"]
       interval: 10s
@@ -215,3 +215,4 @@ networks:
   teir_network:
     driver: bridge
     name: teir_network
+
