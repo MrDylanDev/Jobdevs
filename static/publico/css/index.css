@@ -986,6 +986,18 @@ section[id] { scroll-margin-top: 80px; }
 
 .newsletter-box { margin-top: 24px; }
 .newsletter-box p { font-family: var(--font-mono); font-size: 0.7rem; color: var(--fg-dim); margin-bottom: 10px; }
+.foot-socials { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.foot-social-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border: 1px solid var(--border-mid);
+  color: var(--fg-dim); text-decoration: none;
+  transition: all 0.25s ease; background: rgba(var(--ink-rgb), 0.02);
+}
+.foot-social-link:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  transform: translateY(-2px);
+}
 
 .faq-list { display: flex; flex-direction: column; gap: 4px; }
 .faq-item { border: 1px solid var(--border-dim); background: rgba(var(--ink-rgb), 0.02); }
