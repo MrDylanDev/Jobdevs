@@ -329,6 +329,31 @@ class TestRecoveryView:
         assert response.status_code == 302
         assert len(mail.outbox) == 0
 
+    def test_recovery_ajax_post_returns_json(self, client, empresa_user):
+        """Petición AJAX devuelve JSON 200 sin redirigir ni ensuciar mensajes de sesión."""
+        response = client.post(
+            reverse('recuperar'),
+            {'email': 'empresa@test.jobdevs'},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get('ok') is True
+        assert len(mail.outbox) == 1
+
+    def test_recovery_celery_fallback_sends_email_synchronously(self, client, empresa_user, monkeypatch):
+        """Si Celery o Redis no están disponibles, hace fallback síncrono."""
+        def raise_broker_error(*args, **kwargs):
+            raise ConnectionError("No se pudo conectar con Redis")
+
+        from notificaciones import tasks
+        monkeypatch.setattr(tasks.enviar_email_transaccional_task, 'delay', raise_broker_error)
+
+        response = client.post(reverse('recuperar'), {'email': 'empresa@test.jobdevs'})
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
+        assert 'Restablecer' in mail.outbox[0].subject
+
 
 class TestRestablecerView:
     """Tests for restablecer_view at /restablecer/<token>/"""

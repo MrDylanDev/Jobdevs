@@ -127,3 +127,15 @@ class TestJsDelRegistro:
     def test_en_espanol_sirve_los_textos_en_espanol(self, client):
         contenido = client.get('/registro/').content.decode()
         assert '"docNit": "NIT O NÚMERO DE IDENTIFICACIÓN"' in contenido
+
+
+class TestRegistroSinCdn:
+    """El registro no debe depender de Font Awesome ni CDNs externos."""
+
+    def test_no_queda_enlace_a_font_awesome(self, html):
+        assert 'font-awesome' not in html.lower()
+        assert 'cdnjs.cloudflare.com' not in html
+
+    def test_css_sin_import_bloqueante(self, css):
+        assert '@import' not in css
+
