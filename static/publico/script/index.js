@@ -416,10 +416,13 @@ document.addEventListener('DOMContentLoaded', function () {
     showLogin();
   }
 
-  document.querySelectorAll('[data-abrir-login]').forEach(function (abridor) {
+  document.querySelectorAll('[data-abrir-login], [data-abrir-recuperar]').forEach(function (abridor) {
     abridor.addEventListener('click', function (e) {
       e.preventDefault();
       abrirLoginModal();
+      if (abridor.hasAttribute('data-abrir-recuperar')) {
+        showRecovery();
+      }
     });
   });
 
@@ -479,8 +482,12 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================
      URL PARAM MODAL
      ============================ */
-  if (new URLSearchParams(window.location.search).get('login') === '1') {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('login') === '1' || urlParams.has('recuperar')) {
     abrirLoginModal();
+    if (urlParams.has('recuperar')) {
+      showRecovery();
+    }
   }
 
   /* ============================
@@ -526,7 +533,15 @@ document.addEventListener('DOMContentLoaded', function () {
         var orig = btn.textContent;
         btn.textContent = texto('sending', '[ ENVIANDO... ]');
         btn.disabled = true;
-        fetch(this.action, { method: 'POST', body: new FormData(this) })
+        fetch(this.action, {
+          method: 'POST',
+          body: new FormData(this),
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(function(res) {
+            if (!res.ok) throw new Error('Error al procesar la solicitud');
+            return res.json().catch(function() { return { ok: true }; });
+          })
           .then(function() {
             recoveryFormDiv.innerHTML = '<div style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
             document.getElementById('backToLoginLink2').addEventListener('click', function(e) { e.preventDefault(); showLogin(); });

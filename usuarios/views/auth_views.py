@@ -1,19 +1,23 @@
+from datetime import timedelta
+import hashlib
+import logging
+import secrets
 from urllib.parse import quote
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 from django.contrib import messages
-from django.db.models import Q
-from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.conf import settings
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.urls import reverse
-from datetime import timedelta
-import hashlib
-import secrets
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+
+logger = logging.getLogger(__name__)
 
 from ..models import Usuario
 from ..utils import invalidar_sesiones_activas_usuario
@@ -101,7 +105,7 @@ def logout_view(request):
 
 def recuperar_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = (request.POST.get('email') or '').strip()
         try:
             usuario = Usuario.objects.get(email=email)
             token = secrets.token_urlsafe(32)
@@ -112,25 +116,45 @@ def recuperar_view(request):
             
             enlace = request.build_absolute_uri(reverse('restablecer', args=[token]))
             
-            # Despacho asíncrono de correo transaccional con Celery y HTML (SCRUM-199)
-            from notificaciones.tasks import enviar_email_transaccional_task
-            enviar_email_transaccional_task.delay(
-                asunto='Restablecer tu contraseña en JobDevs',
-                template_name='emails/recuperar_password.html',
-                contexto={
-                    'usuario': {
-                        'nombre': usuario.nombre,
-                        'username': usuario.username,
-                        'email': usuario.email,
-                    },
-                    'reset_url': enlace,
+            # Despacho asíncrono con Celery (fallback síncrono si Celery/Redis no está disponible)
+            contexto = {
+                'usuario': {
+                    'nombre': usuario.nombre,
+                    'username': usuario.username,
+                    'email': usuario.email,
                 },
-                destinatarios=[email],
-            )
+                'reset_url': enlace,
+            }
+            try:
+                from notificaciones.tasks import enviar_email_transaccional_task
+                enviar_email_transaccional_task.delay(
+                    asunto='Restablecer tu contraseña en JobDevs',
+                    template_name='emails/recuperar_password.html',
+                    contexto=contexto,
+                    destinatarios=[email],
+                )
+            except Exception as exc:
+                logger.warning("Fallo al despachar correo por Celery (%s). Enviando síncronamente.", exc)
+                from django.core.mail import EmailMultiAlternatives
+                from django.template.loader import render_to_string
+                from django.utils.html import strip_tags
+                html_content = render_to_string('emails/recuperar_password.html', contexto)
+                msg = EmailMultiAlternatives(
+                    subject='Restablecer tu contraseña en JobDevs',
+                    body=strip_tags(html_content),
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'JobDevs <noreply@jobdevs.edu.co>'),
+                    to=[email],
+                )
+                msg.attach_alternative(html_content, "text/html")
+                msg.send(fail_silently=True)
         except Usuario.DoesNotExist:
             pass # No revelamos si el email existe o no por seguridad
-            
-        messages.success(request, "Si el correo electrónico existe en nuestra base de datos, recibirás instrucciones para restablecer tu contraseña.")
+
+        mensaje_exito = "Si el correo electrónico existe en nuestra base de datos, recibirás instrucciones para restablecer tu contraseña."
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('accept', ''):
+            return JsonResponse({'ok': True, 'mensaje': mensaje_exito})
+
+        messages.success(request, mensaje_exito)
         return redirect('/?login=1')
             
     return redirect('/?login=1')
