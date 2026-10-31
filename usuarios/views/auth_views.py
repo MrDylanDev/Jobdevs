@@ -122,6 +122,7 @@ def recuperar_view(request):
                     'nombre': usuario.nombre,
                     'username': usuario.username,
                     'email': usuario.email,
+                    'rol': usuario.rol,
                 },
                 'reset_url': enlace,
             }
