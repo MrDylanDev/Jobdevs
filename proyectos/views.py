@@ -28,6 +28,8 @@ from notificaciones.models import Notificacion
 def listar_proyectos(request):
     tipo = request.GET.get('tipo')
     prioridad = request.GET.get('prioridad')
+    modalidad = request.GET.get('modalidad')
+    ciudad = request.GET.get('ciudad', '').strip()
     q = request.GET.get('q', '').strip()
     
     # Subconsultas para el cupo real: evitan joins extra que inflarían el Avg
@@ -67,6 +69,10 @@ def listar_proyectos(request):
         proyectos_qs = proyectos_qs.filter(tipo_solucion=tipo)
     if prioridad:
         proyectos_qs = proyectos_qs.filter(prioridad=prioridad)
+    if modalidad:
+        proyectos_qs = proyectos_qs.filter(modalidad=modalidad)
+    if ciudad:
+        proyectos_qs = proyectos_qs.filter(ciudad__icontains=ciudad)
     if q:
         proyectos_qs = proyectos_qs.filter(
             Q(titulo__icontains=q) | Q(descripcion__icontains=q)
@@ -106,6 +112,9 @@ def listar_proyectos(request):
             'empresa_estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
             'vacantes': p.vacantes,
             'vacantes_disponibles': p.vacantes_disponibles,
+            'modalidad': p.modalidad,
+            'ciudad': p.ciudad,
+            'ubicacion_display': p.ubicacion_display,
         })
 
     is_ajax = (
@@ -179,6 +188,13 @@ def crear_proyecto(request):
             if prioridad not in dict(Proyecto.PRIORIDAD):
                 prioridad = 'media'
 
+            modalidad = request.POST.get('modalidad', 'remoto')
+            if modalidad not in dict(Proyecto.MODALIDAD):
+                modalidad = 'remoto'
+            ciudad = (request.POST.get('ciudad') or '').strip()
+            if modalidad == 'remoto':
+                ciudad = ''
+
             proyecto = Proyecto(
                 empresa=request.user,
                 titulo=request.POST.get('titulo'),
@@ -186,6 +202,8 @@ def crear_proyecto(request):
                 categoria=categoria,
                 tipo_solucion=categoria.slug if categoria else tipo_solucion,
                 prioridad=prioridad,
+                modalidad=modalidad,
+                ciudad=ciudad,
                 vacantes=vacantes,
                 fecha_limite=fecha_limite,
                 estado='publicado'
@@ -597,6 +615,14 @@ def editar_proyecto(request, proyecto_id):
             proyecto.categoria = categoria
             proyecto.tipo_solucion = categoria.slug if categoria else tipo_solucion
             proyecto.prioridad = request.POST.get('prioridad', 'media')
+            modalidad = request.POST.get('modalidad', 'remoto')
+            if modalidad not in dict(Proyecto.MODALIDAD):
+                modalidad = 'remoto'
+            ciudad = (request.POST.get('ciudad') or '').strip()
+            if modalidad == 'remoto':
+                ciudad = ''
+            proyecto.modalidad = modalidad
+            proyecto.ciudad = ciudad
             proyecto.vacantes = vacantes
             proyecto.fecha_limite = fecha_limite
             # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
