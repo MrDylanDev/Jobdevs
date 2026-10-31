@@ -87,13 +87,17 @@ class Proyecto(models.Model):
 
     def clean(self):
         super().clean()
-        if self.modalidad in ('presencial', 'hibrido') and not (self.ciudad or '').strip():
+        if self.modalidad == 'remoto':
+            self.ciudad = ''
+        elif self.modalidad in ('presencial', 'hibrido') and not (self.ciudad or '').strip():
             raise ValidationError({
                 'ciudad': 'La ciudad es obligatoria para proyectos en modalidad presencial o híbrida.'
             })
 
     def save(self, *args, **kwargs):
-        """Mantiene sincronizados `categoria` y `tipo_solucion`."""
+        """Mantiene sincronizados `categoria` y `tipo_solucion` y normaliza ciudad."""
+        if self.modalidad == 'remoto':
+            self.ciudad = ''
         if self.categoria_id and not self.tipo_solucion:
             self.tipo_solucion = self.categoria.slug
         elif self.tipo_solucion and not self.categoria_id:

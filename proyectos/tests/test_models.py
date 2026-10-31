@@ -94,16 +94,17 @@ class TestProyectoModel:
         assert proyecto.ciudad == ''
         assert proyecto.ubicacion_display == 'Remoto (Nivel Nacional)'
 
-    def test_modalidad_presencial_exige_ciudad(self, db):
+    @pytest.mark.parametrize('modalidad_invalida', ['presencial', 'hibrido'])
+    def test_modalidad_presencial_e_hibrido_exige_ciudad(self, db, modalidad_invalida):
         """Si la modalidad es presencial o híbrida, clean() exige ciudad."""
         empresa = User.objects.create_user(
-            username='emp_presencial', email='emp_pres@test.jobdevs',
-            nombre='Empresa Presencial', rol='empresa', estado='activo',
+            username=f'emp_{modalidad_invalida}', email=f'emp_{modalidad_invalida}@test.jobdevs',
+            nombre=f'Empresa {modalidad_invalida}', rol='empresa', estado='activo',
             password='TestPass123!',
         )
         proyecto = Proyecto(
             empresa=empresa, titulo='Soporte en Sitio', descripcion='Desc',
-            tipo_solucion='sitio_web', modalidad='presencial', ciudad='',
+            tipo_solucion='sitio_web', modalidad=modalidad_invalida, ciudad='',
         )
         with pytest.raises(ValidationError) as exc:
             proyecto.clean()
