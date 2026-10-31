@@ -5,8 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% trans "Registro | JobDevs" %}</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
     /* Resuelve el tema antes del primer paint: preferencia guardada > sistema > oscuro.
        Mismo criterio que la landing, para que las dos pantallas no se contradigan. */
@@ -23,12 +24,13 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="{% asset 'publico/css/styleregistro.css' %}">
 </head>
 <body>
   <div class="register-wrapper theme-dev">
     <div class="register-image">
-      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="" class="register-image-bg">
+      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="{% trans "Profesionales trabajando en software" %}" class="register-image-bg" loading="eager" fetchpriority="high">
       <div class="register-image-content">
         <div class="logo">JobDevs</div>
         <h2>{% trans "CREAR CUENTA" %}</h2>
@@ -39,11 +41,11 @@
     <div class="register-form">
       <div class="role-cards">
         <div class="role-card active" data-role="desarrollador">
-          <i class="fa fa-terminal"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="1.4rem" height="1.4rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal icono-linea" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
           <span>{% trans "DESARROLLADOR" %}</span>
         </div>
         <div class="role-card" data-role="empresa">
-          <i class="fa fa-building"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="1.4rem" height="1.4rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2 icono-linea" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           <span>{% trans "EMPRESA" %}</span>
         </div>
       </div>
@@ -51,14 +53,18 @@
       {% if messages %}
         {% for message in messages %}
           <div class="alert alert-{{ message.tags }}">
-            <i class="fa {% if message.tags == 'success' %}fa-check-circle{% else %}fa-circle-exclamation{% endif %}"></i> {{ message }}
+            {% if message.tags == 'success' %}
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            {% else %}
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12.01" y1="16" y2="16"/></svg>
+            {% endif %} {{ message }}
           </div>
         {% endfor %}
       {% endif %}
 
       {% if form.rol.errors %}
         <div class="alert alert-error">
-          <i class="fa fa-circle-exclamation"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12.01" y1="16" y2="16"/></svg>
           {% for error in form.rol.errors %}{{ error }}{% endfor %}
         </div>
       {% endif %}
