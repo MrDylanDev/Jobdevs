@@ -86,6 +86,20 @@
             </div>
 
             <div class="form-group">
+              <label class="form-label"><i class="fa fa-laptop-house" style="margin-right:6px;"></i>Modalidad</label>
+              <select name="modalidad" id="modalidad_select_editar" onchange="toggleCiudadEditar(this)" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
+                <option value="remoto" {% if proyecto.modalidad == 'remoto' %}selected{% endif %}>Remoto (Nivel Nacional)</option>
+                <option value="presencial" {% if proyecto.modalidad == 'presencial' %}selected{% endif %}>Presencial</option>
+                <option value="hibrido" {% if proyecto.modalidad == 'hibrido' %}selected{% endif %}>Híbrido</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="ciudad_group_editar" style="{% if proyecto.modalidad == 'remoto' %}display:none;{% endif %}">
+              <label class="form-label"><i class="fa fa-location-dot" style="margin-right:6px;"></i>Ciudad / Sede</label>
+              <input type="text" name="ciudad" id="ciudad_input_editar" value="{{ proyecto.ciudad }}" placeholder="Ej: Bogotá, D.C." style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
+            </div>
+
+            <div class="form-group">
               <label class="form-label"><i class="fa fa-users" style="margin-right:6px;"></i>Vacantes</label>
               <input type="number" name="vacantes" value="{{ proyecto.vacantes }}" min="1" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
             </div>
@@ -108,5 +122,19 @@
     </main>
   </div>
 </div>
+  <script>
+    function toggleCiudadEditar(sel) {
+      var grp = document.getElementById('ciudad_group_editar');
+      var inp = document.getElementById('ciudad_input_editar');
+      if (!grp) return;
+      if (sel.value === 'presencial' || sel.value === 'hibrido') {
+        grp.style.display = 'block';
+        if (inp) inp.required = true;
+      } else {
+        grp.style.display = 'none';
+        if (inp) { inp.required = false; inp.value = ''; }
+      }
+    }
+  </script>
 </body>
 </html>

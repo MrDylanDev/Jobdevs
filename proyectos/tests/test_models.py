@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from proyectos.models import Proyecto, HistorialEstadoProyecto
 
@@ -77,3 +78,48 @@ class TestProyectoModel:
         proyecto.save()
         proyecto.refresh_from_db()
         assert proyecto.estado == 'finalizado'
+
+    def test_modalidad_remoto_por_defecto_y_ubicacion(self, db):
+        """Proyecto por defecto es remoto y ubicacion_display es nacional."""
+        empresa = User.objects.create_user(
+            username='emp_modalidad', email='emp_mod@test.jobdevs',
+            nombre='Empresa Mod', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa, titulo='App Remota', descripcion='Desc',
+            tipo_solucion='sitio_web',
+        )
+        assert proyecto.modalidad == 'remoto'
+        assert proyecto.ciudad == ''
+        assert proyecto.ubicacion_display == 'Remoto (Nivel Nacional)'
+
+    def test_modalidad_presencial_exige_ciudad(self, db):
+        """Si la modalidad es presencial o híbrida, clean() exige ciudad."""
+        empresa = User.objects.create_user(
+            username='emp_presencial', email='emp_pres@test.jobdevs',
+            nombre='Empresa Presencial', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto(
+            empresa=empresa, titulo='Soporte en Sitio', descripcion='Desc',
+            tipo_solucion='sitio_web', modalidad='presencial', ciudad='',
+        )
+        with pytest.raises(ValidationError) as exc:
+            proyecto.clean()
+        assert 'ciudad' in exc.value.message_dict
+
+    def test_modalidad_hibrido_con_ciudad_display(self, db):
+        """Modalidad híbrida o presencial con ciudad muestra ambas en ubicacion_display."""
+        empresa = User.objects.create_user(
+            username='emp_hibrido', email='emp_hib@test.jobdevs',
+            nombre='Empresa Híbrida', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa, titulo='Fintech Híbrida', descripcion='Desc',
+            tipo_solucion='sitio_web', modalidad='hibrido', ciudad='Bogotá, D.C.',
+        )
+        assert proyecto.modalidad == 'hibrido'
+        assert proyecto.ciudad == 'Bogotá, D.C.'
+        assert proyecto.ubicacion_display == 'Bogotá, D.C. · Híbrido'

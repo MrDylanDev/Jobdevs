@@ -311,6 +311,8 @@ class TestEditarProyecto:
                 'descripcion': 'Desc nueva',
                 'tipo_solucion': 'aplicacion_movil',
                 'prioridad': 'alta',
+                'modalidad': 'hibrido',
+                'ciudad': 'Barranquilla',
                 'vacantes': '5',
                 'fecha_limite': '',
             },
@@ -319,6 +321,8 @@ class TestEditarProyecto:
         proyecto.refresh_from_db()
         assert proyecto.titulo == 'Titulo Nuevo'
         assert proyecto.tipo_solucion == 'aplicacion_movil'
+        assert proyecto.modalidad == 'hibrido'
+        assert proyecto.ciudad == 'Barranquilla'
         assert proyecto.vacantes == 5
 
     def test_otra_empresa_no_puede(self, db, empresa_user):

@@ -580,6 +580,18 @@
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">Modalidad de Trabajo</label>
+        <select name="modalidad" id="modalidad_select_crear" class="form-input form-select" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
+          <option value="remoto" selected>Remoto (Nivel Nacional)</option>
+          <option value="presencial">Presencial</option>
+          <option value="hibrido">Híbrido</option>
+        </select>
+      </div>
+      <div class="form-group" id="ciudad_group_crear" style="display:none;">
+        <label class="form-label">Ciudad o Sede del Proyecto</label>
+        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input" placeholder="Ej: Bogotá, D.C. / Medellín">
+      </div>
+      <div class="form-group">
         <label class="form-label">Fecha Límite de Entrega</label>
         <input type="date" name="fecha_limite" class="form-input" required>
       </div>
@@ -597,6 +609,20 @@
   </div>
 </div>
 
+<script>
+function toggleCiudadProyecto(selectEl, groupTargetId) {
+  var grp = document.getElementById(groupTargetId);
+  var inp = grp ? grp.querySelector('input') : null;
+  if (!grp) return;
+  if (selectEl.value === 'presencial' || selectEl.value === 'hibrido') {
+    grp.style.display = 'block';
+    if (inp) inp.required = true;
+  } else {
+    grp.style.display = 'none';
+    if (inp) { inp.required = false; inp.value = ''; }
+  }
+}
+</script>
 <script src="{% static 'empresa/script/empresa.js' %}"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>

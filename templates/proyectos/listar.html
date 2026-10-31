@@ -88,9 +88,18 @@
                   <option value="baja" {% if request.GET.prioridad == 'baja' %}selected{% endif %}>Baja</option>
               </select>
           </div>
+          <div class="filter-group" style="min-width:140px;">
+              <label class="form-label">Modalidad</label>
+              <select name="modalidad" class="form-select">
+                  <option value="">Todas</option>
+                  <option value="remoto" {% if request.GET.modalidad == 'remoto' %}selected{% endif %}>Remoto</option>
+                  <option value="presencial" {% if request.GET.modalidad == 'presencial' %}selected{% endif %}>Presencial</option>
+                  <option value="hibrido" {% if request.GET.modalidad == 'hibrido' %}selected{% endif %}>Híbrido</option>
+              </select>
+          </div>
           <div style="display:flex;gap:12px;height:40px;">
             <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Filtrar</button>
-            {% if request.GET.tipo or request.GET.prioridad or request.GET.q %}
+            {% if request.GET.tipo or request.GET.prioridad or request.GET.modalidad or request.GET.q %}
                 <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary">Limpiar</a>
             {% endif %}
           </div>
@@ -114,12 +123,16 @@
                 
                 <h3 class="project-card-title">{{ proyecto.titulo }}</h3>
                 
-                <div style="margin: 8px 0;">
+                <div style="margin: 8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
                     <span class="badge badge-{% if proyecto.prioridad == 'alta' %}danger{% elif proyecto.prioridad == 'media' %}warning{% else %}info{% endif %}">{{ proyecto.prioridad }}</span>
-                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">
+                    <span class="badge badge-{% if proyecto.modalidad == 'remoto' %}success{% elif proyecto.modalidad == 'presencial' %}info{% else %}warning{% endif %}" title="{{ proyecto.ubicacion_display }}" style="display:inline-flex; align-items:center; gap:4px;">
+                      <i class="fa {% if proyecto.modalidad == 'remoto' %}fa-globe{% elif proyecto.modalidad == 'presencial' %}fa-location-dot{% else %}fa-laptop-house{% endif %}"></i>
+                      {{ proyecto.ubicacion_display }}
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
                         <i class="fa fa-users" style="margin-right:4px;"></i>{{ proyecto.num_postulaciones }} postulantes
                     </span>
-                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
                         <i class="fa fa-door-open" style="margin-right:4px;"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
                     </span>
                 </div>
