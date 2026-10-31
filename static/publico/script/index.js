@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tickZoom = function() {
       if (!heroVisible) {
-        tickZoomId = requestAnimationFrame(tickZoom);
+        tickZoomId = null;
         return;
       }
       const elapsed = performance.now() - frameStartTime;
@@ -110,9 +110,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (entry.target === heroSection) {
           heroPassed = !entry.isIntersecting;
           heroVisible = entry.isIntersecting;
-          if (heroVisible && tickZoomId) {
+          if (heroVisible) {
+            if (tickZoomId) cancelAnimationFrame(tickZoomId);
+            if (typeof tickZoom === 'function') tickZoomId = requestAnimationFrame(tickZoom);
+          } else if (tickZoomId) {
             cancelAnimationFrame(tickZoomId);
-            tickZoomId = requestAnimationFrame(tickZoom);
+            tickZoomId = null;
           }
         }
         if (entry.target === bookingAnchor) atBooking = entry.isIntersecting;
@@ -134,16 +137,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const grain = document.getElementById('grain');
   if (grain) {
     let targetY = 0, currentY = 0;
-    window.addEventListener('scroll', () => {
-      targetY = window.scrollY * 0.12;
-    }, { passive: true });
+    let grainAnimId = null;
 
     function animateGrain() {
-      currentY += (targetY - currentY) * 0.06;
+      const diff = targetY - currentY;
+      if (Math.abs(diff) < 0.05) {
+        currentY = targetY;
+        grain.style.transform = 'translateY(' + currentY + 'px)';
+        grainAnimId = null;
+        return;
+      }
+      currentY += diff * 0.06;
       grain.style.transform = 'translateY(' + currentY + 'px)';
-      requestAnimationFrame(animateGrain);
+      grainAnimId = requestAnimationFrame(animateGrain);
     }
-    animateGrain();
+
+    window.addEventListener('scroll', () => {
+      targetY = window.scrollY * 0.12;
+      if (!grainAnimId) {
+        grainAnimId = requestAnimationFrame(animateGrain);
+      }
+    }, { passive: true });
   }
 
   /* ============================
@@ -191,11 +205,15 @@ document.addEventListener('DOMContentLoaded', function () {
       this.bindEvents();
       this.buildDots();
       this.startAuto();
+      let resizeTimer = null;
       window.addEventListener('resize', () => {
-        this.calculateDimensions();
-        this.clamp();
-        this.applyTransform(0);
-      });
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          this.calculateDimensions();
+          this.clamp();
+          this.applyTransform(0);
+        }, 150);
+      }, { passive: true });
     }
 
     calculateDimensions() {

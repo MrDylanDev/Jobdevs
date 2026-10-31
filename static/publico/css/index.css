@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -146,7 +144,6 @@ body {
 .blink { animation: blink 1s step-end infinite; }
 
 /* ========== UTILS ========== */
-.text-muted { color: var(--muted); }
 .hidden { display: none; }
 .carousel-wrapper { max-width: 1200px; margin: 32px auto 0; padding: 0 5%; }
 
@@ -662,6 +659,18 @@ section[id] { scroll-margin-top: 80px; }
 .roles-main-header {
   margin-bottom: 24px;
 }
+.wf-main-header .sh-title,
+.roles-main-header .sh-title {
+  font-size: clamp(2rem, 3.2vw, 2.9rem);
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.wf-main-header .desc-mono,
+.roles-main-header .desc-mono {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
 
 /* Pasos interactivos a la derecha */
 .wf-steps-stack {
@@ -870,11 +879,11 @@ section[id] { scroll-margin-top: 80px; }
   display: flex; align-items: flex-start; gap: 14px;
   font-size: 0.95rem; color: var(--fg-dim); line-height: 1.55;
 }
-.role-stage-features li i {
+.role-stage-features li svg {
   color: var(--accent); font-size: 1rem; margin-top: 3px; flex-shrink: 0;
 }
 /* Acentos diferenciados por rol: Empresa (Gris/Plata) vs Dev (Verde SENA) */
-#paneEmpresa .role-stage-features li i {
+#paneEmpresa .role-stage-features li svg {
   color: var(--slate-dim);
 }
 .role-stage-features li strong { color: var(--fg); font-weight: 600; }
@@ -956,9 +965,6 @@ section[id] { scroll-margin-top: 80px; }
   transition: all 0.3s; font-family: var(--font-mono);
 }
 .carousel-btn:hover { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-
-#comenzar .pulse-btn { animation: none; box-shadow: 0 0 32px rgba(var(--ink-rgb), 0.06); }
-#comenzar .pulse-btn::before { display: none; }
 
 /* ========== FOOTER ========== */
 .foot-tech { border-top: 1px solid var(--accent-dim); padding: 80px 5% 40px; }
@@ -1203,8 +1209,8 @@ body.modal-open { overflow: hidden; }
 [data-theme="light"] .roles-hero-section .role-stage-features li strong { color: #ffffff; }
 [data-theme="light"] .roles-hero-section .rp-label { color: rgba(255, 255, 255, 0.72); }
 [data-theme="light"] .roles-hero-section .rp-label--accent { color: #69f0ae; }
-[data-theme="light"] #paneEmpresa .role-stage-features li i { color: rgba(255, 255, 255, 0.62); }
-[data-theme="light"] #paneDev .role-stage-features li i { color: #69f0ae; }
+[data-theme="light"] #paneEmpresa .role-stage-features li svg { color: rgba(255, 255, 255, 0.62); }
+[data-theme="light"] #paneDev .role-stage-features li svg { color: #69f0ae; }
 
 /* Cierre sin recuadro: la foto se ve arriba y abajo, y el texto se sostiene con
    una banda centrada. El contenido va de 30% a 76% del alto, así que la banda
@@ -1378,7 +1384,6 @@ body.modal-open { overflow: hidden; }
   .nav-links a { padding: 16px 20px; justify-content: flex-start; }
   /* Ocultar .nav-right escondia tambien [ MENU ]: en movil se oculta solo el
      CTA de escritorio y el boton de menu queda visible. */
-  .nav-right { display: flex; height: 100%; }
   .nav-right .nav-cta { display: none; }
   /* En móvil el botón de tema queda visible pero solo con el icono. */
   .nav-right .lang-switch { display: none; }

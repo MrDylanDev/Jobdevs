@@ -25,6 +25,8 @@
   <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 {% endif %}
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
     /* Resuelve el tema antes del primer paint: sin esto se ve un parpadeo del
        tema equivocado mientras carga index.js. Prioridad: elección guardada
@@ -44,6 +46,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{% asset 'publico/css/index.css' %}">
 </head>
 <body>
@@ -217,8 +220,8 @@
       <!-- Encabezado agrupado a la derecha -->
       <div class="wf-main-header">
         <span class="section-marker"><span>{% trans "MODELO DE OPERACIÓN" %}</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">{% trans "Cómo funciona" %} <span class="acento-marca">JobDevs</span></h2>
-        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">{% trans "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios." %}</p>
+        <h2 class="sh-title">{% trans "Cómo funciona" %} <span class="acento-marca">JobDevs</span></h2>
+        <p class="desc-mono">{% trans "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios." %}</p>
       </div>
 
       <!-- Los 4 pasos interactivos a la derecha -->
@@ -422,8 +425,8 @@
       <!-- Todo el encabezado agrupado a la derecha -->
       <div class="roles-main-header">
         <span class="section-marker"><span>{% trans "MODELO BILATERAL" %}</span></span>
-        <h2 class="sh-title" style="font-size: clamp(2rem, 3.2vw, 2.9rem); line-height: 1.1; margin-bottom: 14px;">{% trans "Diseñado para Empresas" %}<br>y <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
-        <p class="desc-mono" style="font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6;">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti." %}</p>
+        <h2 class="sh-title">{% trans "Diseñado para Empresas" %}<br>y <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
+        <p class="desc-mono">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti." %}</p>
       </div>
 
       <!-- Selector de rol interactivo con iconos Lucide -->
