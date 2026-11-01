@@ -302,7 +302,7 @@
                         <form method="post" action="{% url 'revisar_avance' avance.id %}" style="display:flex; flex-direction:column; gap:10px;">
                           {% csrf_token %}
                           <input type="hidden" name="next" value="{% url 'gestionar_hitos' proyecto.id %}#avances">
-                          <label for="comentario-{{ avance.id }}" style="display:none;">Retroalimentación para el desarrollador</label>
+                          <label for="comentario-{{ avance.id }}" class="sr-only">Retroalimentación para el desarrollador</label>
                           <div style="font-size:11px; font-weight:700; color:var(--corp-slate-600); text-transform:uppercase;">Revisar Entrega</div>
                           <textarea id="comentario-{{ avance.id }}" name="comentario" placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
                           <div style="display:flex; gap:8px;">

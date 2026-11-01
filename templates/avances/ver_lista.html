@@ -116,7 +116,7 @@
       </div>
       {% endif %}
 
-      <div id="panelAvances" class="subtab-panel" role="tabpanel" aria-labelledby="tabAvances">
+      <div id="panelAvances" class="subtab-panel" {% if request.user.rol == 'empresa' %}role="tabpanel" aria-labelledby="tabAvances"{% endif %}>
 
       <!-- Resumen del Proyecto -->
       <div class="card" style="margin-bottom:24px; background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid var(--corp-brand); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:22px;">
@@ -226,7 +226,7 @@
                     <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:var(--corp-radius-md); padding:12px; min-width:280px;">
                       <form method="post" action="{% url 'revisar_avance' avance.id %}" style="display:flex; flex-direction:column; gap:10px;">
                         {% csrf_token %}
-                        <label for="comentario-avance-{{ avance.id }}" style="display:none;">Retroalimentación para el desarrollador</label>
+                        <label for="comentario-avance-{{ avance.id }}" class="sr-only">Retroalimentación para el desarrollador</label>
                         <div style="font-size:11px; font-weight:700; color:var(--corp-slate-600); text-transform:uppercase;">Revisar Entrega</div>
                         <textarea id="comentario-avance-{{ avance.id }}" name="comentario" placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
                         <div style="display:flex; gap:8px;">
