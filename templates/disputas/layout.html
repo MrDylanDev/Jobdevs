@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}JobDevs | Disputas{% endblock %}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
 </head>
 <body>
 <div class="app-layout">
@@ -24,52 +24,52 @@
     {% if user.rol == 'empresa' %}
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}"><i class="fa fa-chart-line"></i><span>Dashboard</span></a>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=centro-chat"><i class="fa fa-comments"></i><span>Mensajes</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=centro-chat"><i data-lucide="message-square"></i><span>Mensajes</span></a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-group-label">Gestión</div>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=ofertas"><i class="fa fa-bullhorn"></i><span>Mis Ofertas</span></a>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=desarrollo"><i class="fa fa-diagram-project"></i><span>En Desarrollo</span></a>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=reputacion"><i class="fa fa-star"></i><span>Reputación</span></a>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=historial"><i class="fa fa-clock-rotate-left"></i><span>Historial</span></a>
-      <a class="nav-item active" href="{% url 'dashboard_empresa' %}?section=disputas"><i class="fa fa-scale-balanced"></i><span>Disputas</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=ofertas"><i data-lucide="briefcase"></i><span>Mis Ofertas</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=desarrollo"><i data-lucide="folder-kanban"></i><span>En Desarrollo</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=contratos"><i data-lucide="file-signature"></i><span>Contratos</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=historial"><i data-lucide="history"></i><span>Historial</span></a>
+      <a class="nav-item active" href="{% url 'dashboard_empresa' %}?section=disputas"><i data-lucide="gavel"></i><span>Disputas</span></a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-group-label">Cuenta</div>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=perfil"><i class="fa fa-building"></i><span>Perfil Empresa</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=perfil"><i data-lucide="building-2"></i><span>Perfil Empresa</span></a>
     </div>
     {% elif user.rol == 'desarrollador' %}
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}"><i class="fa fa-house"></i><span>Inicio</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=centro-chat"><i class="fa fa-comments"></i><span>Mensajes</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}"><i data-lucide="home"></i><span>Inicio</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=centro-chat"><i data-lucide="message-square"></i><span>Mensajes</span></a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-group-label">Proyectos</div>
-      <a class="nav-item" href="{% url 'listar_proyectos' %}"><i class="fa fa-magnifying-glass"></i><span>Explorar</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=postulaciones"><i class="fa fa-file-lines"></i><span>Postulaciones</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=activos"><i class="fa fa-rocket"></i><span>Trabajo Actual</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=completados"><i class="fa fa-trophy"></i><span>Finalizados</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=contratos"><i class="fa fa-file-signature"></i><span>Contratos</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=favoritos"><i class="fa fa-heart"></i><span>Favoritos</span></a>
-      <a class="nav-item active" href="{% url 'dashboard_desarrollador' %}?section=disputas"><i class="fa fa-scale-balanced"></i><span>Disputas</span></a>
+      <a class="nav-item" href="{% url 'listar_proyectos' %}"><i data-lucide="search"></i><span>Explorar</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=postulaciones"><i data-lucide="file-text"></i><span>Postulaciones</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=activos"><i data-lucide="rocket"></i><span>Trabajo Actual</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=completados"><i data-lucide="check-circle-2"></i><span>Finalizados</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=contratos"><i data-lucide="file-signature"></i><span>Contratos</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=favoritos"><i data-lucide="bookmark"></i><span>Favoritos</span></a>
+      <a class="nav-item active" href="{% url 'dashboard_desarrollador' %}?section=disputas"><i data-lucide="gavel"></i><span>Disputas</span></a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-group-label">Cuenta</div>
-      <a class="nav-item" href="{% url 'editar_perfil' %}"><i class="fa fa-user"></i><span>Mi Perfil</span></a>
+      <a class="nav-item" href="{% url 'editar_perfil' %}"><i data-lucide="user"></i><span>Mi Perfil</span></a>
     </div>
     {% else %}
     <div class="sidebar-group">
       <div class="sidebar-group-label">Administración</div>
-      <a class="nav-item" href="{% url 'dashboard_admin' %}"><i class="fa fa-chart-pie"></i><span>Panel</span></a>
-      <a class="nav-item active" href="{% url 'dashboard_admin' %}?section=disputasSection"><i class="fa fa-scale-balanced"></i><span>Mediación y Disputas</span></a>
+      <a class="nav-item" href="{% url 'dashboard_admin' %}"><i data-lucide="pie-chart"></i><span>Panel</span></a>
+      <a class="nav-item active" href="{% url 'dashboard_admin' %}?section=disputasSection"><i data-lucide="gavel"></i><span>Mediación y Disputas</span></a>
     </div>
     {% endif %}
 
     <hr class="sidebar-sep" style="margin-top:auto;">
     <div style="padding:12px;">
-      <a class="nav-item danger" href="{% url 'logout' %}"><i class="fa fa-right-from-bracket"></i><span>Cerrar Sesión</span></a>
+      <a class="nav-item danger" href="{% url 'logout' %}"><i data-lucide="log-out"></i><span>Cerrar Sesión</span></a>
     </div>
   </aside>
 
@@ -80,7 +80,7 @@
         <span>/ JobDevs Platform</span>
       </div>
       <div class="user-chip">
-        <div class="user-avatar">{{ request.user.nombre|default:request.user.username|slice:":1"|upper }}</div>
+        <div class="user-avatar" style="background:#e6faf0; color:#007c34; font-weight:700;">{{ request.user.nombre|default:request.user.username|slice:":1"|upper }}</div>
         <div>
           <div class="user-name">{{ request.user.nombre|default:request.user.username }}</div>
           <div class="user-role">{% if user.rol == 'empresa' %}Empresa{% elif user.rol == 'desarrollador' %}Desarrollador{% else %}Administrador{% endif %}</div>
@@ -90,15 +90,22 @@
 
     <main class="main-content">
       {% for message in messages %}
-        <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}">
-          <i class="fa {% if message.tags == 'error' or message.tags == 'danger' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-          {{ message }}
+        <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}" style="border-radius:var(--corp-radius-md); margin-bottom:18px;">
+          <i data-lucide="{% if message.tags == 'error' or message.tags == 'danger' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
+          <span>{{ message }}</span>
         </div>
       {% endfor %}
       {% block content %}{% endblock %}
     </main>
   </div>
 </div>
+
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

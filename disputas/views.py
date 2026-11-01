@@ -43,18 +43,22 @@ def abrir_disputa_view(request, proyecto_id):
     contratacion = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
     if user.pk == proyecto.empresa_id:
         contratacion = contratacion.order_by('pk').first()
+        categorias = Disputa.CATEGORIAS_EMPRESA
+        categoria_default = 'incumplimiento_contractual'
     else:
         contratacion = contratacion.filter(desarrollador=user).first()
         if contratacion is None:
             raise PermissionDenied('No participas en este proyecto.')
+        categorias = Disputa.CATEGORIAS_DESARROLLADOR
+        categoria_default = 'retencion_fondos'
 
     context = {
         'proyecto': proyecto,
         'contratacion': contratacion,
         'motivo': '',
-        'categoria': 'incumplimiento_contractual',
+        'categoria': categoria_default,
         'evidencia_url': '',
-        'categorias': Disputa.CATEGORIAS,
+        'categorias': categorias,
         'confirma_intento_previo': False,
         'confirma_gravedad': False,
         'acepta_sanciones': False,
@@ -62,7 +66,7 @@ def abrir_disputa_view(request, proyecto_id):
 
     if request.method == 'POST':
         motivo = request.POST.get('motivo', '').strip()
-        categoria = request.POST.get('categoria', '').strip() or 'incumplimiento_contractual'
+        categoria = request.POST.get('categoria', '').strip() or categoria_default
         evidencia_url = request.POST.get('evidencia_url', '').strip()
         confirma_intento_previo = bool(request.POST.get('confirma_intento_previo'))
         confirma_gravedad = bool(request.POST.get('confirma_gravedad'))
