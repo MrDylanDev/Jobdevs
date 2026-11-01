@@ -4,6 +4,8 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.http import JsonResponse
+from django.urls import reverse
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 from .models import Contratacion, ContratoDigital
@@ -70,6 +72,80 @@ def _rol_en_contrato(user, contrato):
     if user.rol == 'administrador':
         return 'administrador'
     return None
+
+
+def _es_xhr(request):
+    """True cuando la petición proviene del modal in-situ (Fetch con Accept application/json o XHR)."""
+    accept = request.headers.get('Accept', '')
+    return (
+        'application/json' in accept
+        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    )
+
+
+def _peticion_ajax(request):
+    """True cuando el cliente espera JSON (Fetch con Accept application/json o ?format=json)."""
+    return _es_xhr(request) or request.GET.get('format') == 'json'
+
+
+def _permisos_firma(contrato, rol_contrato):
+    """Calcula ya_firmo / puede_firmar para la parte que consulta el contrato."""
+    postulacion = contrato.postulacion
+    ya_firmo = (
+        (rol_contrato == 'empresa' and contrato.firmado_empresa)
+        or (rol_contrato == 'desarrollador' and contrato.firmado_desarrollador)
+    )
+    puede_firmar = (
+        rol_contrato in ('empresa', 'desarrollador')
+        and not ya_firmo
+        and contrato.estado in ('borrador', 'pendiente_firma')
+        and postulacion.estado == 'en_negociacion'
+    )
+    return ya_firmo, puede_firmar
+
+
+def _serializar_contrato_digital(contrato, rol_contrato):
+    """Payload JSON del contrato digital para el modal in-situ del dashboard."""
+    postulacion = contrato.postulacion
+    proyecto = postulacion.proyecto
+    desarrollador = postulacion.desarrollador
+    empresa = proyecto.empresa
+    ya_firmo, puede_firmar = _permisos_firma(contrato, rol_contrato)
+    return {
+        'id': contrato.id,
+        'proyecto_titulo': proyecto.titulo,
+        'proyecto_id': proyecto.id,
+        'desarrollador_nombre': desarrollador.nombre or desarrollador.username,
+        'desarrollador_id': desarrollador.id,
+        'empresa_nombre': empresa.nombre or empresa.username,
+        'monto_formateado': contrato.monto_formateado,
+        'monto': contrato.monto,
+        'moneda': contrato.moneda,
+        'forma_pago': contrato.forma_pago,
+        'forma_pago_display': contrato.get_forma_pago_display(),
+        'medio_pago': contrato.medio_pago or 'transferencia',
+        'medio_pago_display': contrato.get_medio_pago_display() if hasattr(contrato, 'get_medio_pago_display') else (contrato.medio_pago or 'Transferencia bancaria'),
+        'medios_pago': [{'valor': k, 'label': v} for k, v in ContratoDigital.MEDIOS_PAGO],
+        'formas_pago': [{'valor': k, 'label': v} for k, v in ContratoDigital.FORMAS_PAGO],
+        'monedas': [{'valor': k, 'label': v} for k, v in ContratoDigital.MONEDAS],
+        'clausulas': contrato.clausulas,
+        'comentarios_adicionales': contrato.comentarios_adicionales,
+        'disclaimer': contrato.disclaimer,
+        'estado': contrato.estado,
+        'estado_display': contrato.get_estado_display(),
+        'firmado_empresa': contrato.firmado_empresa,
+        'fecha_firma_empresa': contrato.fecha_firma_empresa,
+        'firmado_desarrollador': contrato.firmado_desarrollador,
+        'fecha_firma_desarrollador': contrato.fecha_firma_desarrollador,
+        'hash_documento': contrato.hash_documento,
+        'hash_contrato': contrato.hash_contrato,
+        'esta_firmado': contrato.esta_firmado,
+        'puede_editar': rol_contrato == 'empresa' and _contrato_editable(contrato),
+        'puede_firmar': puede_firmar,
+        'ya_firmo': ya_firmo,
+        'url_firmar': reverse('firmar_contrato_digital', args=[contrato.id]),
+        'url_editar': reverse('ver_contrato_digital', args=[contrato.id]),
+    }
 
 
 def _contrato_editable(contrato):
@@ -169,6 +245,9 @@ def ver_contrato_digital(request, contrato_id):
         postulacion.refresh_from_db()
         messages.warning(request, "El plazo para formalizar este contrato ha expirado.")
 
+    if request.method == 'GET' and _peticion_ajax(request):
+        return JsonResponse(_serializar_contrato_digital(contrato, rol_contrato))
+
     if request.method == 'POST':
         if rol_contrato != 'empresa':
             raise PermissionDenied
@@ -192,8 +271,13 @@ def ver_contrato_digital(request, contrato_id):
         forma_pago = request.POST.get('forma_pago', '')
         if forma_pago not in dict(ContratoDigital.FORMAS_PAGO):
             errores.append("Forma de pago no válida.")
+        medio_pago = request.POST.get('medio_pago', contrato.medio_pago or 'transferencia')
+        if medio_pago and medio_pago not in dict(ContratoDigital.MEDIOS_PAGO):
+            medio_pago = 'transferencia'
 
         if errores:
+            if _es_xhr(request):
+                return JsonResponse({'status': 'error', 'message': ' '.join(errores)}, status=400)
             for e in errores:
                 messages.error(request, e)
             return redirect('ver_contrato_digital', contrato_id=contrato.id)
@@ -202,6 +286,7 @@ def ver_contrato_digital(request, contrato_id):
             contrato.monto = monto
             contrato.moneda = moneda
             contrato.forma_pago = forma_pago
+            contrato.medio_pago = medio_pago
             contrato.comentarios_adicionales = request.POST.get('comentarios_adicionales', '').strip()
             contrato.save()
             LogAuditoria.objects.create(
@@ -211,19 +296,16 @@ def ver_contrato_digital(request, contrato_id):
                 registro_id=contrato.id,
             )
         messages.success(request, "Términos del contrato actualizados.")
+        if _es_xhr(request):
+            return JsonResponse({
+                'status': 'ok',
+                'message': 'Términos del contrato actualizados exitosamente.',
+                'contrato': _serializar_contrato_digital(contrato, rol_contrato),
+            })
         return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
     postulacion = contrato.postulacion
-    ya_firmo = (
-        (rol_contrato == 'empresa' and contrato.firmado_empresa)
-        or (rol_contrato == 'desarrollador' and contrato.firmado_desarrollador)
-    )
-    puede_firmar = (
-        rol_contrato in ('empresa', 'desarrollador')
-        and not ya_firmo
-        and contrato.estado in ('borrador', 'pendiente_firma')
-        and postulacion.estado == 'en_negociacion'
-    )
+    ya_firmo, puede_firmar = _permisos_firma(contrato, rol_contrato)
     return render(request, 'contrataciones/contrato_digital.html', {
         'contrato': contrato,
         'postulacion': postulacion,
@@ -236,7 +318,16 @@ def ver_contrato_digital(request, contrato_id):
         'ya_firmo': ya_firmo,
         'monedas': ContratoDigital.MONEDAS,
         'formas_pago': ContratoDigital.FORMAS_PAGO,
+        'medios_pago': ContratoDigital.MEDIOS_PAGO,
     })
+
+
+def _respuesta_firma_error(request, contrato, mensaje, nivel='error'):
+    """Devuelve 400 JSON para el modal in-situ o el redirect con mensaje tradicional."""
+    if _es_xhr(request):
+        return JsonResponse({'status': 'error', 'message': mensaje}, status=400)
+    getattr(messages, nivel)(request, mensaje)
+    return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
 
 @login_required
@@ -250,8 +341,8 @@ def firmar_contrato_digital(request, contrato_id):
         raise PermissionDenied
 
     if not request.POST.get('acepta_terminos'):
-        messages.error(request, "Debes aceptar los términos del contrato para firmarlo.")
-        return redirect('ver_contrato_digital', contrato_id=contrato.id)
+        return _respuesta_firma_error(
+            request, contrato, "Debes aceptar los términos del contrato para firmarlo.")
 
     try:
         with transaction.atomic():
@@ -260,19 +351,19 @@ def firmar_contrato_digital(request, contrato_id):
             postulacion = contrato.postulacion
 
             if contrato.estado not in ('borrador', 'pendiente_firma') or postulacion.estado != 'en_negociacion':
-                messages.error(request, "Este contrato ya no está disponible para firma.")
-                return redirect('ver_contrato_digital', contrato_id=contrato.id)
+                return _respuesta_firma_error(
+                    request, contrato, "Este contrato ya no está disponible para firma.")
 
             if postulacion.fecha_limite_negociacion and postulacion.fecha_limite_negociacion < timezone.now():
                 from postulaciones.services import expirar_negociacion
                 expirar_negociacion(postulacion.id)
-                messages.error(request, "El plazo para formalizar este contrato ha expirado.")
-                return redirect('ver_contrato_digital', contrato_id=contrato.id)
+                return _respuesta_firma_error(
+                    request, contrato, "El plazo para formalizar este contrato ha expirado.")
 
             ya_firmo = contrato.firmado_empresa if rol_contrato == 'empresa' else contrato.firmado_desarrollador
             if ya_firmo:
-                messages.warning(request, "Ya firmaste este contrato.")
-                return redirect('ver_contrato_digital', contrato_id=contrato.id)
+                return _respuesta_firma_error(
+                    request, contrato, "Ya firmaste este contrato.", nivel='warning')
 
             ahora = timezone.now()
             if rol_contrato == 'empresa':
@@ -318,11 +409,18 @@ def firmar_contrato_digital(request, contrato_id):
             contrato.save()
     except ValidationError as ve:
         mensaje_error = ve.messages[0] if hasattr(ve, 'messages') and ve.messages else str(ve)
-        messages.error(request, f"No es posible formalizar la contratación: {mensaje_error}")
-        return redirect('ver_contrato_digital', contrato_id=contrato_id)
+        return _respuesta_firma_error(
+            request, contrato, f"No es posible formalizar la contratación: {mensaje_error}")
     except Exception as e:
-        messages.error(request, f"Error al firmar el contrato: {str(e)}")
-        return redirect('ver_contrato_digital', contrato_id=contrato_id)
+        return _respuesta_firma_error(
+            request, contrato, f"Error al firmar el contrato: {str(e)}")
+
+    if _es_xhr(request):
+        return JsonResponse({
+            'status': 'ok',
+            'message': mensaje,
+            'esta_firmado': contrato.esta_firmado,
+        })
 
     messages.success(request, mensaje)
     return redirect('ver_contrato_digital', contrato_id=contrato.id)

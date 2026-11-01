@@ -59,6 +59,12 @@ class ContratoDigital(models.Model):
         ('por_hito', 'Pago por hito completado'),
         ('mensual', 'Pago mensual'),
     ]
+    MEDIOS_PAGO = [
+        ('transferencia', 'Transferencia bancaria'),
+        ('efectivo', 'Efectivo'),
+        ('consignacion', 'Consignación / Depósito'),
+        ('acuerdo_mutuo', 'Acuerdo mutuo'),
+    ]
 
     postulacion = models.OneToOneField(
         'postulaciones.Postulacion', on_delete=models.CASCADE, related_name='contrato_digital')
@@ -70,6 +76,10 @@ class ContratoDigital(models.Model):
     monto = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     moneda = models.CharField(max_length=5, choices=MONEDAS, default='COP')
     forma_pago = models.CharField(max_length=30, choices=FORMAS_PAGO, default='por_hito')
+    medio_pago = models.CharField(
+        max_length=30, choices=MEDIOS_PAGO, default='transferencia', blank=True, null=True,
+        help_text="Canal o medio de pago acordado (Transferencia, Efectivo, etc.)"
+    )
     clausulas = models.TextField(default=(
         "1. OBJETO: El desarrollador se compromete a realizar las actividades acordadas para el proyecto. "
         "2. ENTREGABLES: Los avances deberán registrarse con evidencias verificables. "

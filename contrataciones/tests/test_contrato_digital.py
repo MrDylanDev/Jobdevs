@@ -194,6 +194,7 @@ class TestVerContratoDigital:
     def test_empresa_edita_terminos(self, empresa_c, contrato):
         res = empresa_c.post(reverse('ver_contrato_digital', args=[contrato.id]), {
             'monto': '2500000.50', 'moneda': 'USD', 'forma_pago': 'mensual',
+            'medio_pago': 'efectivo',
             'comentarios_adicionales': 'Entrega en 2 meses',
         })
         assert res.status_code == 302
@@ -201,9 +202,27 @@ class TestVerContratoDigital:
         assert str(contrato.monto) == '2500000.50'
         assert contrato.moneda == 'USD'
         assert contrato.forma_pago == 'mensual'
+        assert contrato.medio_pago == 'efectivo'
         assert contrato.comentarios_adicionales == 'Entrega en 2 meses'
         assert LogAuditoria.objects.filter(
             tabla_afectada='contratos_digitales', registro_id=contrato.id).exists()
+
+    def test_empresa_edita_terminos_via_ajax_in_situ(self, empresa_c, contrato):
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res = empresa_c.post(url, {
+            'monto': '3200000.00', 'moneda': 'COP', 'forma_pago': 'unico_finalizar',
+            'medio_pago': 'transferencia',
+            'comentarios_adicionales': 'Pago contra entrega final probada',
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+        assert data['contrato']['medio_pago'] == 'transferencia'
+        assert data['contrato']['forma_pago'] == 'unico_finalizar'
+        contrato.refresh_from_db()
+        assert str(contrato.monto) == '3200000.00'
+        assert contrato.medio_pago == 'transferencia'
+        assert contrato.forma_pago == 'unico_finalizar'
 
     def test_desarrollador_no_puede_editar_terminos(self, dev_c, contrato):
         res = dev_c.post(reverse('ver_contrato_digital', args=[contrato.id]), {
