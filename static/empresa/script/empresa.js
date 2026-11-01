@@ -100,6 +100,34 @@
     }
   };
 
+  // --- 2.1b Modal de Verificación de Identidad In-Situ ---
+  window.abrirModalVerificacion = function (event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const modal = document.getElementById('modalVerificacionEmpresa');
+    if (modal) {
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+      const firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
+      if (firstInput) firstInput.focus();
+    }
+  };
+
+  window.cerrarModalVerificacion = function () {
+    const modal = document.getElementById('modalVerificacionEmpresa');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  };
+
   // --- 2.2 Previsualización de Logo en Modal ---
   window.previewLogo = function (input) {
     if (input.files && input.files[0]) {
@@ -1273,6 +1301,16 @@
       });
     }
 
+    // Backdrop del modal de verificación de empresa
+    const modalVerificacion = document.getElementById('modalVerificacionEmpresa');
+    if (modalVerificacion) {
+      modalVerificacion.addEventListener('click', function (e) {
+        if (e.target === modalVerificacion) {
+          window.cerrarModalVerificacion();
+        }
+      });
+    }
+
     // Backdrop del modal de contrato digital in-situ
     const modalContratoDigital = document.getElementById('modalContratoDigital');
     if (modalContratoDigital) {
@@ -1513,6 +1551,7 @@
         window.cerrarModalConfirmarRetiro();
         window.cerrarModalTodasValoraciones();
         window.cerrarModalContrato();
+        window.cerrarModalVerificacion();
         window.cerrarDrawerCandidatos();
         window.closeNotifPopover();
         window.closeSidebar();

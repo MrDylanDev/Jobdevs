@@ -79,10 +79,6 @@
         <i data-lucide="building-2"></i>
         <span>Perfil Empresa</span>
       </button>
-      <a class="nav-item" href="{% url 'solicitar_verificacion_empresa' %}" title="Verificación NIT / Identidad">
-        <i data-lucide="shield-check"></i>
-        <span>Verificación NIT / Identidad</span>
-      </a>
     </div>
 
     <hr class="sidebar-sep" style="margin-top:auto;">
@@ -148,7 +144,7 @@
         </div>
 
         {% with badge=perfil.badge_info %}
-        <a href="{% url 'solicitar_verificacion_empresa' %}" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="Estado de verificación">
+        <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="Verificación NIT / Identidad">
           <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
           <span>{{ badge.label }}</span>
         </a>
@@ -1028,7 +1024,7 @@
                   <i data-lucide="pencil"></i>
                   <span>Editar página</span>
                 </button>
-                <a href="{% url 'solicitar_verificacion_empresa' %}" class="btn-linkedin-verify" title="Verificar personería jurídica">
+                <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="btn-linkedin-verify" title="Verificar personería jurídica">
                   <i data-lucide="shield-check"></i>
                   <span>Verificación</span>
                 </a>
@@ -1773,6 +1769,125 @@
     <div style="padding: 14px 24px; border-top: 1px solid var(--corp-border); display: flex; justify-content: flex-end; background: var(--corp-surface);">
       <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal In-Situ de Verificación de Identidad Empresarial -->
+<div id="modalVerificacionEmpresa" class="modal-overlay">
+  <div class="modal-box-corp" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header-corp">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:36px; height:36px; border-radius:10px; background:#e6faf0; color:#007c34; display:flex; align-items:center; justify-content:center;">
+          <i data-lucide="shield-check" style="width:20px; height:20px;"></i>
+        </div>
+        <div>
+          <h2 class="modal-title-corp" style="margin-bottom:2px;">Verificación de Identidad Empresarial</h2>
+          <span style="font-size:12px; color:var(--corp-slate-500);">Validación oficial de persona jurídica o natural con personería comercial</span>
+        </div>
+      </div>
+      <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Estado Actual de Verificación -->
+    {% if perfil.estado_verificacion == 'verificada' %}
+      <div style="background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
+        <i data-lucide="check-circle-2" style="color:#007c34; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
+        <div>
+          <strong style="display:block; font-size:15px; color:#007c34; margin-bottom:4px;">¡Empresa Verificada con Éxito!</strong>
+          <p style="margin:0 0 6px 0; font-size:13.5px; color:#064e3b;">Tu empresa <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> cuenta con la insignia de confianza oficial.</p>
+          <span style="font-size:12px; color:#047857; font-weight:600;">Documento acreditado: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
+        </div>
+      </div>
+    {% elif perfil.estado_verificacion == 'en_revision' %}
+      <div style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
+        <i data-lucide="clock" style="color:#a16207; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
+        <div>
+          <strong style="display:block; font-size:15px; color:#854d0e; margin-bottom:4px;">Solicitud en Proceso de Revisión</strong>
+          <p style="margin:0 0 8px 0; font-size:13.5px; color:#713f12;">Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen.</p>
+          <div style="font-size:12px; color:#854d0e;">Documento radicado: <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
+          {% if perfil.documento_soporte %}
+            <div style="margin-top:8px;">
+              <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:11.5px; padding:3px 10px;">
+                <i data-lucide="file-text"></i> Ver documento enviado
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      {% if perfil.estado_verificacion == 'rechazada' %}
+        <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:16px 18px; margin-bottom:20px; color:#9f1239; font-size:13px;">
+          <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+            <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> Tu solicitud anterior fue rechazada
+          </strong>
+          {% if perfil.notas_auditoria %}<div><strong>Motivo del mediador:</strong> {{ perfil.notas_auditoria }}</div>{% endif %}
+          <div style="margin-top:4px;">Por favor corrige la información y vuelve a adjuntar el documento de soporte.</div>
+        </div>
+      {% else %}
+        <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:12px; padding:16px 18px; margin-bottom:20px; font-size:13px; color:var(--corp-slate-600); display:flex; gap:10px; align-items:center;">
+          <i data-lucide="info" style="color:var(--corp-brand); width:18px; height:18px; flex-shrink:0;"></i>
+          <span>Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa.</span>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'solicitar_verificacion_empresa' %}" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#perfil">
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="modal_tipo_persona">Tipo de persona</label>
+            <select id="modal_tipo_persona" name="tipo_persona" class="form-input-corp" required>
+              {% for value, label in tipos_persona %}
+                <option value="{{ value }}" {% if perfil.tipo_persona == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="modal_tipo_documento">Tipo de documento</label>
+            <select id="modal_tipo_documento" name="tipo_documento" class="form-input-corp" required>
+              {% for value, label in tipos_documento %}
+                <option value="{{ value }}" {% if perfil.tipo_documento == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="modal_numero_documento">Número de documento (sin DV)</label>
+            <input type="text" id="modal_numero_documento" name="numero_documento" class="form-input-corp"
+                   value="{{ perfil.numero_documento|default:'' }}" placeholder="Ej: 900123456" required>
+            <span style="font-size:11px; color:var(--corp-slate-400); margin-top:3px; display:block;">El dígito de verificación se calcula automáticamente.</span>
+          </div>
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="modal_razon_social">Razón social oficial</label>
+            <input type="text" id="modal_razon_social" name="razon_social" class="form-input-corp"
+                   value="{{ perfil.razon_social|default:perfil.nombre_empresa }}" placeholder="Ej: Tech Solutions S.A.S." required>
+          </div>
+        </div>
+
+        <div class="form-group-corp" style="margin-bottom:20px;">
+          <label class="form-label-corp" for="modal_documento_soporte">Documento de soporte (Cámara de Comercio o RUT, PDF)</label>
+          <input type="file" id="modal_documento_soporte" name="documento_soporte" accept="application/pdf,.pdf" class="form-input-corp" required>
+          {% if perfil.documento_soporte %}
+            <span style="font-size:11.5px; color:var(--corp-brand); margin-top:4px; display:block;">
+              <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo.
+            </span>
+          {% endif %}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--corp-border); padding-top:16px;">
+          <button type="button" onclick="cerrarModalVerificacion()" class="btn-corp-action secondary">Cancelar</button>
+          <button type="submit" class="btn-corp-primary">
+            <i data-lucide="upload-cloud"></i>
+            <span>Radicar Solicitud de Verificación</span>
+          </button>
+        </div>
+      </form>
+    {% endif %}
   </div>
 </div>
 <script>

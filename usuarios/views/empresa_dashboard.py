@@ -238,6 +238,8 @@ def dashboard_empresa(request):
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'mensajes_no_leidos': Mensaje.objects.filter(receptor=request.user, leido=False).count(),
         'perfil': perfil,
+        'tipos_persona': PerfilEmpresa.TIPO_PERSONA_CHOICES,
+        'tipos_documento': PerfilEmpresa.TIPO_DOCUMENTO_CHOICES,
         'admin_id': admin_id,
         'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
     }
