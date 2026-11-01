@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import JsonResponse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -218,8 +220,9 @@ def aceptar_postulacion(request, postulacion_id):
         if _espera_json(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    if request.POST.get('next'):
-        return redirect(request.POST.get('next'))
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        return redirect(next_url)
     return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
 
@@ -292,8 +295,9 @@ def iniciar_negociacion(request, postulacion_id):
     messages.success(request, msg)
     if _espera_json(request):
         return JsonResponse({'status': 'ok', 'message': msg})
-    if request.POST.get('next'):
-        return redirect(request.POST.get('next'))
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        return redirect(next_url)
     return redirect('sala_chat', receptor_id=postulacion.desarrollador_id, proyecto_id=postulacion.proyecto_id)
 
 
@@ -329,7 +333,8 @@ def rechazar_postulacion(request, postulacion_id):
         if _espera_json(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-    if request.POST.get('next'):
-        return redirect(request.POST.get('next'))
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        return redirect(next_url)
     return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 

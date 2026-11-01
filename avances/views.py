@@ -4,6 +4,7 @@ from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -343,6 +344,9 @@ def revisar_avance(request, avance_id):
                 )
                 messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
 
+        next_url = request.POST.get('next')
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            return redirect(next_url)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
     except Exception as e:
         messages.error(request, f"Error: {str(e)}")

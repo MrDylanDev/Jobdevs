@@ -99,7 +99,7 @@
         </button>
       </div>
 
-      <div id="panelHitos" class="subtab-panel">
+      <div id="panelHitos" class="subtab-panel" role="tabpanel" aria-labelledby="tabHitos">
 
       <!-- Formulario nuevo hito -->
       <div class="card" style="margin-bottom:28px; background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:22px;">
@@ -229,7 +229,7 @@
 
       </div><!-- /#panelHitos -->
 
-      <div id="panelAvances" class="subtab-panel" style="display:none;">
+      <div id="panelAvances" class="subtab-panel" role="tabpanel" aria-labelledby="tabAvances" style="display:none;">
         <div class="page-header" style="margin-bottom:20px;">
           <div>
             <div class="page-title" style="display:flex; align-items:center; gap:8px; font-size:16px;">
@@ -301,8 +301,10 @@
                       <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:var(--corp-radius-md); padding:12px; min-width:280px;">
                         <form method="post" action="{% url 'revisar_avance' avance.id %}" style="display:flex; flex-direction:column; gap:10px;">
                           {% csrf_token %}
+                          <input type="hidden" name="next" value="{% url 'gestionar_hitos' proyecto.id %}#avances">
+                          <label for="comentario-{{ avance.id }}" style="display:none;">Retroalimentación para el desarrollador</label>
                           <div style="font-size:11px; font-weight:700; color:var(--corp-slate-600); text-transform:uppercase;">Revisar Entrega</div>
-                          <textarea name="comentario" required placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
+                          <textarea id="comentario-{{ avance.id }}" name="comentario" placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
                           <div style="display:flex; gap:8px;">
                             <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm" style="flex:1; justify-content:center;">
                               <i data-lucide="check"></i>

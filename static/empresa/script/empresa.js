@@ -862,13 +862,8 @@
     // Actualizar URL de forma limpia sin recargar
     if (window.history && window.history.replaceState) {
       const url = new URL(window.location);
-      if (estado && estado !== 'todos') {
-        url.searchParams.set('section', 'historial');
-        url.searchParams.set('historial_estado', estado);
-      } else {
-        url.searchParams.set('section', 'historial');
-        url.searchParams.delete('historial_estado');
-      }
+      url.searchParams.set('section', 'historial');
+      url.searchParams.delete('historial_estado');
       url.hash = 'historial';
       window.history.replaceState(null, '', url);
     }

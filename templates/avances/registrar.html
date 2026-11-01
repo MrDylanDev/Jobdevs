@@ -55,7 +55,7 @@
 
         {% if messages %}
           {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-md);">
+            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-sm, 8px);">
               <div style="display:flex; align-items:center; gap:8px;">
                 <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
                 <span>{{ message }}</span>
