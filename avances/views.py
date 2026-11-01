@@ -379,9 +379,20 @@ def ver_avances(request, proyecto_id):
     hitos_completados = progreso['hitos_completados'] or 0
     hitos_totales = progreso['hitos_totales'] or 0
 
+    # Datos del sub-tab "Hitos del Proyecto" para alternar sin recargar la página
+    hitos = Entregable.objects.filter(proyecto=proyecto).order_by('fecha_creacion')
+    equipos = proyecto.equipos.all()
+    contratos_activos = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
+    tiene_multiples_contratos = contratos_activos.count() >= 2
+    desarrolladores_activos = contratos_activos.select_related('desarrollador')
+
     return render(request, 'avances/ver_lista.html', {
         'proyecto': proyecto, 
         'avances': avances,
+        'hitos': hitos,
+        'equipos': equipos,
+        'tiene_multiples_contratos': tiene_multiples_contratos,
+        'desarrolladores_activos': desarrolladores_activos,
         'hitos_completados': hitos_completados,
         'hitos_totales': hitos_totales
     })

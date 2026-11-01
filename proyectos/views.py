@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction, IntegrityError
-from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import (
@@ -17,12 +18,21 @@ from django.core.paginator import Paginator
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
 from . import services
 from logs.models import LogAuditoria
+
+
+def _espera_json(request):
+    """Detecta peticiones asíncronas modernas vía Fetch (Accept: application/json) o XHR."""
+    return (
+        'application/json' in request.headers.get('Accept', '')
+        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    )
 from usuarios.decorators import api_ratelimit
 from usuarios.models import Usuario, PerfilDesarrollador
 from contrataciones.models import Contratacion
 from favoritos.models import Favorito
 from postulaciones.models import Postulacion
 from notificaciones.models import Notificacion
+from avances.models import Avance
 
 @login_required
 def listar_proyectos(request):
@@ -527,9 +537,21 @@ def gestionar_hitos(request, proyecto_id):
         proyecto=proyecto, estado='activa'
     ).select_related('desarrollador')
 
+    # Sub-tab "Línea de Tiempo de Avances" sin recargar la página
+    avances = Avance.objects.filter(proyecto=proyecto).select_related(
+        'desarrollador__perfil_desarrollador', 'entregable'
+    ).order_by('-fecha_hora')
+    progreso = hitos.aggregate(
+        hitos_completados=Count('id', filter=Q(estado='completado')),
+        hitos_totales=Count('id'),
+    )
+
     return render(request, 'proyectos/gestionar_hitos.html', {
         'proyecto': proyecto, 
         'hitos': hitos,
+        'avances': avances,
+        'hitos_completados': progreso['hitos_completados'] or 0,
+        'hitos_totales': progreso['hitos_totales'] or 0,
         'equipos': equipos,
         'tiene_multiples_contratos': tiene_multiples_contratos,
         'desarrolladores_activos': desarrolladores_activos,
@@ -632,12 +654,20 @@ def editar_proyecto(request, proyecto_id):
             proyecto.save()
 
             messages.success(request, f"Proyecto '{proyecto.titulo}' actualizado exitosamente.")
-            return redirect('dashboard_empresa')
+            if _espera_json(request):
+                return JsonResponse({'status': 'ok', 'message': f"Proyecto '{proyecto.titulo}' actualizado exitosamente."})
+            return redirect(f"{reverse('dashboard_empresa')}#ofertas")
         except ValidationError as ve:
-            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
+            msg = f"Error de validación: {', '.join(ve.messages)}"
+            messages.error(request, msg)
+            if _espera_json(request):
+                return JsonResponse({'status': 'error', 'message': msg}, status=400)
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
         except Exception as e:
-            messages.error(request, f"Error: {e}")
+            msg = f"Error: {e}"
+            messages.error(request, msg)
+            if _espera_json(request):
+                return JsonResponse({'status': 'error', 'message': msg}, status=500)
             return redirect('editar_proyecto', proyecto_id=proyecto.id)
 
     return render(request, 'proyectos/editar_proyecto.html', {
