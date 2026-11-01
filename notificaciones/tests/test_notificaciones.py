@@ -145,10 +145,11 @@ class TestListaNotificaciones:
         assert data['actualizadas'] == 2
         assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 0
 
-    def test_limpiar_notificaciones_elimina_registros_del_usuario(self, dev_client, desarrollador_user):
-        """Eliminar notificaciones borra físicamente los registros para que no se acumulen."""
+    def test_limpiar_notificaciones_elimina_registros_del_usuario(self, dev_client, desarrollador_user, empresa_user):
+        """Eliminar notificaciones borra físicamente solo las del usuario autenticado."""
         Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='A1')
         Notificacion.objects.create(usuario=desarrollador_user, tipo='alerta', mensaje='A2')
+        notif_otra = Notificacion.objects.create(usuario=empresa_user, tipo='alerta', mensaje='A_otra')
 
         response = dev_client.post(
             reverse('notificaciones_limpiar'),
@@ -159,6 +160,7 @@ class TestListaNotificaciones:
         assert data['status'] == 'ok'
         assert data['eliminadas'] == 2
         assert Notificacion.objects.filter(usuario=desarrollador_user).count() == 0
+        assert Notificacion.objects.filter(id=notif_otra.id).exists()
 
 
 

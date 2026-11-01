@@ -224,6 +224,21 @@ class TestVerContratoDigital:
         assert contrato.medio_pago == 'transferencia'
         assert contrato.forma_pago == 'unico_finalizar'
 
+    def test_empresa_edita_terminos_via_fetch_accept_json_in_situ(self, empresa_c, contrato):
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res = empresa_c.post(url, {
+            'monto': '1800000.00', 'moneda': 'USD', 'forma_pago': 'por_hito',
+            'medio_pago': 'consignacion',
+            'comentarios_adicionales': 'Hitos semanales',
+        }, HTTP_ACCEPT='application/json')
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+        assert data['contrato']['medio_pago'] == 'consignacion'
+        contrato.refresh_from_db()
+        assert str(contrato.monto) == '1800000.00'
+        assert contrato.medio_pago == 'consignacion'
+
     def test_desarrollador_no_puede_editar_terminos(self, dev_c, contrato):
         res = dev_c.post(reverse('ver_contrato_digital', args=[contrato.id]), {
             'monto': '999', 'moneda': 'COP', 'forma_pago': 'mensual',

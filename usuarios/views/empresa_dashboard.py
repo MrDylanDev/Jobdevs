@@ -27,6 +27,8 @@ def dashboard_empresa(request):
     p_pub = Proyecto.objects.filter(empresa=request.user, estado='publicado').count()
     p_act = Proyecto.objects.filter(empresa=request.user, estado='en_desarrollo').count()
     dev_con = Contratacion.objects.filter(empresa=request.user, estado='activa').count()
+    ha_publicado = Proyecto.objects.filter(empresa=request.user).exists()
+    ha_contratado = Contratacion.objects.filter(empresa=request.user).exists()
 
     en_desarrollo_qs = Proyecto.objects.filter(
         empresa=request.user, estado__in=['en_desarrollo', 'en_revision']
@@ -84,7 +86,7 @@ def dashboard_empresa(request):
     total_vacantes_ofertas = sum(p.vacantes for p in mis_ofertas)
 
     # RF 2.2.1: marca las convocatorias que cierran en las próximas 48 horas.
-    hoy = timezone.now().date()
+    hoy = timezone.localdate()
     limite_48h = hoy + timedelta(days=2)
     for proyecto in mis_ofertas:
         proyecto.cierra_pronto = bool(
@@ -111,14 +113,14 @@ def dashboard_empresa(request):
             'clave': 'publicar',
             'titulo': 'Publica tu primera convocatoria',
             'descripcion': 'Describe tu proyecto y encuentra el talento que necesitas.',
-            'completado': p_pub > 0,
+            'completado': ha_publicado,
             'en_revision': False,
         },
         {
             'clave': 'contratar',
             'titulo': 'Contrata tu primer talento',
             'descripcion': 'Inicia un contrato activo con un desarrollador de la plataforma.',
-            'completado': dev_con > 0,
+            'completado': ha_contratado,
             'en_revision': False,
         },
     ]

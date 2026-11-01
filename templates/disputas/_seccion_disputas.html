@@ -24,27 +24,27 @@
 <div class="disputas-filtros" data-testid="filtro-disputas">
   <a href="?{% if seccion %}section={{ seccion }}{% endif %}"
      class="btn btn-sm {% if not filtro_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}"
-     onclick="filtrarDisputasEnTiempoReal(event, 'todos', this); return false;">
+     onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'todos', this); }">
     <span>Todos ({{ total_disputas }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=abierta"
      class="btn btn-sm {% if filtro_estado_actual == 'abierta' %}btn-primary{% else %}btn-secondary{% endif %}"
-     onclick="filtrarDisputasEnTiempoReal(event, 'abierta', this); return false;">
+     onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'abierta', this); }">
     <span>Abiertas ({{ disputas_por_estado.abierta }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=en_mediacion"
      class="btn btn-sm {% if filtro_estado_actual == 'en_mediacion' %}btn-primary{% else %}btn-secondary{% endif %}"
-     onclick="filtrarDisputasEnTiempoReal(event, 'en_mediacion', this); return false;">
+     onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'en_mediacion', this); }">
     <span>En mediación ({{ disputas_por_estado.en_mediacion }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=resuelta"
      class="btn btn-sm {% if filtro_estado_actual == 'resuelta' %}btn-primary{% else %}btn-secondary{% endif %}"
-     onclick="filtrarDisputasEnTiempoReal(event, 'resuelta', this); return false;">
+     onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'resuelta', this); }">
     <span>Resueltas ({{ disputas_por_estado.resuelta }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=cancelada"
      class="btn btn-sm {% if filtro_estado_actual == 'cancelada' %}btn-primary{% else %}btn-secondary{% endif %}"
-     onclick="filtrarDisputasEnTiempoReal(event, 'cancelada', this); return false;">
+     onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'cancelada', this); }">
     <span>Canceladas ({{ disputas_por_estado.cancelada }})</span>
   </a>
 </div>

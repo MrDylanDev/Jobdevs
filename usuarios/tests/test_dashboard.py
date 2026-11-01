@@ -496,11 +496,11 @@ def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_c
         tipo_solucion='sitio_web', estado='finalizado',
     )
     contratacion = Contratacion.objects.create(
-        proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='finalizado',
+        proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='finalizada',
     )
     disputa = Disputa.objects.create(
         proyecto=proyecto, contratacion=contratacion, iniciado_por=desarrollador_user,
-        motivo='Conflicto de prueba', estado='resuelta', resolucion='acuerdo_mutuo',
+        motivo='Conflicto de prueba', estado='resuelta', resolucion='reanudar_proyecto',
         notas_resolucion='Acuerdo alcanzado satisfactoriamente', fecha_resolucion=timezone.now(),
     )
 
