@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Candidatos Postulados</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=1">
+  <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 </head>
 <body>
 
@@ -24,9 +25,9 @@
     </div>
 
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}">
-        <i class="fa fa-arrow-left"></i>
-        <span>Volver al Panel</span>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}#ofertas">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a Mis Ofertas</span>
       </a>
     </div>
   </aside>
@@ -56,7 +57,7 @@
       {% if messages %}
         {% for message in messages %}
           <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
             {{ message }}
           </div>
         {% endfor %}
@@ -100,9 +101,9 @@
           <input type="text" id="filtro-ficha" name="ficha" class="form-input" value="{{ filtros.ficha }}" placeholder="Ej: 2558104">
         </div>
         <div style="display: flex; gap: 8px;">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Filtrar</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Filtrar</button>
           {% if filtros.programa or filtros.ficha or filtros.habilidad %}
-            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary"><i class="fa fa-xmark"></i> Limpiar filtros</a>
+            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary"><i data-lucide="x"></i> Limpiar filtros</a>
           {% endif %}
         </div>
       </form>
@@ -132,18 +133,18 @@
                                     data-testid="badge-sena-postulante"
                                     style="font-size: 11px; padding: 2px 7px;"
                                     title="{% if post.desarrollador.fecha_verificacion %}Verificado el {{ post.desarrollador.fecha_verificacion|date:'d/m/Y' }}{% else %}{{ post.desarrollador.badge_info.label }}{% endif %}">
-                                <i class="fa {% if post.desarrollador.es_verificado_sena %}fa-circle-check{% elif 'Revisión' in post.desarrollador.badge_info.label %}fa-hourglass-half{% else %}fa-id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
+                                <i data-lucide="{% if post.desarrollador.es_verificado_sena %}check-circle-2{% elif 'Revisión' in post.desarrollador.badge_info.label %}hourglass{% else %}id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
                               </span>
                             {% endif %}
                           </div>
                           <div style="font-size: 12px; color: var(--text-secondary);">
                               {% if post.desarrollador.programa_formacion %}
-                                <i class="fa fa-graduation-cap" style="margin-right: 3px;"></i> {{ post.desarrollador.programa_formacion }}
+                                <i data-lucide="graduation-cap" style="margin-right: 3px;"></i> {{ post.desarrollador.programa_formacion }}
                                 {% if post.desarrollador.ficha %} &nbsp;·&nbsp; Ficha {{ post.desarrollador.ficha }}{% endif %}
                                 <br>
                               {% endif %}
-                              <i class="fa fa-star" style="color: #f59e0b; margin-right: 4px;"></i> {{ post.calificacion_promedio|default:"0.0" }} reputación &nbsp;·&nbsp; 
-                              <i class="fa fa-trophy" style="color: var(--text-muted); margin-left: 4px; margin-right: 4px;"></i> {{ post.proyectos_completados }} completados
+                              <i data-lucide="star" style="color: #f59e0b; margin-right: 4px;"></i> {{ post.calificacion_promedio|default:"0.0" }} reputación &nbsp;·&nbsp; 
+                              <i data-lucide="trophy" style="color: var(--text-muted); margin-left: 4px; margin-right: 4px;"></i> {{ post.proyectos_completados }} completados
                           </div>
                       </div>
                   </div>
@@ -173,39 +174,39 @@
               
               <div style="display: flex; flex-direction: column; gap: 10px; min-width: 160px;">
                   {% if post.estado == 'en_negociacion' %}
-                      <span class="badge badge-info" style="justify-content: center;"><i class="fa fa-handshake"></i>&nbsp;En Negociación</span>
+                      <span class="badge badge-info" style="justify-content: center;"><i data-lucide="handshake"></i>&nbsp;En Negociación</span>
                       {% if post.fecha_limite_negociacion %}
                         <div style="font-size: 11px; color: var(--text-muted); text-align: center;">Vence el {{ post.fecha_limite_negociacion|date:"d M Y" }}</div>
                       {% endif %}
                       {% if post.contrato_id %}
                         <a href="{% url 'ver_contrato_digital' post.contrato_id %}" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                            <i class="fa fa-file-signature"></i> Ver Contrato
+                            <i data-lucide="file-signature"></i> Ver Contrato
                         </a>
                       {% endif %}
                       <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
-                          <i class="fa fa-message"></i> Ir al Chat
+                          <i data-lucide="message-square"></i> Ir al Chat
                       </a>
                   {% elif proyecto.estado == 'publicado' %}
                       <form method="post" action="{% url 'iniciar_negociacion' post.id %}">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i class="fa fa-handshake"></i> Iniciar Negociación
+                              <i data-lucide="handshake"></i> Iniciar Negociación
                           </button>
                       </form>
                       <form method="post" action="{% url 'aceptar_postulacion' post.id %}">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i class="fa fa-check"></i> Contratar
+                              <i data-lucide="check"></i> Contratar
                           </button>
                       </form>
                       <form method="post" action="{% url 'rechazar_postulacion' post.id %}" onsubmit="return confirm('¿Seguro que deseas rechazar esta postulación?');">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-danger" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i class="fa fa-xmark"></i> Rechazar
+                              <i data-lucide="x"></i> Rechazar
                           </button>
                       </form>
                       <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
-                          <i class="fa fa-message"></i> Mensaje Privado
+                          <i data-lucide="message-square"></i> Mensaje Privado
                       </a>
                   {% else %}
                       <span class="badge badge-gray" style="justify-content: center;">Proyecto cerrado</span>
@@ -214,11 +215,11 @@
           </div>
         {% empty %}
           <div class="empty-state" style="padding: 80px 20px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-              <i class="fa fa-users" style="font-size: 40px; color: var(--border); margin-bottom: 15px;"></i>
+              <i data-lucide="users" style="font-size: 40px; color: var(--border); margin-bottom: 15px;"></i>
               {% if filtros.programa or filtros.ficha or filtros.habilidad %}
                 <p style="color: var(--text-secondary); font-size: 15px;">No hay postulaciones que coincidan con los filtros aplicados.</p>
                 <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Prueba con otros criterios o restablece los filtros.</p>
-                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="margin-top: 16px;"><i class="fa fa-rotate-left"></i> Restablecer filtros</a>
+                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="margin-top: 16px;"><i data-lucide="rotate-ccw"></i> Restablecer filtros</a>
               {% else %}
                 <p style="color: var(--text-secondary); font-size: 15px;">Aún no has recibido postulaciones para este proyecto.</p>
                 <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Te notificaremos cuando un desarrollador se interese.</p>
@@ -231,5 +232,12 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+</script>
 </body>
 </html>

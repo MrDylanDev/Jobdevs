@@ -106,6 +106,7 @@ class PerfilEmpresa(models.Model):
     descripcion = models.TextField(blank=True, null=True)
     ciudad = models.CharField(max_length=100, blank=True, null=True)
     logo = models.ImageField(upload_to='perfiles/empresas/', blank=True, null=True)
+    stack_interes = models.CharField(max_length=500, blank=True, null=True, help_text="Tecnologías o especialidades de interés separadas por comas")
     calificacion_promedio = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
 
     # Verificación de identidad
@@ -129,6 +130,13 @@ class PerfilEmpresa(models.Model):
     @property
     def es_verificada(self):
         return self.estado_verificacion == 'verificada'
+
+    @property
+    def lista_stack_interes(self):
+        """Devuelve la lista de tecnologías de interés limpias."""
+        if not self.stack_interes:
+            return []
+        return [s.strip() for s in self.stack_interes.split(',') if s.strip()]
 
     @property
     def documento_completo(self):

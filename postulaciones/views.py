@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.http import JsonResponse, HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -14,6 +17,14 @@ from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
 from proyectos.models import Equipo
 from usuarios.models import Usuario, PerfilDesarrollador
+
+
+def _espera_json(request):
+    """Detecta peticiones asíncronas modernas vía Fetch (Accept: application/json) o XHR."""
+    return (
+        'application/json' in request.headers.get('Accept', '')
+        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    )
 
 @login_required
 def ver_postulaciones_empresa(request, proyecto_id):
@@ -192,14 +203,26 @@ def aceptar_postulacion(request, postulacion_id):
 
     try:
         services.aceptar_postulacion(postulacion_id, request.user)
-        messages.success(request, "¡Contratación exitosa! El desarrollador ha sido vinculado al proyecto.")
+        msg = "¡Contratación exitosa! El desarrollador ha sido vinculado al proyecto."
+        messages.success(request, msg)
+        if _espera_json(request):
+            return JsonResponse({'status': 'ok', 'message': msg})
     except PermissionDenied as exc:
         messages.error(request, str(exc))
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': str(exc)}, status=403)
     except ValidationError as exc:
         messages.error(request, ' '.join(exc.messages))
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': ' '.join(exc.messages)}, status=400)
     except Exception as e:
         messages.error(request, f"Error al procesar: {str(e)}")
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return HttpResponseRedirect(next_url)
     return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
 
@@ -264,9 +287,17 @@ def iniciar_negociacion(request, postulacion_id):
             )
     except (Postulacion.DoesNotExist, Proyecto.DoesNotExist):
         messages.error(request, "La postulación o el proyecto no existe.")
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': 'La postulación o el proyecto no existe.'}, status=404)
         return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
-    messages.success(request, "Negociación iniciada. Define los términos del contrato digital.")
+    msg = "Negociación iniciada. Define los términos del contrato digital."
+    messages.success(request, msg)
+    if _espera_json(request):
+        return JsonResponse({'status': 'ok', 'message': msg})
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return HttpResponseRedirect(next_url)
     return redirect('sala_chat', receptor_id=postulacion.desarrollador_id, proyecto_id=postulacion.proyecto_id)
 
 
@@ -284,16 +315,26 @@ def rechazar_postulacion(request, postulacion_id):
 
     try:
         services.rechazar_postulacion(postulacion_id, request.user, motivo=motivo)
-        messages.success(
-            request,
-            f"La postulación de {postulacion.desarrollador.nombre or postulacion.desarrollador.username} ha sido rechazada."
-        )
+        msg = f"La postulación de {postulacion.desarrollador.nombre or postulacion.desarrollador.username} ha sido rechazada."
+        messages.success(request, msg)
+        if _espera_json(request):
+            return JsonResponse({'status': 'ok', 'message': msg})
     except PermissionDenied as exc:
         messages.error(request, str(exc))
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': str(exc)}, status=403)
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc))
+        msg = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
+        messages.error(request, msg)
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': msg}, status=400)
     except Exception as e:
         messages.error(request, f"Error al procesar: {str(e)}")
+        if _espera_json(request):
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return HttpResponseRedirect(next_url)
     return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 

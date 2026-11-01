@@ -1561,7 +1561,8 @@ body.modal-open { overflow: hidden; }
 .logos-wordmark:hover img { opacity: 1; transform: scale(1.04); }
 
 /* separador romboidal entre marcas */
-.logos-wordmark + .logos-wordmark::before {
+.logos-wordmark + .logos-wordmark::before,
+.logos-marquee-track + .logos-marquee-track .logos-wordmark:first-child::before {
   content: ''; position: absolute; left: -46px; top: 50%;
   width: 4px; height: 4px; margin-top: -2px;
   background: rgba(var(--ink-rgb), 0.17); transform: rotate(45deg);
@@ -1587,7 +1588,8 @@ body.modal-open { overflow: hidden; }
   .logos-wordmark { height: 34px; }
   .logos-wordmark.is-square { height: 44px; }
   .logos-wordmark.is-wide { height: 24px; }
-  .logos-wordmark + .logos-wordmark::before { left: -30px; }
+  .logos-wordmark + .logos-wordmark::before,
+  .logos-marquee-track + .logos-marquee-track .logos-wordmark:first-child::before { left: -30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

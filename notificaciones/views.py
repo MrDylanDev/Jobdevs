@@ -171,3 +171,29 @@ def marcar_todas_leidas(request):
     if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
         return redirect(referer)
     return redirect('notificaciones_lista')
+
+
+@login_required
+@require_POST
+def limpiar_notificaciones(request):
+    """Elimina las notificaciones del usuario para que no se acumulen en el panel."""
+    eliminadas, _ = Notificacion.objects.filter(usuario=request.user).delete()
+    mensaje = "Todas las notificaciones han sido eliminadas."
+
+    is_ajax = (
+        request.headers.get('Accept') == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+    if is_ajax:
+        return JsonResponse({
+            'status': 'ok',
+            'unread_count': 0,
+            'eliminadas': eliminadas,
+            'mensaje': mensaje,
+        })
+
+    messages.success(request, mensaje)
+    referer = request.META.get('HTTP_REFERER')
+    if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return redirect(referer)
+    return redirect('notificaciones_lista')

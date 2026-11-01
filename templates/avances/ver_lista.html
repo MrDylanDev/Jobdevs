@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Línea de Tiempo — {{ proyecto.titulo }}</title>
+  <title>JobDevs | Línea de Tiempo de Avances — {{ proyecto.titulo }}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/avances.css' %}">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
 </head>
 <body>
 <div class="app-layout">
@@ -18,18 +18,42 @@
       <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Avances</div>
+        <div class="sidebar-brand-sub">Avances &amp; Entregas</div>
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       {% if request.user.rol == 'empresa' %}
-        <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=desarrollo"><i class="fa fa-arrow-left"></i><span>Panel Empresa</span></a>
+        <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=desarrollo">
+          <i data-lucide="arrow-left"></i>
+          <span>Volver a En Desarrollo</span>
+        </a>
+        <a class="nav-item" href="#hitos" onclick="return switchModuloTab('hitos', this)">
+          <i data-lucide="flag"></i>
+          <span>Gestionar Hitos</span>
+        </a>
+        <a class="nav-item active" href="#avances" onclick="return switchModuloTab('avances', this)">
+          <i data-lucide="git-commit"></i>
+          <span>Ver Avances</span>
+        </a>
       {% elif request.user.rol == 'desarrollador' %}
-        <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=activos"><i class="fa fa-arrow-left"></i><span>Mis Proyectos</span></a>
+        <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=activos">
+          <i data-lucide="arrow-left"></i>
+          <span>Mis Proyectos</span>
+        </a>
+        <a class="nav-item" href="{% url 'registrar_avance' proyecto.id %}">
+          <i data-lucide="upload-cloud"></i>
+          <span>Registrar Avance</span>
+        </a>
       {% elif request.user.rol == 'administrador' %}
-        <a class="nav-item" href="{% url 'dashboard_admin' %}?section=projectsSection"><i class="fa fa-arrow-left"></i><span>Panel Admin</span></a>
+        <a class="nav-item" href="{% url 'dashboard_admin' %}?section=projectsSection">
+          <i data-lucide="arrow-left"></i>
+          <span>Panel Admin</span>
+        </a>
       {% else %}
-        <a class="nav-item" href="{% url 'inicio' %}"><i class="fa fa-arrow-left"></i><span>Inicio</span></a>
+        <a class="nav-item" href="{% url 'inicio' %}">
+          <i data-lucide="arrow-left"></i>
+          <span>Inicio</span>
+        </a>
       {% endif %}
     </div>
   </aside>
@@ -37,50 +61,90 @@
   <div class="main-wrapper">
     <header class="top-header">
       <div class="top-header-title">Avances <span>/ {{ proyecto.titulo }}</span></div>
-      {% if hitos_totales > 0 %}
-        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
-          <i class="fa fa-flag-checkered" style="color:var(--text-muted);"></i>
-          {{ hitos_completados }}/{{ hitos_totales }} hitos
-          <div style="width:80px; height:6px; background:var(--border); border-radius:4px; overflow:hidden;">
-            <div style="height:100%; background:var(--success); width:{% if hitos_totales %}{% widthratio hitos_completados hitos_totales 100 %}%{% else %}0%{% endif %}; transition:width 0.5s;"></div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        {% if hitos_totales > 0 %}
+          <div style="display:flex; align-items:center; gap:10px; font-size:13px; color:var(--corp-slate-600); background:var(--corp-surface); padding:6px 14px; border-radius:20px; border:1px solid var(--corp-border);">
+            <i data-lucide="milestone" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+            <span><strong>{{ hitos_completados }}</strong> de {{ hitos_totales }} hitos completados</span>
+            <div style="width:90px; height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-left:4px;">
+              <div style="height:100%; background:var(--corp-brand); width:{% if hitos_totales %}{% widthratio hitos_completados hitos_totales 100 %}%{% else %}0%{% endif %}; transition:width 0.4s ease;"></div>
+            </div>
           </div>
-        </div>
-      {% endif %}
+        {% endif %}
+
+        {% if request.user.rol == 'empresa' %}
+          <a href="#hitos" class="btn-corp-action secondary" onclick="return switchModuloTab('hitos')">
+            <i data-lucide="flag"></i>
+            <span>Hitos</span>
+          </a>
+          <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">
+            <i data-lucide="arrow-left"></i>
+            <span>Panel Empresa</span>
+          </a>
+        {% elif request.user.rol == 'desarrollador' %}
+          <a href="{% url 'registrar_avance' proyecto.id %}" class="btn-corp-primary btn-sm">
+            <i data-lucide="plus"></i>
+            <span>Nuevo Avance</span>
+          </a>
+        {% endif %}
+      </div>
     </header>
 
     <main class="main-content">
       {% if messages %}
         {% for message in messages %}
-          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
-            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-            {{ message }}
+          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-md);">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
+              <span>{{ message }}</span>
+            </div>
           </div>
         {% endfor %}
       {% endif %}
 
+      <!-- Sub-tabs: Avances / Hitos (sin recarga de página) -->
+      {% if request.user.rol == 'empresa' %}
+      <div class="corp-subtabs" role="tablist" aria-label="Módulos del proyecto">
+        <button type="button" id="tabHitos" class="corp-subtab-btn" role="tab" aria-controls="panelHitos" aria-selected="false" onclick="switchModuloTab('hitos')">
+          <i data-lucide="flag"></i>
+          <span>Hitos del Proyecto ({{ hitos|length }})</span>
+        </button>
+        <button type="button" id="tabAvances" class="corp-subtab-btn active" role="tab" aria-controls="panelAvances" aria-selected="true" onclick="switchModuloTab('avances')">
+          <i data-lucide="git-commit"></i>
+          <span>Línea de Tiempo de Avances ({{ avances|length }})</span>
+        </button>
+      </div>
+      {% endif %}
+
+      <div id="panelAvances" class="subtab-panel" {% if request.user.rol == 'empresa' %}role="tabpanel" aria-labelledby="tabAvances"{% endif %}>
+
       <!-- Resumen del Proyecto -->
-      <div class="card" style="margin-bottom:20px; border-left:4px solid var(--accent);">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
-          <div>
-            <div class="card-title" style="font-size:17px;">{{ proyecto.titulo }}</div>
-            <p style="color:var(--text-secondary); font-size:13px; margin-top:6px;">{{ proyecto.descripcion }}</p>
-            <span class="badge badge-{% if proyecto.estado == 'en_desarrollo' %}info{% elif proyecto.estado == 'finalizado' %}success{% elif proyecto.estado == 'en_revision' %}warning{% else %}gray{% endif %}" style="margin-top:10px; display:inline-flex;">
-              {{ proyecto.get_estado_display|upper }}
-            </span>
+      <div class="card" style="margin-bottom:24px; background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid var(--corp-brand); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:22px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:280px;">
+            <div style="font-size:18px; font-weight:700; color:var(--corp-slate-900);">{{ proyecto.titulo }}</div>
+            <p style="color:var(--corp-slate-600); font-size:13.5px; margin-top:6px; line-height:1.5;">{{ proyecto.descripcion }}</p>
+            <div style="margin-top:12px;">
+              <span class="badge" style="background:{% if proyecto.estado == 'en_desarrollo' %}#e6faf0{% elif proyecto.estado == 'finalizado' %}#e6faf0{% elif proyecto.estado == 'en_revision' %}#fef9c3{% else %}#f1f5f9{% endif %}; color:{% if proyecto.estado == 'en_desarrollo' or proyecto.estado == 'finalizado' %}#007c34{% elif proyecto.estado == 'en_revision' %}#a16207{% else %}#475569{% endif %}; border:1px solid {% if proyecto.estado == 'en_desarrollo' or proyecto.estado == 'finalizado' %}rgba(0,200,83,0.3){% elif proyecto.estado == 'en_revision' %}#fde047{% else %}#e2e8f0{% endif %}; font-weight:700; font-size:11.5px; padding:3px 10px; border-radius:12px;">
+                {{ proyecto.get_estado_display|upper }}
+              </span>
+            </div>
           </div>
 
           <!-- Panel de moderación Admin -->
           {% if request.user.rol == 'administrador' and proyecto.estado == 'finalizado' %}
-            <div style="background:#fff8f0; border:1px dashed #f59e0b; padding:14px 18px; border-radius:var(--radius-sm); min-width:220px;">
-              <div style="font-size:11px; color:#f59e0b; font-weight:700; margin-bottom:10px;">
-                <i class="fa fa-shield-halved" style="margin-right:6px;"></i>Panel de Moderación
+            <div style="background:#fffbeb; border:1px dashed #f59e0b; padding:16px 20px; border-radius:var(--corp-radius-md); min-width:220px;">
+              <div style="font-size:11px; color:#b45309; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="shield" style="width:14px; height:14px;"></i>
+                <span>Moderación Administrativa</span>
               </div>
               <form method="post" action="{% url 'admin_reactivar_proyecto' proyecto.id %}">
                 {% csrf_token %}
                 <button type="submit"
                   onclick="return confirm('¿Reactivar este proyecto? Todos los involucrados serán notificados.')"
-                  class="btn btn-warning btn-sm btn-full" style="background:#f59e0b;">
-                  <i class="fa fa-rotate"></i> Reactivar Proyecto
+                  class="btn-corp-action secondary btn-sm" style="width:100%; justify-content:center; color:#b45309; border-color:#f59e0b;">
+                  <i data-lucide="rotate-ccw"></i>
+                  <span>Reactivar Proyecto</span>
                 </button>
               </form>
             </div>
@@ -89,69 +153,91 @@
       </div>
 
       <!-- Línea de tiempo de avances -->
-      <div class="page-header" style="margin-bottom:16px;">
-        <div class="page-title" style="font-size:16px;"><i class="fa fa-timeline" style="margin-right:8px; color:var(--text-muted);"></i>Historial de Avances</div>
+      <div class="page-header" style="margin-bottom:20px;">
+        <div class="page-title" style="display:flex; align-items:center; gap:8px; font-size:16px;">
+          <i data-lucide="git-commit" style="color:var(--corp-brand); stroke-width:2.2;"></i>
+          <span>Historial de Avances y Entregables</span>
+        </div>
       </div>
 
-      <div style="padding-left:16px; display:flex; flex-direction:column; gap:16px;">
+      <div style="padding-left:14px; display:flex; flex-direction:column; gap:16px;">
         {% for avance in avances %}
           <div class="timeline-item">
-            <div class="timeline-dot" style="background:{% if avance.estado == 'aceptado' %}var(--success){% elif avance.estado == 'rechazado' %}var(--danger){% else %}var(--warning){% endif %};"></div>
+            <div class="timeline-dot" style="background:{% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-color:#ffffff; box-shadow:0 0 0 3px {% if avance.estado == 'aceptado' %}rgba(0,200,83,0.25){% elif avance.estado == 'rechazado' %}rgba(225,29,72,0.25){% else %}rgba(245,158,11,0.25){% endif %};"></div>
 
-            <div class="card" style="border-left:3px solid {% if avance.estado == 'aceptado' %}var(--success){% elif avance.estado == 'rechazado' %}var(--danger){% else %}var(--warning){% endif %};">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                <div>
-                  <span style="font-size:15px; font-weight:600; color:var(--text-primary);">
+            <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:20px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:14px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">
                     {{ avance.entregable.titulo|default:"Avance General" }}
                   </span>
-                  <span class="badge badge-{% if avance.estado == 'aceptado' %}success{% elif avance.estado == 'rechazado' %}danger{% else %}warning{% endif %}" style="margin-left:10px;">{{ avance.get_estado_display|upper }}</span>
+                  <span class="badge" style="background:{% if avance.estado == 'aceptado' %}#e6faf0{% elif avance.estado == 'rechazado' %}#ffe4e6{% else %}#fef9c3{% endif %}; color:{% if avance.estado == 'aceptado' %}#007c34{% elif avance.estado == 'rechazado' %}#be123c{% else %}#a16207{% endif %}; border:1px solid {% if avance.estado == 'aceptado' %}rgba(0,200,83,0.3){% elif avance.estado == 'rechazado' %}#fecdd3{% else %}#fde047{% endif %}; font-weight:700; font-size:11px; padding:3px 9px; border-radius:10px;">
+                    <i data-lucide="{% if avance.estado == 'aceptado' %}check-circle-2{% elif avance.estado == 'rechazado' %}x-circle{% else %}clock{% endif %}" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
+                    {{ avance.get_estado_display|upper }}
+                  </span>
                 </div>
-                <span style="font-size:11.5px; color:var(--text-muted);">{{ avance.fecha_hora|date:"d M Y, H:i" }}</span>
+                <span style="font-size:12px; color:var(--corp-slate-500); display:flex; align-items:center; gap:5px;">
+                  <i data-lucide="calendar" style="width:13px; height:13px;"></i>
+                  {{ avance.fecha_hora|date:"d M Y, H:i" }}
+                </span>
               </div>
 
-              <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6; margin-bottom:14px;">{{ avance.descripcion }}</p>
+              <p style="font-size:13.5px; color:var(--corp-slate-700); line-height:1.6; margin-bottom:14px;">{{ avance.descripcion }}</p>
 
               {% if avance.comentario_revision %}
-                <div style="background:var(--page-bg); padding:12px 16px; border-radius:var(--radius-sm); border-left:3px solid var(--info); margin-bottom:14px;">
-                  <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Feedback de la Empresa</div>
-                  <p style="font-size:13px; color:var(--text-secondary); font-style:italic; margin:0;">"{{ avance.comentario_revision }}"</p>
+                <div style="background:#f8fafc; padding:12px 16px; border-radius:var(--corp-radius-md); border-left:3px solid #0284c7; margin-bottom:16px;">
+                  <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#0369a1; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                    <i data-lucide="message-square" style="width:12px; height:12px;"></i>
+                    Feedback de la Empresa
+                  </div>
+                  <p style="font-size:13px; color:var(--corp-slate-700); font-style:italic; margin:0;">"{{ avance.comentario_revision }}"</p>
                 </div>
               {% endif %}
 
-              <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:12px; border-top:1px solid var(--corp-border);">
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <div class="user-avatar" style="width:24px; height:24px; font-size:10px;">
+                  <div class="user-avatar" style="width:28px; height:28px; font-size:11px; border-radius:50%; background:#e6faf0; color:#007c34; display:flex; align-items:center; justify-content:center; font-weight:700; overflow:hidden;">
                     {% if avance.desarrollador.perfil_desarrollador.foto_perfil %}
-                      <img src="{{ avance.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="">
+                      <img src="{{ avance.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
                     {% else %}
                       {{ avance.desarrollador.nombre|default:avance.desarrollador.username|slice:":1"|upper }}
                     {% endif %}
                   </div>
-                  <small style="color:var(--text-muted);">
-                    Por <strong style="color:var(--text-secondary);">{{ avance.desarrollador.nombre|default:avance.desarrollador.username }}</strong>
+                  <small style="color:var(--corp-slate-500); font-size:12.5px;">
+                    Por <strong style="color:var(--corp-slate-900);">{{ avance.desarrollador.nombre|default:avance.desarrollador.username }}</strong>
                   </small>
                 </div>
 
-                <div style="display:flex; gap:10px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                   {% if avance.archivo_adjunto %}
-                    <a href="{{ avance.archivo_adjunto.url }}" target="_blank" download class="btn btn-primary btn-sm">
-                      <i class="fa fa-file-arrow-down"></i> Descargar Archivo
+                    <a href="{{ avance.archivo_adjunto.url }}" target="_blank" download class="btn-corp-action secondary btn-sm">
+                      <i data-lucide="download"></i>
+                      <span>Descargar Archivo</span>
                     </a>
                   {% endif %}
                   {% if avance.archivo_url and avance.archivo_url|lower|slice:":7" == "http://" or avance.archivo_url|lower|slice:":8" == "https://" %}
-                    <a href="{{ avance.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                      <i class="fa fa-link"></i> Ver Enlace
+                    <a href="{{ avance.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn-corp-action secondary btn-sm">
+                      <i data-lucide="external-link"></i>
+                      <span>Ver Enlace</span>
                     </a>
                   {% endif %}
 
                   {% if request.user.rol == 'empresa' and avance.estado == 'pendiente' %}
-                    <div>
-                      <form method="post" action="{% url 'revisar_avance' avance.id %}" style="display:flex; flex-direction:column; gap:8px; min-width:240px;">
+                    <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:var(--corp-radius-md); padding:12px; min-width:280px;">
+                      <form method="post" action="{% url 'revisar_avance' avance.id %}" style="display:flex; flex-direction:column; gap:10px;">
                         {% csrf_token %}
-                        <textarea name="comentario" required placeholder="Explica por qué rechazas este avance (obligatorio)..." style="padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px; resize:none; min-height:55px; font-family:inherit; color:var(--text-primary); background:var(--card-bg);"></textarea>
-                        <div style="display:flex; gap:6px;">
-                          <button type="submit" name="accion" value="aceptar" class="btn btn-success btn-sm" style="flex:1; justify-content:center;"><i class="fa fa-check"></i> Aceptar</button>
-                          <button type="submit" name="accion" value="rechazar" class="btn btn-danger btn-sm" style="flex:1; justify-content:center;"><i class="fa fa-xmark"></i> Rechazar</button>
+                        <label for="comentario-avance-{{ avance.id }}" class="sr-only">Retroalimentación para el desarrollador</label>
+                        <div style="font-size:11px; font-weight:700; color:var(--corp-slate-600); text-transform:uppercase;">Revisar Entrega</div>
+                        <textarea id="comentario-avance-{{ avance.id }}" name="comentario" placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
+                        <div style="display:flex; gap:8px;">
+                          <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm" style="flex:1; justify-content:center;">
+                            <i data-lucide="check"></i>
+                            <span>Aceptar</span>
+                          </button>
+                          <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm" style="flex:1; justify-content:center;">
+                            <i data-lucide="x"></i>
+                            <span>Rechazar</span>
+                          </button>
                         </div>
                       </form>
                     </div>
@@ -161,14 +247,195 @@
             </div>
           </div>
         {% empty %}
-          <div class="empty-state">
-            <i class="fa fa-clock-rotate-left"></i>
-            <p>Aún no se han registrado avances para este proyecto.</p>
+          <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:48px 24px;">
+            <i data-lucide="clock" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
+            <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">Aún no se han registrado avances para este proyecto</p>
+            <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Cuando los desarrolladores envíen entregables o avances técnicos, aparecerán listados aquí.</p>
           </div>
         {% endfor %}
       </div>
+
+      </div><!-- /#panelAvances -->
+
+      {% if request.user.rol == 'empresa' %}
+      <div id="panelHitos" class="subtab-panel" role="tabpanel" aria-labelledby="tabHitos" style="display:none;">
+        <div class="page-header" style="margin-bottom:24px;">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="flag" style="color:var(--corp-brand); stroke-width:2.2;"></i>
+              <span>Hitos del Proyecto</span>
+            </div>
+            <div class="page-subtitle">Define los objetivos clave, entregables y tareas que los desarrolladores deben cumplir</div>
+          </div>
+        </div>
+
+        <!-- Formulario nuevo hito -->
+        <div class="card" style="margin-bottom:28px; background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:22px;">
+          <div class="card-header" style="margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--corp-border);">
+            <div class="card-title" style="display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; color:var(--corp-slate-900);">
+              <i data-lucide="plus-circle" style="color:var(--corp-brand);"></i>
+              <span>Agregar Nuevo Hito</span>
+            </div>
+          </div>
+          <form method="post" action="{% url 'gestionar_hitos' proyecto.id %}" style="display:flex; flex-direction:column; gap:16px;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'ver_avances' proyecto.id %}#hitos">
+            <div class="form-group-corp" style="margin-bottom:0;">
+              <label class="form-label-corp">Nombre del Hito</label>
+              <input type="text" name="titulo" class="form-input-corp" placeholder="Ej: Implementar módulo de Login y Autenticación JWT" required>
+            </div>
+            <div class="form-group-corp" style="margin-bottom:0;">
+              <label class="form-label-corp">Descripción <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+              <textarea name="descripcion" class="form-input-corp" rows="3" placeholder="Describe los requerimientos específicos que se esperan en esta entrega..."></textarea>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px;">
+              {% if tiene_multiples_contratos %}
+                <div class="form-group-corp" style="margin-bottom:0;">
+                  <label class="form-label-corp">Asignar a Equipo <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+                  <select name="equipo_id" class="form-input-corp">
+                    <option value="">-- Todo el Proyecto (General) --</option>
+                    {% for equipo in equipos %}
+                      <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endif %}
+
+              {% if desarrolladores_activos %}
+                <div class="form-group-corp" style="margin-bottom:0;">
+                  <label class="form-label-corp">Asignar a Desarrollador <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+                  <select name="desarrollador_id" data-testid="select-desarrollador-hito" class="form-input-corp">
+                    <option value="">-- Sin asignación individual --</option>
+                    {% for contratacion in desarrolladores_activos %}
+                      <option value="{{ contratacion.desarrollador.id }}">{{ contratacion.desarrollador.nombre|default:contratacion.desarrollador.username }}</option>
+                    {% endfor %}
+                  </select>
+                  <div style="margin-top:5px; font-size:11.5px; color:var(--corp-slate-500);">Si asignas un desarrollador, solo él podrá enviar avances para este hito.</div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+              <button type="submit" class="btn-corp-primary">
+                <i data-lucide="plus"></i>
+                <span>Agregar Hito</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Lista de hitos -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div style="font-size:15px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:8px;">
+            <i data-lucide="list-checks" style="color:var(--corp-brand);"></i>
+            <span>Hitos Configurados ({{ hitos|length }})</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          {% for hito in hitos %}
+            <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if hito.estado == 'completado' %}var(--corp-brand){% elif hito.estado == 'en_revision' %}var(--corp-warning){% else %}var(--corp-border){% endif %}; border-radius:var(--corp-radius-lg); padding:18px 22px; box-shadow:var(--corp-shadow-sm);">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+                <div style="flex:1;">
+                  <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+                    <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">{{ hito.titulo }}</span>
+                    <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                      {{ hito.get_estado_display|upper }}
+                    </span>
+                  </div>
+                  <p style="font-size:13.5px; color:var(--corp-slate-600); margin:0 0 10px 0; line-height:1.5;">{{ hito.descripcion|default:"Sin descripción adicional." }}</p>
+                  <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
+                    {% if hito.desarrollador %}
+                      <span data-testid="hito-asignado-desarrollador" style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-900); font-weight:600; background:#f8fafc; padding:3px 8px; border-radius:6px; border:1px solid #e2e8f0;">
+                        <i data-lucide="user" style="width:13px; height:13px; color:var(--corp-brand);"></i>
+                        Asignado a {{ hito.desarrollador.nombre|default:hito.desarrollador.username }}
+                      </span>
+                    {% elif hito.equipo %}
+                      <span style="display:inline-flex; align-items:center; gap:5px; color:#0284c7; font-weight:600; background:#f0f9ff; padding:3px 8px; border-radius:6px; border:1px solid #bae6fd;">
+                        <i data-lucide="users" style="width:13px; height:13px;"></i>
+                        Equipo {{ hito.equipo.nombre }}
+                      </span>
+                    {% else %}
+                      <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-500); background:#f8fafc; padding:3px 8px; border-radius:6px; border:1px solid #e2e8f0;">
+                        <i data-lucide="globe" style="width:13px; height:13px;"></i>
+                        Hito General
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if hito.estado == 'pendiente' %}
+                  <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de eliminar este hito?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-corp-action danger-subtle" title="Eliminar hito" style="padding:6px 10px;">
+                      <i data-lucide="trash-2"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:48px 24px;">
+              <i data-lucide="flag" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
+              <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">No has definido hitos para este proyecto todavía</p>
+              <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Define el primer hito para organizar las entregas y el avance de los desarrolladores.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div><!-- /#panelHitos -->
+      {% endif %}
     </main>
   </div>
 </div>
+
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  function switchModuloTab(tab, btnEl) {
+    var esAvances = tab === 'avances';
+
+    var panelHitos = document.getElementById('panelHitos');
+    var panelAvances = document.getElementById('panelAvances');
+    var tabHitos = document.getElementById('tabHitos');
+    var tabAvances = document.getElementById('tabAvances');
+
+    if (panelHitos) { panelHitos.style.display = esAvances ? 'none' : ''; }
+    if (panelAvances) { panelAvances.style.display = esAvances ? '' : 'none'; }
+
+    if (tabHitos) {
+      tabHitos.classList.toggle('active', !esAvances);
+      tabHitos.setAttribute('aria-selected', esAvances ? 'false' : 'true');
+    }
+    if (tabAvances) {
+      tabAvances.classList.toggle('active', esAvances);
+      tabAvances.setAttribute('aria-selected', esAvances ? 'true' : 'false');
+    }
+
+    var navItems = document.querySelectorAll('.sidebar .nav-item');
+    navItems.forEach(function (item) {
+      var href = item.getAttribute('href') || '';
+      if (href === '#hitos' || href === '#avances') {
+        item.classList.toggle('active', href === '#' + tab);
+      }
+    });
+
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', '#' + tab);
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+    return false;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var hash = (window.location.hash || '').replace('#', '');
+    switchModuloTab(hash === 'hitos' ? 'hitos' : 'avances');
+  });
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

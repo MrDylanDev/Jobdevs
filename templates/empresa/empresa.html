@@ -6,10 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Panel Corporativo</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 </head>
 <body>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 <div class="app-layout">
 
   <!-- Sidebar -->
@@ -20,19 +23,22 @@
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Empresa</div>
       </div>
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
+        <i data-lucide="panel-left-close"></i>
+      </button>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
-      <button class="nav-item active" onclick="switchTab('inicio', this)">
-        <i class="fa fa-chart-line"></i>
+      <button class="nav-item active" onclick="switchTab('inicio', this)" title="Dashboard">
+        <i data-lucide="layout-dashboard"></i>
         <span>Dashboard</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('centro-chat', this)">
-        <i class="fa fa-comments"></i>
+      <button class="nav-item" onclick="switchTab('centro-chat', this)" title="Mensajes">
+        <i data-lucide="message-square"></i>
         <span>Mensajes</span>
         {% if mensajes_no_leidos > 0 %}
           <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
@@ -42,27 +48,24 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Gestión</div>
-      <button class="nav-item" onclick="switchTab('ofertas', this)">
-        <i class="fa fa-bullhorn"></i>
+      <button class="nav-item" onclick="switchTab('ofertas', this)" title="Mis Ofertas">
+        <i data-lucide="megaphone"></i>
         <span>Mis Ofertas</span>
         {% if total_postulaciones > 0 %}
           <span class="nav-badge">{{ total_postulaciones }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('desarrollo', this)">
-        <i class="fa fa-diagram-project"></i>
+      <button class="nav-item" onclick="switchTab('desarrollo', this)" title="En Desarrollo">
+        <i data-lucide="folder-kanban"></i>
         <span>En Desarrollo</span>
       </button>
-      <button class="nav-item" onclick="switchTab('reputacion', this)">
-        <i class="fa fa-star"></i>
-        <span>Reputación</span>
-      </button>
-      <button class="nav-item" onclick="switchTab('historial', this)">
-        <i class="fa fa-clock-rotate-left"></i>
+      <button class="nav-item" onclick="switchTab('contratos', this)" title="Contratos"><i data-lucide="file-signature"></i><span>Contratos</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
+      <button class="nav-item" onclick="switchTab('historial', this)" title="Historial">
+        <i data-lucide="history"></i>
         <span>Historial</span>
       </button>
-      <button class="nav-item" onclick="switchTab('disputas', this)">
-        <i class="fa fa-scale-balanced"></i>
+      <button class="nav-item" onclick="switchTab('disputas', this)" title="Disputas">
+        <i data-lucide="scale"></i>
         <span>Disputas</span>
         {% if disputas_activas_count > 0 %}
           <span class="nav-badge">{{ disputas_activas_count }}</span>
@@ -72,20 +75,20 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Cuenta</div>
-      <button class="nav-item" onclick="switchTab('perfil', this)">
-        <i class="fa fa-building"></i>
+      <button class="nav-item" onclick="switchTab('perfil', this)" title="Perfil Empresa">
+        <i data-lucide="building-2"></i>
         <span>Perfil Empresa</span>
       </button>
-      <a class="nav-item" href="{% url 'solicitar_verificacion_empresa' %}">
-        <i class="fa fa-shield-halved"></i>
+      <a class="nav-item" href="{% url 'solicitar_verificacion_empresa' %}" title="Verificación NIT / Identidad">
+        <i data-lucide="shield-check"></i>
         <span>Verificación NIT / Identidad</span>
       </a>
     </div>
 
     <hr class="sidebar-sep" style="margin-top:auto;">
     <div style="padding:12px;">
-      <a class="nav-item danger" href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
+      <a class="nav-item danger" href="{% url 'logout' %}" title="Cerrar Sesión">
+        <i data-lucide="log-out"></i>
         <span>Cerrar Sesión</span>
       </a>
     </div>
@@ -96,35 +99,73 @@
 
     <!-- Top header -->
     <header class="top-header">
+      <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú de navegación">
+        <i data-lucide="menu"></i>
+      </button>
+
       <div class="top-header-title">
-        Panel Corporativo
-        <span>/ JobDevs Platform</span>
+        <span>Panel Corporativo</span>
+        <span class="header-sep">/</span>
+        <span class="header-tenant">{{ perfil.nombre_empresa|default:request.user.username }}</span>
       </div>
-      <button class="notif-btn" title="Notificaciones">
-        <i class="fa fa-bell"></i>
-        {% if notificaciones_pendientes_count > 0 %}
-          <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
-        {% endif %}
-      </button>
-      {% with badge=perfil.badge_info %}
-      <a href="{% url 'solicitar_verificacion_empresa' %}" class="badge {% if perfil.estado_verificacion == 'verificada' %}{% if perfil.tipo_persona == 'natural' %}badge-info{% else %}badge-success{% endif %}{% elif perfil.estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion-header" style="text-decoration:none;" title="Estado de verificación">
-        <i class="fa {% if perfil.estado_verificacion == 'verificada' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ badge.label }}
-      </a>
-      {% endwith %}
-      <button class="btn btn-primary btn-sm" onclick="abrirModal()">
-        <i class="fa fa-plus"></i> Nuevo Proyecto
-      </button>
-      <div class="user-chip">
-        <div class="user-avatar">
-          {% if perfil.logo %}
-            <img src="{{ perfil.logo.url }}" alt="Logo">
-          {% else %}
-            {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
-          {% endif %}
+
+      <div class="header-actions">
+        <!-- Notificaciones Popover -->
+        <div class="notif-wrapper">
+          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="Notificaciones" aria-label="Notificaciones">
+            <i data-lucide="bell"></i>
+            {% if notificaciones_pendientes_count > 0 %}
+              <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
+            {% endif %}
+          </button>
+          <div id="notifPopover" class="notif-popover">
+            <div class="notif-popover-header">
+              <span class="notif-popover-title">Notificaciones</span>
+              {% if notificaciones %}
+                <form action="{% url 'notificaciones_limpiar' %}" method="POST" style="margin:0;" onsubmit="limpiarNotificacionesAjax(event, this)">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-corp-action danger-subtle" style="font-size:11px; padding:3px 8px;" title="Borrar todas las notificaciones para que no se acumulen">
+                    <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+                    <span>Limpiar</span>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+            <div class="notif-popover-body" id="notifPopoverBody">
+              {% for notif in notificaciones %}
+                <div class="notif-popover-item">
+                  <i data-lucide="circle-dot"></i>
+                  <span>{{ notif.mensaje }}</span>
+                </div>
+              {% empty %}
+                <div class="notif-popover-empty">
+                  <i data-lucide="bell-off"></i>
+                  <span>No hay notificaciones</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="user-name">{{ request.user.nombre|default:request.user.username }}</div>
-          <div class="user-role">Empresa</div>
+
+        {% with badge=perfil.badge_info %}
+        <a href="{% url 'solicitar_verificacion_empresa' %}" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="Estado de verificación">
+          <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
+          <span>{{ badge.label }}</span>
+        </a>
+        {% endwith %}
+
+        <div class="user-chip-corp" onclick="switchTab('perfil')" style="cursor:pointer;" title="Ver perfil de la empresa">
+          <div class="user-avatar">
+            {% if perfil.logo %}
+              <img src="{{ perfil.logo.url }}" alt="Logo">
+            {% else %}
+              {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+            {% endif %}
+          </div>
+          <div class="user-chip-info">
+            <div class="user-chip-name">{{ request.user.nombre|default:request.user.username }}</div>
+            <div class="user-chip-role">Empresa</div>
+          </div>
         </div>
       </div>
     </header>
@@ -135,7 +176,7 @@
       {% if messages %}
         {% for message in messages %}
           <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}">
-            <i class="fa {% if message.tags == 'error' or message.tags == 'danger' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <i data-lucide="{% if message.tags == 'error' or message.tags == 'danger' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
             {{ message }}
           </div>
         {% endfor %}
@@ -146,63 +187,233 @@
         <div class="page-header">
           <div>
             <div class="page-title">Panel de Control</div>
-            <div class="page-subtitle">Vista general de tu actividad empresarial</div>
+            <div class="page-subtitle">Vista ejecutiva de proyectos, talento y métricas operativas</div>
           </div>
         </div>
 
-        <div class="metrics-grid">
-          <div class="metric-card dark">
-            <div class="mc-header">
-              <div class="mc-label">Proyectos Totales</div>
-              <div class="mc-icon"><i class="fa fa-folder-open"></i></div>
+        <div class="kpi-grid-corp">
+          <div class="kpi-card-corp kpi-projects">
+            <div class="kpi-card-header">
+              <span class="kpi-card-label">Proyectos Totales</span>
+              <div class="kpi-card-icon"><i data-lucide="folder-archive"></i></div>
             </div>
-            <div class="mc-value">{{ total_proyectos }}</div>
-            <div class="mc-sub" style="color:rgba(255,255,255,0.5);">Publicados históricamente</div>
+            <div class="kpi-card-value">{{ total_proyectos }}</div>
+            <div class="kpi-card-footer">
+              <span class="kpi-tag tag-neutral">Histórico</span>
+              <span>Convocatorias publicadas</span>
+            </div>
           </div>
-          <div class="metric-card info">
-            <div class="mc-header">
-              <div class="mc-label">En Desarrollo</div>
-              <div class="mc-icon"><i class="fa fa-code"></i></div>
+
+          <div class="kpi-card-corp kpi-active">
+            <div class="kpi-card-header">
+              <span class="kpi-card-label">En Desarrollo</span>
+              <div class="kpi-card-icon"><i data-lucide="laptop"></i></div>
             </div>
-            <div class="mc-value">{{ proyectos_activos }}</div>
-            <div class="mc-sub">Proyectos en marcha</div>
+            <div class="kpi-card-value">{{ proyectos_activos }}</div>
+            <div class="kpi-card-footer">
+              <span class="kpi-tag tag-brand">En marcha</span>
+              <span>Equipos trabajando</span>
+            </div>
           </div>
-          <div class="metric-card accent">
-            <div class="mc-header">
-              <div class="mc-label">Postulantes</div>
-              <div class="mc-icon"><i class="fa fa-users"></i></div>
+
+          <div class="kpi-card-corp kpi-candidates">
+            <div class="kpi-card-header">
+              <span class="kpi-card-label">Candidatos</span>
+              <div class="kpi-card-icon"><i data-lucide="user-check"></i></div>
             </div>
-            <div class="mc-value">{{ total_postulaciones }}</div>
-            <div class="mc-sub">Pendientes de revisar</div>
-          </div>
-          <div class="metric-card {% if notificaciones_pendientes_count > 0 %}danger{% else %}success{% endif %}">
-            <div class="mc-header">
-              <div class="mc-label">Notificaciones</div>
-              <div class="mc-icon"><i class="fa fa-bell"></i></div>
+            <div class="kpi-card-value">{{ total_postulaciones }}</div>
+            <div class="kpi-card-footer">
+              {% if total_postulaciones > 0 %}
+                <span class="kpi-tag tag-warning">Requiere acción</span>
+              {% else %}
+                <span class="kpi-tag tag-neutral">Al día</span>
+              {% endif %}
+              <span>Pendientes de revisión</span>
             </div>
-            <div class="mc-value">{{ notificaciones_pendientes_count }}</div>
-            <div class="mc-sub">Sin leer</div>
           </div>
         </div>
 
-        <!-- Actividad Reciente -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Actividad Reciente</div>
-            {% if notificaciones_pendientes_count > 0 %}
-              <form action="{% url 'notificaciones_marcar_todas_leidas' %}" method="POST">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-secondary btn-sm">Marcar leídas</button>
-              </form>
-            {% endif %}
+        {% if onboarding_completados < 4 %}
+        <!-- Onboarding: Guía de Inicio Rápido (solo con pasos pendientes) -->
+        <div class="onboarding-card-corp">
+          <div class="onboarding-header-corp">
+            <div>
+              <div class="onboarding-title">Guía de Inicio Rápido</div>
+              <div class="onboarding-sub">
+                {{ onboarding_completados }} de {{ pasos_onboarding|length }} pasos completados · {{ onboarding_porcentaje }}% de avance
+              </div>
+            </div>
+            <span class="onboarding-step-icon"><i data-lucide="rocket"></i></span>
           </div>
-          <ul class="notif-list">
-            {% for notif in notificaciones %}
-              <li class="notif-item"><i class="fa fa-circle-dot"></i>{{ notif.mensaje }}</li>
-            {% empty %}
-              <div class="empty-state" style="padding:30px;"><i class="fa fa-inbox"></i><p>Sin actividad reciente</p></div>
+          <div class="onboarding-progress-track">
+            <div class="onboarding-progress-fill" style="width: {{ onboarding_porcentaje }}%;"></div>
+          </div>
+          <div class="onboarding-steps-grid">
+            {% for paso in pasos_onboarding %}
+              <div class="onboarding-step {% if paso.completado %}is-done{% else %}is-pending{% endif %}">
+                <span class="onboarding-step-icon">
+                  <i data-lucide="{% if paso.completado %}check-circle-2{% elif paso.en_revision %}clock{% else %}circle{% endif %}"></i>
+                </span>
+                <div class="onboarding-step-body">
+                  <div class="onboarding-step-title">{{ paso.titulo }}</div>
+                  <div class="onboarding-step-desc">{% if paso.en_revision %}En revisión por el equipo JobDevs.{% else %}{{ paso.descripcion }}{% endif %}</div>
+                </div>
+              </div>
             {% endfor %}
-          </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Módulo de Reputación y Desempeño Corporativo en Dashboard -->
+        <div style="margin-top:28px;">
+          <div class="page-header" style="margin-bottom:18px;">
+            <div>
+              <div class="page-title" style="font-size:18px;">Reputación & Desempeño Corporativo</div>
+              <div class="page-subtitle">Evaluaciones y retroalimentación verificada de los desarrolladores contratados</div>
+            </div>
+          </div>
+
+          <div class="reputation-layout-corp">
+            <!-- Tarjeta de Desglose y Calificación -->
+            <div class="reputation-summary-card">
+              <div class="rep-score-box">
+                <div class="rep-summary-label">Calificación Global</div>
+                <div class="rep-score-value">{{ promedio_empresa }}</div>
+                <div class="rep-stars-row">
+                  {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
+                  {% if promedio_empresa >= 2 %}★{% else %}☆{% endif %}
+                  {% if promedio_empresa >= 3 %}★{% else %}☆{% endif %}
+                  {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
+                  {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
+                </div>
+                <div class="rep-summary-sub">
+                  Promedio de {{ total_valoraciones }} valoraci{{ total_valoraciones|pluralize:"ón,ones" }} sobre 5.0
+                </div>
+              </div>
+
+              <!-- Histograma de distribución de estrellas -->
+              <div class="rep-histogram">
+                <div class="rep-histo-row">
+                  <span class="rep-histo-label">5 ★</span>
+                  <div class="rep-histo-track">
+                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.5 }}%;"></div>
+                  </div>
+                  <span class="rep-histo-count">{{ conteo_estrellas.5 }}</span>
+                </div>
+                <div class="rep-histo-row">
+                  <span class="rep-histo-label">4 ★</span>
+                  <div class="rep-histo-track">
+                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.4 }}%;"></div>
+                  </div>
+                  <span class="rep-histo-count">{{ conteo_estrellas.4 }}</span>
+                </div>
+                <div class="rep-histo-row">
+                  <span class="rep-histo-label">3 ★</span>
+                  <div class="rep-histo-track">
+                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.3 }}%;"></div>
+                  </div>
+                  <span class="rep-histo-count">{{ conteo_estrellas.3 }}</span>
+                </div>
+                <div class="rep-histo-row">
+                  <span class="rep-histo-label">2 ★</span>
+                  <div class="rep-histo-track">
+                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.2 }}%;"></div>
+                  </div>
+                  <span class="rep-histo-count">{{ conteo_estrellas.2 }}</span>
+                </div>
+                <div class="rep-histo-row">
+                  <span class="rep-histo-label">1 ★</span>
+                  <div class="rep-histo-track">
+                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.1 }}%;"></div>
+                  </div>
+                  <span class="rep-histo-count">{{ conteo_estrellas.1 }}</span>
+                </div>
+              </div>
+
+              <!-- Indicadores de Cumplimiento -->
+              <div class="rep-trust-list">
+                <div class="rep-trust-item">
+                  <span class="rep-trust-name"><i data-lucide="handshake" style="color:var(--corp-brand);"></i> Pago & Contratación</span>
+                  <span class="rep-trust-val" style="color:var(--corp-success);">100% Cumplido</span>
+                </div>
+                <div class="rep-trust-item">
+                  <span class="rep-trust-name"><i data-lucide="list-checks" style="color:var(--corp-brand);"></i> Claridad de Hitos</span>
+                  <span class="rep-trust-val">Alta</span>
+                </div>
+                <div class="rep-trust-item">
+                  <span class="rep-trust-name"><i data-lucide="shield-check" style="color:var(--corp-brand);"></i> Estado de Empresa</span>
+                  <span class="rep-trust-val">{{ perfil.get_estado_verificacion_display|default:"Registrada" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feed de Reseñas de Desarrolladores (Top 3 Recientes) -->
+            <div class="reviews-list-corp">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                <span style="font-size:12.5px; font-weight:700; color:var(--corp-slate-800);">Opiniones Recientes</span>
+                <span style="font-size:11.5px; color:var(--corp-slate-500);">Últimas 3 de {{ total_valoraciones }} valoraci{{ total_valoraciones|pluralize:"ón,ones" }}</span>
+              </div>
+              {% for valoracion in valoraciones_recibidas|slice:":3" %}
+                <div class="review-card-corp">
+                  <div class="review-card-header">
+                    <div class="review-author-wrap">
+                      <div class="review-avatar-circle">
+                        {% if valoracion.desarrollador.perfil_desarrollador.foto_perfil %}
+                          <img src="{{ valoracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ valoracion.desarrollador.username }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                          {{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username|slice:":1"|upper }}
+                        {% endif %}
+                      </div>
+                      <div>
+                        <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
+                        <span class="badge-verified-hire">
+                          <i data-lucide="check-circle-2"></i> Contratación Verificada
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="review-stars">
+                      <span class="review-stars-score">{{ valoracion.puntuacion }}.0</span>
+                      <span>{% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}</span>
+                    </div>
+                  </div>
+
+                  <div class="review-project">
+                    <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
+                    <span>Proyecto: <strong>{{ valoracion.proyecto.titulo }}</strong></span>
+                  </div>
+
+                  <div class="review-comment-box">
+                    "{{ valoracion.comentario|default:"El desarrollador calificó con puntaje positivo sin comentario adicional." }}"
+                  </div>
+
+                  {% if valoracion.fecha %}
+                    <div class="review-date">
+                      <i data-lucide="calendar-check-2" style="margin-right:4px;"></i> {{ valoracion.fecha|date:"d M, Y" }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% empty %}
+                <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+                  <i data-lucide="star"></i>
+                  <p>Tu empresa aún no ha recibido valoraciones de desarrolladores.</p>
+                  <span style="font-size:12.5px; color:var(--corp-slate-400); margin-top:4px;">Las calificaciones se habilitan automáticamente al culminar exitosamente un proyecto.</span>
+                </div>
+              {% endfor %}
+
+              {% if total_valoraciones > 3 %}
+                <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:11px 16px; margin-top:4px;">
+                  <i data-lucide="message-square"></i>
+                  <span>Ver todas las valoraciones ({{ total_valoraciones }}) →</span>
+                </button>
+              {% elif total_valoraciones > 0 %}
+                <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:9px 14px; margin-top:4px; font-size:12px;">
+                  <i data-lucide="folder-open"></i>
+                  <span>Abrir expediente de reputación completo</span>
+                </button>
+              {% endif %}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -211,32 +422,37 @@
         <div class="page-header">
           <div>
             <div class="page-title">Centro de Mensajería</div>
-            <div class="page-subtitle">Comunicaciones con tu equipo y soporte</div>
+            <div class="page-subtitle">Comunicaciones directas con tu equipo técnico y soporte institucional</div>
           </div>
         </div>
 
-        <h3 style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px;">Soporte Oficial</h3>
-        <div style="margin-bottom:30px;">
-          <div class="project-card" style="max-width:500px;display:flex;align-items:center;justify-content:space-between;border-left:3px solid #111;">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div class="user-avatar" style="width:44px;height:44px;font-size:18px;"><i class="fa fa-shield-halved"></i></div>
+        <div class="chat-section-label">Canal Oficial de Soporte</div>
+        <div style="margin-bottom:28px;">
+          <div class="chat-contact-card is-support">
+            <div class="chat-contact-info">
+              <div class="chat-contact-avatar support-avatar">
+                <i data-lucide="shield"></i>
+              </div>
               <div>
-                <div class="project-card-title">Administrador JobDevs</div>
-                <div class="project-card-sub">Soporte técnico, pagos y dudas administrativas</div>
+                <div class="chat-contact-name">Administración JobDevs</div>
+                <div class="chat-contact-sub">Soporte administrativo, mediaciones y pagos seguros</div>
               </div>
             </div>
-          {% if admin_id %}
-            <a href="{% url 'sala_chat_general' admin_id %}" class="btn btn-primary btn-sm">Chatear</a>
-          {% endif %}
+            {% if admin_id %}
+              <a href="{% url 'sala_chat_general' admin_id %}" class="btn-corp-action primary">
+                <i data-lucide="message-square"></i>
+                <span>Abrir Chat</span>
+              </a>
+            {% endif %}
           </div>
         </div>
 
-        <h3 style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px;">Desarrolladores Contratados</h3>
-        <div class="cards-grid">
+        <div class="chat-section-label">Desarrolladores Contratados Activos</div>
+        <div class="chat-contacts-grid">
           {% for colaboracion in colaboradores_activos %}
-            <div class="project-card" style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div class="user-avatar" style="width:42px;height:42px;font-size:16px;background:#374151;">
+            <div class="chat-contact-card">
+              <div class="chat-contact-info">
+                <div class="chat-contact-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
                     <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="Perfil">
                   {% else %}
@@ -244,16 +460,20 @@
                   {% endif %}
                 </div>
                 <div>
-                  <div class="project-card-title">{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}</div>
-                  <div class="project-card-sub">{{ colaboracion.proyecto.titulo }}</div>
+                  <div class="chat-contact-name">{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}</div>
+                  <div class="chat-contact-sub">{{ colaboracion.proyecto.titulo }}</div>
                 </div>
               </div>
-              <a href="{% url 'sala_chat' colaboracion.desarrollador.id colaboracion.proyecto.id %}" class="btn btn-secondary btn-sm">
-                <i class="fa fa-message"></i>
+              <a href="{% url 'sala_chat' colaboracion.desarrollador.id colaboracion.proyecto.id %}" class="btn-corp-action secondary" title="Chatear con {{ colaboracion.desarrollador.username }}">
+                <i data-lucide="message-square"></i>
+                <span>Mensaje</span>
               </a>
             </div>
           {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-comments"></i><p>No hay colaboradores activos para chatear</p></div>
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+              <i data-lucide="message-square"></i>
+              <p>No hay colaboradores activos en este momento.</p>
+            </div>
           {% endfor %}
         </div>
       </section>
@@ -262,38 +482,110 @@
       <section id="ofertas" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Mis Ofertas Publicadas</div>
-            <div class="page-subtitle">Proyectos abiertos buscando talento</div>
+            <div class="page-title">Gestión de Convocatorias & Ofertas</div>
+            <div class="page-subtitle">Publicaciones activas buscando desarrolladores y postulaciones en revisión</div>
           </div>
-          <button class="btn btn-primary" onclick="abrirModal()">
-            <i class="fa fa-plus"></i> Nueva Oferta
+          <button class="btn-corp-primary" onclick="abrirModal()">
+            <i data-lucide="plus"></i>
+            <span>Nueva Convocatoria</span>
           </button>
         </div>
-        <div class="cards-grid">
+
+        <!-- Barra de métricas y búsqueda rápida de ofertas -->
+        <div class="offers-toolbar-corp">
+          <div class="offers-search-wrap">
+            <i data-lucide="search" style="color:var(--corp-slate-400);"></i>
+            <input type="text" class="form-input-corp" placeholder="Buscar convocatoria por título..." onkeyup="filtrarOfertasEnTiempoReal(this)" style="border:none; padding:6px 0; background:transparent;">
+          </div>
+          <div class="offers-filter-bar"><button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">Todas</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">Remoto</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">Presencial</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">Híbrido</button></div>
+          <div class="offers-stats-wrap">
+            <span class="offers-stat-pill">
+              <i data-lucide="megaphone" style="color:var(--corp-brand);"></i>
+              <strong>{{ mis_ofertas|length }}</strong> oferta{{ mis_ofertas|length|pluralize }} activa{{ mis_ofertas|length|pluralize }}
+            </span>
+            <span class="offers-stat-pill">
+              <i data-lucide="user-plus" style="color:var(--corp-warning);"></i>
+              <strong>{{ total_vacantes_ofertas|default:0 }}</strong> vacante{{ total_vacantes_ofertas|pluralize }} abierta{{ total_vacantes_ofertas|pluralize }}
+            </span>
+            <span class="offers-stat-pill">
+              <i data-lucide="clock" style="color:var(--corp-info);"></i>
+              <strong>{{ total_postulaciones }}</strong> postulante{{ total_postulaciones|pluralize }} pendiente{{ total_postulaciones|pluralize }}
+            </span>
+          </div>
+        </div>
+
+        <div class="offers-grid-corp">
           {% for proyecto in mis_ofertas %}
-            <div class="project-card">
-              <div class="project-card-title" style="margin-bottom:6px;">{{ proyecto.titulo }}</div>
-              <div class="project-card-sub" style="margin-bottom:16px;">
-                {{ proyecto.get_tipo_solucion_display }} &nbsp;·&nbsp; {{ proyecto.vacantes }} vacantes
+            <div class="offer-card-corp" data-modalidad="{{ proyecto.modalidad|default:'remoto' }}">
+              <div class="offer-top">
+                <div class="offer-badges-row">
+                  <span class="offer-badge-category">
+                    <i data-lucide="layers"></i>
+                    {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Tecnología" }}{% endif %}
+                  </span>
+                  {% if proyecto.cierra_pronto %}
+                    <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> Cierra pronto</span>
+                  {% endif %}
+                  {% if proyecto.modalidad %}
+                    <span class="offer-badge-vacancies" style="background:var(--corp-slate-100); color:var(--corp-slate-700);">
+                      <i data-lucide="map-pin"></i> {{ proyecto.get_modalidad_display|default:proyecto.modalidad|title }}
+                    </span>
+                  {% endif %}
+                  {% if proyecto.num_candidatos > 0 %}
+                    <span class="offer-badge-vacancies" style="background:var(--corp-brand-light); color:var(--corp-brand); font-weight:700;">
+                      <i data-lucide="clock"></i> {{ proyecto.num_candidatos }} postulante{{ proyecto.num_candidatos|pluralize }}
+                    </span>
+                  {% endif %}
+                </div>
+
+                <div class="offer-title">{{ proyecto.titulo }}</div>
+
+                <div class="offer-meta">
+                  <span><i data-lucide="calendar" style="margin-right:4px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y"|default:"Reciente" }}</span>
+                  <span>·</span>
+                  <span><i data-lucide="users" style="margin-right:4px;"></i>{{ proyecto.vacantes }} vacante{{ proyecto.vacantes|pluralize }}</span>
+                  {% if proyecto.fecha_limite %}
+                    <span>·</span>
+                    <span><i data-lucide="clock" style="margin-right:4px;"></i>Cierra: {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
+                  {% endif %}
+                </div>
               </div>
-              <div style="display:flex;gap:8px;">
-                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
-                  <i class="fa fa-users"></i> Ver Candidatos
+
+              <div class="offer-actions">
+                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+                   class="btn-corp-action primary"
+                   style="flex:1; justify-content:center;"
+                   onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                   title="Revisar candidatos de esta convocatoria sin salir del panel">
+                  <i data-lucide="users"></i>
+                  <span>Ver Candidatos {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
                 </a>
-                <a href="{% url 'editar_proyecto' proyecto.id %}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;">
-                  <i class="fa fa-pen-to-square"></i> Editar
+                <a href="{% url 'editar_proyecto' proyecto.id %}"
+                   class="btn-corp-action secondary"
+                   style="justify-content:center;"
+                   onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
+                   title="Editar especificaciones de la oferta sin salir del panel">
+                  <i data-lucide="square-pen"></i>
+                  <span>Editar</span>
                 </a>
-                <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="flex:1; margin:0;" onsubmit="return confirm('¿Estás seguro de que deseas retirar esta oferta?');">
+                <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; color:var(--danger);">
-                    <i class="fa fa-ban"></i> Retirar
+                  <button type="submit" class="btn-corp-action danger-subtle" title="Retirar publicación">
+                    <i data-lucide="ban"></i>
                   </button>
                 </form>
               </div>
             </div>
           {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-bullhorn"></i><p>No tienes ofertas publicadas ahora</p></div>
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+              <i data-lucide="megaphone"></i>
+              <p>No tienes ofertas publicadas actualmente.</p>
+              <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:14px;">
+                <i data-lucide="plus"></i> Publicar primera convocatoria
+              </button>
+            </div>
           {% endfor %}
+          <div id="ofertasSinResultados" class="activity-empty" style="display:none; grid-column:1/-1;"><i data-lucide="search-x"></i><p>No se encontraron convocatorias para los filtros seleccionados.</p></div>
         </div>
       </section>
 
@@ -302,237 +594,701 @@
         <div class="page-header">
           <div>
             <div class="page-title">Proyectos en Marcha</div>
-            <div class="page-subtitle">Control de entregas y seguimiento de desarrolladores</div>
+            <div class="page-subtitle">Control de entregas, avance de hitos y coordinación de equipos</div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="dev-list-corp">
           {% for proyecto in en_desarrollo_v %}
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div class="dev-card-corp">
+              <div class="dev-card-header">
                 <div>
-                  <div class="project-card-title">{{ proyecto.titulo }}</div>
-                  <div class="project-card-sub" style="margin-top:4px;">
-                    Equipo: <strong>{{ proyecto.desarrolladores }}</strong>
+                  <div class="dev-card-title">{{ proyecto.titulo }}</div>
+                  <div class="dev-card-team">
+                    <span class="dev-chip-team">
+                      <i data-lucide="users"></i>
+                      <strong>Equipo:</strong> {{ proyecto.desarrolladores|default:"Asignando..." }}
+                    </span>
                     {% if proyecto.vacantes_disponibles > 0 %}
-                      &nbsp;·&nbsp; <span style="color:var(--accent);font-weight:600;"><i class="fa fa-user-plus"></i> {{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)</span>
+                      <span class="dev-chip-vacancies">
+                        <i data-lucide="user-plus"></i>
+                        {{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)
+                      </span>
                     {% endif %}
                   </div>
                 </div>
-                <span class="badge badge-info">
-                  <i class="fa fa-calendar" style="margin-right:4px;"></i>
-                  {{ proyecto.fecha_fin|date:"d M, Y"|default:"Sin fecha" }}
-                </span>
+                <div class="dev-badge-deadline">
+                  <i data-lucide="calendar-check-2"></i>
+                  <span>{{ proyecto.fecha_fin|date:"d M, Y"|default:"Sin fecha límite" }}</span>
+                </div>
               </div>
 
               <!-- Barra de progreso hitos -->
               {% if proyecto.hitos_totales > 0 %}
-                <div style="margin-bottom:16px;">
-                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;">
-                    <span>Progreso de hitos</span>
-                    <span>{{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }}</span>
+                <div class="milestone-progress-box">
+                  <div class="milestone-progress-header">
+                    <span><i data-lucide="flag" style="margin-right:6px; color:var(--corp-brand);"></i>Progreso de Hitos y Entregables</span>
+                    <span><strong>{{ proyecto.hitos_completados }}</strong> de {{ proyecto.hitos_totales }} completados ({% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%)</span>
                   </div>
-                  <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden;">
-                    <div style="background:var(--accent);height:100%;border-radius:10px;width:{% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%;transition:.3s;"></div>
+                  <div class="milestone-track">
+                    <div class="milestone-fill" style="width:{% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%;"></div>
                   </div>
                 </div>
               {% endif %}
 
-              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <div class="dev-card-actions">
                 {% if proyecto.vacantes_disponibles > 0 %}
-                  <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}" class="btn btn-primary btn-sm" title="{{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)">
-                    <i class="fa fa-user-plus"></i> Ver Candidatos ({{ proyecto.vacantes_disponibles }})
+                  <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}"
+                     class="btn-corp-action primary"
+                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     title="{{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)">
+                    <i data-lucide="user-plus"></i>
+                    <span>Ver Candidatos ({{ proyecto.vacantes_disponibles }})</span>
                   </a>
                 {% endif %}
-                <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm">
-                  <i class="fa fa-list-check"></i> Gestionar Hitos
+
+                <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                  <i data-lucide="list-checks"></i>
+                  <span>Gestionar Hitos</span>
                 </a>
-                <a href="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm">
-                  <i class="fa fa-eye"></i> Ver Avances
-                </a>
+
                 {% if proyecto.hitos_completados == proyecto.hitos_totales and proyecto.hitos_totales > 0 %}
-                  <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}" class="btn btn-success btn-sm">
-                    <i class="fa fa-flag-checkered"></i> Finalizar
+                  <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}" class="btn-corp-action success">
+                    <i data-lucide="check-check"></i>
+                    <span>Finalizar Proyecto</span>
                   </a>
                 {% else %}
-                  <button disabled class="btn btn-secondary btn-sm" style="opacity:.4;cursor:not-allowed;" title="Completa todos los hitos primero">
-                    <i class="fa fa-flag-checkered"></i> Finalizar
+                  <button disabled class="btn-corp-action disabled" title="Requiere completar todos los hitos">
+                    <i data-lucide="check-check"></i>
+                    <span>Finalizar</span>
                   </button>
                 {% endif %}
+
                 {% if proyecto.num_desarrolladores >= 2 %}
-                  <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm">
-                    <i class="fa fa-users"></i> Gestionar Grupos
+                  <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                    <i data-lucide="users"></i>
+                    <span>Grupos</span>
                   </a>
-                  <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm">
-                    <i class="fa fa-users"></i> Espacio de Trabajo
+                  <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                    <i data-lucide="messages-square"></i>
+                    <span>Chat Grupal</span>
                   </a>
                 {% endif %}
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-sm" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
-                  <i class="fa fa-gavel"></i> Reportar Disputa
+
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn-corp-action danger-subtle" style="margin-left:auto;" title="Iniciar mediación por conflicto formal">
+                  <i data-lucide="gavel"></i>
+                  <span>Reportar Disputa</span>
                 </a>
               </div>
             </div>
           {% empty %}
-            <div class="empty-state"><i class="fa fa-diagram-project"></i><p>No hay proyectos en desarrollo actualmente</p></div>
+            <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+              <i data-lucide="folder-kanban"></i>
+              <p>No hay proyectos en desarrollo actualmente.</p>
+            </div>
           {% endfor %}
+        </div>
+      </section>
+
+      <!-- Contratos Digitales (gestión 100% in-situ) -->
+      <section id="contratos" class="seccion-v" data-contrato-endpoint="{% url 'ver_contrato_digital' 0 %}">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Contratos Digitales &amp; Acuerdos</div>
+            <div class="page-subtitle">Acuerdos con validez jurídica y firma electrónica: revisa, firma y audita sin salir del panel</div>
+          </div>
+          <div class="contracts-header-meta">
+            <span class="offers-stat-pill">
+              <i data-lucide="file-signature" style="color:var(--corp-brand);"></i>
+              <strong>{{ mis_contratos_digitales|length }}</strong> contrato{{ mis_contratos_digitales|length|pluralize }} digital{{ mis_contratos_digitales|length|pluralize:"es" }}
+            </span>
+            {% if contratos_pendientes_firma_count > 0 %}
+              <span class="offers-stat-pill is-warning">
+                <i data-lucide="pen-tool" style="color:var(--corp-warning);"></i>
+                <strong>{{ contratos_pendientes_firma_count }}</strong> pendiente{{ contratos_pendientes_firma_count|pluralize }} de tu firma
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="table-shell-corp">
+          <table class="data-table-corp">
+            <thead>
+              <tr>
+                <th>Expediente / ID</th>
+                <th>Proyecto</th>
+                <th>Desarrollador</th>
+                <th>Términos</th>
+                <th>Estado de Firmas (Empresa / Dev)</th>
+                <th>Estado del Contrato</th>
+                <th>Sello Hash</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contrato in mis_contratos_digitales %}
+                <tr data-contrato-row="{{ contrato.id }}">
+                  <td>
+                    <span class="hash-pill">CD-{{ contrato.id|stringformat:"04d" }}</span>
+                    <div class="contrato-row-sub">Creado {{ contrato.fecha_creacion|date:"d M, Y" }}</div>
+                  </td>
+                  <td>
+                    <div class="contrato-row-title">{{ contrato.postulacion.proyecto.titulo }}</div>
+                    <div class="contrato-row-sub">{{ contrato.postulacion.proyecto.get_tipo_solucion_display|default:"Proyecto de software" }}</div>
+                  </td>
+                  <td>
+                    <div class="contrato-row-title">{{ contrato.postulacion.desarrollador.nombre|default:contrato.postulacion.desarrollador.username }}</div>
+                    <div class="contrato-row-sub">{{ contrato.postulacion.desarrollador.email|truncatechars:28 }}</div>
+                  </td>
+                  <td>
+                    <div class="contrato-monto">{{ contrato.monto_formateado }}</div>
+                    <div class="contrato-row-sub">{{ contrato.get_forma_pago_display }}</div>
+                    <div class="contrato-row-sub" style="color:var(--corp-brand); font-weight:600;">
+                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {{ contrato.get_medio_pago_display|default:"Transferencia bancaria" }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="contrato-firmas-cell">
+                      <span class="signature-badge-corp {% if contrato.firmado_empresa %}is-signed{% else %}is-pending{% endif %}" data-role="firma-empresa">
+                        <i data-lucide="{% if contrato.firmado_empresa %}check-circle-2{% else %}clock{% endif %}"></i>
+                        <span>Empresa: {% if contrato.firmado_empresa %}Firmado{% else %}Pendiente{% endif %}</span>
+                      </span>
+                      <span class="signature-badge-corp {% if contrato.firmado_desarrollador %}is-signed{% else %}is-pending{% endif %}" data-role="firma-dev">
+                        <i data-lucide="{% if contrato.firmado_desarrollador %}check-circle-2{% else %}clock{% endif %}"></i>
+                        <span>Dev: {% if contrato.firmado_desarrollador %}Firmado{% else %}Pendiente{% endif %}</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="contract-estado-badge estado-{{ contrato.estado }}" data-role="estado-contrato">{{ contrato.get_estado_display }}</span>
+                  </td>
+                  <td>
+                    <span class="hash-pill" data-role="hash-contrato" title="{% if contrato.hash_contrato %}SHA-256 del contrato firmado{% else %}El sello se genera con la primera firma electrónica{% endif %}">
+                      {% if contrato.hash_contrato %}{{ contrato.hash_contrato|slice:":12" }}…{% else %}Sin sello{% endif %}
+                    </span>
+                  </td>
+                  <td style="text-align:right;">
+                    <div class="contrato-acciones-cell">
+                      <a href="{% url 'ver_contrato_digital' contrato.id %}"
+                         class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
+                         onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
+                         title="Revisar y firmar el contrato sin salir del panel">
+                        <i data-lucide="file-signature"></i>
+                        <span>Ver / Firmar Contrato</span>
+                      </a>
+                      <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
+                         class="btn-corp-action secondary"
+                         title="Chatear con el desarrollador">
+                        <i data-lucide="message-square"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8">
+                    <div class="activity-empty" style="padding:48px 20px;">
+                      <i data-lucide="file-signature"></i>
+                      <p style="font-weight:600;">Aún no tienes contratos digitales</p>
+                      <p style="font-size:12.5px; color:var(--corp-slate-500);">Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica.</p>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </section>
 
       <!-- Disputas -->
       <section id="disputas" class="seccion-v">
-        {% include 'disputas/_seccion_disputas.html' %}
-      </section>
-
-      <!-- Reputación -->
-      <section id="reputacion" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Reputación Corporativa</div>
-            <div class="page-subtitle">Lo que dicen los desarrolladores sobre tu empresa</div>
-          </div>
-        </div>
-
-        <div class="card" style="text-align:center;margin-bottom:20px;max-width:300px;">
-          <div class="mc-label" style="margin-bottom:10px;display:block;">Calificación General</div>
-          <div class="mc-value" style="font-size:48px;margin-bottom:8px;">{{ promedio_empresa }}</div>
-          <div style="color:#f59e0b;font-size:22px;letter-spacing:3px;margin-bottom:6px;">
-            {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
-            {% if promedio_empresa >= 2 %}★{% else %}☆{% endif %}
-            {% if promedio_empresa >= 3 %}★{% else %}☆{% endif %}
-            {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
-            {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
-          </div>
-          <div class="mc-sub">sobre 5.0</div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          {% for valoracion in valoraciones_recibidas %}
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <div class="project-card-title">{{ valoracion.desarrollador.username }}</div>
-                <span style="color:#f59e0b;font-size:16px;letter-spacing:2px;">
-                  {% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}
-                </span>
-              </div>
-              <div class="project-card-sub" style="margin-bottom:12px;">{{ valoracion.proyecto.titulo }}</div>
-              <div style="background:var(--page-bg);border-radius:var(--radius-sm);padding:12px;font-style:italic;font-size:13px;color:var(--text-secondary);border-left:3px solid var(--border);">
-                "{{ valoracion.comentario|default:"Sin comentarios." }}"
-              </div>
-            </div>
-          {% empty %}
-            <div class="empty-state"><i class="fa fa-star"></i><p>Aún no has recibido valoraciones</p></div>
-          {% endfor %}
-        </div>
+        {% include 'disputas/_seccion_disputas.html' with ocultar_historial=True %}
       </section>
 
       <!-- Historial -->
       <section id="historial" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Historial de Proyectos</div>
-            <div class="page-subtitle">Proyectos finalizados, rechazados, inactivos y en disputa</div>
+            <div class="page-title">Historial Completo & Auditoría</div>
+            <div class="page-subtitle">Registro histórico consolidado de proyectos convocados y expedientes de disputas cerradas</div>
           </div>
         </div>
 
-        <!-- SCRUM-228: filtros por estado del historial -->
-        <div class="historial-filtros" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-          <a href="?section=historial"
-             class="btn btn-sm {% if not historial_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}">
-            Todos ({{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }})
-          </a>
-          <a href="?section=historial&amp;historial_estado=finalizado"
-             class="btn btn-sm {% if historial_estado_actual == 'finalizado' %}btn-primary{% else %}btn-secondary{% endif %}">
-            Finalizados ({{ historial_por_estado.finalizado }})
-          </a>
-          <a href="?section=historial&amp;historial_estado=rechazado"
-             class="btn btn-sm {% if historial_estado_actual == 'rechazado' %}btn-primary{% else %}btn-secondary{% endif %}">
-            Rechazados ({{ historial_por_estado.rechazado }})
-          </a>
-          <a href="?section=historial&amp;historial_estado=inactivo"
-             class="btn btn-sm {% if historial_estado_actual == 'inactivo' %}btn-primary{% else %}btn-secondary{% endif %}">
-            Inactivos ({{ historial_por_estado.inactivo }})
-          </a>
-          <a href="?section=historial&amp;historial_estado=en_disputa"
-             class="btn btn-sm {% if historial_estado_actual == 'en_disputa' %}btn-primary{% else %}btn-secondary{% endif %}">
-            En disputa ({{ historial_por_estado.en_disputa }})
-          </a>
+        <!-- Sub-navegación organizada de Historial -->
+        <div class="history-subnav">
+          <button type="button" class="history-tab-btn active" id="btn-historial-proyectos" onclick="switchHistorialSubTab('proyectos', this)">
+            <i data-lucide="layers"></i>
+            <span>Proyectos (Historial Completo)</span>
+            <span class="subnav-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
+          </button>
+          <button type="button" class="history-tab-btn" id="btn-historial-disputas" onclick="switchHistorialSubTab('disputas', this)">
+            <i data-lucide="scale"></i>
+            <span>Disputas (Historial Completo)</span>
+            <span class="subnav-counter">{{ disputas_resueltas|length }}</span>
+          </button>
         </div>
 
-        <div class="cards-grid" data-testid="historial-inactivos">
-          {% for proyecto in historial_inactivos %}
-            <div class="project-card" data-testid="card-historial-{{ proyecto.estado }}">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                {% if proyecto.estado == 'finalizado' %}
-                  <span class="badge badge-success"><i class="fa fa-check" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
-                {% elif proyecto.estado == 'rechazado' %}
-                  <span class="badge badge-danger"><i class="fa fa-circle-xmark" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
-                {% elif proyecto.estado == 'en_disputa' %}
-                  <span class="badge badge-danger"><i class="fa fa-scale-balanced" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
-                {% else %}
-                  <span class="badge badge-warning"><i class="fa fa-circle-pause" style="margin-right:4px;"></i>{{ proyecto.get_estado_display }}</span>
-                {% endif %}
-              </div>
-              <div class="project-card-title" style="margin-bottom:12px;">{{ proyecto.titulo }}</div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <a href="{% url 'ver_avances' proyecto.id %}" class="btn btn-secondary btn-full">
-                  <i class="fa fa-eye"></i> Ver Detalles
-                </a>
-                {% if proyecto.num_desarrolladores >= 2 %}
-                  <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="btn btn-secondary btn-full">
-                    <i class="fa fa-users"></i> Chat Grupal
+        <!-- Sub-pestaña 1: Historial de Proyectos -->
+        <div id="pane-historial-proyectos" class="history-tab-pane active">
+          <!-- SCRUM-228: filtros por estado del historial -->
+          <div class="segmented-filters-corp">
+            <a href="?section=historial"
+               class="segmented-pill {% if not historial_estado_actual %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'todos', this); return false;">
+              <span>Todos</span>
+              <span class="pill-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=finalizado"
+               class="segmented-pill {% if historial_estado_actual == 'finalizado' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'finalizado', this); return false;">
+              <span>Finalizados</span>
+              <span class="pill-counter">{{ historial_por_estado.finalizado }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=rechazado"
+               class="segmented-pill {% if historial_estado_actual == 'rechazado' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'rechazado', this); return false;">
+              <span>Rechazados</span>
+              <span class="pill-counter">{{ historial_por_estado.rechazado }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=inactivo"
+               class="segmented-pill {% if historial_estado_actual == 'inactivo' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'inactivo', this); return false;">
+              <span>Inactivos</span>
+              <span class="pill-counter">{{ historial_por_estado.inactivo }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=en_disputa"
+               class="segmented-pill {% if historial_estado_actual == 'en_disputa' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'en_disputa', this); return false;">
+              <span>En disputa</span>
+              <span class="pill-counter">{{ historial_por_estado.en_disputa }}</span>
+            </a>
+          </div>
+
+          <div class="history-grid-corp" data-testid="historial-inactivos">
+            {% for proyecto in historial_inactivos %}
+              <div class="history-card-corp" data-testid="card-historial-{{ proyecto.estado }}" data-historial-estado="{{ proyecto.estado }}">
+                <div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;">
+                    <span class="history-status-badge {{ proyecto.estado }}" style="margin-bottom:0;">
+                      {% if proyecto.estado == 'finalizado' %}
+                        <i data-lucide="check"></i>
+                      {% elif proyecto.estado == 'rechazado' %}
+                        <i data-lucide="x-circle"></i>
+                      {% elif proyecto.estado == 'en_disputa' %}
+                        <i data-lucide="scale"></i>
+                      {% else %}
+                        <i data-lucide="pause-circle"></i>
+                      {% endif %}
+                      <span>{{ proyecto.get_estado_display }}</span>
+                    </span>
+                    <span style="font-size:11.5px; color:var(--corp-slate-400);">
+                      <i data-lucide="calendar" style="margin-right:3px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y"|default:"Histórico" }}
+                    </span>
+                  </div>
+
+                  <div class="history-card-title">{{ proyecto.titulo }}</div>
+
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                    {% if proyecto.get_tipo_solucion_display or proyecto.categoria %}
+                      <span class="offer-badge-category">
+                        <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Proyecto de software" }}{% endif %}
+                      </span>
+                    {% endif %}
+                    {% if proyecto.hitos_totales > 0 %}
+                      <span class="dev-chip-team">
+                        <i data-lucide="flag"></i> {{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }} hitos
+                      </span>
+                    {% endif %}
+                    {% if proyecto.num_desarrolladores > 0 %}
+                      <span class="dev-chip-team">
+                        <i data-lucide="users"></i> {{ proyecto.num_desarrolladores }} dev{{ proyecto.num_desarrolladores|pluralize }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="history-actions-col">
+                  <a href="{% url 'ver_avances' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
+                    <i data-lucide="eye"></i>
+                    <span>Ver Avances y Detalles</span>
                   </a>
-                {% endif %}
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                  {% for contratacion in proyecto.contrataciones.all %}
-                    <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:8px 4px;">
-                      <i class="fa fa-comments"></i> {{ contratacion.desarrollador.username }}
+                  {% if proyecto.num_desarrolladores >= 2 %}
+                    <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
+                      <i data-lucide="users"></i>
+                      <span>Chat Grupal</span>
                     </a>
-                  {% endfor %}
+                  {% endif %}
+                  {% if proyecto.contrataciones.all %}
+                    <div class="history-collaborators-grid">
+                      {% for contratacion in proyecto.contrataciones.all %}
+                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}" class="btn-history-dev" title="Chatear con {{ contratacion.desarrollador.username }}">
+                          <i data-lucide="message-square"></i>
+                          <span>{{ contratacion.desarrollador.username }}</span>
+                        </a>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
               </div>
+            {% empty %}
+              <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+                <i data-lucide="history"></i>
+                <p>No hay proyectos en este estado del historial.</p>
+              </div>
+            {% endfor %}
+            <div id="historialSinResultados" class="activity-empty" style="display:none; grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+              <i data-lucide="history"></i>
+              <p>No hay proyectos en este estado del historial.</p>
             </div>
-          {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-clock-rotate-left"></i><p>No hay proyectos en este estado del historial.</p></div>
-          {% endfor %}
+          </div>
+        </div>
+
+        <!-- Sub-pestaña 2: Historial de Disputas & Expedientes Cerrados -->
+        <div id="pane-historial-disputas" class="history-tab-pane">
+          <div class="disputas-card" style="box-shadow:none; border: 1px solid var(--corp-border);">
+            <div class="disputas-card-header">
+              <div class="disputas-card-title">
+                <i data-lucide="archive" style="color:var(--corp-slate-500);"></i>
+                <span>Historial de Disputas y Expedientes Cerrados</span>
+              </div>
+              <span class="disp-badge-id">{{ disputas_resueltas|length }} expediente{{ disputas_resueltas|length|pluralize }}</span>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table-corp data-table">
+                <thead>
+                  <tr>
+                    <th>Expediente</th>
+                    <th>Proyecto</th>
+                    <th>Resolución</th>
+                    <th>Dictamen / Notas</th>
+                    <th>Fecha Resolución</th>
+                    <th style="text-align:right;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in disputas_resueltas %}
+                  <tr>
+                    <td><span class="disp-badge-id">#{{ d.pk }}</span></td>
+                    <td><strong>{{ d.proyecto.titulo }}</strong></td>
+                    <td>
+                      <span class="disp-status-badge {% if d.estado == 'resuelta' %}resuelta{% else %}cancelada{% endif %}">
+                        {% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}
+                      </span>
+                    </td>
+                    <td style="color:var(--corp-slate-600); font-size:12.5px;">{{ d.notas_resolucion|default:"Sin notas adicionales."|truncatechars:70 }}</td>
+                    <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+                    <td style="text-align:right;">
+                      <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
+                        <i data-lucide="eye"></i> Ver Expediente
+                      </a>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">
+                      <div class="activity-empty">
+                        <i data-lucide="archive"></i>
+                        <p>Aún no hay disputas registradas en el historial.</p>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Perfil -->
+      <!-- Perfil (LinkedIn Style) -->
       <section id="perfil" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Perfil de Empresa</div>
+            <div class="page-title">Perfil Corporativo</div>
+            <div class="page-subtitle">Presencia institucional, información tributaria y reputación en JobDevs</div>
           </div>
-          <a href="{% url 'editar_perfil' %}" class="btn btn-primary">
-            <i class="fa fa-pen"></i> Editar Perfil
-          </a>
         </div>
-        <div class="card" style="max-width:600px;">
-          <div style="font-size:22px;font-weight:700;margin-bottom:24px;">
-            {{ perfil.nombre_empresa|default:request.user.username }}
+
+        <!-- Tarjeta Principal Hero / LinkedIn Style -->
+        <div class="linkedin-profile-card">
+          <!-- Banner Superior Corporativo -->
+          <div class="linkedin-cover"></div>
+
+          <div class="linkedin-profile-header">
+            <div class="linkedin-avatar-row">
+              <div class="linkedin-avatar">
+                {% if perfil.logo %}
+                  <img src="{{ perfil.logo.url }}" alt="{{ perfil.nombre_empresa|default:request.user.username }}">
+                {% else %}
+                  {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+
+              <div class="linkedin-header-actions">
+                <button type="button" class="btn-linkedin-edit" onclick="abrirModalPerfil()" title="Editar información del perfil">
+                  <i data-lucide="pencil"></i>
+                  <span>Editar página</span>
+                </button>
+                <a href="{% url 'solicitar_verificacion_empresa' %}" class="btn-linkedin-verify" title="Verificar personería jurídica">
+                  <i data-lucide="shield-check"></i>
+                  <span>Verificación</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="linkedin-company-name">
+              <span>{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</span>
+              {% with badge=perfil.badge_info %}
+              <span class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" title="Insignia oficial">
+                <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
+                <span>{{ badge.label }}</span>
+              </span>
+              {% endwith %}
+            </div>
+
+            <div class="linkedin-headline">
+              {% if perfil.sector %}{{ perfil.sector }}{% else %}Empresa Empleadora en Tecnología{% endif %}
+              {% if perfil.ciudad %} &nbsp;·&nbsp; {{ perfil.ciudad }}, Colombia{% endif %}
+            </div>
+
+            <div class="linkedin-meta-row">
+              <span class="meta-item"><i data-lucide="building-2"></i> {{ perfil.get_tipo_persona_display|default:"Persona Jurídica" }}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-item"><i data-lucide="id-card"></i> {{ perfil.tipo_documento|default:"NIT" }}: {{ perfil.documento_completo|default:request.user.identificacion|default:"Sin registrar" }}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-item"><i data-lucide="users"></i> {{ total_contratados }} desarrollador{{ total_contratados|pluralize:"es" }} contratado{{ total_contratados|pluralize }}</span>
+              {% if promedio_empresa > 0 %}
+                <span class="meta-sep">·</span>
+                <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {{ promedio_empresa }} / 5.0 reputación</span>
+              {% endif %}
+            </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        </div>
+
+        <!-- Sub-navegación estilo LinkedIn -->
+        <div class="linkedin-subnav">
+          <button type="button" class="linkedin-tab-btn active" onclick="switchPerfilSubTab('info', this)">
+            <i data-lucide="building-2"></i>
+            <span>Información General</span>
+          </button>
+          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('jobs', this)">
+            <i data-lucide="briefcase"></i>
+            <span>Convocatorias Abiertas ({{ mis_ofertas|length }})</span>
+          </button>
+          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('reviews', this)">
+            <i data-lucide="star"></i>
+            <span>Opiniones & Reputación ({{ valoraciones_recibidas|length }})</span>
+          </button>
+        </div>
+
+        <!-- Pane 1: Información General -->
+        <div id="pane-info" class="linkedin-tab-pane active">
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;">
             <div>
-              <div class="form-label">NIT</div>
-              <div style="font-size:14px;">{{ request.user.identificacion|default:"—" }}</div>
+              <!-- Acerca de (About) -->
+              <div class="linkedin-content-card">
+                <div class="linkedin-card-title">
+                  <i data-lucide="align-left" style="color:var(--corp-brand);"></i>
+                  <span>Acerca de la Empresa</span>
+                </div>
+                <p class="linkedin-about-text">
+                  {{ perfil.descripcion|default:"Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera hasta un 60% más de confianza y atrae a los mejores desarrolladores de la plataforma." }}
+                </p>
+              </div>
+
+              <!-- Información General / Overview -->
+              <div class="linkedin-content-card">
+                <div class="linkedin-card-title">
+                  <i data-lucide="info" style="color:var(--corp-brand);"></i>
+                  <span>Información Corporativa & Contacto</span>
+                </div>
+                <div class="linkedin-info-grid">
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Razón Social</div>
+                    <div class="info-value">{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Documento Tributario</div>
+                    <div class="info-value">{{ perfil.tipo_documento|default:"NIT" }} {{ perfil.documento_completo|default:request.user.identificacion|default:"—" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Sector Económico</div>
+                    <div class="info-value">{{ perfil.sector|default:"Tecnología" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Sede / Ubicación</div>
+                    <div class="info-value">{{ perfil.ciudad|default:"Colombia" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Teléfono Corporativo</div>
+                    <div class="info-value">{{ perfil.telefono|default:"No registrado" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">Correo de Contacto</div>
+                    <div class="info-value">{{ request.user.email }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stack Tech / Especialidades -->
+              <div class="linkedin-content-card">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                  <div class="linkedin-card-title" style="margin-bottom:0;">
+                    <i data-lucide="cpu" style="color:var(--corp-brand);"></i>
+                    <span>Especialidades y Stack Tecnológico de Interés</span>
+                  </div>
+                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:11.5px; padding:3px 10px;" title="Editar tecnologías de interés">
+                    <i data-lucide="pencil"></i> Editar
+                  </button>
+                </div>
+                <p style="font-size:12.5px; color:var(--corp-slate-500); margin-bottom:8px;">Áreas tecnológicas donde tu empresa contrata talento activamente:</p>
+                {% if perfil.lista_stack_interes %}
+                  <div class="tech-stack-wrap">
+                    {% for tech in perfil.lista_stack_interes %}
+                      <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand); font-size:10px;"></i> {{ tech }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="tech-stack-wrap">
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Python</span>
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Django</span>
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> JavaScript</span>
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> React</span>
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> PostgreSQL</span>
+                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Docker</span>
+                  </div>
+                  <div style="font-size:11.5px; color:var(--corp-slate-400); margin-top:8px;">
+                    <i data-lucide="info" style="margin-right:4px;"></i> Mostrando stack sugerido por defecto. Podés personalizar tus tecnologías desde "Editar página".
+                  </div>
+                {% endif %}
+              </div>
             </div>
+
+            <!-- Métricas de Presencia / Sidebar del Perfil -->
             <div>
-              <div class="form-label">Sector</div>
-              <div style="font-size:14px;">{{ perfil.sector|default:"—" }}</div>
-            </div>
-            <div>
-              <div class="form-label">Ciudad</div>
-              <div style="font-size:14px;">{{ perfil.ciudad|default:"—" }}</div>
-            </div>
-            <div>
-              <div class="form-label">Teléfono</div>
-              <div style="font-size:14px;">{{ perfil.telefono|default:"—" }}</div>
+              <div class="linkedin-content-card" style="margin-bottom:0;">
+                <div class="linkedin-card-title">
+                  <i data-lucide="bar-chart-2" style="color:var(--corp-brand);"></i>
+                  <span>Métricas en JobDevs</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ total_proyectos }}</div>
+                    <div class="stat-label">Convocatorias Publicadas</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ proyectos_activos }}</div>
+                    <div class="stat-label">Proyectos en Desarrollo</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ total_contratados }}</div>
+                    <div class="stat-label">Contrataciones Realizadas</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number" style="color:var(--corp-gold);">{{ promedio_empresa }} ★</div>
+                    <div class="stat-label">Calificación de Talento</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
-          <div class="form-label">Descripción</div>
-          <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-top:6px;">
-            {{ perfil.descripcion|default:"Sin descripción." }}
-          </p>
+        </div>
+
+        <!-- Pane 2: Convocatorias Activas -->
+        <div id="pane-jobs" class="linkedin-tab-pane">
+          <div class="linkedin-content-card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+              <div class="linkedin-card-title" style="margin-bottom:0;">
+                <i data-lucide="briefcase" style="color:var(--corp-brand);"></i>
+                <span>Convocatorias Abiertas para Desarrolladores</span>
+              </div>
+              <button class="btn-corp-primary btn-sm" onclick="abrirModal()">
+                <i data-lucide="plus"></i> Nueva Convocatoria
+              </button>
+            </div>
+
+            <div class="linkedin-jobs-list">
+              {% for proyecto in mis_ofertas %}
+                <div class="linkedin-job-card">
+                  <div>
+                    <div class="linkedin-job-title">{{ proyecto.titulo }}</div>
+                    <div class="linkedin-job-meta">
+                      <span><i data-lucide="layers" style="margin-right:4px;"></i>{{ proyecto.get_tipo_solucion_display }}</span>
+                      <span>·</span>
+                      <span><i data-lucide="users" style="margin-right:4px;"></i>{{ proyecto.vacantes }} vacante{{ proyecto.vacantes|pluralize }}</span>
+                      <span>·</span>
+                      <span><i data-lucide="calendar" style="margin-right:4px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y" }}</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+                       class="btn-corp-action primary"
+                       onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;">
+                      <i data-lucide="users"></i>
+                      <span>Ver Candidatos</span>
+                    </a>
+                    <a href="{% url 'editar_proyecto' proyecto.id %}"
+                       class="btn-corp-action secondary"
+                       onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
+                       title="Editar especificaciones">
+                      <i data-lucide="square-pen"></i>
+                      <span>Editar</span>
+                    </a>
+                  </div>
+                </div>
+              {% empty %}
+                <div class="activity-empty">
+                  <i data-lucide="briefcase"></i>
+                  <p>Tu empresa no tiene convocatorias abiertas actualmente.</p>
+                  <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:12px;">
+                    <i data-lucide="plus"></i> Publicar oferta
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 3: Reputación y Reseñas -->
+        <div id="pane-reviews" class="linkedin-tab-pane">
+          <div class="reputation-layout-corp">
+            <div class="reputation-summary-card">
+              <div class="rep-summary-label">Calificación Global</div>
+              <div class="rep-score-value">{{ promedio_empresa }}</div>
+              <div class="rep-stars-row">
+                {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 2 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 3 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
+              </div>
+              <div class="rep-summary-sub">Promedio sobre 5.0 ({{ valoraciones_recibidas|length }} reseña{{ valoraciones_recibidas|length|pluralize }})</div>
+            </div>
+
+            <div class="reviews-list-corp">
+              {% for valoracion in valoraciones_recibidas %}
+                <div class="review-card-corp">
+                  <div class="review-card-header">
+                    <div class="review-author">
+                      <i data-lucide="user" style="margin-right:6px; color:var(--corp-slate-400);"></i>
+                      {{ valoracion.desarrollador.username }}
+                    </div>
+                    <div class="review-stars">
+                      {% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}
+                    </div>
+                  </div>
+                  <div class="review-project">Proyecto evaluado: <strong>{{ valoracion.proyecto.titulo }}</strong></div>
+                  <div class="review-comment-box">
+                    "{{ valoracion.comentario|default:"Sin comentarios adicionales." }}"
+                  </div>
+                </div>
+              {% empty %}
+                <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+                  <i data-lucide="star"></i>
+                  <p>Aún no se han recibido valoraciones de desarrolladores para esta empresa.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -542,73 +1298,483 @@
 
 <!-- Modal nuevo proyecto -->
 <div id="modalProyecto" class="modal-overlay">
-  <div class="modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <h2 style="margin:0;font-size:18px;font-weight:700;">Nueva Oferta de Proyecto</h2>
-      <button onclick="cerrarModal()" style="border:none;background:none;font-size:18px;color:var(--text-muted);cursor:pointer;">
-        <i class="fa fa-times"></i>
+  <div class="modal-box-corp">
+    <div class="modal-header-corp">
+      <h2 class="modal-title-corp">Nueva Convocatoria de Proyecto</h2>
+      <button onclick="cerrarModal()" class="modal-close-btn" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
       </button>
     </div>
     <form method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
       {% csrf_token %}
-      <div class="form-group">
-        <label class="form-label">Título del Proyecto</label>
-        <input type="text" name="titulo" class="form-input" placeholder="Ej: App de gestión de inventario" required>
+      <div class="form-group-corp">
+        <label class="form-label-corp">Título del Proyecto</label>
+        <input type="text" name="titulo" class="form-input-corp" placeholder="Ej: Plataforma SaaS de Gestión de Inventario" required>
       </div>
-      <div class="form-group">
-        <label class="form-label">Descripción</label>
-        <textarea name="descripcion" class="form-input form-textarea" placeholder="Describe qué necesitas..." required style="min-height:90px;resize:vertical;"></textarea>
+      <div class="form-group-corp">
+        <label class="form-label-corp">Descripción y Alcance</label>
+        <textarea name="descripcion" class="form-input-corp" placeholder="Describe los requerimientos y entregables esperados..." required style="min-height:90px; resize:vertical;"></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">Tipo de Solución</label>
-        <select name="tipo_solucion" class="form-input form-select">
-          {% for c in categorias_solucion %}
-          <option value="{{ c.slug }}">{{ c.nombre }}</option>
-          {% empty %}
-          <option value="sitio_web">Sitio Web</option>
-          <option value="aplicacion_movil">Aplicación Móvil</option>
-          <option value="automatizacion">Automatización</option>
-          {% endfor %}
-        </select>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp">Tipo de Solución</label>
+          <select name="tipo_solucion" class="form-input-corp">
+            {% for c in categorias_solucion %}
+            <option value="{{ c.slug }}">{{ c.nombre }}</option>
+            {% empty %}
+            <option value="sitio_web">Sitio Web</option>
+            <option value="aplicacion_movil">Aplicación Móvil</option>
+            <option value="automatizacion">Automatización</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Prioridad</label>
+          <select name="prioridad" class="form-input-corp">
+            <option value="alta">Alta</option>
+            <option value="media" selected>Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Prioridad</label>
-        <select name="prioridad" class="form-input form-select">
-          <option value="alta">Alta</option>
-          <option value="media" selected>Media</option>
-          <option value="baja">Baja</option>
-        </select>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="modalidad_select_crear">Modalidad de Trabajo</label>
+          <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
+            <option value="remoto" selected>Remoto (Nivel Nacional)</option>
+            <option value="presencial">Presencial</option>
+            <option value="hibrido">Híbrido</option>
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Vacantes</label>
+          <input type="number" name="vacantes" class="form-input-corp" value="1" min="1" max="10">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="modalidad_select_crear">Modalidad de Trabajo</label>
-        <select name="modalidad" id="modalidad_select_crear" class="form-input form-select" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
-          <option value="remoto" selected>Remoto (Nivel Nacional)</option>
-          <option value="presencial">Presencial</option>
-          <option value="hibrido">Híbrido</option>
-        </select>
+      <div class="form-group-corp" id="ciudad_group_crear" style="display:none;">
+        <label class="form-label-corp" for="ciudad_input_crear">Ciudad o Sede del Proyecto</label>
+        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input-corp" placeholder="Ej: Bogotá, D.C. / Medellín">
       </div>
-      <div class="form-group" id="ciudad_group_crear" style="display:none;">
-        <label class="form-label" for="ciudad_input_crear">Ciudad o Sede del Proyecto</label>
-        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input" placeholder="Ej: Bogotá, D.C. / Medellín">
+      <div class="form-group-corp">
+        <label class="form-label-corp">Fecha Límite de Entrega</label>
+        <div class="corp-datepicker" id="datepicker-crear">
+          <div class="datepicker-input-wrap">
+            <i data-lucide="calendar" class="datepicker-icon"></i>
+            <input type="text"
+                   class="form-input-corp datepicker-display"
+                   id="crear_fecha_limite_display"
+                   placeholder="Seleccionar fecha límite..."
+                   readonly
+                   onclick="toggleCorpDatepicker('datepicker-crear')">
+            <input type="hidden"
+                   name="fecha_limite"
+                   id="crear_fecha_limite"
+                   required>
+            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="Abrir calendario">
+              <i data-lucide="calendar-days"></i>
+            </button>
+          </div>
+
+          <div class="datepicker-popover" id="datepicker-crear-popover">
+            <div class="datepicker-presets">
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">+2 Semanas</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">+1 Mes</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">+2 Meses</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">+3 Meses</button>
+            </div>
+            <div class="datepicker-header">
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="Mes anterior">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <div class="datepicker-month-year" id="datepicker-crear-monthyear">Mes Año</div>
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="Mes siguiente">
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+            <div class="datepicker-weekdays">
+              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+            </div>
+            <div class="datepicker-days" id="datepicker-crear-days"></div>
+            <div class="datepicker-footer">
+              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">Cerrar</button>
+              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">Hoy</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Fecha Límite de Entrega</label>
-        <input type="date" name="fecha_limite" class="form-input" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Vacantes</label>
-        <input type="number" name="vacantes" class="form-input" value="1" min="1" max="10">
-      </div>
-      <div style="display:flex;gap:10px;margin-top:8px;">
-        <button type="button" onclick="cerrarModal()" class="btn btn-secondary" style="flex:1;justify-content:center;">Cancelar</button>
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
-          <i class="fa fa-paper-plane"></i> Publicar
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModal()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="send"></i> Publicar Convocatoria
         </button>
       </div>
     </form>
   </div>
 </div>
 
+<!-- Modal Editar Perfil In-Situ (LinkedIn Style) -->
+<div id="modalEditarPerfil" class="modal-overlay">
+  <div class="modal-box-corp" style="max-width: 580px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" style="margin-bottom:2px;">Editar Página de Empresa</h2>
+        <span style="font-size:12px; color:var(--corp-slate-500);">Actualiza la presencia institucional y de contacto</span>
+      </div>
+      <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <form method="post" action="{% url 'editar_perfil' %}" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:0;">
+      {% csrf_token %}
+      
+      <!-- Preview y carga de logo -->
+      <div class="logo-upload-preview">
+        <div id="logoPreviewBox" class="logo-preview-box">
+          {% if perfil.logo %}
+            <img src="{{ perfil.logo.url }}" alt="Logo">
+          {% else %}
+            <i data-lucide="building-2"></i>
+          {% endif %}
+        </div>
+        <div style="flex:1;">
+          <label class="form-label-corp" style="margin-bottom:3px;">Logo de la Empresa</label>
+          <input type="file" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
+          <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">Formatos recomendados: PNG, JPG o WebP cuadrado (400x400).</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp">Nombre Comercial</label>
+          <input type="text" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="Ej: TechCorp SAS" required>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Sector o Industria</label>
+          <input type="text" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="Ej: Software y Cloud">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp">Ciudad Sede</label>
+          <input type="text" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="Ej: Bogotá, D.C.">
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Teléfono de Contacto</label>
+          <input type="text" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="Ej: +57 300 123 4567">
+        </div>
+      </div>
+
+      <div class="form-group-corp">
+        <label class="form-label-corp">Especialidades y Stack de Interés (Opcional)</label>
+        <input type="text" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST">
+        <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">Indica las tecnologías o áreas clave separadas por comas. No es obligatorio.</div>
+      </div>
+
+      <div class="form-group-corp">
+        <label class="form-label-corp">Descripción Corporativa ("Acerca de")</label>
+        <textarea name="descripcion" class="form-input-corp" rows="4" placeholder="Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
+      </div>
+
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModalPerfil()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="save"></i>
+          <span>Guardar Cambios</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal In-Situ de Contrato Digital (DocuSign Corporativo) -->
+<div id="modalContratoDigital" class="modal-overlay" aria-labelledby="contratoModalTitulo" role="dialog" aria-modal="true">
+  <div class="modal-box-corp contract-modal-box">
+    <div class="modal-header-corp contract-modal-header">
+      <div>
+        <h2 class="modal-title-corp" id="contratoModalTitulo">
+          <i data-lucide="file-signature"></i>
+          <span>Contrato Digital</span>
+        </h2>
+        <span class="contract-modal-subtitle">Documento con validez jurídica y firma electrónica verificable</span>
+      </div>
+      <button type="button" onclick="cerrarModalContrato()" class="modal-close-btn" aria-label="Cerrar contrato digital">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="contratoModalBody" class="contract-modal-body">
+      <div class="drawer-loading">
+        <i data-lucide="loader-circle" class="corp-spin"></i>
+        <p>Cargando expediente contractual...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Proyecto In-Situ (Mis Ofertas) -->
+<div id="modalEditarProyecto" class="modal-overlay">
+  <div class="modal-box-corp">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp">Editar Oferta de Proyecto</h2>
+        <span style="font-size:12px; color:var(--corp-slate-500);">Modifica las especificaciones de tu convocatoria</span>
+      </div>
+      <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <form id="formEditarProyecto" method="post" action="" style="display:flex; flex-direction:column; gap:0;">
+      {% csrf_token %}
+      <div class="form-group-corp">
+        <label class="form-label-corp">Título del Proyecto</label>
+        <input type="text" id="edit_titulo" name="titulo" class="form-input-corp" required>
+      </div>
+      <div class="form-group-corp">
+        <label class="form-label-corp">Descripción y Alcance</label>
+        <textarea id="edit_descripcion" name="descripcion" class="form-input-corp" rows="4" required style="min-height:90px; resize:vertical;"></textarea>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp">Tipo de Solución</label>
+          <select id="edit_tipo_solucion" name="tipo_solucion" class="form-input-corp">
+            {% for c in categorias_solucion %}
+            <option value="{{ c.slug }}">{{ c.nombre }}</option>
+            {% empty %}
+            <option value="sitio_web">Sitio Web</option>
+            <option value="aplicacion_movil">Aplicación Móvil</option>
+            <option value="automatizacion">Automatización</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Prioridad</label>
+          <select id="edit_prioridad" name="prioridad" class="form-input-corp">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_modalidad">Modalidad de Trabajo</label>
+          <select id="edit_modalidad" name="modalidad" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'edit_ciudad_group')">
+            <option value="remoto">Remoto (Nivel Nacional)</option>
+            <option value="presencial">Presencial</option>
+            <option value="hibrido">Híbrido</option>
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp">Vacantes</label>
+          <input type="number" id="edit_vacantes" name="vacantes" class="form-input-corp" min="1" max="10" required>
+        </div>
+      </div>
+      <div class="form-group-corp" id="edit_ciudad_group" style="display:none;">
+        <label class="form-label-corp" for="edit_ciudad">Ciudad o Sede Presencial</label>
+        <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="Ej: Bogotá, D.C. / Medellín">
+      </div>
+      <div class="form-group-corp">
+        <label class="form-label-corp">Fecha Límite de Entrega</label>
+        <div class="corp-datepicker" id="datepicker-editar">
+          <div class="datepicker-input-wrap">
+            <i data-lucide="calendar" class="datepicker-icon"></i>
+            <input type="text"
+                   class="form-input-corp datepicker-display"
+                   id="edit_fecha_limite_display"
+                   placeholder="Seleccionar fecha límite..."
+                   readonly
+                   onclick="toggleCorpDatepicker('datepicker-editar')">
+            <input type="hidden"
+                   name="fecha_limite"
+                   id="edit_fecha_limite">
+            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-editar')" aria-label="Abrir calendario">
+              <i data-lucide="calendar-days"></i>
+            </button>
+          </div>
+
+          <div class="datepicker-popover" id="datepicker-editar-popover">
+            <div class="datepicker-presets">
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 14)">+2 Semanas</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 30)">+1 Mes</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 60)">+2 Meses</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 90)">+3 Meses</button>
+            </div>
+            <div class="datepicker-header">
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', -1)" aria-label="Mes anterior">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <div class="datepicker-month-year" id="datepicker-editar-monthyear">Mes Año</div>
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', 1)" aria-label="Mes siguiente">
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+            <div class="datepicker-weekdays">
+              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+            </div>
+            <div class="datepicker-days" id="datepicker-editar-days"></div>
+            <div class="datepicker-footer">
+              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-editar')">Cerrar</button>
+              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-editar')">Hoy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="save"></i>
+          <span>Guardar Cambios</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast flotante corporativo -->
+<div id="corpToast" class="corp-toast">
+  <i data-lucide="check-circle-2" style="color:var(--corp-success);"></i>
+  <span>Enlace del perfil público copiado al portapapeles</span>
+</div>
+
+<!-- Drawer / Slide-Over de Candidatos In-Situ -->
+<div id="drawerCandidatos" class="drawer-overlay">
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <div>
+        <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--corp-brand);">
+          <i data-lucide="users"></i> Panel de Selección & Candidatos
+        </div>
+        <h2 id="drawerProjectTitle" class="drawer-title">Candidatos Postulados</h2>
+      </div>
+      <div>
+        <button type="button" onclick="cerrarDrawerCandidatos()" class="modal-close-btn" aria-label="Cerrar panel">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido dinámico del Drawer -->
+    <div id="drawerContent" class="drawer-body">
+      <!-- Se inyecta con JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación Bonito para Retirar Oferta -->
+<div id="modalConfirmarRetiro" class="modal-overlay">
+  <div class="modal-confirm-box">
+    <div class="modal-confirm-icon">
+      <i data-lucide="alert-triangle"></i>
+    </div>
+    <h3 class="modal-confirm-title">¿Deseas retirar esta convocatoria?</h3>
+    <p class="modal-confirm-desc">
+      La oferta <strong id="nombreOfertaRetirar">este proyecto</strong> dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos.
+    </p>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" onclick="cerrarModalConfirmarRetiro()" class="btn-corp-action secondary">
+        Cancelar
+      </button>
+      <button type="button" onclick="ejecutarRetiroConfirmado()" class="btn-corp-danger">
+        <i data-lucide="ban"></i>
+        <span>Sí, retirar oferta</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Todas las Valoraciones y Reseñas -->
+<div id="modalTodasValoraciones" class="modal-overlay">
+  <div class="modal-box-corp" style="max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+    <div class="modal-header-corp" style="padding: 20px 24px; margin-bottom: 0;">
+      <div>
+        <h2 class="modal-title-corp" style="margin-bottom: 3px;">Expediente de Reputación y Valoraciones</h2>
+        <span style="font-size: 12px; color: var(--corp-slate-500);">Registro completo de {{ total_valoraciones }} evaluaciones recibidas de desarrolladores contratados</span>
+      </div>
+      <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros de Estrellas dentro del Modal -->
+    <div style="padding: 14px 24px; background: var(--corp-slate-50); border-bottom: 1px solid var(--corp-border); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+      <div style="flex: 1; min-width: 220px; position: relative;">
+        <input type="text"
+               class="form-input-corp"
+               placeholder="Buscar por desarrollador o proyecto..."
+               onkeyup="filtrarResenasModal(this)"
+               style="padding-left: 32px; background: #ffffff;">
+        <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
+      </div>
+
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button type="button" class="datepicker-preset-pill active" onclick="filtrarPorEstrellasModal(0, this)">Todas ({{ total_valoraciones }})</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(5, this)">5 ★ ({{ conteo_estrellas.5 }})</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(4, this)">4 ★ ({{ conteo_estrellas.4 }})</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(3, this)">3 ★ ({{ conteo_estrellas.3 }})</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(1, this)">1-2 ★ ({{ conteo_estrellas.1|add:conteo_estrellas.2 }})</button>
+      </div>
+    </div>
+
+    <!-- Lista scrolleable de todas las reseñas -->
+    <div id="modalResenasFeed" style="flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+      {% for valoracion in valoraciones_recibidas %}
+        <div class="review-card-corp modal-review-item" data-stars="{{ valoracion.puntuacion }}">
+          <div class="review-card-header">
+            <div class="review-author-wrap">
+              <div class="review-avatar-circle">
+                {% if valoracion.desarrollador.perfil_desarrollador.foto_perfil %}
+                  <img src="{{ valoracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ valoracion.desarrollador.username }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                  {{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
+                <span class="badge-verified-hire">
+                  <i data-lucide="check-circle-2"></i> Contratación Verificada
+                </span>
+              </div>
+            </div>
+
+            <div class="review-stars">
+              <span class="review-stars-score">{{ valoracion.puntuacion }}.0</span>
+              <span>{% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}</span>
+            </div>
+          </div>
+
+          <div class="review-project">
+            <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
+            <span>Proyecto: <strong>{{ valoracion.proyecto.titulo }}</strong></span>
+          </div>
+
+          <div class="review-comment-box">
+            "{{ valoracion.comentario|default:"El desarrollador calificó con puntaje positivo sin comentario adicional." }}"
+          </div>
+
+          {% if valoracion.fecha %}
+            <div class="review-date">
+              <i data-lucide="calendar-check-2" style="margin-right:4px;"></i> {{ valoracion.fecha|date:"d M, Y H:i" }}
+            </div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="activity-empty">
+          <i data-lucide="star"></i>
+          <p>No hay valoraciones registradas en la plataforma.</p>
+        </div>
+      {% endfor %}
+      <div id="noMatchResenas" class="activity-empty" style="display:none; padding:40px 10px;">
+        <i data-lucide="filter"></i>
+        <p>No se encontraron valoraciones con los filtros aplicados.</p>
+      </div>
+    </div>
+
+    <!-- Footer modal -->
+    <div style="padding: 14px 24px; border-top: 1px solid var(--corp-border); display: flex; justify-content: flex-end; background: var(--corp-surface);">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">Cerrar</button>
+    </div>
+  </div>
+</div>
 <script>
 function toggleCiudadProyecto(selectEl, groupTargetId) {
   var grp = document.getElementById(groupTargetId);
@@ -623,7 +1789,7 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
   }
 }
 </script>
-<script src="{% static 'empresa/script/empresa.js' %}"></script>
+<script src="{% static 'empresa/script/empresa.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 </body>
