@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -12,7 +13,7 @@ def editar_perfil(request):
     if request.user.rol == 'empresa':
         perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=request.user)
         form = PerfilEmpresaForm(request.POST or None, request.FILES or None, instance=perfil)
-        redirect_to = 'dashboard_empresa'
+        redirect_to = f"{reverse('dashboard_empresa')}#perfil"
     elif request.user.rol == 'desarrollador':
         perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
         form = PerfilDesarrolladorForm(request.POST or None, request.FILES or None, instance=perfil)

@@ -1,12 +1,15 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q, Count, Prefetch
+from django.utils import timezone
 from ..models import Usuario, PerfilEmpresa
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_id
 from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
 from postulaciones.models import Postulacion
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, ContratoDigital
 from disputas.services import datos_dashboard_disputas
 from mensajes.models import Mensaje
 from ._helpers import get_notificaciones_context
@@ -66,7 +69,62 @@ def dashboard_empresa(request):
             'vacantes_disponibles': vacantes_disponibles,
         })
     perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=request.user)
-    mis_ofertas = Proyecto.objects.filter(empresa=request.user, estado='publicado').select_related('categoria').order_by('-fecha_publicacion')
+    mis_ofertas = list(
+        Proyecto.objects.filter(empresa=request.user, estado='publicado')
+        .select_related('categoria')
+        .annotate(
+            num_candidatos=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado__in=['pendiente', 'en_negociacion']),
+                distinct=True
+            )
+        )
+        .order_by('-fecha_publicacion')
+    )
+    total_vacantes_ofertas = sum(p.vacantes for p in mis_ofertas)
+
+    # RF 2.2.1: marca las convocatorias que cierran en las próximas 48 horas.
+    hoy = timezone.now().date()
+    limite_48h = hoy + timedelta(days=2)
+    for proyecto in mis_ofertas:
+        proyecto.cierra_pronto = bool(
+            proyecto.fecha_limite and hoy <= proyecto.fecha_limite <= limite_48h
+        )
+
+    # Onboarding: 4 pasos iniciales para que la empresa active su cuenta.
+    pasos_onboarding = [
+        {
+            'clave': 'perfil',
+            'titulo': 'Completa el perfil de tu empresa',
+            'descripcion': 'Añade el logo y una descripción que genere confianza en el talento.',
+            'completado': bool(perfil.logo and (perfil.descripcion or '').strip()),
+            'en_revision': False,
+        },
+        {
+            'clave': 'verificacion',
+            'titulo': 'Verifica tu NIT',
+            'descripcion': 'Obtén el sello de empresa verificada y publica con mayor respaldo.',
+            'completado': perfil.estado_verificacion == 'verificada',
+            'en_revision': perfil.estado_verificacion == 'en_revision',
+        },
+        {
+            'clave': 'publicar',
+            'titulo': 'Publica tu primera convocatoria',
+            'descripcion': 'Describe tu proyecto y encuentra el talento que necesitas.',
+            'completado': p_pub > 0,
+            'en_revision': False,
+        },
+        {
+            'clave': 'contratar',
+            'titulo': 'Contrata tu primer talento',
+            'descripcion': 'Inicia un contrato activo con un desarrollador de la plataforma.',
+            'completado': dev_con > 0,
+            'en_revision': False,
+        },
+    ]
+    onboarding_completados = sum(1 for paso in pasos_onboarding if paso['completado'])
+    total_pasos_onboarding = len(pasos_onboarding)
+    onboarding_porcentaje = round((onboarding_completados / total_pasos_onboarding) * 100)
     
     postulaciones_pendientes_obj = Postulacion.objects.filter(
         proyecto__empresa=request.user, 
@@ -76,8 +134,25 @@ def dashboard_empresa(request):
     post_pen = postulaciones_pendientes_obj.count()
     admin_id = get_admin_id()
 
-    valoraciones_dev = Valoracion.objects.filter(empresa=request.user, rol_evaluador='desarrollador').select_related('desarrollador', 'proyecto')
-    promedio_empresa = valoraciones_dev.aggregate(Avg('puntuacion'))['puntuacion__avg'] or 0
+    valoraciones_dev = list(
+        Valoracion.objects.filter(empresa=request.user, rol_evaluador='desarrollador')
+        .select_related('desarrollador', 'desarrollador__perfil_desarrollador', 'proyecto')
+        .order_by('-fecha')
+    )
+    total_valoraciones = len(valoraciones_dev)
+    promedio_empresa = (
+        sum(v.puntuacion for v in valoraciones_dev) / total_valoraciones
+        if total_valoraciones > 0 else 0.0
+    )
+
+    conteo_estrellas = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for val in valoraciones_dev:
+        if val.puntuacion in conteo_estrellas:
+            conteo_estrellas[val.puntuacion] += 1
+    porcentaje_estrellas = {
+        k: round((conteo_estrellas[k] / total_valoraciones) * 100) if total_valoraciones > 0 else 0
+        for k in conteo_estrellas
+    }
 
     notificaciones_recientes, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
 
@@ -86,6 +161,20 @@ def dashboard_empresa(request):
         estado='activa',
         proyecto__estado='en_desarrollo'
     ).select_related('desarrollador__perfil_desarrollador', 'proyecto')
+
+    # Módulo 8 / SCRUM-204: contratos digitales gestionados 100% in-situ desde el panel.
+    mis_contratos_digitales = ContratoDigital.objects.filter(
+        postulacion__proyecto__empresa=request.user
+    ).select_related(
+        'postulacion__proyecto',
+        'postulacion__desarrollador',
+        'postulacion__desarrollador__perfil_desarrollador',
+        'contratacion',
+    ).order_by('-fecha_actualizacion')
+    contratos_pendientes_firma_count = sum(
+        1 for c in mis_contratos_digitales
+        if not c.firmado_empresa and c.estado in ('borrador', 'pendiente_firma')
+    )
 
     historial_v = Proyecto.objects.filter(
         empresa=request.user, 
@@ -104,8 +193,10 @@ def dashboard_empresa(request):
         historial_estado_actual = ''
 
     historial_inactivos = historial_inactivos_qs.select_related('categoria').annotate(
-        num_desarrolladores=Count('contrataciones')
-    ).prefetch_related('contrataciones__desarrollador').order_by('-fecha_publicacion')
+        num_desarrolladores=Count('contrataciones', distinct=True),
+        hitos_completados=Count('entregables', filter=Q(entregables__estado='completado'), distinct=True),
+        hitos_totales=Count('entregables', distinct=True),
+    ).prefetch_related('contrataciones__desarrollador', 'contrataciones__desarrollador__perfil_desarrollador').order_by('-fecha_publicacion')
     historial_inactivos_count = historial_inactivos.count()
 
     conteos_historial = dict(
@@ -122,15 +213,24 @@ def dashboard_empresa(request):
         'total_postulaciones': post_pen,
         'total_contratados': dev_con,
         'mis_ofertas': mis_ofertas,
+        'total_vacantes_ofertas': total_vacantes_ofertas,
+        'pasos_onboarding': pasos_onboarding,
+        'onboarding_completados': onboarding_completados,
+        'onboarding_porcentaje': onboarding_porcentaje,
         'en_desarrollo_v': en_desarrollo_v,
         'colaboradores_activos': colaboradores_activos,
+        'mis_contratos_digitales': mis_contratos_digitales,
+        'contratos_pendientes_firma_count': contratos_pendientes_firma_count,
         'historial': historial_v,
         'historial_inactivos': historial_inactivos,
         'historial_inactivos_count': historial_inactivos_count,
         'historial_por_estado': historial_por_estado,
         'historial_estado_actual': historial_estado_actual,
         'valoraciones_recibidas': valoraciones_dev,
-        'promedio_empresa': round(promedio_empresa, 1),
+        'total_valoraciones': total_valoraciones,
+        'conteo_estrellas': conteo_estrellas,
+        'porcentaje_estrellas': porcentaje_estrellas,
+        'promedio_empresa': round(float(promedio_empresa), 1),
         'postulaciones_pendientes': postulaciones_pendientes_obj,
         'notificaciones': notificaciones_recientes,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,

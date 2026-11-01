@@ -139,6 +139,34 @@ class TestDashboardAccess:
         desarrollador_user.perfil_desarrollador.refresh_from_db()
         assert desarrollador_user.perfil_desarrollador.telefono == '3001234567'
 
+    def test_editar_perfil_empresa_actualiza_stack_interes_opcional(self, auth_client, empresa_user):
+        """Empresa puede actualizar su stack tecnológico de interés de manera opcional."""
+        response = auth_client.post(reverse('editar_perfil'), {
+            'nombre_empresa': 'Tech Innovators SAS',
+            'sector': 'Fintech',
+            'ciudad': 'Medellín',
+            'telefono': '3109876543',
+            'descripcion': 'Empresa líder en finanzas digitales.',
+            'stack_interes': 'Python, Django, React, AWS, Docker',
+        }, follow=True)
+        assert response.status_code == 200
+        empresa_user.perfil_empresa.refresh_from_db()
+        assert empresa_user.perfil_empresa.stack_interes == 'Python, Django, React, AWS, Docker'
+        assert empresa_user.perfil_empresa.lista_stack_interes == ['Python', 'Django', 'React', 'AWS', 'Docker']
+        # El campo es opcional: puede guardarse vacío sin fallar
+        response_vacio = auth_client.post(reverse('editar_perfil'), {
+            'nombre_empresa': 'Tech Innovators SAS',
+            'sector': 'Fintech',
+            'ciudad': 'Medellín',
+            'telefono': '3109876543',
+            'descripcion': 'Empresa líder en finanzas digitales.',
+            'stack_interes': '',
+        }, follow=True)
+        assert response_vacio.status_code == 200
+        empresa_user.perfil_empresa.refresh_from_db()
+        assert empresa_user.perfil_empresa.stack_interes in ('', None)
+        assert empresa_user.perfil_empresa.lista_stack_interes == []
+
 def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, desarrollador_user, db):
     from django.urls import reverse
     from usuarios.models import Usuario
@@ -448,3 +476,55 @@ def test_empresa_dashboard_historial_empty_state_por_filtro(auth_client, empresa
     content = response.content.decode()
     assert 'No hay proyectos en este estado del historial.' in content
     assert finalizado.titulo not in content
+
+
+def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_client, empresa_user, desarrollador_user, db):
+    """
+    Verifica que en el dashboard de empresa:
+    1. La sección Disputas NO contenga el bloque 'Historial y Expedientes Cerrados'.
+    2. La sección Historial contenga las subpestañas organizadas: 'Proyectos (Historial Completo)'
+       y 'Disputas (Historial Completo)'.
+    3. Los expedientes resueltos de disputas se rendericen dentro de Historial.
+    """
+    from django.utils import timezone
+    from proyectos.models import Proyecto
+    from contrataciones.models import Contratacion
+    from disputas.models import Disputa
+
+    proyecto = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto Con Disputa Resuelta', descripcion='D',
+        tipo_solucion='sitio_web', estado='finalizado',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, empresa=empresa_user, estado='finalizado',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=desarrollador_user,
+        motivo='Conflicto de prueba', estado='resuelta', resolucion='acuerdo_mutuo',
+        notas_resolucion='Acuerdo alcanzado satisfactoriamente', fecha_resolucion=timezone.now(),
+    )
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # 1. Separar las secciones por id
+    disputas_idx = content.find('id="disputas"')
+    historial_idx = content.find('id="historial"')
+    perfil_idx = content.find('id="perfil"')
+
+    assert disputas_idx != -1 and historial_idx != -1 and perfil_idx != -1
+    bloque_disputas = content[disputas_idx:historial_idx]
+    bloque_historial = content[historial_idx:perfil_idx]
+
+    # En la sección Disputas no debe estar 'Historial y Expedientes Cerrados'
+    assert 'Historial y Expedientes Cerrados' not in bloque_disputas
+
+    # En la sección Historial debe estar la organización de subpestañas y el expediente cerrado
+    assert 'Proyectos (Historial Completo)' in bloque_historial
+    assert 'Disputas (Historial Completo)' in bloque_historial
+    assert 'pane-historial-proyectos' in bloque_historial
+    assert 'pane-historial-disputas' in bloque_historial
+    assert 'Proyecto Con Disputa Resuelta' in bloque_historial
+    assert f'#{disputa.pk}' in bloque_historial
+
