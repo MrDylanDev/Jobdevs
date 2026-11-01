@@ -126,6 +126,7 @@ class ContratoDigital(models.Model):
             f"{Decimal(str(self.monto)):.2f}" if self.monto is not None else '',
             self.moneda,
             self.forma_pago,
+            self.medio_pago or '',
             self.clausulas,
             self.fecha_firma_empresa.isoformat() if self.fecha_firma_empresa else '',
             self.fecha_firma_desarrollador.isoformat() if self.fecha_firma_desarrollador else '',
@@ -143,6 +144,7 @@ class ContratoDigital(models.Model):
             f"{Decimal(str(self.monto)):.2f}" if self.monto is not None else '',
             self.moneda or '',
             self.forma_pago or '',
+            self.medio_pago or '',
             self.clausulas or '',
         ]
         return hashlib.sha256('|'.join(partes).encode('utf-8')).hexdigest()

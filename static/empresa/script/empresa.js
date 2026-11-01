@@ -11,6 +11,7 @@
   window.switchTab = function (id, btn) {
     if (!id) return;
     if (id === 'reputacion') id = 'inicio';
+    if (id === 'historial-disputas') id = 'disputas';
 
     const sections = document.querySelectorAll('.seccion-v, .section-v');
     const navItems = document.querySelectorAll('.nav-item');
@@ -212,6 +213,8 @@
 
           cards.forEach(function (c) {
             // Descartar tarjeta de título del proyecto y formulario de filtros
+            if (c.tagName.toLowerCase() === 'form') return;
+            if (c.querySelector('form[method="get"]')) return;
             if (c.querySelector('h2') && c.querySelector('.card-subtitle')) return;
             candidateCards.push(c);
           });
@@ -1452,9 +1455,19 @@
             },
           })
             .then(function (res) {
-              return res.json().catch(function () { return { status: 'ok' }; });
+              return res.json().catch(function () {
+                return { status: res.ok ? 'ok' : 'error', message: res.ok ? 'Acción procesada exitosamente' : 'Error al procesar la solicitud' };
+              });
             })
             .then(function (data) {
+              if (data.status === 'error') {
+                alert(data.message || 'Error al procesar la acción.');
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = oldBtnHtml;
+                }
+                return;
+              }
               const toast = document.getElementById('corpToast');
               if (toast) {
                 const toastSpan = toast.querySelector('span');

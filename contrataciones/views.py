@@ -124,7 +124,7 @@ def _serializar_contrato_digital(contrato, rol_contrato):
         'forma_pago': contrato.forma_pago,
         'forma_pago_display': contrato.get_forma_pago_display(),
         'medio_pago': contrato.medio_pago or 'transferencia',
-        'medio_pago_display': contrato.get_medio_pago_display() if hasattr(contrato, 'get_medio_pago_display') else (contrato.medio_pago or 'Transferencia bancaria'),
+        'medio_pago_display': contrato.get_medio_pago_display() if (contrato.medio_pago and hasattr(contrato, 'get_medio_pago_display')) else 'Transferencia bancaria',
         'medios_pago': [{'valor': k, 'label': v} for k, v in ContratoDigital.MEDIOS_PAGO],
         'formas_pago': [{'valor': k, 'label': v} for k, v in ContratoDigital.FORMAS_PAGO],
         'monedas': [{'valor': k, 'label': v} for k, v in ContratoDigital.MONEDAS],
@@ -252,7 +252,10 @@ def ver_contrato_digital(request, contrato_id):
         if rol_contrato != 'empresa':
             raise PermissionDenied
         if not _contrato_editable(contrato):
-            messages.error(request, "El contrato ya no puede editarse porque tiene firmas o no está en negociación.")
+            msg = "El contrato ya no puede editarse porque tiene firmas o no está en negociación."
+            if _es_xhr(request):
+                return JsonResponse({'status': 'error', 'message': msg}, status=400)
+            messages.error(request, msg)
             return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
         errores = []
@@ -271,9 +274,9 @@ def ver_contrato_digital(request, contrato_id):
         forma_pago = request.POST.get('forma_pago', '')
         if forma_pago not in dict(ContratoDigital.FORMAS_PAGO):
             errores.append("Forma de pago no válida.")
-        medio_pago = request.POST.get('medio_pago', contrato.medio_pago or 'transferencia')
-        if medio_pago and medio_pago not in dict(ContratoDigital.MEDIOS_PAGO):
-            medio_pago = 'transferencia'
+        medio_pago = request.POST.get('medio_pago', '').strip() or contrato.medio_pago or 'transferencia'
+        if medio_pago not in dict(ContratoDigital.MEDIOS_PAGO):
+            errores.append("Medio de pago no válido.")
 
         if errores:
             if _es_xhr(request):
@@ -295,13 +298,13 @@ def ver_contrato_digital(request, contrato_id):
                 tabla_afectada='contratos_digitales',
                 registro_id=contrato.id,
             )
-        messages.success(request, "Términos del contrato actualizados.")
         if _es_xhr(request):
             return JsonResponse({
                 'status': 'ok',
                 'message': 'Términos del contrato actualizados exitosamente.',
                 'contrato': _serializar_contrato_digital(contrato, rol_contrato),
             })
+        messages.success(request, "Términos del contrato actualizados.")
         return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
     postulacion = contrato.postulacion

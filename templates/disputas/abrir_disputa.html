@@ -13,10 +13,17 @@
       </div>
       <div class="page-subtitle">Instancia de arbitraje y resolución administrativa para controversias graves</div>
     </div>
-    <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">
-      <i data-lucide="arrow-left"></i>
-      <span>Volver a En Desarrollo</span>
-    </a>
+    {% if request.user.rol == 'desarrollador' %}
+      <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a Mis Proyectos</span>
+      </a>
+    {% else %}
+      <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a En Desarrollo</span>
+      </a>
+    {% endif %}
   </div>
 
   <div class="disp-stack">
@@ -37,7 +44,7 @@
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:10px;">
           <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
             <strong style="display:block; margin-bottom:2px; color:#9f1239;">1. Congelamiento Preventivo</strong>
-            El proyecto y las contrataciones se suspenden de inmediato.
+            El proyecto y la contratación se suspenden de inmediato.
           </div>
           <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
             <strong style="display:block; margin-bottom:2px; color:#9f1239;">2. Pausa de Entregables</strong>
@@ -151,7 +158,11 @@
       <div id="disputa-error" class="msg-error" style="display:none; margin-top:16px; border-radius:var(--corp-radius-md);" role="alert"></div>
 
       <div class="disp-actions">
-        <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">Cancelar</a>
+        {% if request.user.rol == 'desarrollador' %}
+          <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary">Cancelar</a>
+        {% else %}
+          <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">Cancelar</a>
+        {% endif %}
         <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
           <i data-lucide="gavel"></i>
           <span>Iniciar Mediación Formal</span>

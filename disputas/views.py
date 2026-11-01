@@ -85,6 +85,10 @@ def abrir_disputa_view(request, proyecto_id):
             messages.error(request, 'Debes indicar el motivo de la disputa.')
             return render(request, 'disputas/abrir_disputa.html', context, status=200)
 
+        if categoria not in dict(categorias):
+            messages.error(request, 'Debes seleccionar una causal válida para tu rol.')
+            return render(request, 'disputas/abrir_disputa.html', context, status=400)
+
         try:
             disputa = abrir_disputa(
                 proyecto=proyecto,
