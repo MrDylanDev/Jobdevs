@@ -520,7 +520,7 @@
                 <div class="offer-badges-row">
                   <span class="offer-badge-category">
                     <i data-lucide="layers"></i>
-                    {{ proyecto.get_tipo_solucion_display|default:proyecto.categoria.nombre|default:"Tecnología" }}
+                    {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Tecnología" }}{% endif %}
                   </span>
                   {% if proyecto.cierra_pronto %}
                     <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> Cierra pronto</span>
@@ -889,7 +889,7 @@
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
                     {% if proyecto.get_tipo_solucion_display or proyecto.categoria %}
                       <span class="offer-badge-category">
-                        <i data-lucide="layers"></i> {{ proyecto.get_tipo_solucion_display|default:proyecto.categoria.nombre }}
+                        <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Proyecto de software" }}{% endif %}
                       </span>
                     {% endif %}
                     {% if proyecto.hitos_totales > 0 %}
