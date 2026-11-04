@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField
 from django.db.models.functions import Coalesce
+from django.views.decorators.csrf import ensure_csrf_cookie
 from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
 
 
+@ensure_csrf_cookie
 def inicio(request):
     proyectos_qs = Proyecto.objects.filter(estado='finalizado').select_related(
         'empresa__perfil_empresa'

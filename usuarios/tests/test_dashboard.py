@@ -159,9 +159,12 @@ def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, de
     assert response.status_code == 200
     content = response.content.decode()
 
-    # Debe figurar en la tabla de postulaciones con su botón de Chatear
+    # El chat se abre embebido: hay disparador inline y no un enlace a otra página
     chat_url = reverse('sala_chat', kwargs={'receptor_id': empresa.id, 'proyecto_id': proyecto.id})
-    assert chat_url in content
+    assert chat_url not in content
+    assert "data-chat-open" in content
+    assert f'data-receptor="{empresa.id}"' in content
+    assert f'data-proyecto="{proyecto.id}"' in content
     assert "En Negociación" in content
 
 def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_client, desarrollador_user, db):
@@ -448,3 +451,35 @@ def test_empresa_dashboard_historial_empty_state_por_filtro(auth_client, empresa
     content = response.content.decode()
     assert 'No hay proyectos en este estado del historial.' in content
     assert finalizado.titulo not in content
+
+
+def test_dev_dashboard_incluye_seccion_explorar_integrada(client, desarrollador_user, empresa_user, db):
+    """Verifica que el dashboard de desarrollador incluye la sección integrada de explorar sin redirección."""
+    from proyectos.models import Proyecto
+
+    proyecto = Proyecto.objects.create(
+        empresa=empresa_user,
+        titulo='Proyecto Cyber Test',
+        descripcion='Descripción de prueba para explorador integrado',
+        tipo_solucion='sitio_web',
+        estado='publicado',
+        vacantes=2,
+    )
+
+    client.force_login(desarrollador_user)
+    response = client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    assert 'proyectos_explorar' in response.context
+    assert 'categorias_solucion' in response.context
+    assert any(p.id == proyecto.id for p in response.context['proyectos_explorar'])
+
+    content = response.content.decode()
+    # Verifica que el botón de navegación llama a verSeccion y no redirige a /proyectos/
+    assert "verSeccion('explorar', this)" in content
+    assert 'id="explorar"' in content
+    assert 'id="devExploreSearch"' in content
+    assert 'id="devExploreCategory"' in content
+    assert 'id="devExplorePriority"' in content
+    assert 'lucide.min.js' in content
+    assert 'Proyecto Cyber Test' in content
+

@@ -129,6 +129,16 @@ def dashboard_admin(request):
     )
     proy_page = request.GET.get('proy_page', 1)
     proyectos_lista = proy_paginator.get_page(proy_page)
+
+    # Catálogo completo para la sección integrada Explorar en Admin
+    proyectos_catalogo = list(Proyecto.objects.select_related(
+        'empresa', 'empresa__perfil_empresa', 'categoria'
+    ).annotate(
+        num_postulaciones=Count('postulaciones', distinct=True),
+        empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
+            filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
+            Value(0.0), output_field=FloatField())
+    ).order_by('-fecha_publicacion')[:60])
     
     logs = list(LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora').values_list(
         'id', 'usuario__username', 'accion', 'tabla_afectada', 'fecha_hora'
@@ -206,7 +216,7 @@ def dashboard_admin(request):
             dias = (timezone.now() - p.ultimo_avance).days
         elif p.contratos_activos:
             dias = (timezone.now().date() - p.contratos_activos[0].fecha_inicio).days
-        alertas_retraso.append((p.titulo, p.empresa.nombre, dev_nombre, dias))
+        alertas_retraso.append((p.titulo, p.empresa.nombre, dev_nombre, dias, p.empresa_id))
 
     empresas_qs = Usuario.objects.filter(rol='empresa').annotate(
         promedio=Coalesce(Avg('valoraciones_como_empresa__puntuacion',
@@ -310,6 +320,7 @@ def dashboard_admin(request):
         'p_pub': p_pub, 'p_des': p_des, 'p_fin': p_fin,
         'post_pen': post_pen, 'promedio_global': promedio_global, 'p_ret': p_ret,
         'usuarios_todos': usuarios_lista, 'proyectos_todos': proyectos_lista,
+        'proyectos_catalogo': proyectos_catalogo,
         'user_q': user_q, 'user_rol': user_rol, 'user_estado': user_estado,
         'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'usuarios_inactivos': usuarios_inactivos,
         'usuarios_suspendidos': usuarios_suspendidos,
