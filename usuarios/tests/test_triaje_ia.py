@@ -253,3 +253,37 @@ class TriajeCeleryYAdminTestCase(TestCase):
 
         resp = self.client.post(url, {"accion": "aprobar"})
         self.assertEqual(resp.status_code, 403)
+
+    def test_19_solicitar_nuevo_documento_empresa_envia_email(self):
+        """Acción dedicada: solicita nuevo documento con notificación in-app y email."""
+        from django.urls import reverse
+
+        self.client.force_login(self.admin)
+        url = reverse("admin_resolver_verificacion_empresa", args=[self.perfil_empresa.id])
+
+        with patch("notificaciones.tasks.enviar_email_transaccional_task.delay") as mock_email:
+            with self.captureOnCommitCallbacks(execute=True):
+                resp = self.client.post(
+                    url,
+                    {"accion": "solicitar_documento", "notas": "La foto está borrosa."},
+                )
+
+        self.assertEqual(resp.status_code, 302)
+        self.perfil_empresa.refresh_from_db()
+        self.assertEqual(self.perfil_empresa.estado_verificacion, "rechazada")
+        self.assertEqual(self.perfil_empresa.notas_auditoria, "La foto está borrosa.")
+        self.assertTrue(
+            Notificacion.objects.filter(usuario=self.empresa_user, tipo="alerta").exists()
+        )
+        mock_email.assert_called_once()
+        kwargs = mock_email.call_args.kwargs
+        self.assertEqual(kwargs["template_name"], "emails/verificacion_documento.html")
+        self.assertEqual(kwargs["destinatarios"], ["empresa@demo.com"])
+        self.assertIn("borrosa", kwargs["contexto"]["motivo"])
+
+        from django.template.loader import render_to_string
+
+        html = render_to_string(kwargs["template_name"], kwargs["contexto"])
+        self.assertIn("borrosa", html)
+        self.assertIn("Cargar nuevo documento", html)
+

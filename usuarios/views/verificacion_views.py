@@ -199,6 +199,8 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
         messages.error(request, 'Debes indicar el motivo del rechazo.')
         return destino
 
+    dashboard_url = request.build_absolute_uri(reverse('solicitar_verificacion_empresa'))
+
     with transaction.atomic():
         perfil = get_object_or_404(
             PerfilEmpresa.objects.select_for_update().select_related('usuario'),
@@ -255,6 +257,31 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             tipo='aprobacion' if accion == 'aprobar' else 'alerta',
             mensaje=mensaje,
         )
+
+        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+            contexto_email = {
+                'asunto': 'Necesitamos un nuevo documento para tu verificación de empresa',
+                'usuario': {
+                    'nombre': perfil.usuario.nombre,
+                    'username': perfil.usuario.username,
+                    'email': perfil.usuario.email,
+                },
+                'sujeto': nombre,
+                'tipo_sujeto': 'verificación de empresa',
+                'motivo': notas,
+                'dashboard_url': dashboard_url,
+            }
+
+            def _enviar_email_verificacion():
+                from notificaciones.tasks import enviar_email_transaccional_task
+                enviar_email_transaccional_task.delay(
+                    asunto=contexto_email['asunto'],
+                    template_name='emails/verificacion_documento.html',
+                    contexto=contexto_email,
+                    destinatarios=[perfil.usuario.email],
+                )
+
+            transaction.on_commit(_enviar_email_verificacion)
 
     return destino
 
