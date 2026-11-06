@@ -155,3 +155,17 @@ def _restaurar_idioma_activo():
     from django.utils import translation
 
     translation.deactivate_all()
+
+
+@pytest.fixture(autouse=True)
+def _limpiar_cache():
+    """Limpia la caché de Django antes y después de cada prueba.
+
+    Evita que datos en memoria (como `admin_ids_list` o `admin_id`) persistan entre
+    pruebas cuyas transacciones de base de datos ya fueron revertidas.
+    """
+    from django.core.cache import cache
+
+    cache.clear()
+    yield
+    cache.clear()

@@ -713,7 +713,7 @@ def analizar_empresa(
                 else:
                     alertas.append(Alerta(
                         "advertencia", "DV_INVALIDO",
-                        f"El dígito de verificación del NIT no coincide o es inválido."
+                        "El dígito de verificación del NIT no coincide o es inválido."
                     ))
             else:
                 discrepancia_critica = True

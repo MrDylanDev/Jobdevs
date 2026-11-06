@@ -152,6 +152,9 @@ class TriajeCeleryYAdminTestCase(TestCase):
     """Pruebas de tareas Celery, permisos y registro de auditoría."""
 
     def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
         self.admin = Usuario.objects.create_superuser(
             username="admin_test",
             email="admin@jobdevs.edu.co",
@@ -173,6 +176,12 @@ class TriajeCeleryYAdminTestCase(TestCase):
             estado_verificacion="en_revision",
             documento_soporte=SimpleUploadedFile("soporte.pdf", b"%PDF-1.4 Fake PDF Content", content_type="application/pdf"),
         )
+
+    def tearDown(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        super().tearDown()
 
     def test_11_tarea_celery_analisis_empresa_exitosa(self):
         with patch("usuarios.services_ia_docs.analizar_documento_soporte") as mock_analizar, \
