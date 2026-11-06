@@ -168,10 +168,10 @@ def test_dashboard_renderiza_panel_verificacion(admin_client, perfil):
     doc_url = reverse('descargar_documento_soporte_empresa', args=[perfil.id])
     assert doc_url in html
     assert perfil.documento_soporte.url not in html
-    assert 'aria-label="Motivo del rechazo de verificación"' in html
+    assert 'aria-label="Motivo de la solicitud de nuevo documento"' in html
     assert _url(perfil) in html
     assert 'value="aprobar"' in html
-    assert 'value="rechazar"' in html
+    assert 'value="solicitar_documento"' in html
 
 
 def test_dashboard_sin_documento_no_muestra_enlace(admin_client, perfil):
