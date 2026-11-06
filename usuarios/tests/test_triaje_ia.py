@@ -186,6 +186,22 @@ class TriajeHeuristicasTestCase(TestCase):
         self.assertFalse(es_borrosa)
         self.assertGreaterEqual(varianza, 100.0)
 
+    def test_18_imagen_borrosa_sintetica(self):
+        """Escenario 3: una foto desenfocada cae por debajo del umbral."""
+        import cv2
+        import numpy as np
+
+        imagen = np.full((400, 400), 255, dtype=np.uint8)
+        cv2.putText(imagen, "JOBDEVS", (30, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, 0, 4)
+        imagen = cv2.GaussianBlur(imagen, (61, 61), 0)
+        ok, buffer = cv2.imencode(".png", imagen)
+        self.assertTrue(ok)
+
+        es_borrosa, varianza = detectar_borrosidad(buffer.tobytes())
+
+        self.assertTrue(es_borrosa)
+        self.assertLess(varianza, 100.0)
+
 
 class TriajeCeleryYAdminTestCase(TestCase):
     """Pruebas de tareas Celery, permisos y registro de auditoría."""
