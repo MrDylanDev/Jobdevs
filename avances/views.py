@@ -2,8 +2,9 @@ import os
 import zipfile
 from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -343,6 +344,9 @@ def revisar_avance(request, avance_id):
                 )
                 messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
 
+        next_url = request.POST.get('next')
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+            return HttpResponseRedirect(next_url)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
     except Exception as e:
         messages.error(request, f"Error: {str(e)}")
@@ -379,9 +383,26 @@ def ver_avances(request, proyecto_id):
     hitos_completados = progreso['hitos_completados'] or 0
     hitos_totales = progreso['hitos_totales'] or 0
 
+    # Datos del sub-tab "Hitos del Proyecto" para alternar sin recargar la página (solo empresa)
+    hitos = []
+    equipos = []
+    tiene_multiples_contratos = False
+    desarrolladores_activos = []
+
+    if request.user.rol == 'empresa' and proyecto.empresa_id == request.user.id:
+        hitos = Entregable.objects.filter(proyecto=proyecto).select_related('desarrollador', 'equipo').order_by('fecha_creacion')
+        equipos = proyecto.equipos.all()
+        contratos_activos = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
+        tiene_multiples_contratos = contratos_activos.count() >= 2
+        desarrolladores_activos = contratos_activos.select_related('desarrollador')
+
     return render(request, 'avances/ver_lista.html', {
         'proyecto': proyecto, 
         'avances': avances,
+        'hitos': hitos,
+        'equipos': equipos,
+        'tiene_multiples_contratos': tiene_multiples_contratos,
+        'desarrolladores_activos': desarrolladores_activos,
         'hitos_completados': hitos_completados,
         'hitos_totales': hitos_totales
     })

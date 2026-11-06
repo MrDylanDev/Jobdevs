@@ -187,7 +187,7 @@ class RegistroUsuarioForm(UserCreationForm):
 class PerfilEmpresaForm(forms.ModelForm):
     class Meta:
         model = PerfilEmpresa
-        fields = ['nombre_empresa', 'logo', 'sector', 'telefono', 'ciudad', 'descripcion']
+        fields = ['nombre_empresa', 'logo', 'sector', 'telefono', 'ciudad', 'descripcion', 'stack_interes']
         widgets = {
             'nombre_empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la empresa'}),
             'logo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
@@ -195,6 +195,7 @@ class PerfilEmpresaForm(forms.ModelForm):
             'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'}),
             'ciudad': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Breve descripción...'}),
+            'stack_interes': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Python, Django, React, PostgreSQL, Docker'}),
         }
 
 class PerfilDesarrolladorForm(forms.ModelForm):

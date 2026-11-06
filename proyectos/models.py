@@ -2,6 +2,7 @@ from django.db import models, transaction
 from usuarios.models import Usuario
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from django.core.cache import cache
 
 class CategoriaSolucion(models.Model):
@@ -50,6 +51,11 @@ class Proyecto(models.Model):
         ('media', 'Media'),
         ('baja', 'Baja'),
     ]
+    MODALIDAD = [
+        ('remoto', 'Remoto'),
+        ('presencial', 'Presencial'),
+        ('hibrido', 'Híbrido'),
+    ]
     ESTADO = [
         ('publicado', 'Publicado'),
         ('en_desarrollo', 'En Desarrollo'),
@@ -69,6 +75,8 @@ class Proyecto(models.Model):
         null=True, blank=True, related_name='proyectos',
     )
     prioridad = models.CharField(max_length=10, choices=PRIORIDAD, default='media')
+    modalidad = models.CharField(max_length=20, choices=MODALIDAD, default='remoto')
+    ciudad = models.CharField(max_length=100, blank=True, default='')
     vacantes = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     estado = models.CharField(max_length=25, choices=ESTADO, default='publicado')
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
@@ -77,8 +85,19 @@ class Proyecto(models.Model):
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
 
+    def clean(self):
+        super().clean()
+        if self.modalidad == 'remoto':
+            self.ciudad = ''
+        elif self.modalidad in ('presencial', 'hibrido') and not (self.ciudad or '').strip():
+            raise ValidationError({
+                'ciudad': 'La ciudad es obligatoria para proyectos en modalidad presencial o híbrida.'
+            })
+
     def save(self, *args, **kwargs):
-        """Mantiene sincronizados `categoria` y `tipo_solucion`."""
+        """Mantiene sincronizados `categoria` y `tipo_solucion` y normaliza ciudad."""
+        if self.modalidad == 'remoto':
+            self.ciudad = ''
         if self.categoria_id and not self.tipo_solucion:
             self.tipo_solucion = self.categoria.slug
         elif self.tipo_solucion and not self.categoria_id:
@@ -136,6 +155,16 @@ class Proyecto(models.Model):
         except Exception:
             pass
         return nombre
+
+    @property
+    def ubicacion_display(self):
+        """Retorna la representación legible de la ubicación/modalidad del proyecto."""
+        if self.modalidad == 'remoto':
+            return 'Remoto (Nivel Nacional)'
+        mod_label = dict(self.MODALIDAD).get(self.modalidad, self.modalidad.capitalize())
+        if self.ciudad:
+            return f"{self.ciudad} · {mod_label}"
+        return mod_label
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):
         """Registra una entrada en el historial de estados."""

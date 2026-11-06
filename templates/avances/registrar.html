@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Registrar Avance</title>
+  <title>JobDevs | Registrar Avance — {{ proyecto.titulo }}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
 </head>
 <body>
 <div class="app-layout">
@@ -17,12 +17,17 @@
       <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Avances</div>
+        <div class="sidebar-brand-sub">Avances &amp; Entregas</div>
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}">
-        <i class="fa fa-arrow-left"></i><span>Volver al Panel</span>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=activos">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a Mis Proyectos</span>
+      </a>
+      <a class="nav-item" href="{% url 'ver_avances' proyecto.id %}">
+        <i data-lucide="git-commit"></i>
+        <span>Historial de Avances</span>
       </a>
     </div>
   </aside>
@@ -30,32 +35,45 @@
   <div class="main-wrapper">
     <header class="top-header">
       <div class="top-header-title">Registrar Avance <span>/ {{ proyecto.titulo }}</span></div>
+      <a href="{% url 'ver_avances' proyecto.id %}" class="btn-corp-action secondary">
+        <i data-lucide="arrow-left"></i>
+        <span>Ver Línea de Tiempo</span>
+      </a>
     </header>
-    <main class="main-content" style="display:flex; justify-content:center;">
-      <div style="max-width:600px; width:100%;">
-        <div class="page-header">
+
+    <main class="main-content" style="display:flex; justify-content:center; padding-top:28px;">
+      <div style="max-width:620px; width:100%;">
+        <div class="page-header" style="margin-bottom:22px;">
           <div>
-            <div class="page-title"><i class="fa fa-rocket" style="margin-right:10px; color:var(--text-muted);"></i>Nuevo Avance</div>
-            <div class="page-subtitle">Reporta el progreso de un hito para <strong>{{ proyecto.titulo }}</strong></div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="upload-cloud" style="color:var(--corp-brand); stroke-width:2.2;"></i>
+              <span>Reportar Nuevo Avance</span>
+            </div>
+            <div class="page-subtitle">Registra el progreso técnico y entrega de evidencias para <strong>{{ proyecto.titulo }}</strong></div>
           </div>
         </div>
 
         {% if messages %}
           {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
-              <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-              {{ message }}
+            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-sm, 8px);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
+                <span>{{ message }}</span>
+              </div>
             </div>
           {% endfor %}
         {% endif %}
 
-        <div class="card">
-          <form id="formRegistrarAvance" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:18px;">
+        <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:26px;">
+          <form id="formRegistrarAvance" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:20px;">
             {% csrf_token %}
 
-            <div class="form-group">
-              <label class="form-label"><i class="fa fa-list-check" style="margin-right:6px;"></i>Hito a Completar</label>
-              <select id="entregableSelect" name="entregable_id" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+            <div class="form-group-corp" style="margin-bottom:0;">
+              <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="milestone" style="width:14px; height:14px; color:var(--corp-brand);"></i>
+                <span>Hito a Completar</span>
+              </label>
+              <select id="entregableSelect" name="entregable_id" class="form-input-corp" required>
                 <option value="">-- Selecciona el hito que completaste --</option>
                 {% for hito in hitos_pendientes %}
                   <option value="{{ hito.id }}" {% if form_data.entregable_id == hito.id|stringformat:"s" %}selected{% endif %}>{{ hito.titulo }}</option>
@@ -63,33 +81,46 @@
                   <option value="" disabled>⚠️ No hay hitos pendientes definidos.</option>
                 {% endfor %}
               </select>
-              <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">Al guardar, este hito se marcará como completado automáticamente.</small>
+              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:5px; display:block;">Al ser aprobado por la empresa, este hito se marcará como completado.</small>
             </div>
 
-            <div class="form-group">
-              <label class="form-label"><i class="fa fa-align-left" style="margin-right:6px;"></i>Descripción del Progreso</label>
-              <textarea id="descripcionInput" name="descripcion" required placeholder="¿Qué implementaste? ¿Cómo lo hiciste?" style="width:100%; min-height:130px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;">{{ form_data.descripcion|default:'' }}</textarea>
+            <div class="form-group-corp" style="margin-bottom:0;">
+              <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="file-text" style="width:14px; height:14px; color:var(--corp-brand);"></i>
+                <span>Descripción del Progreso</span>
+              </label>
+              <textarea id="descripcionInput" name="descripcion" class="form-input-corp" required placeholder="¿Qué implementaste? ¿Qué decisiones técnicas tomaste o cómo se prueba la solución?" rows="4" style="resize:vertical;">{{ form_data.descripcion|default:'' }}</textarea>
             </div>
 
-            <div class="form-group" id="grupoUrl">
-              <label class="form-label"><i class="fa fa-link" style="margin-right:6px;"></i>URL de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si adjuntas archivo)</span></label>
-              <input type="url" id="archivoUrlInput" name="archivo_url" value="{{ form_data.archivo_url|default:'' }}" placeholder="https://github.com/... o enlace a repositorio/demo" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
+            <div class="form-group-corp" id="grupoUrl" style="margin-bottom:0;">
+              <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="link" style="width:14px; height:14px; color:var(--corp-brand);"></i>
+                <span>URL de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si adjuntas archivo)</span></span>
+              </label>
+              <input type="url" id="archivoUrlInput" name="archivo_url" class="form-input-corp" value="{{ form_data.archivo_url|default:'' }}" placeholder="https://github.com/... o enlace a demo/staging">
             </div>
 
-            <div class="form-group" id="grupoArchivo">
-              <label class="form-label"><i class="fa fa-paperclip" style="margin-right:6px;"></i>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--text-muted);">(Opcional si usas URL)</span></label>
-              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit;">
-              <div id="archivoPreviewBadge" style="display:none; margin-top:8px; padding:8px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; font-size:12.5px; color:#1e40af; align-items:center; justify-content:space-between;">
-                <span><i class="fa fa-file-circle-check" style="color:#2563eb; margin-right:6px;"></i><strong id="archivoNombreLabel"></strong> (<span id="archivoTamanoLabel"></span>)</span>
-                <button type="button" id="quitarArchivoBtn" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px; font-weight:600;">Quitar</button>
+            <div class="form-group-corp" id="grupoArchivo" style="margin-bottom:0;">
+              <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="paperclip" style="width:14px; height:14px; color:var(--corp-brand);"></i>
+                <span>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
+              </label>
+              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" class="form-input-corp">
+              <div id="archivoPreviewBadge" style="display:none; margin-top:10px; padding:10px 14px; background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:8px; font-size:12.5px; color:#007c34; align-items:center; justify-content:space-between;">
+                <span style="display:flex; align-items:center; gap:8px;">
+                  <i data-lucide="check-circle-2" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                  <strong id="archivoNombreLabel"></strong> (<span id="archivoTamanoLabel"></span>)
+                </span>
+                <button type="button" id="quitarArchivoBtn" style="background:none; border:none; color:#e11d48; cursor:pointer; font-size:12px; font-weight:700;">Quitar</button>
               </div>
-              <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">Puedes subir código comprimido en ZIP, capturas, diagramas o documentos PDF (máx. 10 MB).</small>
+              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:5px; display:block;">Admite archivos ZIP con código, capturas PNG/JPG o documentación PDF (máx. 10 MB).</small>
             </div>
 
-            <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; gap:12px;">
-              <a href="{% url 'dashboard_desarrollador' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancelar</a>
-              <button type="submit" id="btnEnviarAvance" class="btn btn-primary" style="flex:2; justify-content:center;">
-                <i class="fa fa-paper-plane"></i> Enviar Avance
+            <div style="border-top:1px solid var(--corp-border); padding-top:20px; display:flex; gap:12px; justify-content:flex-end;">
+              <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary" style="min-width:110px; justify-content:center;">Cancelar</a>
+              <button type="submit" id="btnEnviarAvance" class="btn-corp-primary" style="min-width:160px; justify-content:center;">
+                <i data-lucide="send"></i>
+                <span>Enviar Avance</span>
               </button>
             </div>
           </form>
@@ -99,6 +130,12 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 <script>
@@ -121,8 +158,8 @@
     }
 
     function ocultarError() {
-      urlInput.style.borderColor = 'var(--border)';
-      fileInput.style.borderColor = 'var(--border)';
+      if (urlInput) urlInput.style.borderColor = 'var(--corp-border)';
+      if (fileInput) fileInput.style.borderColor = 'var(--corp-border)';
     }
 
     if (fileInput) {
@@ -130,19 +167,24 @@
         ocultarError();
         const file = fileInput.files && fileInput.files[0];
         if (file) {
-          nombreLabel.textContent = file.name;
-          tamanoLabel.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-          previewBadge.style.display = 'flex';
+          if (nombreLabel) nombreLabel.textContent = file.name;
+          if (tamanoLabel) tamanoLabel.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+          if (previewBadge) {
+            previewBadge.style.display = 'flex';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              window.lucide.createIcons();
+            }
+          }
         } else {
-          previewBadge.style.display = 'none';
+          if (previewBadge) previewBadge.style.display = 'none';
         }
       });
     }
 
     if (quitarBtn) {
       quitarBtn.addEventListener('click', function() {
-        fileInput.value = '';
-        previewBadge.style.display = 'none';
+        if (fileInput) fileInput.value = '';
+        if (previewBadge) previewBadge.style.display = 'none';
       });
     }
 
@@ -154,30 +196,30 @@
       form.addEventListener('submit', async function(e) {
         ocultarError();
 
-        const urlVal = (urlInput.value || '').trim();
-        const tieneArchivo = fileInput.files && fileInput.files.length > 0;
+        const urlVal = (urlInput ? urlInput.value : '').trim();
+        const tieneArchivo = fileInput && fileInput.files && fileInput.files.length > 0;
 
         // 1. Validación instantánea en cliente sin recargar ni perder datos
         if (!urlVal && !tieneArchivo) {
           e.preventDefault();
-          urlInput.style.borderColor = '#ef4444';
-          fileInput.style.borderColor = '#ef4444';
+          if (urlInput) urlInput.style.borderColor = '#ef4444';
+          if (fileInput) fileInput.style.borderColor = '#ef4444';
           mostrarErrorEnVivo('Debes proporcionar una URL o adjuntar un archivo de evidencia antes de enviar el avance.');
           return;
         }
 
         if (urlVal && !/^https?:\/\/.+/i.test(urlVal)) {
           e.preventDefault();
-          urlInput.style.borderColor = '#ef4444';
+          if (urlInput) urlInput.style.borderColor = '#ef4444';
           mostrarErrorEnVivo('La URL de evidencia debe iniciar con http:// o https://');
           return;
         }
 
-        // 2. Envío asíncrono con Fetch + FormData (Promesas) para evitar recarga si el servidor detecta un problema
+        // 2. Envío asíncrono con Fetch + FormData para evitar recarga si el servidor detecta un problema
         e.preventDefault();
         const originalBtnHtml = btnEnviar.innerHTML;
         btnEnviar.disabled = true;
-        btnEnviar.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando avance...';
+        btnEnviar.innerHTML = '<span>Enviando avance...</span>';
 
         try {
           const formData = new FormData(form);

@@ -65,6 +65,7 @@ class TestCssSinCodigoMuerto:
         '.booking-layout', '.booking-panel', '.booking-info', '.info-card',
         '.info-row', '.form-disclaimer', '.section-head', '.sh-label',
         '.module-card', '.module-grid', '.flip-card', '.stats-section',
+        '.text-muted',
     ]
 
     def test_no_quedan_selectores_de_secciones_eliminadas(self, css):

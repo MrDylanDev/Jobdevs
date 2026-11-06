@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ asunto|default:"Notificación JobDevs" }}</title>
   <style>
-    /* Estilos base para clientes de correo */
+    /* Estilos base para clientes de correo — Piel JobDevs Adaptable */
     body {
       margin: 0;
       padding: 0;
-      background-color: #f1f5f9;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      color: #334155;
+      background-color: {% if usuario.rol == 'empresa' %}#f4f6f8{% else %}#050505{% endif %};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: {% if usuario.rol == 'empresa' %}#334155{% else %}#cbd5e1{% endif %};
       -webkit-font-smoothing: antialiased;
     }
     table {
@@ -27,61 +27,65 @@
     .wrapper {
       width: 100%;
       table-layout: fixed;
-      background-color: #f1f5f9;
-      padding: 30px 0;
+      background-color: {% if usuario.rol == 'empresa' %}#f4f6f8{% else %}#050505{% endif %};
+      padding: 36px 12px;
     }
     .main {
-      background-color: #ffffff;
+      background-color: {% if usuario.rol == 'empresa' %}#ffffff{% else %}#0a0a0a{% endif %};
       margin: 0 auto;
       width: 100%;
-      max-width: 600px;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      max-width: 580px;
+      border: 1px solid {% if usuario.rol == 'empresa' %}#e2e8f0{% else %}#1f2421{% endif %};
     }
     .header {
-      background-color: #0f172a;
+      background-color: {% if usuario.rol == 'empresa' %}#ffffff{% else %}#000000{% endif %};
+      border-bottom: 1px solid {% if usuario.rol == 'empresa' %}#e2e8f0{% else %}#1a1a1a{% endif %};
       padding: 24px 32px;
       text-align: left;
     }
     .header-logo {
-      font-size: 22px;
-      font-weight: 800;
-      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: {% if usuario.rol == 'empresa' %}#0b0f0c{% else %}#ffffff{% endif %};
       letter-spacing: -0.5px;
       text-decoration: none;
-    }
-    .header-logo span {
-      color: #38bdf8;
+      display: inline-block;
     }
     .content {
       padding: 36px 32px;
-      font-size: 15px;
+      font-size: 14px;
       line-height: 1.6;
+      color: {% if usuario.rol == 'empresa' %}#334155{% else %}#cbd5e1{% endif %};
     }
     .footer {
-      background-color: #f8fafc;
+      background-color: {% if usuario.rol == 'empresa' %}#f8fafc{% else %}#000000{% endif %};
+      border-top: 1px solid {% if usuario.rol == 'empresa' %}#e2e8f0{% else %}#1a1a1a{% endif %};
       padding: 24px 32px;
       text-align: center;
-      font-size: 12px;
+      font-size: 11px;
       color: #64748b;
-      border-top: 1px solid #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
     }
     .btn-cta {
       display: inline-block;
-      background-color: #2563eb;
-      color: #ffffff !important;
-      font-weight: 600;
-      font-size: 14px;
+      background-color: {% if usuario.rol == 'empresa' %}#00713f{% else %}#00e676{% endif %};
+      color: {% if usuario.rol == 'empresa' %}#ffffff{% else %}#000000{% endif %} !important;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
       text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      margin: 20px 0;
+      padding: 14px 28px;
+      border: 1px solid {% if usuario.rol == 'empresa' %}#00713f{% else %}#00e676{% endif %};
+      border-radius: 0px;
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
-  <div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+  <div style="display:none;font-size:1px;color:{% if usuario.rol == 'empresa' %}#f4f6f8{% else %}#050505{% endif %};line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
     {% block email_preheader %}Notificación importante de JobDevs{% endblock %}
   </div>
   <center class="wrapper">
@@ -89,8 +93,18 @@
       <!-- Header -->
       <tr>
         <td class="header">
-          <div class="header-logo">Job<span>Devs</span></div>
-          <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Plataforma de Talento y Proyectos SENA</div>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td>
+                <div class="header-logo">
+                  <span style="display:inline-block; width:10px; height:10px; background-color:{% if usuario.rol == 'empresa' %}#00713f{% else %}#00e676{% endif %}; margin-right:8px; vertical-align:middle;"></span>JobDevs
+                </div>
+              </td>
+              <td align="right">
+                <span style="font-family:'Courier New', monospace; font-size:10px; color:{% if usuario.rol == 'empresa' %}#00713f{% else %}#555555{% endif %}; letter-spacing:0.1em; text-transform:uppercase;">{% if usuario.rol == 'empresa' %}// PORTAL_EMPRESARIAL{% else %}// ECOSISTEMA_SENA{% endif %}</span>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
 
@@ -104,8 +118,8 @@
       <!-- Footer -->
       <tr>
         <td class="footer">
-          <p style="margin: 0 0 6px 0;">Este es un mensaje transaccional enviado automáticamente por <strong>JobDevs</strong>.</p>
-          <p style="margin: 0; color: #94a3b8;">Servicio Nacional de Aprendizaje (SENA) &copy; 2026. Todos los derechos reservados.</p>
+          <p style="margin: 0 0 6px 0; color: {% if usuario.rol == 'empresa' %}#475569{% else %}#888888{% endif %};">Mensaje transaccional automático emitido por <strong>JobDevs</strong>.</p>
+          <p style="margin: 0; color: {% if usuario.rol == 'empresa' %}#94a3b8{% else %}#555555{% endif %};">Servicio Nacional de Aprendizaje (SENA) &copy; 2026. Medellín, Colombia.</p>
         </td>
       </tr>
     </table>

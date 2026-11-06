@@ -5,91 +5,168 @@
 
 {% block content %}
 <div class="disp-narrow">
-  <div class="page-header">
+  <div class="page-header" style="margin-bottom:24px;">
     <div>
-      <div class="page-title"><i class="fa fa-gavel" style="color:var(--danger);margin-right:8px;"></i>Apertura de Disputa Formal</div>
-      <div class="page-subtitle">Mediación arbitral para conflictos graves</div>
+      <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+        <i data-lucide="scale" style="color:#e11d48; stroke-width:2.2;"></i>
+        <span>Apertura de Disputa Formal</span>
+      </div>
+      <div class="page-subtitle">Instancia de arbitraje y resolución administrativa para controversias graves</div>
     </div>
-    <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"></i> Volver</a>
+    {% if request.user.rol == 'desarrollador' %}
+      <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a Mis Proyectos</span>
+      </a>
+    {% else %}
+      <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver a En Desarrollo</span>
+      </a>
+    {% endif %}
   </div>
 
   <div class="disp-stack">
-    <div class="disp-notice disp-notice-warning" role="alert">
-      <i class="fa fa-triangle-exclamation"></i>
-      <div>
-        <strong>Esta es una acción crítica.</strong> Al abrir una disputa:
-        <ul>
-          <li>El proyecto y la contratación se <strong>congelan automáticamente</strong>.</li>
-          <li>Se suspenden los registros de avances.</li>
-          <li>Un mediador administrativo emitirá una resolución vinculante.</li>
-        </ul>
-        Las dudas de diseño, ajustes menores o preguntas técnicas se resuelven en el chat directo y <strong>no califican como disputa</strong>.
+    <!-- Aviso Preventivo Corporativo -->
+    <div class="disp-notice disp-notice-danger" role="alert" style="box-shadow:var(--corp-shadow-sm);">
+      <div style="flex-shrink:0;">
+        <div style="width:38px; height:38px; border-radius:50%; background:#ffe4e6; display:flex; align-items:center; justify-content:center; color:#e11d48;">
+          <i data-lucide="alert-triangle" style="width:20px; height:20px;"></i>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:14.5px; color:#9f1239; margin-bottom:6px;">
+          Esta es una acción crítica con efectos jurídicos en la plataforma
+        </div>
+        <p style="margin:0 0 10px 0; font-size:13px; color:#be123c;">
+          Al radicar una disputa formal, se activa de forma automática el protocolo de mediación arbitral:
+        </p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:10px;">
+          <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
+            <strong style="display:block; margin-bottom:2px; color:#9f1239;">1. Congelamiento Preventivo</strong>
+            El proyecto y la contratación se suspenden de inmediato.
+          </div>
+          <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
+            <strong style="display:block; margin-bottom:2px; color:#9f1239;">2. Pausa de Entregables</strong>
+            Se inhabilitan los envíos y aprobaciones de hitos y avances.
+          </div>
+          <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
+            <strong style="display:block; margin-bottom:2px; color:#9f1239;">3. Dictamen Vinculante</strong>
+            Un mediador de JobDevs evaluará evidencias y emitirá un fallo formal.
+          </div>
+        </div>
+        <div style="font-size:12px; color:#9f1239; opacity:0.9;">
+          * Las dudas técnicas o ajustes menores de alcance deben canalizarse por mensaje directo en el chat y <strong>no califican como disputa</strong>.
+        </div>
       </div>
     </div>
 
-    <div class="card">
+    <!-- Resumen del Proyecto Involucrado -->
+    <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:20px 24px; box-shadow:var(--corp-shadow-sm);">
+      <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--corp-slate-500); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+        <i data-lucide="info" style="width:14px; height:14px; color:var(--corp-brand);"></i>
+        <span>Expediente del Proyecto en Controversia</span>
+      </div>
       <dl class="disp-grid" style="margin:0;">
-        <div><dt>Proyecto</dt><dd>{{ proyecto.titulo }}</dd></div>
-        <div><dt>Empresa</dt><dd>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</dd></div>
+        <div>
+          <dt><i data-lucide="folder-kanban" style="width:13px; height:13px;"></i> Proyecto</dt>
+          <dd>{{ proyecto.titulo }}</dd>
+        </div>
+        <div>
+          <dt><i data-lucide="building-2" style="width:13px; height:13px;"></i> Empresa</dt>
+          <dd>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</dd>
+        </div>
         {% if contratacion %}
-          <div><dt>Desarrollador</dt><dd>{{ contratacion.desarrollador.nombre|default:contratacion.desarrollador.username }}</dd></div>
-          <div><dt>Estado actual</dt><dd><span class="badge badge-info">{{ proyecto.get_estado_display }}</span></dd></div>
+          <div>
+            <dt><i data-lucide="user" style="width:13px; height:13px;"></i> Desarrollador</dt>
+            <dd>{{ contratacion.desarrollador.nombre|default:contratacion.desarrollador.username }}</dd>
+          </div>
+          <div>
+            <dt><i data-lucide="activity" style="width:13px; height:13px;"></i> Estado actual</dt>
+            <dd>
+              <span class="badge" style="background:#e6faf0; color:#007c34; border:1px solid rgba(0,200,83,0.3); font-weight:700; font-size:11.5px; padding:3px 10px; border-radius:12px;">
+                {{ proyecto.get_estado_display }}
+              </span>
+            </dd>
+          </div>
         {% endif %}
       </dl>
     </div>
 
-    <form method="post" id="form-disputa" class="card" novalidate>
+    <!-- Formulario de Radicación de Disputa -->
+    <form method="post" id="form-disputa" class="card" novalidate style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:26px; box-shadow:var(--corp-shadow-sm);">
       {% csrf_token %}
 
-      <div class="form-group">
-        <label for="categoria" class="form-label">Causal grave <span class="disp-required">*</span></label>
-        <select name="categoria" id="categoria" class="form-select" required>
+      <div class="form-group-corp">
+        <label for="categoria" class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="alert-octagon" style="width:14px; height:14px; color:#e11d48;"></i>
+          <span>Causal formal grave <span class="disp-required">*</span></span>
+        </label>
+        <select name="categoria" id="categoria" class="form-input-corp" required>
           {% for key, label in categorias %}
             <option value="{{ key }}" {% if categoria == key %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
-        <div class="disp-hint">Elegí la causal formal que fundamenta el reclamo.</div>
+        <div class="disp-hint">Selecciona la causal contemplada en los términos contractuales que fundamenta el reclamo.</div>
       </div>
 
-      <div class="form-group">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <label for="motivo" class="form-label" style="margin-bottom:5px;">Descripción de los hechos <span class="disp-required">*</span></label>
-          <span id="char-counter" class="disp-counter"><span id="char-count">0</span> / 80 caracteres mín.</span>
+      <div class="form-group-corp">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label for="motivo" class="form-label-corp" style="margin-bottom:0; display:flex; align-items:center; gap:6px;">
+            <i data-lucide="file-text" style="width:14px; height:14px; color:#e11d48;"></i>
+            <span>Descripción fundamentada de los hechos <span class="disp-required">*</span></span>
+          </label>
+          <span id="char-counter" class="disp-counter">
+            <span id="char-count">0</span> / 80 caracteres mín.
+          </span>
         </div>
-        <textarea id="motivo" name="motivo" class="form-textarea" rows="6" required
-                  placeholder="Qué se acordó, qué compromiso se incumplió, fechas y por qué no se puede continuar con normalidad...">{{ motivo }}</textarea>
-        <div class="disp-hint">Mínimo 80 caracteres. Describí hechos concretos, no opiniones ni insultos.</div>
+        <textarea id="motivo" name="motivo" class="form-input-corp" rows="6" required
+                  placeholder="Detalla con precisión: qué se acordó, cuál compromiso se incumplió, fechas concretas y por qué el desacuerdo es insuperable de forma directa...">{{ motivo }}</textarea>
+        <div class="disp-hint">Mínimo 80 caracteres. Describe hechos verificables, fechas y acuerdos específicos con total objetividad.</div>
       </div>
 
-      <div class="form-group">
-        <label for="evidencia_url" class="form-label">Enlace a evidencia <span style="font-weight:400;text-transform:none;">(opcional)</span></label>
-        <input type="url" name="evidencia_url" id="evidencia_url" class="form-input"
-               placeholder="https://github.com/... o enlace a Drive, captura, repositorio"
+      <div class="form-group-corp">
+        <label for="evidencia_url" class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="link" style="width:14px; height:14px; color:var(--corp-slate-500);"></i>
+          <span>Enlace a evidencias digitales <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></span>
+        </label>
+        <input type="url" name="evidencia_url" id="evidencia_url" class="form-input-corp"
+               placeholder="https://github.com/... o enlace a repositorio, Drive con capturas o pruebas técnicas"
                value="{{ evidencia_url }}">
-        <div class="disp-hint">Pruebas públicas o accesibles que respalden los hechos.</div>
+        <div class="disp-hint">Asegúrate de que el enlace sea accesible de forma pública para la revisión del equipo arbitral.</div>
       </div>
 
       <div class="disp-checklist">
-        <div class="label-section">Declaración jurada <span class="disp-required">*</span></div>
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-700); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+          <i data-lucide="shield-check" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+          <span>Declaración jurada y compromisos formales <span class="disp-required">*</span></span>
+        </div>
         <label class="disp-check" for="confirma_intento_previo">
           <input type="checkbox" name="confirma_intento_previo" id="confirma_intento_previo" value="1" {% if confirma_intento_previo %}checked{% endif %} required>
-          <span><strong>Agotamiento previo:</strong> intenté resolver esto por mensaje directo con la otra parte y no fue posible llegar a un acuerdo.</span>
+          <span><strong>Agotamiento previo:</strong> Certifico que intenté resolver este conflicto por chat directo con la otra parte y no fue posible alcanzar un acuerdo satisfactorio.</span>
         </label>
         <label class="disp-check" for="confirma_gravedad">
           <input type="checkbox" name="confirma_gravedad" id="confirma_gravedad" value="1" {% if confirma_gravedad %}checked{% endif %} required>
-          <span><strong>Gravedad del caso:</strong> el conflicto corresponde a una causal grave que impide continuar el proyecto, no a una duda operativa o ajuste menor.</span>
+          <span><strong>Gravedad material del caso:</strong> Declaro bajo juramento que el conflicto corresponde a una causal grave que imposibilita continuar el proyecto, no a una consulta operativa ni ajuste menor.</span>
         </label>
         <label class="disp-check" for="acepta_sanciones">
           <input type="checkbox" name="acepta_sanciones" id="acepta_sanciones" value="1" {% if acepta_sanciones %}checked{% endif %} required>
-          <span><strong>Responsabilidad:</strong> entiendo que una disputa falsa o frívola congela el proyecto y puede ocasionar sanciones y pérdida de reputación.</span>
+          <span><strong>Responsabilidad de parte:</strong> Entiendo que una disputa temeraria o sin fundamentos congela el proyecto y puede acarrear penalizaciones contractuales y pérdida irreversible de reputación.</span>
         </label>
       </div>
 
-      <div id="disputa-error" class="msg-error" style="display:none;margin-top:14px;" role="alert"></div>
+      <div id="disputa-error" class="msg-error" style="display:none; margin-top:16px; border-radius:var(--corp-radius-md);" role="alert"></div>
 
       <div class="disp-actions">
-        <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-secondary">Cancelar</a>
-        <button type="submit" id="btn-submit-disputa" class="btn btn-danger"><i class="fa fa-gavel"></i> Iniciar Mediación Formal</button>
+        {% if request.user.rol == 'desarrollador' %}
+          <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary">Cancelar</a>
+        {% else %}
+          <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">Cancelar</a>
+        {% endif %}
+        <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
+          <i data-lucide="gavel"></i>
+          <span>Iniciar Mediación Formal</span>
+        </button>
       </div>
     </form>
   </div>
@@ -106,34 +183,47 @@
     const error = document.getElementById('disputa-error');
 
     function actualizar() {
+      if (!motivo) return;
       const len = motivo.value.trim().length;
-      count.textContent = len;
-      counter.classList.toggle('ok', len >= 80);
+      if (count) count.textContent = len;
+      if (counter) counter.classList.toggle('ok', len >= 80);
     }
     function mostrarError(texto) {
+      if (!error) return;
       error.textContent = texto;
       error.style.display = 'block';
       error.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    motivo.addEventListener('input', actualizar);
-    actualizar();
+    if (motivo) {
+      motivo.addEventListener('input', actualizar);
+      actualizar();
+    }
 
-    form.addEventListener('submit', function (e) {
-      error.style.display = 'none';
-      if (motivo.value.trim().length < 80) {
-        e.preventDefault();
-        mostrarError('El motivo debe tener al menos 80 caracteres explicando los hechos graves.');
-        motivo.focus();
-        return;
-      }
-      const marcadas = ['confirma_intento_previo', 'confirma_gravedad', 'acepta_sanciones']
-        .every(id => document.getElementById(id).checked);
-      if (!marcadas) {
-        e.preventDefault();
-        mostrarError('Debés marcar las tres casillas de la declaración jurada para radicar la disputa.');
-      }
-    });
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        if (error) error.style.display = 'none';
+        if (motivo && motivo.value.trim().length < 80) {
+          e.preventDefault();
+          mostrarError('El motivo debe tener al menos 80 caracteres explicando los hechos graves.');
+          motivo.focus();
+          return;
+        }
+        const marcadas = ['confirma_intento_previo', 'confirma_gravedad', 'acepta_sanciones']
+          .every(id => {
+            const el = document.getElementById(id);
+            return el && el.checked;
+          });
+        if (!marcadas) {
+          e.preventDefault();
+          mostrarError('Debés marcar las tres casillas de la declaración jurada para radicar la disputa.');
+        }
+      });
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   });
 </script>
 {% endblock %}

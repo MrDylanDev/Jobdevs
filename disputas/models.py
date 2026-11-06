@@ -18,11 +18,30 @@ class Disputa(models.Model):
         ('sancionar_empresa', 'Sancionar Empresa'),
         ('sancionar_desarrollador', 'Sancionar Desarrollador'),
     ]
+    CATEGORIAS_EMPRESA = [
+        ('incumplimiento_contractual', 'Incumplimiento de plazos, abandono o falta de entregas'),
+        ('entrega_defectuosa', 'Entregables defectuosos, no funcionales o fuera de especificaciones'),
+        ('falta_etica_confidencialidad', 'Violación a confidencialidad, propiedad intelectual o filtración'),
+        ('falta_comunicacion_grave', 'Desaparición o pérdida prolongada de comunicación'),
+        ('desviacion_alcance', 'Desviación no acordada del alcance técnico'),
+    ]
+
+    CATEGORIAS_DESARROLLADOR = [
+        ('retencion_fondos', 'Retención injustificada de pagos o negativa en liberación de hitos'),
+        ('desviacion_alcance', 'Exigencia abusiva de requerimientos fuera de contrato (Scope Creep)'),
+        ('bloqueo_insumos', 'Falta prolongada de accesos, credenciales, servidores o respuesta'),
+        ('incumplimiento_contractual', 'Incumplimiento de acuerdos o términos contractuales'),
+        ('falta_etica_confidencialidad', 'Conducta hostil, agresión o falta de ética profesional'),
+    ]
+
     CATEGORIAS = [
         ('incumplimiento_contractual', 'Incumplimiento contractual o abandono de actividades'),
+        ('entrega_defectuosa', 'Entregables defectuosos, no funcionales o fuera de especificaciones'),
         ('retencion_fondos', 'Retención indebida de fondos o conflicto en liberación de hitos'),
         ('desviacion_alcance', 'Desviación crítica de alcance (Scope Creep abusivo)'),
         ('falta_etica_confidencialidad', 'Violación a confidencialidad, propiedad intelectual o agresión'),
+        ('falta_comunicacion_grave', 'Desaparición o pérdida prolongada de comunicación'),
+        ('bloqueo_insumos', 'Falta prolongada de accesos, credenciales, servidores o respuesta'),
     ]
 
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='disputas')

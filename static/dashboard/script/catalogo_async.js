@@ -76,10 +76,17 @@
                     ${favButtonHtml}
                 </div>
                 <h3 class="project-card-title">${escapeHtml(p.titulo)}</h3>
-                <div style="margin: 8px 0;">
+                <div style="margin: 8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
                     <span class="badge badge-${prioridadBadgeClass}">${escapeHtml(p.prioridad)}</span>
-                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">
+                    <span class="badge badge-${p.modalidad === 'remoto' ? 'success' : (p.modalidad === 'presencial' ? 'info' : 'warning')}" style="display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fa ${p.modalidad === 'remoto' ? 'fa-globe' : (p.modalidad === 'presencial' ? 'fa-location-dot' : 'fa-laptop-house')}"></i>
+                        ${escapeHtml(p.ubicacion_display || (p.modalidad === 'remoto' ? 'Remoto (Nivel Nacional)' : p.ciudad))}
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
                         <i class="fa fa-users" style="margin-right:4px;"></i>${p.num_postulaciones || 0} postulantes
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
+                        <i class="fa fa-door-open" style="margin-right:4px;"></i>${p.vacantes_disponibles !== undefined ? p.vacantes_disponibles : p.vacantes} de ${p.vacantes} cupos libres
                     </span>
                 </div>
                 <p class="project-desc">${escapeHtml(p.descripcion)}</p>

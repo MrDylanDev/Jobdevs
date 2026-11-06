@@ -80,6 +80,23 @@ class TestAcceso:
         assert 'name="confirma_intento_previo"' in content
         assert 'Iniciar Mediación Formal' in content
 
+    def test_categorias_diferenciadas_por_rol(self, client, escenario):
+        # Empresa ve causales de empresa (ej: entrega defectuosa)
+        _login(client, escenario['empresa'])
+        resp_empresa = client.get(_url(escenario['proyecto']))
+        assert resp_empresa.status_code == 200
+        content_empresa = resp_empresa.content.decode()
+        assert 'entrega_defectuosa' in content_empresa
+        assert 'bloqueo_insumos' not in content_empresa
+
+        # Desarrollador ve causales de desarrollador (ej: bloqueo de insumos, retención de fondos)
+        _login(client, escenario['dev'])
+        resp_dev = client.get(_url(escenario['proyecto']))
+        assert resp_dev.status_code == 200
+        content_dev = resp_dev.content.decode()
+        assert 'bloqueo_insumos' in content_dev
+        assert 'entrega_defectuosa' not in content_dev
+
     def test_tercero_desarrollador_recibe_403(self, client, escenario):
         otro = _user('ap_otro_dev', 'desarrollador')
         _login(client, otro)

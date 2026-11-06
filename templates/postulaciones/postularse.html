@@ -49,8 +49,9 @@
             <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">{{ proyecto.titulo }}</h2>
             <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">{{ proyecto.descripcion }}</p>
             
-            <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary);">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: var(--text-secondary);">
                 <div><i class="fa fa-building" style="margin-right:6px;opacity:.7;"></i> Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:var(--accent); text-decoration:none;" title="Ver reputación y reseñas de la empresa"><strong>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</strong> <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; margin-left:2px;"></i></a></div>
+                <div><i class="fa {% if proyecto.modalidad == 'remoto' %}fa-globe{% elif proyecto.modalidad == 'presencial' %}fa-location-dot{% else %}fa-laptop-house{% endif %}" style="margin-right:6px;opacity:.7;"></i> Modalidad: <strong>{{ proyecto.ubicacion_display }}</strong></div>
                 <div><i class="fa fa-users" style="margin-right:6px;opacity:.7;"></i> Vacantes: <strong>{{ proyecto.vacantes }}</strong></div>
                 <div><i class="fa fa-calendar-alt" style="margin-right:6px;opacity:.7;"></i> Cierre: <strong>{{ proyecto.fecha_limite|date:"d M Y"|default:"Sin límite" }}</strong></div>
             </div>
