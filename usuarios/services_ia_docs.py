@@ -31,7 +31,7 @@ UMBRAL_SIMILITUD_RAZON_SOCIAL = 0.85
 UMBRAL_SIMILITUD_NOMBRE = 0.85
 UMBRAL_SIMILITUD_PROGRAMA = 0.75
 MAX_PAGINAS_OCR = 10                # límite de páginas a procesar con OCR
-VIGENCIA_DOCUMENTO_DIAS = 365       # días de validez por defecto
+VIGENCIA_DOCUMENTO_DIAS = 90        # días de validez exigidos para el soporte documental
 
 # ---------------------------------------------------------------------------
 # Estructuras de datos
