@@ -170,6 +170,22 @@ class TriajeHeuristicasTestCase(TestCase):
         self.assertIn("900123456", resultado.texto)
         self.assertEqual(resultado.calidad_imagen, "nitida")
 
+    def test_17_imagen_nitida_no_se_marca_borrosa(self):
+        """Escenario 1 (imagen): una foto nítida supera el umbral Laplaciano."""
+        import cv2
+        import numpy as np
+
+        imagen = np.full((400, 400), 255, dtype=np.uint8)
+        for x in range(0, 400, 8):
+            cv2.line(imagen, (x, 0), (x, 399), 0, 1)
+        ok, buffer = cv2.imencode(".png", imagen)
+        self.assertTrue(ok)
+
+        es_borrosa, varianza = detectar_borrosidad(buffer.tobytes())
+
+        self.assertFalse(es_borrosa)
+        self.assertGreaterEqual(varianza, 100.0)
+
 
 class TriajeCeleryYAdminTestCase(TestCase):
     """Pruebas de tareas Celery, permisos y registro de auditoría."""
