@@ -16,3 +16,4 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, help_text='Tecnologías o especialidades de interés separadas por comas', max_length=500, null=True),
         ),
     ]
+

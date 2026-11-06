@@ -149,6 +149,8 @@ def solicitar_verificacion_empresa(request):
                     )
                     for admin in Usuario.objects.filter(rol='administrador')
                 ])
+                from usuarios.tasks import analizar_documento_soporte_task
+                transaction.on_commit(lambda: analizar_documento_soporte_task.delay(perfil.id, 'empresa'))
             messages.success(
                 request,
                 'Tu solicitud fue enviada y está en revisión. Te notificaremos el resultado.',
@@ -186,7 +188,7 @@ def solicitar_verificacion_empresa(request):
 @login_required
 @require_POST
 def admin_resolver_verificacion_empresa(request, perfil_id):
-    """Aprueba o rechaza una solicitud de verificación de empresa (solo administrador)."""
+    """Aprueba, rechaza o solicita un nuevo documento de verificación de empresa."""
     if request.user.rol != 'administrador':
         raise PermissionDenied
 
@@ -194,12 +196,14 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
     accion = request.POST.get('accion', '').strip()
     notas = request.POST.get('notas', '').strip()
 
-    if accion not in ('aprobar', 'rechazar'):
+    if accion not in ('aprobar', 'rechazar', 'solicitar_documento'):
         messages.error(request, 'Acción de verificación no válida.')
         return destino
-    if accion == 'rechazar' and not notas:
+    if accion in ('rechazar', 'solicitar_documento') and not notas:
         messages.error(request, 'Debes indicar el motivo del rechazo.')
         return destino
+
+    dashboard_url = request.build_absolute_uri(reverse('solicitar_verificacion_empresa'))
 
     with transaction.atomic():
         perfil = get_object_or_404(
@@ -227,12 +231,23 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             messages.success(request, f'Empresa {nombre} verificada correctamente.')
         else:
             perfil.estado_verificacion = 'rechazada'
-            accion_log = f'Rechazó la verificación de la empresa {nombre} ({perfil.documento_completo})'
-            mensaje = (
-                f'Tu solicitud de verificación para {nombre} fue rechazada. '
-                f'Motivo: {notas}. Puedes corregir tus datos y enviarla nuevamente.'
-            )
-            messages.info(request, f'Solicitud de {nombre} rechazada.')
+            if accion == 'solicitar_documento':
+                accion_log = (
+                    f'Solicitó un nuevo documento de verificación a la empresa '
+                    f'{nombre} ({perfil.documento_completo})'
+                )
+                mensaje = (
+                    f'Para continuar con la verificación de {nombre} necesitamos que cargues '
+                    f'un nuevo documento. Motivo: {notas}.'
+                )
+                messages.info(request, f'Solicitud de nuevo documento enviada a {nombre}.')
+            else:
+                accion_log = f'Rechazó la verificación de la empresa {nombre} ({perfil.documento_completo})'
+                mensaje = (
+                    f'Tu solicitud de verificación para {nombre} fue rechazada. '
+                    f'Motivo: {notas}. Puedes corregir tus datos y enviarla nuevamente.'
+                )
+                messages.info(request, f'Solicitud de {nombre} rechazada.')
         perfil.save()
 
         LogAuditoria.objects.create(
@@ -246,6 +261,31 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             tipo='aprobacion' if accion == 'aprobar' else 'alerta',
             mensaje=mensaje,
         )
+
+        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+            contexto_email = {
+                'asunto': 'Necesitamos un nuevo documento para tu verificación de empresa',
+                'usuario': {
+                    'nombre': perfil.usuario.nombre,
+                    'username': perfil.usuario.username,
+                    'email': perfil.usuario.email,
+                },
+                'sujeto': nombre,
+                'tipo_sujeto': 'verificación de empresa',
+                'motivo': notas,
+                'dashboard_url': dashboard_url,
+            }
+
+            def _enviar_email_verificacion():
+                from notificaciones.tasks import enviar_email_transaccional_task
+                enviar_email_transaccional_task.delay(
+                    asunto=contexto_email['asunto'],
+                    template_name='emails/verificacion_documento.html',
+                    contexto=contexto_email,
+                    destinatarios=[perfil.usuario.email],
+                )
+
+            transaction.on_commit(_enviar_email_verificacion)
 
     return destino
 
@@ -266,6 +306,7 @@ def admin_resolver_verificacion_desarrollador(request, perfil_id):
         admin_user=request.user,
         accion=accion,
         notas=notas,
+        dashboard_url=request.build_absolute_uri(reverse('solicitar_verificacion_desarrollador')),
     )
     if ok:
         if accion == 'aprobar':

@@ -288,20 +288,24 @@ def solicitar_verificacion_manual_desarrollador(perfil, numero_ficha, programa_f
             )
             for admin in Usuario.objects.filter(rol='administrador')
         ])
+        from usuarios.tasks import analizar_documento_soporte_task
+        transaction.on_commit(lambda: analizar_documento_soporte_task.delay(perfil_locked.id, 'desarrollador'))
 
     return True, 'Solicitud enviada a revisión por el equipo administrativo.', {}
 
 
-def admin_resolver_verificacion_desarrollador(perfil_id, admin_user, accion, notas=None):
-    """Aprueba o rechaza una solicitud manual de verificación de aprendiz SENA."""
+def admin_resolver_verificacion_desarrollador(
+    perfil_id, admin_user, accion, notas=None, dashboard_url=None,
+):
+    """Aprueba, rechaza o solicita un nuevo documento de verificación SENA."""
     if admin_user.rol != 'administrador':
         raise PermissionDenied('Solo los administradores pueden resolver verificaciones.')
 
-    if accion not in ('aprobar', 'rechazar'):
+    if accion not in ('aprobar', 'rechazar', 'solicitar_documento'):
         return False, 'Acción no válida.'
 
     notas = (notas or '').strip()
-    if accion == 'rechazar' and not notas:
+    if accion in ('rechazar', 'solicitar_documento') and not notas:
         return False, 'Debes indicar el motivo del rechazo.'
 
     with transaction.atomic():
@@ -336,11 +340,18 @@ def admin_resolver_verificacion_desarrollador(perfil_id, admin_user, accion, not
             tipo_notif = 'aprobacion'
         else:
             perfil.estado_verificacion = 'rechazado'
-            accion_log = f'Rechazó la verificación SENA del aprendiz {nombre} (Ficha {perfil.ficha})'
-            mensaje = (
-                f'Tu solicitud de verificación SENA fue rechazada. '
-                f'Motivo: {notas}. Puedes actualizar tus datos y enviar una nueva solicitud.'
-            )
+            if accion == 'solicitar_documento':
+                accion_log = f'Solicitó un nuevo documento de verificación SENA a {nombre} (Ficha {perfil.ficha})'
+                mensaje = (
+                    f'Para continuar con tu verificación SENA necesitamos que cargues un nuevo documento. '
+                    f'Motivo: {notas}.'
+                )
+            else:
+                accion_log = f'Rechazó la verificación SENA del aprendiz {nombre} (Ficha {perfil.ficha})'
+                mensaje = (
+                    f'Tu solicitud de verificación SENA fue rechazada. '
+                    f'Motivo: {notas}. Puedes actualizar tus datos y enviar una nueva solicitud.'
+                )
             tipo_notif = 'alerta'
 
         perfil.save()
@@ -358,7 +369,37 @@ def admin_resolver_verificacion_desarrollador(perfil_id, admin_user, accion, not
             mensaje=mensaje,
         )
 
-    return True, f'Solicitud {accion}ada con éxito.'
+        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+            contexto_email = {
+                'asunto': 'Necesitamos un nuevo documento para tu verificación SENA',
+                'usuario': {
+                    'nombre': perfil.usuario.nombre,
+                    'username': perfil.usuario.username,
+                    'email': perfil.usuario.email,
+                },
+                'sujeto': nombre,
+                'tipo_sujeto': 'verificación SENA',
+                'motivo': notas,
+                'dashboard_url': dashboard_url or '/desarrollador/verificacion/',
+            }
+
+            def _enviar_email_verificacion():
+                from notificaciones.tasks import enviar_email_transaccional_task
+                enviar_email_transaccional_task.delay(
+                    asunto=contexto_email['asunto'],
+                    template_name='emails/verificacion_documento.html',
+                    contexto=contexto_email,
+                    destinatarios=[perfil.usuario.email],
+                )
+
+            transaction.on_commit(_enviar_email_verificacion)
+
+    etiquetas = {
+        'aprobar': 'aprobada',
+        'rechazar': 'rechazada',
+        'solicitar_documento': 'de nuevo documento enviada',
+    }
+    return True, f'Solicitud {etiquetas[accion]} con éxito.'
 
 
 async def validar_ficha_sena_api_async(numero_ficha: str | int, **kwargs):

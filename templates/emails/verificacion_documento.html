@@ -1,0 +1,39 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_preheader %}Necesitamos un nuevo documento para completar tu {{ tipo_sujeto }} en JobDevs.{% endblock %}
+
+{% block email_content %}
+  <div style="text-align: center; margin-bottom: 24px;">
+    <span style="display: inline-block; background-color: #fef3c7; color: #92400e; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 9999px;">
+      Documento requerido
+    </span>
+  </div>
+
+  <h2 style="margin-top: 0; color: #0f172a; font-size: 20px; font-weight: 700; text-align: center;">
+    Hola, {% if usuario.nombre %}{{ usuario.nombre }}{% else %}{{ usuario.username }}{% endif %}
+  </h2>
+
+  <p>
+    El equipo administrativo revisó la documentación asociada a tu
+    <strong>{{ tipo_sujeto }}</strong>
+    {% if sujeto %}({{ sujeto }}){% endif %}
+    y necesitamos que cargues un nuevo archivo para poder continuar con el proceso.
+  </p>
+
+  <div style="background-color: #f8fafc; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 16px 20px; margin: 20px 0;">
+    <div style="font-size: 13px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">Motivo</div>
+    <div style="font-size: 15px; color: #0f172a; margin-top: 4px;">{{ motivo }}</div>
+  </div>
+
+  <p>Por favor ingresa a la plataforma y adjunta un documento legible, vigente y que coincida con los datos registrados en tu perfil.</p>
+
+  <div style="text-align: center; margin: 28px 0;">
+    <a href="{{ dashboard_url|default:'/' }}" class="btn-cta" target="_blank">Cargar nuevo documento</a>
+  </div>
+
+  <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 28px 0;">
+
+  <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">
+    Si consideras que el documento enviado era correcto, puedes responder a este correo para solicitar una revisión adicional.
+  </p>
+{% endblock %}

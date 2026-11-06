@@ -108,6 +108,7 @@ class PerfilEmpresa(models.Model):
     logo = models.ImageField(upload_to='perfiles/empresas/', blank=True, null=True)
     stack_interes = models.CharField(max_length=500, blank=True, null=True, help_text="Tecnologías o especialidades de interés separadas por comas")
     calificacion_promedio = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    stack_interes = models.CharField(max_length=500, blank=True, null=True, help_text="Tecnologías o especialidades de interés separadas por comas")
 
     # Verificación de identidad
     tipo_persona = models.CharField(max_length=20, choices=TIPO_PERSONA_CHOICES, default='juridica')
@@ -126,6 +127,7 @@ class PerfilEmpresa(models.Model):
         related_name='empresas_verificadas',
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificada(self):
@@ -229,6 +231,7 @@ class PerfilDesarrollador(models.Model):
         related_name='desarrolladores_verificados'
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificado_sena(self):
