@@ -369,6 +369,31 @@ def admin_resolver_verificacion_desarrollador(
             mensaje=mensaje,
         )
 
+        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+            contexto_email = {
+                'asunto': 'Necesitamos un nuevo documento para tu verificación SENA',
+                'usuario': {
+                    'nombre': perfil.usuario.nombre,
+                    'username': perfil.usuario.username,
+                    'email': perfil.usuario.email,
+                },
+                'sujeto': nombre,
+                'tipo_sujeto': 'verificación SENA',
+                'motivo': notas,
+                'dashboard_url': dashboard_url or '/desarrollador/verificacion/',
+            }
+
+            def _enviar_email_verificacion():
+                from notificaciones.tasks import enviar_email_transaccional_task
+                enviar_email_transaccional_task.delay(
+                    asunto=contexto_email['asunto'],
+                    template_name='emails/verificacion_documento.html',
+                    contexto=contexto_email,
+                    destinatarios=[perfil.usuario.email],
+                )
+
+            transaction.on_commit(_enviar_email_verificacion)
+
     etiquetas = {
         'aprobar': 'aprobada',
         'rechazar': 'rechazada',

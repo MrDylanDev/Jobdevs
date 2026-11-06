@@ -302,6 +302,7 @@ def admin_resolver_verificacion_desarrollador(request, perfil_id):
         admin_user=request.user,
         accion=accion,
         notas=notas,
+        dashboard_url=request.build_absolute_uri(reverse('solicitar_verificacion_desarrollador')),
     )
     if ok:
         if accion == 'aprobar':

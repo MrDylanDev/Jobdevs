@@ -287,3 +287,38 @@ class TriajeCeleryYAdminTestCase(TestCase):
         self.assertIn("borrosa", html)
         self.assertIn("Cargar nuevo documento", html)
 
+    def test_20_solicitar_nuevo_documento_desarrollador(self):
+        """La acción dedicada también funciona para aprendices SENA."""
+        from django.urls import reverse
+
+        dev_user = Usuario.objects.create_user(
+            username="dev_demo",
+            email="dev@demo.com",
+            password="Password123!",
+            rol="desarrollador",
+        )
+        perfil = PerfilDesarrollador.objects.create(
+            usuario=dev_user,
+            ficha="2670123",
+            programa_formacion="ADSO",
+            estado_verificacion="en_revision",
+        )
+        self.client.force_login(self.admin)
+        url = reverse("admin_resolver_verificacion_desarrollador", args=[perfil.id])
+
+        with patch("notificaciones.tasks.enviar_email_transaccional_task.delay") as mock_email:
+            with self.captureOnCommitCallbacks(execute=True):
+                resp = self.client.post(
+                    url,
+                    {"accion": "solicitar_documento", "notas": "Documento ilegible."},
+                )
+
+        self.assertEqual(resp.status_code, 302)
+        perfil.refresh_from_db()
+        self.assertEqual(perfil.estado_verificacion, "rechazado")
+        self.assertEqual(perfil.notas_auditoria, "Documento ilegible.")
+        mock_email.assert_called_once()
+        self.assertEqual(
+            mock_email.call_args.kwargs["template_name"],
+            "emails/verificacion_documento.html",
+        )
