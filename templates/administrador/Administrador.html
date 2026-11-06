@@ -1100,9 +1100,11 @@
                   </form>
                   <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}">
                     {% csrf_token %}
-                    <input type="hidden" name="accion" value="rechazar">
-                    <textarea name="notas" required rows="2" aria-label="Motivo del rechazo de verificación SENA" placeholder="Motivo del rechazo" style="width:100%;margin-bottom:4px;"></textarea>
-                    <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
+                    <input type="hidden" name="accion" value="solicitar_documento">
+                    <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento SENA" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      {% if d.dictamen_ia.calidad_imagen == 'borrosa' %}Solicitar Nueva Foto{% else %}Solicitar Nuevo Documento{% endif %}
+                    </button>
                   </form>
                 </td>
               </tr>
