@@ -5,7 +5,9 @@ Cubre Fase 10: heurísticas, extracción, OCR, tareas Celery y control administr
 
 import io
 import json
+import os
 import sys
+import tempfile
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
@@ -146,6 +148,27 @@ class TriajeHeuristicasTestCase(TestCase):
             es_borrosa, var = detectar_borrosidad(b"fake_image_bytes")
             self.assertTrue(es_borrosa)
             self.assertEqual(var, 45.0)
+
+    def test_16_extraccion_pdf_nativo_real(self):
+        """Escenario 1: un PDF digital nativo se extrae con PyMuPDF sin OCR."""
+        import fitz
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ruta = os.path.join(tmpdir, "certificado.pdf")
+            doc = fitz.open()
+            pagina = doc.new_page()
+            pagina.insert_text((72, 72), "NIT: 900123456-7")
+            pagina.insert_text((72, 96), "RAZON SOCIAL: SOLUCIONES DIGITALES SAS")
+            doc.save(ruta)
+            doc.close()
+
+            from usuarios.services_ia_docs import extraer_texto_documento
+
+            resultado = extraer_texto_documento(ruta)
+
+        self.assertEqual(resultado.metodo, "pdf_nativo")
+        self.assertIn("900123456", resultado.texto)
+        self.assertEqual(resultado.calidad_imagen, "nitida")
 
 
 class TriajeCeleryYAdminTestCase(TestCase):
