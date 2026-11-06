@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('usuarios', '0020_excepcionfichasena'),
+        ('usuarios', '0021_perfilempresa_stack_interes'),
     ]
 
     operations = [
@@ -21,3 +21,4 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, help_text='Pre-dictamen de verificacion documental asistida local', null=True),
         ),
     ]
+
