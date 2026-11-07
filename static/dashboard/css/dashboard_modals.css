@@ -1,0 +1,50 @@
+/* ==========================================================================
+   JobDevs — Modales Integrados de Dashboard (Dev / Admin / Empresa)
+   Estética Cyber Tech: Negro carbón (#080d0b), Verde Neón (#00e676), Mono.
+   Elimina redirecciones de página manteniendo navegación 100% compacta en dashboard.
+   ========================================================================== */
+
+.jdm-modal[hidden] {
+  display: none !important;
+}
+
+.jdm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Space Grotesk', 'Inter Tight', system-ui, -apple-system, sans-serif;
+  color: #e6f4ec;
+}
+
+.jdm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: jdmFade 0.2s ease;
+}
+
+@keyframes jdmFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes jdmSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.jdm-card {
+  position: relative;
+  z-index: 2;
