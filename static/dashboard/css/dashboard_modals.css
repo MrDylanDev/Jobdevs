@@ -798,3 +798,65 @@
 .jdm-disputa-composer {
   display: flex;
   gap: 8px;
+}
+
+.jdm-admin-resolution-box {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 4px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   6. TOAST NOTIFICATION
+   ───────────────────────────────────────────────────────────── */
+.jdm-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 2500;
+  transform: translate(-50%, 20px);
+  max-width: calc(100vw - 32px);
+  padding: 12px 20px;
+  border: 1px solid #00e676;
+  background: rgba(8, 13, 11, 0.98);
+  color: #69f0ae;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 24px rgba(0, 230, 118, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jdm-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 640px) {
+  .jdm-modal {
+    padding: 10px;
+  }
+  .jdm-card {
+    max-height: 94vh;
+  }
+  .jdm-header {
+    padding: 16px 18px 12px;
+  }
+  .jdm-body {
+    padding: 16px 18px;
+  }
+  .jdm-parties-grid {
+    grid-template-columns: 1fr;
+  }
+  .jdm-empresa-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
