@@ -248,3 +248,234 @@ document.addEventListener('submit', async (event) => {
       data = JSON.parse(texto);
     } catch (error) {
       data = null;
+    }
+
+    if (!data) {
+      if (response.status === 403) {
+        mostrarFeedbackVerificacion(
+          'Tu token de seguridad expiró. Recargando la página para continuar…',
+          true
+        );
+        setTimeout(() => window.location.reload(), 1200);
+        return;
+      }
+      throw new Error('Respuesta inesperada del servidor');
+    }
+
+    if (data.ok) {
+      mostrarFeedbackVerificacion(data.mensaje || 'Solicitud enviada.', false);
+      setTimeout(() => {
+        const base = window.location.pathname;
+        window.location.href = base + '?seccion=inicio&verificacion=1';
+      }, 1100);
+      return;
+    }
+
+    Object.entries(data.errores || {}).forEach(([campo, mensaje]) => {
+      const errorEl = form.querySelector(`[data-error-para="${campo}"]`);
+      if (errorEl) errorEl.textContent = mensaje;
+      const input = form.querySelector(`[name="${campo}"]`);
+      if (input) input.classList.add('is-invalid');
+    });
+    mostrarFeedbackVerificacion(
+      data.mensaje || 'Revisa los campos marcados.',
+      true
+    );
+    const primerError = form.querySelector('.is-invalid');
+    if (primerError) primerError.focus({ preventScroll: true });
+  } catch (error) {
+    mostrarFeedbackVerificacion(
+      'No pudimos enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.',
+      true
+    );
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+      submit.innerHTML = textoOriginal;
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════
+// MODAL FLOTANTE: POSTULACIÓN A PROYECTO
+// ═══════════════════════════════════════════════
+let postulacionUrl = '';
+let postulacionCard = null;
+
+function setTextoPostulacion(modal, selector, valor) {
+  const el = modal.querySelector(selector);
+  if (el) el.textContent = valor;
+}
+
+function abrirPostulacion(btn) {
+  const modal = document.getElementById('modalPostulacion');
+  if (!modal || !btn) return;
+
+  postulacionUrl = btn.getAttribute('data-url') || '';
+  postulacionCard = btn.closest('.project-card');
+
+  setTextoPostulacion(modal, '[data-postulacion-tipo]', btn.dataset.tipo || 'Proyecto');
+  setTextoPostulacion(modal, '[data-postulacion-prioridad]', btn.dataset.prioridad || '—');
+  setTextoPostulacion(modal, '[data-postulacion-titulo]', btn.dataset.titulo || 'Proyecto');
+  setTextoPostulacion(modal, '[data-postulacion-empresa]', btn.dataset.empresa || '');
+  setTextoPostulacion(modal, '[data-postulacion-vacantes]', btn.dataset.vacantes || '0');
+  setTextoPostulacion(modal, '[data-postulacion-cierre]', btn.dataset.cierre || 'Sin límite');
+  setTextoPostulacion(modal, '[data-postulacion-descripcion]', btn.dataset.descripcion || '');
+
+  const form = modal.querySelector('[data-postulacion-form]');
+  if (form) form.reset();
+  mostrarFeedbackPostulacion('', false);
+  const btnVerificar = modal.querySelector('[data-ir-verificacion]');
+  if (btnVerificar) btnVerificar.hidden = true;
+
+  sincronizarCsrf(modal);
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+
+  const first = modal.querySelector('#id_post_carta');
+  if (first) first.focus({ preventScroll: true });
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function cerrarPostulacion() {
+  const modal = document.getElementById('modalPostulacion');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function mostrarFeedbackPostulacion(mensaje, esError) {
+  const feedback = document.querySelector('[data-postulacion-feedback]');
+  if (!feedback) return;
+  feedback.textContent = mensaje || '';
+  feedback.hidden = !mensaje;
+  feedback.classList.toggle('is-error', !!esError);
+}
+
+function mostrarToast(mensaje) {
+  let toast = document.getElementById('jdToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'jdToast';
+    toast.className = 'jd-toast';
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+  }
+  toast.textContent = mensaje;
+  toast.classList.add('is-visible');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('is-visible'), 4200);
+}
+
+function actualizarContadorExplorar() {
+  const badge = document.getElementById('devExploreCountBadge');
+  if (!badge) return;
+  const actual = parseInt((badge.textContent || '').replace(/[^\d]/g, ''), 10);
+  if (Number.isNaN(actual)) return;
+  badge.textContent = `${Math.max(0, actual - 1)} DISPONIBLES`;
+}
+
+document.addEventListener('click', (event) => {
+  const abrir = event.target.closest('[data-abrir-postulacion]');
+  if (abrir) {
+    event.preventDefault();
+    abrirPostulacion(abrir);
+    return;
+  }
+
+  if (event.target.closest('[data-cerrar-postulacion]')) {
+    cerrarPostulacion();
+    return;
+  }
+
+  if (event.target.closest('[data-ir-verificacion]')) {
+    cerrarPostulacion();
+    abrirVerificacion();
+  }
+});
+
+document.addEventListener('submit', async (event) => {
+  const form = event.target.closest('[data-postulacion-form]');
+  if (!form) return;
+  event.preventDefault();
+
+  const modal = form.closest('#modalPostulacion');
+  const carta = form.querySelector('[name="carta"]');
+  if (carta && !carta.value.trim()) {
+    mostrarFeedbackPostulacion('La carta de presentación es obligatoria.', true);
+    carta.focus({ preventScroll: true });
+    return;
+  }
+  if (!postulacionUrl) return;
+
+  sincronizarCsrf(form);
+  const submit = form.querySelector('[data-postulacion-submit]');
+  const textoOriginal = submit ? submit.innerHTML : '';
+  if (submit) {
+    submit.disabled = true;
+    submit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
+  }
+  mostrarFeedbackPostulacion('', false);
+
+  try {
+    const csrf = leerCookie('csrftoken');
+    const response = await fetch(postulacionUrl, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(csrf ? { 'X-CSRFToken': csrf } : {}),
+      },
+      credentials: 'same-origin',
+    });
+
+    const texto = await response.text();
+    let data = null;
+    try {
+      data = JSON.parse(texto);
+    } catch (error) {
+      data = null;
+    }
+
+    if (!data) {
+      if (response.status === 403) {
+        mostrarFeedbackPostulacion(
+          'Tu token de seguridad expiró. Recargando la página para continuar…',
+          true
+        );
+        setTimeout(() => window.location.reload(), 1200);
+        return;
+      }
+      throw new Error('Respuesta inesperada del servidor');
+    }
+
+    if (data.ok) {
+      cerrarPostulacion();
+      if (postulacionCard) {
+        postulacionCard.remove();
+        postulacionCard = null;
+        actualizarContadorExplorar();
+      }
+      mostrarToast(data.mensaje || '¡Postulación enviada!');
+      return;
+    }
+
+    const btnVerificar = modal ? modal.querySelector('[data-ir-verificacion]') : null;
+    if (btnVerificar) btnVerificar.hidden = !data.requiere_verificacion;
+    mostrarFeedbackPostulacion(data.mensaje || 'No se pudo enviar la postulación.', true);
+  } catch (error) {
+    mostrarFeedbackPostulacion(
+      'No pudimos enviar tu postulación. Revisa tu conexión e inténtalo de nuevo.',
+      true
+    );
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+      submit.innerHTML = textoOriginal;
+    }
+  }
+});
