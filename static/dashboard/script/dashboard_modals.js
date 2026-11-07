@@ -1060,3 +1060,62 @@
             return;
           }
           if (!check) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes aceptar la declaración de responsabilidad.</span>';
+            return;
+          }
+
+          errBox.style.display = 'none';
+          btnConf.disabled = true;
+          btnConf.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Formalizando...';
+
+          try {
+            var fData = new FormData(formD);
+            fData.append('origen', 'dashboard');
+
+            var postRes = await fetch(data.url_abrir, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken()
+              },
+              body: fData,
+              credentials: 'same-origin'
+            });
+
+            var resJson = await postRes.json();
+            if (resJson.ok) {
+              mostrarToast(resJson.mensaje || 'Disputa abierta formalmente.');
+              cerrarModal();
+              setTimeout(function () { window.location.reload(); }, 1200);
+            } else {
+              errBox.style.display = 'flex';
+              errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.mensaje || 'Error al abrir disputa') + '</span>';
+              btnConf.disabled = false;
+              btnConf.innerHTML = '<i class="fa-solid fa-gavel"></i> Abrir Disputa Formal';
+            }
+          } catch (e) {
+            errBox.style.display = 'flex';
+            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de red al formalizar la disputa.</span>';
+            btnConf.disabled = false;
+            btnConf.innerHTML = '<i class="fa-solid fa-gavel"></i> Abrir Disputa Formal';
+          }
+        });
+      }
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Event Delegation Global
+  // ─────────────────────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    // 1. Contrato Digital
+    var btnContrato = e.target.closest('[data-abrir-contrato]');
+    if (btnContrato) {
+      e.preventDefault();
+      var urlContrato = btnContrato.getAttribute('data-url') || btnContrato.getAttribute('href');
+      if (urlContrato) cargarContratoDigital(urlContrato, btnContrato);
