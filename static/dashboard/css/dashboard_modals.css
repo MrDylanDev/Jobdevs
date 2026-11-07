@@ -398,3 +398,53 @@
   resize: vertical;
   line-height: 1.5;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   1. CONTRATO DIGITAL
+   ───────────────────────────────────────────────────────────── */
+.jdm-contract-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.jdm-meta-box {
+  background: #030604;
+  border: 1px solid #14221a;
+  padding: 12px 14px;
+  border-radius: 4px;
+}
+
+.jdm-meta-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666666;
+  margin-bottom: 4px;
+}
+
+.jdm-meta-value {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.jdm-meta-value.accent {
+  color: #00e676;
+}
+
+.jdm-parties-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.jdm-party-card {
+  background: #050a07;
+  border: 1px solid #14221a;
+  border-left: 2px solid #00e676;
+  padding: 12px 14px;
