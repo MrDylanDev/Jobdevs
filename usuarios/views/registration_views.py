@@ -10,12 +10,13 @@ def registro_view(request):
         if form.is_valid():
             user = form.save()
 
-            # Despacho asíncrono de correo de bienvenida vía Celery (SCRUM-201)
+            # Despacho asíncrono de correo de bienvenida vía Celery (SCRUM-201).
+            # Si el broker no está disponible, el registro continúa igualmente.
             if user.email:
-                from notificaciones.tasks import enviar_email_transaccional_task
+                from notificaciones.tasks import despachar_email_transaccional
                 dashboard_path = '/empresa/dashboard/' if user.rol == 'empresa' else '/desarrollador/dashboard/'
                 dashboard_url = request.build_absolute_uri(dashboard_path)
-                enviar_email_transaccional_task.delay(
+                despachar_email_transaccional(
                     asunto='¡Bienvenido a JobDevs!',
                     template_name='emails/bienvenida.html',
                     contexto={
