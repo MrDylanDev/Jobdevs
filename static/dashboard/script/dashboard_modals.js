@@ -529,3 +529,62 @@
   async function cargarCalificarEmpresa(url, triggerBtn) {
     abrirModal('jdm-card-sm');
     setHeader('PROYECTO // VALORACIÓN', 'Cargando calificación…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudo cargar la valoración');
+
+      var p = data.proyecto;
+      setHeader('VALORAR EMPRESA', p.empresa, 'Proyecto: ' + p.titulo);
+
+      if (data.ya_califico) {
+        setContent(
+          '<div style="text-align:center;padding:24px 10px;">' +
+            '<i class="fa-solid fa-circle-check" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;"></i>' +
+            '<h3 style="margin:0 0 8px;font-family:\'JetBrains Mono\',monospace;color:#ffffff;">¡Ya has calificado a esta empresa!</h3>' +
+            '<p style="color:#a0a0a0;font-size:13px;">Tu reseña para este proyecto ya fue registrada en el perfil de la empresa.</p>' +
+          '</div>'
+        );
+        setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+        return;
+      }
+
+      var html =
+        '<form id="jdmFormCalificar" novalidate>' +
+          '<div id="jdmCalificarError" class="jdm-error" style="display:none;"></div>' +
+          '<div class="jdm-rating-container">' +
+            '<div class="jdm-stars-row" id="jdmStars">' +
+              '<button type="button" class="jdm-star-btn" data-val="1"><i class="fa-solid fa-star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="2"><i class="fa-solid fa-star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="3"><i class="fa-solid fa-star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="4"><i class="fa-solid fa-star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="5"><i class="fa-solid fa-star"></i></button>' +
+            '</div>' +
+            '<div class="jdm-rating-caption" id="jdmRatingCaption">Selecciona una puntuación (1 a 5)</div>' +
+            '<input type="hidden" name="puntuacion" id="jdmInputPuntuacion" value="">' +
+          '</div>' +
+
+          '<div class="jdm-form-group">' +
+            '<label class="jdm-form-label" for="jdmComentario">Comentario cualitativo <span class="req">* (mínimo 20 caracteres)</span></label>' +
+            '<textarea id="jdmComentario" name="comentario" class="jdm-textarea" placeholder="Describe tu experiencia colaborando con la empresa, cumplimiento de pagos y comunicación…" required></textarea>' +
+            '<div class="jdm-char-counter" id="jdmCharCount">0 / 20 caracteres mínimos</div>' +
+          '</div>' +
+        '</form>';
+
+      setContent(html);
+      setFooter(
+        '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
+        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i class="fa-solid fa-star"></i> Enviar Calificación</button>'
+      );
+
+      var puntuacionVal = 0;
+      var stars = document.querySelectorAll('#jdmStars .jdm-star-btn');
+      var caption = document.getElementById('jdmRatingCaption');
+      var inputPunt = document.getElementById('jdmInputPuntuacion');
+      var txtComentario = document.getElementById('jdmComentario');
+      var charCount = document.getElementById('jdmCharCount');
+      var captions = ['', '1/5 - Muy insatisfactorio', '2/5 - Regular', '3/5 - Aceptable', '4/5 - Muy bueno', '5/5 - Excelente'];
