@@ -352,3 +352,62 @@
                   '<div style="font-size:11px;color:#a0a0a0;font-family:\'JetBrains Mono\',monospace;">Por ' + escapeHtml(a.desarrollador) + ' · ' + escapeHtml(a.fecha) + '</div>' +
                 '</div>' +
                 '<span class="jdm-badge ' + badgeCls + '">' + escapeHtml(a.estado_label) + '</span>' +
+              '</div>' +
+              '<div class="jdm-advance-desc">' + escapeHtml(a.descripcion) + '</div>';
+
+          if (a.archivo_adjunto_url || a.archivo_url) {
+            html += '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">';
+            if (a.archivo_adjunto_url) {
+              html += '<a href="' + escapeHtml(a.archivo_adjunto_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i class="fa-solid fa-paperclip"></i> ' + escapeHtml(a.archivo_adjunto_nombre || 'Descargar archivo') + '</a>';
+            }
+            if (a.archivo_url) {
+              html += '<a href="' + escapeHtml(a.archivo_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver enlace externo</a>';
+            }
+            html += '</div>';
+          }
+
+          if (a.observaciones) {
+            html += '<div class="jdm-advance-feedback"><i class="fa-solid fa-comment-dots"></i> Observaciones: ' + escapeHtml(a.observaciones) + '</div>';
+          }
+
+          html += '</div>';
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="jdm-empty"><i class="fa-solid fa-box-open"></i>No se han registrado entregas para este proyecto aún.</div>';
+      }
+
+      var footerBtns = '';
+      if (data.puede_registrar && data.registrar_url) {
+        footerBtns += '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnIrRegistrar" data-url-registrar="' + escapeHtml(data.registrar_url) + '"><i class="fa-solid fa-pen"></i> Registrar Nuevo Avance</button>';
+      }
+      footerBtns += '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>';
+
+      setContent(html);
+      setFooter(footerBtns);
+
+      var btnIrReg = document.getElementById('jdmBtnIrRegistrar');
+      if (btnIrReg) {
+        btnIrReg.addEventListener('click', function () {
+          cargarFormularioAvance(btnIrReg.getAttribute('data-url-registrar'));
+        });
+      }
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. REGISTRAR AVANCE FORMULARIO
+  // ─────────────────────────────────────────────────────────────
+  async function cargarFormularioAvance(url) {
+    abrirModal('');
+    setHeader('PROYECTO // REGISTRAR AVANCE', 'Cargando hitos pendientes…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
