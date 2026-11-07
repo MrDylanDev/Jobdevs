@@ -1,0 +1,100 @@
+/* ─────────────────────────────────────────────────────────────
+   Modal compartido "Ver proyecto" — dashboards admin/empresa/dev
+   Estética tech de la landing: negro, verde neón y mono.
+   ───────────────────────────────────────────────────────────── */
+
+.jdp-modal[hidden] { display: none; }
+
+.jdp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.jdp-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.84);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: jdpFade 0.18s ease;
+}
+
+.jdp-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  overflow: hidden;
+  background: #080d0b;
+  border: 1px solid rgba(0, 230, 118, 0.28);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 0, 0, 0.4) inset;
+  color: #e6f4ec;
+  animation: jdpIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jdp-card::before,
+.jdp-card::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  z-index: 2;
+}
+.jdp-card::before {
+  top: -1px; left: -1px;
+  border-top: 1px solid #00e676;
+  border-left: 1px solid #00e676;
+}
+.jdp-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 1px solid #00e676;
+  border-right: 1px solid #00e676;
+}
+
+.jdp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px dashed rgba(0, 230, 118, 0.22);
+  flex: 0 0 auto;
+}
+
+.jdp-kicker {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #00e676;
+  margin-bottom: 6px;
+}
+
+.jdp-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #f2fff8;
+}
+
+.jdp-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: #9fb8ab;
+}
