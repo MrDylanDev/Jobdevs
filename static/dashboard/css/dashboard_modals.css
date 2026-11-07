@@ -748,3 +748,53 @@
   flex-direction: column;
   gap: 10px;
   margin-bottom: 14px;
+}
+
+.jdm-chat-bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  position: relative;
+}
+
+.jdm-bubble-own {
+  align-self: flex-end;
+  background: rgba(0, 230, 118, 0.12);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  color: #e6f4ec;
+}
+
+.jdm-bubble-other {
+  align-self: flex-start;
+  background: #080d0b;
+  border: 1px solid #1a2920;
+  color: #c0d0c6;
+}
+
+.jdm-bubble-admin {
+  align-self: center;
+  width: 90%;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+}
+
+.jdm-bubble-header {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: #00e676;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.jdm-bubble-admin .jdm-bubble-header {
+  color: #fbbf24;
+}
+
+.jdm-disputa-composer {
+  display: flex;
+  gap: 8px;
