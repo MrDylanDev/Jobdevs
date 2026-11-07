@@ -1119,3 +1119,74 @@
       e.preventDefault();
       var urlContrato = btnContrato.getAttribute('data-url') || btnContrato.getAttribute('href');
       if (urlContrato) cargarContratoDigital(urlContrato, btnContrato);
+      return;
+    }
+
+    // 2. Avances / Historial
+    var btnAvances = e.target.closest('[data-abrir-avances]');
+    if (btnAvances) {
+      e.preventDefault();
+      var urlAvances = btnAvances.getAttribute('data-url') || btnAvances.getAttribute('href');
+      if (urlAvances) cargarAvances(urlAvances);
+      return;
+    }
+
+    // 3. Registrar Avance
+    var btnRegAvance = e.target.closest('[data-abrir-registrar-avance]');
+    if (btnRegAvance) {
+      e.preventDefault();
+      var urlRegAvance = btnRegAvance.getAttribute('data-url') || btnRegAvance.getAttribute('href');
+      if (urlRegAvance) cargarFormularioAvance(urlRegAvance);
+      return;
+    }
+
+    // 4. Calificar Empresa
+    var btnCalificar = e.target.closest('[data-abrir-calificar]');
+    if (btnCalificar) {
+      e.preventDefault();
+      var urlCalificar = btnCalificar.getAttribute('data-url') || btnCalificar.getAttribute('href');
+      if (urlCalificar) cargarCalificarEmpresa(urlCalificar, btnCalificar);
+      return;
+    }
+
+    // 5. Detalle Empresa
+    var btnEmpresa = e.target.closest('[data-abrir-empresa]');
+    if (btnEmpresa) {
+      e.preventDefault();
+      var urlEmpresa = btnEmpresa.getAttribute('data-url') || btnEmpresa.getAttribute('href');
+      if (urlEmpresa) cargarDetalleEmpresa(urlEmpresa);
+      return;
+    }
+
+    // 6. Sala de Disputa
+    var btnDisputa = e.target.closest('[data-abrir-sala-disputa]');
+    if (btnDisputa) {
+      e.preventDefault();
+      var urlDisputa = btnDisputa.getAttribute('data-url') || btnDisputa.getAttribute('href');
+      if (urlDisputa) cargarSalaDisputa(urlDisputa);
+      return;
+    }
+
+    // 7. Formulario Abrir Disputa
+    var btnAbrirDisp = e.target.closest('[data-abrir-formulario-disputa]');
+    if (btnAbrirDisp) {
+      e.preventDefault();
+      var urlAbrir = btnAbrirDisp.getAttribute('data-url') || btnAbrirDisp.getAttribute('href');
+      if (urlAbrir) cargarFormularioAbrirDisputa(urlAbrir);
+      return;
+    }
+  });
+
+  // Exportar API global
+  window.JdDashboardModals = {
+    abrirContrato: cargarContratoDigital,
+    abrirAvances: cargarAvances,
+    abrirRegistrarAvance: cargarFormularioAvance,
+    abrirCalificar: cargarCalificarEmpresa,
+    abrirEmpresa: cargarDetalleEmpresa,
+    abrirSalaDisputa: cargarSalaDisputa,
+    abrirFormularioDisputa: cargarFormularioAbrirDisputa,
+    cerrar: cerrarModal,
+    toast: mostrarToast
+  };
+})();
