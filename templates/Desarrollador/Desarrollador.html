@@ -1048,4 +1048,244 @@
 
       <div class="jd-inline-feedback" data-verificacion-feedback hidden></div>
 
+      {% if perfil.es_verificado_sena %}
+        <div class="jd-callout jd-callout-success">
+          <i class="fa fa-circle-check"></i>
+          <div>
+            <strong>Identidad SENA verificada</strong>
+            <p>Tu perfil como aprendiz SENA está completamente verificado y habilitado para postularte a proyectos.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+          </div>
+        </div>
+      {% elif perfil.estado_verificacion == 'en_revision' %}
+        <div class="jd-callout jd-callout-warning">
+          <i class="fa fa-hourglass-half"></i>
+          <div>
+            <strong>Solicitud en revisión</strong>
+            <p>Tu solicitud de verificación se encuentra en revisión por el equipo administrativo del SENA.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+            {% if perfil.documento_soporte %}
+              <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="jd-link">
+                <i class="fa fa-file-pdf"></i> Ver documento enviado
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        {% if perfil.estado_verificacion == 'rechazado' %}
+          <div class="jd-callout jd-callout-danger">
+            <i class="fa fa-triangle-exclamation"></i>
+            <div>
+              <strong>Solicitud rechazada</strong>
+              <p>Tu solicitud anterior fue rechazada.{% if perfil.notas_auditoria %} Motivo: {{ perfil.notas_auditoria }}{% endif %}</p>
+              <p class="jd-callout-meta">Verifica tu ficha o adjunta un documento legible y vuelve a enviarla.</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="jd-callout jd-callout-info">
+            <i class="fa fa-circle-info"></i>
+            <div>
+              <strong>Verifica tu condición de aprendiz SENA</strong>
+              <p>Podrás postularte a proyectos reales y obtener la insignia oficial.</p>
+            </div>
+          </div>
+        {% endif %}
 
+        {% if errores %}
+          <div class="jd-inline-feedback is-error">Por favor revisa los campos marcados a continuación.</div>
+        {% endif %}
+
+        <div class="jd-tabs" role="tablist" aria-label="Método de verificación">
+          <button type="button" class="jd-tab active" data-verificacion-tab="auto" role="tab" aria-selected="true">
+            <i class="fa fa-bolt"></i> Aprendiz (Lista Blanca)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="manual" role="tab" aria-selected="false">
+            <i class="fa fa-id-badge"></i> Aprendiz (Carnet / Certificado)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="egresado" role="tab" aria-selected="false">
+            <i class="fa fa-graduation-cap"></i> Egresado SENA (Diploma)
+          </button>
+        </div>
+
+        <!-- Automática -->
+        <div class="jd-tab-panel active" data-verificacion-panel="auto" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="automatica">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_auto">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_auto" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+              <div class="jd-help">Se verificará automáticamente contra el catálogo oficial de fichas activas registradas en la plataforma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_auto">Programa de Formación (Opcional)</label>
+              <input type="text" name="programa_formacion" id="id_programa_auto" class="jd-input" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)">
+              <div class="jd-error" data-error-para="programa_formacion"></div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-circle-check"></i> Verificar ficha ahora
+            </button>
+          </form>
+        </div>
+
+        <!-- Manual aprendiz -->
+        <div class="jd-tab-panel" data-verificacion-panel="manual" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="aprendiz">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_manual">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_manual" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_manual">Programa de Formación <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_manual" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_documento_soporte">Documento de Soporte (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_documento_soporte" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Adjunta tu carnet de aprendiz o certificado de matrícula/estudio en formato PDF (máximo 5 MB).</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-paper-plane"></i> Enviar solicitud de aprendiz
+            </button>
+          </form>
+        </div>
+
+        <!-- Egresado -->
+        <div class="jd-tab-panel" data-verificacion-panel="egresado" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="egresado">
+
+            <div class="jd-callout jd-callout-info jd-callout-compact">
+              <i class="fa fa-circle-info"></i>
+              <div>
+                <strong>¿Eres egresado titulado del SENA?</strong>
+                <p>Adjunta tu diploma o acta de grado oficial descargada de SofíaPlus para obtener la insignia de <strong>Egresado SENA</strong>.</p>
+              </div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_egresado">Programa Técnico o Tecnológico Culminado <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_egresado" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Tecnólogo en Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_egresado">Número de Ficha Antigua (Opcional)</label>
+              <input type="text" name="ficha" id="id_ficha_egresado" class="jd-input" value="{{ valores.ficha }}" placeholder="Ej: 2142345 (opcional si no la recuerdas)">
+              <div class="jd-error" data-error-para="ficha"></div>
+              <div class="jd-help">Si no recuerdas tu número de ficha, puedes dejarlo en blanco. Lo validaremos con tu diploma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_soporte_egresado">Diploma o Acta de Grado (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_soporte_egresado" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Documento en formato PDF (máximo 5 MB) con código de verificación o firma oficial.</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-graduation-cap"></i> Enviar diploma a revisión
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal flotante: Postularse a un proyecto (sin cambiar de página) -->
+<div class="jd-modal" id="modalPostulacion" role="dialog" aria-modal="true" aria-labelledby="modalPostulacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-postulacion></div>
+  <div class="jd-modal-card tech-frame jd-modal-card-postulacion">
+    <div class="jd-modal-header">
+      <div>
+        <div class="jd-modal-kicker">[ PROYECTO // CANDIDATURA ]</div>
+        <h2 class="jd-modal-title" id="modalPostulacionTitulo">Enviar candidatura</h2>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-postulacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-postulacion-resumen">
+        <div class="jd-postulacion-badges">
+          <span class="badge badge-info" data-postulacion-tipo>—</span>
+          <span class="badge badge-warning" data-postulacion-prioridad>—</span>
+        </div>
+        <h3 class="jd-postulacion-titulo" data-postulacion-titulo>—</h3>
+        <p class="jd-postulacion-empresa" data-postulacion-empresa>—</p>
+        <div class="jd-postulacion-meta">
+          <span><i class="fa fa-users"></i> <b data-postulacion-vacantes>—</b> vacantes libres</span>
+          <span><i class="fa fa-calendar-alt"></i> Cierre: <b data-postulacion-cierre>—</b></span>
+        </div>
+        <p class="jd-postulacion-desc" data-postulacion-descripcion></p>
+      </div>
+
+      <div class="jd-inline-feedback" data-postulacion-feedback hidden></div>
+      <button type="button" class="jd-submit" data-ir-verificacion hidden>
+        <i class="fa fa-id-card"></i> Verificar mi ficha SENA
+      </button>
+
+      <form data-postulacion-form novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="origen" value="dashboard">
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_carta">Carta de presentación <span class="jd-required">*</span></label>
+          <textarea name="carta" id="id_post_carta" class="jd-input" rows="4" required
+                    placeholder="¿Por qué te interesa este proyecto y cómo planeas abordarlo?"></textarea>
+          <div class="jd-error" data-error-para="carta"></div>
+        </div>
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_experiencia">Experiencia relevante</label>
+          <textarea name="experiencia" id="id_post_experiencia" class="jd-input" rows="3"
+                    placeholder="Tecnologías o proyectos similares que hayas realizado..."></textarea>
+          <div class="jd-help">Opcional, pero recomendado para destacar tu perfil.</div>
+        </div>
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_link">Portafolio / repositorio</label>
+          <input type="url" name="link" id="id_post_link" class="jd-input"
+                 placeholder="https://github.com/tu-usuario o https://tu-portafolio.com">
+        </div>
+
+        <div class="jd-modal-actions">
+          <button type="button" class="btn btn-secondary" data-cerrar-postulacion>Cancelar</button>
+          <button type="submit" class="jd-submit" data-postulacion-submit>
+            <i class="fa fa-rocket"></i> Enviar candidatura
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script src="{% static 'Desarrollador/script/desarrollador.js' %}?v=4"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=2"></script>
+<script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
+<script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
+<script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
+<script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
+</body>
+</html>
