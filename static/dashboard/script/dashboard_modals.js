@@ -175,3 +175,62 @@
       var c = data.contrato;
       setHeader('CONTRATACIÓN // CONTRATO DIGITAL', c.codigo + ' — ' + c.proyecto_titulo, 'Estado: ' + c.estado_label);
 
+      var estadoCls = c.estado === 'firmado' ? 'jdm-badge-success' : (c.estado === 'borrador' ? 'jdm-badge-warning' : 'jdm-badge-info');
+
+      var html =
+        '<div class="jdm-contract-meta">' +
+          '<div class="jdm-meta-box">' +
+            '<div class="jdm-meta-label">Código Contrato</div>' +
+            '<div class="jdm-meta-value accent">' + escapeHtml(c.codigo) + '</div>' +
+          '</div>' +
+          '<div class="jdm-meta-box">' +
+            '<div class="jdm-meta-label">Monto Acordado</div>' +
+            '<div class="jdm-meta-value accent">' + escapeHtml(c.monto_formateado || ('$' + c.monto)) + '</div>' +
+          '</div>' +
+          '<div class="jdm-meta-box">' +
+            '<div class="jdm-meta-label">Fecha de Emisión</div>' +
+            '<div class="jdm-meta-value">' + escapeHtml(c.fecha_creacion) + '</div>' +
+          '</div>' +
+          '<div class="jdm-meta-box">' +
+            '<div class="jdm-meta-label">Estado Legal</div>' +
+            '<div class="jdm-meta-value"><span class="jdm-badge ' + estadoCls + '">' + escapeHtml(c.estado_label) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-parties-grid">' +
+          '<div class="jdm-party-card">' +
+            '<div class="jdm-party-role">[ EMPRESA CONTRATANTE ]</div>' +
+            '<div class="jdm-party-name">' + escapeHtml(c.empresa_nombre) + '</div>' +
+            '<div class="jdm-party-status">' +
+              (c.firmado_empresa ? '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado (' + escapeHtml(c.fecha_firma_empresa || '') + ')</span>' : '<span style="color:#fbbf24;"><i class="fa-solid fa-clock"></i> Pendiente de firma</span>') +
+            '</div>' +
+          '</div>' +
+          '<div class="jdm-party-card">' +
+            '<div class="jdm-party-role">[ DESARROLLADOR / APRENDIZ ]</div>' +
+            '<div class="jdm-party-name">' + escapeHtml(c.desarrollador_nombre) + '</div>' +
+            '<div class="jdm-party-status" id="jdmDevSignStatus">' +
+              (c.firmado_desarrollador ? '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado (' + escapeHtml(c.fecha_firma_desarrollador || '') + ')</span>' : '<span style="color:#f87171;"><i class="fa-solid fa-file-signature"></i> Pendiente de tu firma</span>') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-form-label"><i class="fa-solid fa-scroll"></i> Cláusulas y Términos del Acuerdo</div>' +
+        '<div class="jdm-clauses-container">';
+
+      if (c.clausulas && c.clausulas.length) {
+        c.clausulas.forEach(function (clausula, i) {
+          html += '<div class="jdm-clause-item"><strong>CLÁUSULA ' + (i + 1) + '.</strong> ' + escapeHtml(clausula) + '</div>';
+        });
+      } else {
+        html += '<p>Sin cláusulas adicionales registradas.</p>';
+      }
+      html += '</div>';
+
+      if (c.puede_firmar) {
+        html +=
+          '<div class="jdm-sign-callout" id="jdmSignCallout">' +
+            '<div>' +
+              '<strong style="color:#00e676;display:block;margin-bottom:2px;"><i class="fa-solid fa-fingerprint"></i> Firma electrónica lista para emitir</strong>' +
+              '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos y retribución estipulados para este proyecto.</span>' +
+            '</div>' +
+            '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url) + '">' +
