@@ -248,37 +248,6 @@
           <div class="card-header">
             <div>
               <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Notificaciones Recientes</div>
-
-            <div class="mc-header">
-              <div class="mc-label">Completados</div>
-              <div class="mc-icon"><i class="fa fa-trophy"></i></div>
-            </div>
-            <div class="mc-value">{{ proyectos_completados }}</div>
-            <div class="mc-sub">Proyectos finalizados</div>
-          </div>
-          <div class="metric-card accent">
-            <div class="mc-header">
-              <div class="mc-label">Disponibles</div>
-              <div class="mc-icon"><i class="fa fa-briefcase"></i></div>
-            </div>
-            <div class="mc-value">{{ nuevos_proyectos }}</div>
-            <div class="mc-sub">Para postularse</div>
-          </div>
-          <div class="metric-card warning">
-            <div class="mc-header">
-              <div class="mc-label">Calificación</div>
-              <div class="mc-icon"><i class="fa fa-star"></i></div>
-            </div>
-            <div class="mc-value">{{ calificacion_promedio }}</div>
-            <div class="mc-sub">Promedio / 5.0</div>
-          </div>
-        </div>
-
-        <!-- Notificaciones recientes -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Notificaciones Recientes</div>
             </div>
             {% if notificaciones_pendientes_count > 0 %}
               <form action="{% url 'notificaciones_marcar_todas_leidas' %}" method="POST">
@@ -303,7 +272,7 @@
         </div>
       </div>
 
-      <!-- Chat -->
+      <!-- Chat (panel tipo WhatsApp: lista a la izquierda, conversación a la derecha) -->
       <div id="centro-chat" class="seccion-v">
         <div class="page-header">
           <div>
@@ -311,144 +280,175 @@
             <div class="page-subtitle">Conversaciones con empresas y soporte</div>
           </div>
         </div>
-        <div class="cards-grid">
-          <div class="project-card" style="border-left:3px solid var(--accent);">
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-              <div class="user-avatar" style="width:44px;height:44px;font-size:16px;"><i class="fa fa-shield-halved"></i></div>
-              <div>
-                <div class="project-card-title">Soporte JobDevs</div>
-                <div class="project-card-sub">Asistencia técnica y administrativa</div>
-              </div>
+
+        <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <span>Conversaciones</span>
+              <span class="jd-chat-count">{% if admin_id %}{{ conversaciones_chat|length|add:"1" }}{% else %}{{ conversaciones_chat|length }}{% endif %}</span>
             </div>
-            {% if admin_id %}
-            <a href="{% url 'sala_chat_general' admin_id %}" class="btn btn-primary btn-full">
-              <i class="fa fa-comments"></i> Chatear con Admin
-            </a>
-            {% endif %}
-          </div>
-          {% for conv in conversaciones_chat %}
-            <div class="project-card">
-              <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-                <div class="user-avatar" style="width:44px;height:44px;font-size:16px;background:#374151;">
-                  {{ conv.empresa_nombre|slice:":1"|upper }}
-                </div>
-                <div>
-                  <div class="project-card-title">{{ conv.empresa_nombre }}</div>
-                  <div class="project-card-sub">{{ conv.titulo }}</div>
+            <div class="jd-chat-items" data-chat-list>
+              {% if admin_id %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' admin_id %}"
+                      data-receptor="{{ admin_id }}" data-proyecto="0">
+                <span class="jd-chat-avatar"><i class="fa fa-shield-halved"></i></span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">Soporte JobDevs</span>
+                  </span>
+                  <span class="jd-chat-preview">Asistencia técnica y administrativa</span>
+                </span>
+              </button>
+              {% endif %}
+
+              {% for conv in conversaciones_chat %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion_proyecto' conv.empresa_id conv.proyecto_id %}"
+                      data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
+                <span class="jd-chat-avatar">{{ conv.empresa_nombre|slice:":1"|upper }}</span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ conv.empresa_nombre }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ conv.titulo }}</span>
                   {% if conv.es_negociacion %}
-                    <span class="badge badge-info" style="margin-top:4px;font-size:10px;"><i class="fa fa-handshake"></i> En Negociación</span>
+                  <span class="jd-chat-tag">En negociación</span>
                   {% endif %}
-                </div>
-              </div>
-              <a href="{% url 'sala_chat' conv.empresa_id conv.proyecto_id %}" class="btn btn-secondary btn-full">
-                <i class="fa fa-message"></i> Hablar con Empresa
-              </a>
-            </div>
-          {% empty %}
-            <div class="empty-state"><i class="fa fa-comments"></i><p>Sin conversaciones activas</p></div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Postulaciones -->
-      <div id="postulaciones" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Mis Postulaciones</div>
-            <div class="page-subtitle">Seguimiento de solicitudes enviadas</div>
-          </div>
-        </div>
-        <div data-testid="postulaciones-vigentes" style="margin-bottom:24px;">
-          <div class="label-section" style="margin-bottom:10px;">
-            <i class="fa fa-file-circle-check" style="margin-right:6px;"></i>Postulaciones vigentes ({{ postulaciones_vigentes_count }})
-          </div>
-          <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Proyecto</th>
-                <th>Fecha Envío</th>
-                <th>Estado</th>
-                <th style="text-align:right;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for post in postulaciones_vigentes %}
-                <tr>
-                  <td>
-                    <strong>{{ post.proyecto.titulo }}</strong>
-                    <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
-                  </td>
-                  <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
-                  <td>
-                    <span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span>
-                  </td>
-                  <td style="text-align:right;">
-                    <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
-                      {% if post.contrato_digital %}
-                        <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" class="btn {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
-                          <i class="fa fa-file-signature"></i> {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}Firmar Contrato{% else %}Ver Contrato{% endif %}
-                        </a>
-                      {% endif %}
-                      {% if post.estado in 'pendiente,en_negociacion,aceptada' %}
-                        <a href="{% url 'sala_chat' post.proyecto.empresa_id post.proyecto.id %}" class="btn btn-secondary btn-sm" title="Conversar con la empresa">
-                          <i class="fa fa-message"></i> Chatear
-                        </a>
-                      {% endif %}
-                    </div>
-                  </td>
-                </tr>
+                </span>
+              </button>
               {% empty %}
-                <tr><td colspan="4">
-                  <div class="empty-state"><i class="fa fa-file-circle-xmark"></i><p>No tienes postulaciones vigentes</p></div>
-                </td></tr>
+                {% if not admin_id %}
+                <div class="jd-chat-list-empty">
+                  <i class="fa fa-comments"></i>
+                  Sin conversaciones activas
+                </div>
+                {% endif %}
               {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        </div>
-
-        <div data-testid="postulaciones-historial">
-          <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
-            <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
-              <i class="fa fa-clock-rotate-left" style="margin-right:6px;"></i>Historial de postulaciones rechazadas ({{ postulaciones_historial_count }})
-            </summary>
-            <div class="table-wrapper" style="margin-top:14px;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Proyecto</th>
-                    <th>Fecha Envío</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for post in postulaciones_historial %}
-                    <tr>
-                      <td>
-                        <strong>{{ post.proyecto.titulo }}</strong>
-                        <div style="font-size:11px;color:var(--text-muted);">Empresa: {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</div>
-                      </td>
-                      <td style="color:var(--text-secondary)">{{ post.fecha|date:"d/m/Y" }}</td>
-                      <td><span class="badge badge-{{ post.estado }}">{{ post.get_estado_display }}</span></td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="3">
-                      <div class="empty-state"><i class="fa fa-clock-rotate-left"></i><p>Sin postulaciones rechazadas en tu historial</p></div>
-                    </td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
             </div>
-          </details>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i class="fa fa-comments"></i>
+              <p>Selecciona una conversación</p>
+              <span>Elige un contacto de la lista</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="Volver">
+                  <i class="fa fa-arrow-left"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name" data-chat-name>—</div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
+                </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="Escribe un mensaje…" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="Enviar">
+                  <i class="fa fa-paper-plane"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i class="fa fa-lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
-      <!-- Trabajo Actual -->
-      <div id="activos" class="seccion-v">
-        <div class="page-header">
+      <!-- Explorar Proyectos (Sección Integrada) -->
+      <div id="explorar" class="seccion-v">
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
           <div>
-            <div class="page-title">Proyectos en Desarrollo</div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="compass" style="color:var(--accent); width:24px; height:24px;"></i>
+              Explorar Catálogo de Proyectos
+            </div>
+            <div class="page-subtitle">Encuentra oportunidades reales, filtra por especialidad y postula tu talento</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge badge-info" id="devExploreCountBadge" style="font-family:var(--font-mono); font-size:11px;">
+              {{ proyectos_explorar|length }} DISPONIBLES
+            </span>
+          </div>
+        </div>
+
+        <!-- Barra de Filtros Cyber Dark -->
+        <div class="filters-bar" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:24px; background:var(--card-bg); padding:16px; border:1px solid var(--border); border-radius:var(--radius);">
+          <div class="filter-group" style="flex:1; min-width:220px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Buscar por palabra clave
+            </label>
+            <div style="position:relative;">
+              <input type="text" id="devExploreSearch" class="form-control" placeholder="Título, empresa, stack o tecnología..." style="width:100%; padding-left:34px; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px;">
+              <i data-lucide="search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); width:15px; height:15px;"></i>
+            </div>
+          </div>
+
+          <div class="filter-group" style="min-width:180px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Tipo de Solución
+            </label>
+            <select id="devExploreCategory" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todas las categorías</option>
+              {% for c in categorias_solucion %}
+                <option value="{{ c.slug }}">{{ c.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="filter-group" style="min-width:140px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Prioridad
+            </label>
+            <select id="devExplorePriority" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todas</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary" id="devExploreResetBtn" style="height:40px; padding:0 16px; font-size:12.5px;" onclick="resetDevExploreFilters()">
+              <i data-lucide="rotate-ccw" style="width:14px; height:14px; margin-right:4px;"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid de Proyectos Cyber Tech -->
+        <div class="cards-grid" id="devExploreGrid">
+          {% for p in proyectos_explorar %}
+            <div class="project-card dev-explore-card"
+                 data-id="{{ p.id }}"
+                 data-titulo="{{ p.titulo|lower }}"
+                 data-desc="{{ p.descripcion|lower }}"
+                 data-tipo="{{ p.tipo_solucion|lower }}"
+                 data-prioridad="{{ p.prioridad|lower }}"
+                 data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}"
+                 style="display:flex; flex-direction:column; justify-content:space-between;">
+              
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:8px;">
+                  <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
+                  
+                  <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
+                    {% csrf_token %}
+
             <div class="page-subtitle">Registra avances y gestiona entregas</div>
           </div>
         </div>
