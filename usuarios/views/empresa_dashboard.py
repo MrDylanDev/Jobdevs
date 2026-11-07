@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Q, Count, Prefetch
 from django.utils import timezone
@@ -292,6 +293,36 @@ def detalle_empresa(request, empresa_id):
     )
     proyectos_finalizados_count = Proyecto.objects.filter(empresa=empresa, estado='finalizado').count()
     proyectos_activos_count = Proyecto.objects.filter(empresa=empresa, estado='en_desarrollo').count()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+        resenas_data = [
+            {
+                'desarrollador': r.desarrollador.nombre or r.desarrollador.username,
+                'puntuacion': r.puntuacion,
+                'comentario': r.comentario,
+                'fecha': r.fecha.strftime('%d/%m/%Y'),
+                'proyecto_titulo': r.proyecto.titulo,
+            }
+            for r in resenas[:5]
+        ]
+        return JsonResponse({
+            'ok': True,
+            'empresa': {
+                'id': empresa.id,
+                'nombre': perfil.nombre_empresa or empresa.nombre or empresa.username,
+                'username': empresa.username,
+                'sector': perfil.sector or 'No especificado',
+                'ciudad': perfil.ciudad or 'No especificada',
+                'descripcion': perfil.descripcion or 'Sin descripción registrada.',
+                'es_verificada': perfil.es_verificada,
+                'badge_label': perfil.badge_info['label'] if perfil.badge_info else 'Sin Verificar',
+                'reputacion': round(float(promedio), 1),
+                'total_resenas': total_resenas,
+                'proyectos_activos': proyectos_activos_count,
+                'proyectos_finalizados': proyectos_finalizados_count,
+                'resenas': resenas_data,
+            }
+        })
 
     context = {
         'empresa': empresa,
