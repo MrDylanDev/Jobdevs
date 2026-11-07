@@ -420,3 +420,27 @@ class TestRegistroView:
 
 
 
+
+    def test_registro_no_falla_si_broker_celery_no_esta_disponible(self, client):
+        """Regresión: un broker caído no debe romper el registro ya persistido."""
+        from unittest import mock
+
+        with mock.patch(
+            'notificaciones.tasks.enviar_email_transaccional_task.delay',
+            side_effect=RuntimeError('Retry limit exceeded while trying to reconnect to the Celery result store backend.'),
+        ):
+            response = client.post(reverse('registro'), {
+                'username': 'devbrokercaido',
+                'nombre': 'Dev Broker Caido',
+                'tipo_documento': 'cedula',
+                'identificacion': '99887766',
+                'email': 'devbrokercaido@test.jobdevs',
+                'fecha_nacimiento': '2000-01-01',
+                'rol': 'desarrollador',
+                'password1': 'TestPass123!',
+                'password2': 'TestPass123!',
+            })
+
+        assert response.status_code == 302
+        assert response.url == reverse('dashboard_desarrollador')
+        assert User.objects.filter(username='devbrokercaido').exists()
