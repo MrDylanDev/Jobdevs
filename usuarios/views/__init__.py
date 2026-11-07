@@ -6,6 +6,7 @@ from .auth_views import (
     logout_view,
     recuperar_view,
     restablecer_view,
+    api_sesion,
 )
 
 from .registration_views import (

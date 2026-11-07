@@ -103,6 +103,16 @@ def logout_view(request):
     logout(request)
     return redirect('inicio')
 
+
+@require_http_methods(["GET"])
+def api_sesion(request):
+    """Comprobación ligera para el cliente del chat: no toca mensajes."""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {'ok': False, 'error': 'Sesión expirada.'}, status=401
+        )
+    return JsonResponse({'ok': True, 'usuario_id': request.user.id})
+
 def recuperar_view(request):
     if request.method == 'POST':
         email = (request.POST.get('email') or '').strip()

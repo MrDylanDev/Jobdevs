@@ -36,6 +36,7 @@ urlpatterns = [
     path('restablecer/<str:token>/', views.restablecer_view, name='restablecer'),
 
     # APIs de Usuarios
+    path('api/sesion/', views.api_sesion, name='api_sesion'),
     path('api/', views.api_usuarios, name='api_usuarios'),
     path('api/<int:usuario_id>/', views.api_usuario_detalle, name='api_usuario_detalle'),
     path('api/crear/', views.api_crear_usuario, name='api_crear_usuario'),

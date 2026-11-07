@@ -3,6 +3,8 @@ Tests unitarios y de integración para Consumers de Mensajes (SCRUM-189).
 Prueba ChatGrupalConsumer y ChatDirectoConsumer usando WebsocketCommunicator.
 """
 
+from unittest.mock import patch
+
 import pytest
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import AnonymousUser
@@ -11,6 +13,7 @@ from usuarios.models import Usuario
 from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
 from mensajes.models import Mensaje
+from mensajes.consumers import ChatDirectoConsumer
 
 
 @pytest.mark.django_db(transaction=True)
@@ -19,9 +22,13 @@ class TestChatConsumers:
 
     async def test_chat_grupal_rechaza_anonimo(self):
         communicator = WebsocketCommunicator(application, "/ws/chat/grupal/1/")
-        connected, subprotocol = await communicator.connect()
-        assert not connected
-        await communicator.disconnect()
+        connected, _ = await communicator.connect()
+        # El consumer acepta y cierra con 4401 para que el navegador pueda
+        # distinguir sesión expirada de un fallo de red (1006).
+        assert connected
+        event = await communicator.receive_output()
+        assert event["type"] == "websocket.close"
+        assert event["code"] == 4401
 
     async def test_chat_grupal_rechaza_usuario_sin_permiso(self):
         # Crear usuario ajeno y proyecto
@@ -38,8 +45,10 @@ class TestChatConsumers:
         communicator = WebsocketCommunicator(application, f"/ws/chat/grupal/{proyecto.id}/")
         communicator.scope["user"] = ajeno
         connected, _ = await communicator.connect()
-        assert not connected
-        await communicator.disconnect()
+        assert connected
+        event = await communicator.receive_output()
+        assert event["type"] == "websocket.close"
+        assert event["code"] == 4403
 
     async def test_chat_grupal_flujo_exitoso(self):
         empresa = await Usuario.objects.acreate(
@@ -95,8 +104,10 @@ class TestChatConsumers:
         communicator = WebsocketCommunicator(application, f"/ws/chat/{user.id}/")
         communicator.scope["user"] = user
         connected, _ = await communicator.connect()
-        assert not connected
-        await communicator.disconnect()
+        assert connected
+        event = await communicator.receive_output()
+        assert event["type"] == "websocket.close"
+        assert event["code"] == 4403
 
     async def test_chat_directo_flujo_exitoso(self):
         empresa = await Usuario.objects.acreate(
@@ -134,6 +145,64 @@ class TestChatConsumers:
         assert resp_emp["type"] == "mensaje"
         assert resp_emp["mensaje"]["contenido"] == "Mensaje directo privado para la empresa."
         assert resp_emp["mensaje"]["remitente_id"] == dev.id
+        assert resp_emp["mensaje"]["receptor_id"] == empresa.id
+        assert resp_emp["mensaje"]["proyecto_id"] == proyecto.id
+        assert resp_emp["mensaje"]["fecha"]
+
+        # El receptor está conectado: el mensaje se marca leído sin polling.
+        mensaje_db = await Mensaje.objects.filter(
+            remitente=dev, receptor=empresa
+        ).afirst()
+        assert mensaje_db is not None
+        assert mensaje_db.leido is True
+
+        await comm_dev.disconnect()
+        await comm_emp.disconnect()
+
+    async def test_chat_directo_entrega_aunque_falle_marcar_leido(self):
+        empresa = await Usuario.objects.acreate(
+            username="empresa_mr", email="empresa_mr@chat.com", rol="empresa"
+        )
+        dev = await Usuario.objects.acreate(
+            username="dev_mr", email="dev_mr@chat.com", rol="desarrollador"
+        )
+        proyecto = await Proyecto.objects.acreate(
+            empresa=empresa, titulo="Proyecto Mark Read", estado="en_desarrollo"
+        )
+        await Contratacion.objects.acreate(
+            proyecto=proyecto, empresa=empresa, desarrollador=dev, estado="activa"
+        )
+
+        comm_dev = WebsocketCommunicator(
+            application, f"/ws/chat/{empresa.id}/?proyecto_id={proyecto.id}"
+        )
+        comm_dev.scope["user"] = dev
+        assert (await comm_dev.connect())[0]
+
+        comm_emp = WebsocketCommunicator(
+            application, f"/ws/chat/{dev.id}/?proyecto_id={proyecto.id}"
+        )
+        comm_emp.scope["user"] = empresa
+        assert (await comm_emp.connect())[0]
+
+        async def _marcar_leido_falla(self, mensaje_id):
+            raise RuntimeError("BD caída")
+
+        with patch.object(
+            ChatDirectoConsumer, "_marcar_leido", _marcar_leido_falla
+        ):
+            await comm_dev.send_json_to({
+                "contenido": "El mensaje debe entregarse igual."
+            })
+            resp_emp = await comm_emp.receive_json_from()
+
+        assert resp_emp["type"] == "mensaje"
+        assert resp_emp["mensaje"]["contenido"] == "El mensaje debe entregarse igual."
+        mensaje_db = await Mensaje.objects.filter(
+            remitente=dev, receptor=empresa
+        ).afirst()
+        assert mensaje_db is not None
+        assert mensaje_db.leido is False
 
         await comm_dev.disconnect()
         await comm_emp.disconnect()

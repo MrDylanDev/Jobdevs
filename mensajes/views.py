@@ -1,4 +1,8 @@
 import json
+import logging
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -26,6 +30,9 @@ from .policies import (
     puede_participar_en_chat_grupal,
     puede_ver_mensaje,
 )
+
+logger = logging.getLogger(__name__)
+
 
 @login_required
 def sala_chat_grupal(request, proyecto_id):
@@ -376,6 +383,60 @@ def _serializar_mensaje(mensaje, usuario):
     }
 
 
+def _grupo_chat_directo(usuario_id, receptor_id, proyecto):
+    """Mismo nombre de grupo que usa ChatDirectoConsumer."""
+    ids = sorted([int(usuario_id), int(receptor_id)])
+    sufijo = f'_proy_{proyecto.id}' if proyecto is not None else '_general'
+    return f'chat_directo_{ids[0]}_{ids[1]}{sufijo}'
+
+
+def _payload_mensaje_directo(mensaje, proyecto):
+    """Payload neutro para el broadcast: el cliente calcula es_propio."""
+    fecha_local = timezone.localtime(mensaje.fecha_envio)
+    return {
+        'id': mensaje.id,
+        'remitente_id': mensaje.remitente_id,
+        'remitente_nombre': _nombre_usuario(mensaje.remitente),
+        'remitente_rol': mensaje.remitente.rol,
+        'receptor_id': mensaje.receptor_id,
+        'proyecto_id': proyecto.id if proyecto is not None else None,
+        'contenido': mensaje.contenido,
+        'fecha_envio': fecha_local.strftime('%H:%M'),
+        'fecha': fecha_local.strftime('%d/%m/%Y'),
+        'es_grupal': False,
+    }
+
+
+def _emitir_mensaje_directo(mensaje, proyecto):
+    """Emite por Channels un mensaje guardado por el fallback HTTP.
+
+    El mensaje ya está persistido; si el channel layer falla, la petición
+    HTTP no debe fallar. Solo se registra el problema para diagnóstico.
+    """
+    channel_layer = get_channel_layer()
+    if channel_layer is None:
+        logger.warning(
+            'Channel layer no configurado; no se emitió el mensaje %s.',
+            mensaje.id,
+        )
+        return
+
+    try:
+        async_to_sync(channel_layer.group_send)(
+            _grupo_chat_directo(
+                mensaje.remitente_id, mensaje.receptor_id, proyecto
+            ),
+            {
+                'type': 'chat.message',
+                'mensaje': _payload_mensaje_directo(mensaje, proyecto),
+            },
+        )
+    except Exception:
+        logger.exception(
+            'No se pudo emitir el mensaje %s por Channels.', mensaje.id
+        )
+
+
 def _mensajes_de_conversacion(usuario, receptor, proyecto):
     """Mensajes 1:1 entre dos usuarios, aislados por proyecto (RF 6.1.3)."""
     qs = Mensaje.objects.filter(
@@ -477,6 +538,8 @@ def api_enviar(request):
         return _json_error(str(exc), 403)
     except ValidationError as exc:
         return _json_error(' '.join(exc.messages), 400)
+
+    _emitir_mensaje_directo(mensaje, proyecto)
 
     return JsonResponse(
         {'mensaje': _serializar_mensaje(mensaje, request.user)}, status=201

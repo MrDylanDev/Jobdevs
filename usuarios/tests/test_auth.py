@@ -515,3 +515,31 @@ class TestRestablecerView:
         assert user.is_active
         assert not user.bloqueado_por_intentos
         assert user.intentos_fallidos == 0
+
+
+class TestApiSesion:
+    """Comprobación ligera usada por el cliente del chat."""
+
+    def test_anonimo_devuelve_401(self, client):
+        response = client.get(reverse('api_sesion'))
+
+        assert response.status_code == 401
+        assert response.json()['ok'] is False
+
+    def test_autenticado_devuelve_200(self, client, desarrollador_user):
+        client.force_login(desarrollador_user)
+
+        response = client.get(reverse('api_sesion'))
+
+        assert response.status_code == 200
+        assert response.json() == {
+            'ok': True,
+            'usuario_id': desarrollador_user.id,
+        }
+
+    def test_solo_acepta_get(self, client, desarrollador_user):
+        client.force_login(desarrollador_user)
+
+        response = client.post(reverse('api_sesion'))
+
+        assert response.status_code == 405

@@ -6,6 +6,8 @@ Maneja conexiones WebSocket para:
 """
 
 import json
+import logging
+
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -16,6 +18,8 @@ from .policies import puede_participar_en_chat_grupal, puede_comunicarse
 from proyectos.models import Proyecto
 from usuarios.models import Usuario
 
+logger = logging.getLogger(__name__)
+
 
 class ChatGrupalConsumer(AsyncJsonWebsocketConsumer):
     """Maneja WebSocket para salas grupales de proyecto ws/chat/grupal/<proyecto_id>/"""
@@ -23,6 +27,9 @@ class ChatGrupalConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get("user")
         if not self.user or not self.user.is_authenticated:
+            # Aceptar primero permite que el navegador reciba el código 4401
+            # en vez de un fallo de handshake genérico (1006).
+            await self.accept()
             await self.close(code=4401)
             return
 
@@ -32,6 +39,9 @@ class ChatGrupalConsumer(AsyncJsonWebsocketConsumer):
         # Verificar permisos de acceso al proyecto
         autorizado, error_msg = await self._verificar_acceso()
         if not autorizado:
+            # Aceptar primero permite que el navegador reciba el código 4403
+            # en vez de un fallo de handshake genérico (1006).
+            await self.accept()
             await self.close(code=4403)
             return
 
@@ -113,6 +123,9 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get("user")
         if not self.user or not self.user.is_authenticated:
+            # Aceptar primero permite que el navegador reciba el código 4401
+            # en vez de un fallo de handshake genérico (1006).
+            await self.accept()
             await self.close(code=4401)
             return
 
@@ -131,6 +144,9 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
         # Verificar permisos
         autorizado, error_msg = await self._verificar_acceso()
         if not autorizado:
+            # Aceptar primero permite que el navegador reciba el código 4403
+            # en vez de un fallo de handshake genérico (1006).
+            await self.accept()
             await self.close(code=4403)
             return
 
@@ -178,10 +194,33 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def chat_message(self, event):
+        mensaje = event["mensaje"]
+        # Entregar primero: un fallo transitorio de BD no debe cortar el
+        # mensaje en tiempo real.
         await self.send_json({
             "type": "mensaje",
-            "mensaje": event["mensaje"]
+            "mensaje": mensaje
         })
+        # Si el conectado es el receptor, la conversación está abierta:
+        # marcamos el mensaje como leído sin necesidad de polling HTTP.
+        if mensaje.get("receptor_id") == self.user.id:
+            try:
+                await self._marcar_leido(mensaje.get("id"))
+            except Exception:
+                logger.exception(
+                    "No se pudo marcar como leído el mensaje %s",
+                    mensaje.get("id"),
+                )
+
+    @database_sync_to_async
+    def _marcar_leido(self, mensaje_id):
+        if not mensaje_id:
+            return
+        Mensaje.objects.filter(
+            id=mensaje_id,
+            receptor=self.user,
+            leido=False,
+        ).update(leido=True)
 
     @database_sync_to_async
     def _verificar_acceso(self):
@@ -210,12 +249,16 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
             proyecto=proyecto,
             titulo=titulo
         )
+        fecha_local = timezone.localtime(msg.fecha_envio)
         return {
             "id": msg.id,
             "remitente_id": self.user.id,
             "remitente_nombre": self.user.nombre or self.user.username,
             "remitente_rol": self.user.rol,
+            "receptor_id": self.receptor_id,
+            "proyecto_id": self.proyecto_id,
             "contenido": msg.contenido,
-            "fecha_envio": msg.fecha_envio.strftime("%H:%M"),
+            "fecha_envio": fecha_local.strftime("%H:%M"),
+            "fecha": fecha_local.strftime("%d/%m/%Y"),
             "es_grupal": False,
         }
