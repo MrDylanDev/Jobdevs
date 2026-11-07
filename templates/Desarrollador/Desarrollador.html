@@ -7,32 +7,45 @@
   <title>JobDevs | Desarrollador</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'Desarrollador/css/desarrollador.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
 </head>
-<body>
+<body data-seccion-inicial="{{ seccion_activa }}">
+
+<!-- Texturas Cyber Tech (Estilo Landing Page) -->
+<div class="grain" id="grain"></div>
+<div class="scan-line"></div>
+<div class="tech-bg"></div>
+
 <div class="app-layout">
 
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
-      <div>
-        <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Desarrollador</div>
+      <div class="brand-tech-wrap">
+        <div class="brand-square blink"></div>
+        <div>
+          <div class="sidebar-brand-text">JobDevs<span class="brand-dot"></span></div>
+          <div class="sidebar-brand-sub">[ DESARROLLADOR ]</div>
+        </div>
       </div>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
       <button class="nav-item active" onclick="verSeccion('inicio', this)">
-        <i class="fa fa-house"></i>
+        <i data-lucide="layout-dashboard" class="fa fa-house"></i>
         <span>Inicio</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="verSeccion('centro-chat', this)">
-        <i class="fa fa-comments"></i>
+        <i data-lucide="message-square" class="fa fa-comments"></i>
         <span>Mensajes</span>
         {% if mensajes_no_leidos > 0 %}
           <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
@@ -42,35 +55,38 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Proyectos</div>
-      <a class="nav-item" href="{% url 'listar_proyectos' %}">
-        <i class="fa fa-magnifying-glass"></i>
+      <button class="nav-item" onclick="verSeccion('explorar', this)">
+        <i data-lucide="compass" class="fa fa-compass"></i>
         <span>Explorar</span>
-      </a>
+        {% if proyectos_explorar|length > 0 %}
+          <span class="nav-badge">{{ proyectos_explorar|length }}</span>
+        {% endif %}
+      </button>
       <button class="nav-item" onclick="verSeccion('postulaciones', this)">
-        <i class="fa fa-file-lines"></i>
+        <i data-lucide="file-text" class="fa fa-file-lines"></i>
         <span>Postulaciones</span>
       </button>
       <button class="nav-item" onclick="verSeccion('activos', this)">
-        <i class="fa fa-rocket"></i>
+        <i data-lucide="rocket" class="fa fa-rocket"></i>
         <span>Trabajo Actual</span>
       </button>
       <button class="nav-item" onclick="verSeccion('completados', this)">
-        <i class="fa fa-trophy"></i>
+        <i data-lucide="trophy" class="fa fa-trophy"></i>
         <span>Finalizados</span>
       </button>
       <button class="nav-item" onclick="verSeccion('contratos', this)">
-        <i class="fa fa-file-signature"></i>
+        <i data-lucide="file-check" class="fa fa-file-signature"></i>
         <span>Contratos</span>
         {% if contratos_pendientes_firma_count > 0 %}
           <span class="nav-badge" style="background:#2563eb;">{{ contratos_pendientes_firma_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="verSeccion('favoritos', this)">
-        <i class="fa fa-heart"></i>
+        <i data-lucide="heart" class="fa fa-heart"></i>
         <span>Favoritos</span>
       </button>
       <button class="nav-item" onclick="verSeccion('disputas', this)">
-        <i class="fa fa-scale-balanced"></i>
+        <i data-lucide="scale" class="fa fa-scale-balanced"></i>
         <span>Disputas</span>
         {% if disputas_activas_count > 0 %}
           <span class="nav-badge">{{ disputas_activas_count }}</span>
@@ -80,16 +96,19 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Cuenta</div>
-      <a class="nav-item" href="{% url 'editar_perfil' %}">
-        <i class="fa fa-user"></i>
+      <button class="nav-item" onclick="verSeccion('perfil', this)">
+        <i data-lucide="user" class="fa fa-user"></i>
         <span>Mi Perfil</span>
-      </a>
+        {% if perfil and not perfil.es_verificado_sena %}
+          <span class="nav-badge" style="background:var(--warning);color:#000;">!</span>
+        {% endif %}
+      </button>
     </div>
 
     <hr class="sidebar-sep" style="margin-top: auto;">
     <div style="padding: 12px;">
       <a class="nav-item danger" href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
+        <i data-lucide="log-out" class="fa fa-right-from-bracket"></i>
         <span>Cerrar Sesión</span>
       </a>
     </div>
@@ -103,6 +122,7 @@
       <div class="top-header-title">
         Panel Desarrollador
         <span>/ JobDevs Platform</span>
+        <span class="top-sys-pill"><span class="top-sys-dot"></span> DEV // ONLINE</span>
       </div>
       <button class="notif-btn" title="Notificaciones">
         <i class="fa fa-bell"></i>
@@ -145,19 +165,19 @@
         {% endfor %}
       {% endif %}
 
-      <!-- Alerta Verificación SENA -->
+      <!-- Alerta Verificación SENA (tema oscuro del dashboard) -->
       {% if perfil and not perfil.es_verificado_sena %}
-        <div class="alert alert-warning" data-testid="alerta-verificacion-sena" style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:14px 18px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-triangle-exclamation" style="font-size:22px; color:#d97706;"></i>
+        <div class="jd-alert jd-alert-warning" data-testid="alerta-verificacion-sena">
+          <div class="jd-alert-main">
+            <i class="fa fa-triangle-exclamation jd-alert-icon"></i>
             <div>
-              <strong style="font-size:15px;">Tu perfil no está verificado como aprendiz SENA.</strong>
-              <div style="font-size:13px; color:#78350f;">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
+              <strong class="jd-alert-title">Tu perfil no está verificado como aprendiz SENA.</strong>
+              <div class="jd-alert-text">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
             </div>
           </div>
-          <a href="{% url 'solicitar_verificacion_desarrollador' %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:8px 14px; background:#f59e0b; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
+          <button type="button" class="jd-btn jd-btn-warning" onclick="abrirVerificacion()">
             <i class="fa fa-id-card"></i> Verificar mi ficha SENA
-          </a>
+          </button>
         </div>
       {% endif %}
 
@@ -172,7 +192,7 @@
                 <div style="font-size:13px; color:#1d4ed8; margin-top:2px;">La empresa <strong>{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</strong> inició negociación para el proyecto '{{ post.proyecto.titulo }}'{% if post.contrato_digital.monto > 0 %} ({{ post.contrato_digital.monto_formateado }}){% endif %}.</div>
               </div>
             </div>
-            <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:9px 18px; background:#2563eb; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">
+            <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:9px 18px; background:#2563eb; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2); cursor:pointer;">
               <i class="fa fa-file-signature"></i> Firmar Contrato Digital
             </a>
           </div>
@@ -198,6 +218,37 @@
             <div class="mc-sub" style="color:rgba(255,255,255,0.5);">En desarrollo ahora</div>
           </div>
           <div class="metric-card success">
+            <div class="mc-header">
+              <div class="mc-label">Completados</div>
+              <div class="mc-icon"><i class="fa fa-trophy"></i></div>
+            </div>
+            <div class="mc-value">{{ proyectos_completados }}</div>
+            <div class="mc-sub">Proyectos finalizados</div>
+          </div>
+          <div class="metric-card accent">
+            <div class="mc-header">
+              <div class="mc-label">Disponibles</div>
+              <div class="mc-icon"><i class="fa fa-briefcase"></i></div>
+            </div>
+            <div class="mc-value">{{ nuevos_proyectos }}</div>
+            <div class="mc-sub">Para postularse</div>
+          </div>
+          <div class="metric-card warning">
+            <div class="mc-header">
+              <div class="mc-label">Calificación</div>
+              <div class="mc-icon"><i class="fa fa-star"></i></div>
+            </div>
+            <div class="mc-value">{{ calificacion_promedio }}</div>
+            <div class="mc-sub">Promedio / 5.0</div>
+          </div>
+        </div>
+
+        <!-- Notificaciones recientes -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Notificaciones Recientes</div>
+
             <div class="mc-header">
               <div class="mc-label">Completados</div>
               <div class="mc-icon"><i class="fa fa-trophy"></i></div>
