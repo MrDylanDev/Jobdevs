@@ -116,3 +116,62 @@
   function cerrarModal() {
     if (!modalEl) return;
     modalEl.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
+      try { lastFocusEl.focus(); } catch (err) {}
+    }
+  }
+
+  function setHeader(kicker, titulo, sub) {
+    var k = document.getElementById('jdmKicker');
+    var t = document.getElementById('jdmTitulo');
+    var s = document.getElementById('jdmSub');
+    if (k) k.textContent = kicker || '';
+    if (t) t.textContent = titulo || '';
+    if (s) {
+      s.textContent = sub || '';
+      s.style.display = sub ? 'block' : 'none';
+    }
+  }
+
+  function setContent(html) {
+    var b = document.getElementById('jdmBody');
+    if (b) b.innerHTML = html;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  function setFooter(html) {
+    var f = document.getElementById('jdmFooter');
+    if (!f) return;
+    if (html) {
+      f.innerHTML = html;
+      f.hidden = false;
+    } else {
+      f.innerHTML = '';
+      f.hidden = true;
+    }
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 1. CONTRATO DIGITAL
+  // ─────────────────────────────────────────────────────────────
+  async function cargarContratoDigital(url, triggerBtn) {
+    abrirModal('');
+    setHeader('CONTRATACIÓN // CONTRATO DIGITAL', 'Cargando contrato…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.contrato) throw new Error(data.error || 'No se pudo obtener el contrato');
+
+      var c = data.contrato;
+      setHeader('CONTRATACIÓN // CONTRATO DIGITAL', c.codigo + ' — ' + c.proyecto_titulo, 'Estado: ' + c.estado_label);
+
