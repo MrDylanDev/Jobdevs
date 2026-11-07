@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.http import JsonResponse
-from django.urls import reverse
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
 from .models import Contratacion, ContratoDigital
@@ -80,6 +80,7 @@ def _es_xhr(request):
     return (
         'application/json' in accept
         or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.POST.get('origen') == 'dashboard'
     )
 
 
@@ -309,6 +310,46 @@ def ver_contrato_digital(request, contrato_id):
 
     postulacion = contrato.postulacion
     ya_firmo, puede_firmar = _permisos_firma(contrato, rol_contrato)
+
+    if _es_xhr(request) or request.headers.get('Accept') == 'application/json':
+        clausulas_raw = contrato.clausulas or ''
+        import re
+        # Split numbered clauses like "1. FOO: ... 2. BAR: ..." into a list
+        clausulas_list = [c.strip() for c in re.split(r'(?=\d+\.\s)', clausulas_raw) if c.strip()]
+        return JsonResponse({
+            'ok': True,
+            'status': 'ok',
+            'contrato': {
+                'id': contrato.id,
+                'codigo': f"CTR-{contrato.id:04d}",
+                'proyecto_id': postulacion.proyecto_id,
+                'proyecto_titulo': postulacion.proyecto.titulo,
+                'empresa_id': postulacion.proyecto.empresa_id,
+                'empresa_nombre': postulacion.proyecto.empresa.nombre or postulacion.proyecto.empresa.username,
+                'desarrollador_id': postulacion.desarrollador_id,
+                'desarrollador_nombre': postulacion.desarrollador.nombre or postulacion.desarrollador.username,
+                'monto': f"{contrato.monto:,.2f}" if contrato.monto else 'A convenir',
+                'monto_formateado': contrato.monto_formateado,
+                'moneda': contrato.get_moneda_display(),
+                'forma_pago': contrato.get_forma_pago_display(),
+                'medio_pago': contrato.get_medio_pago_display() if hasattr(contrato, 'get_medio_pago_display') else '',
+                'estado': contrato.estado,
+                'estado_label': contrato.get_estado_display(),
+                'firmado_empresa': contrato.firmado_empresa,
+                'fecha_firma_empresa': contrato.fecha_firma_empresa.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_empresa else None,
+                'firmado_desarrollador': contrato.firmado_desarrollador,
+                'fecha_firma_desarrollador': contrato.fecha_firma_desarrollador.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_desarrollador else None,
+                'puede_firmar': puede_firmar,
+                'ya_firmo': ya_firmo,
+                'clausulas': clausulas_list,
+                'comentarios': contrato.comentarios_adicionales or '',
+                'hash_documento': contrato.hash_documento or '',
+                'hash_contrato': contrato.hash_contrato or '',
+                'fecha_creacion': contrato.fecha_creacion.strftime('%d/%m/%Y %H:%M') if contrato.fecha_creacion else '',
+                'firma_url': reverse('firmar_contrato_digital', args=[contrato.id]),
+            }
+        })
+
     return render(request, 'contrataciones/contrato_digital.html', {
         'contrato': contrato,
         'postulacion': postulacion,
@@ -325,10 +366,15 @@ def ver_contrato_digital(request, contrato_id):
     })
 
 
-def _respuesta_firma_error(request, contrato, mensaje, nivel='error'):
-    """Devuelve 400 JSON para el modal in-situ o el redirect con mensaje tradicional."""
+def _respuesta_firma_error(request, contrato, mensaje, nivel='error', status=400):
+    """Devuelve 400/409 JSON para el modal in-situ o el redirect con mensaje tradicional."""
     if _es_xhr(request):
-        return JsonResponse({'status': 'error', 'message': mensaje}, status=400)
+        return JsonResponse({
+            'ok': (nivel == 'warning'),
+            'status': 'warning' if nivel == 'warning' else 'error',
+            'message': mensaje,
+            'mensaje': mensaje,
+        }, status=200 if nivel == 'warning' else status)
     getattr(messages, nivel)(request, mensaje)
     return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
@@ -355,13 +401,13 @@ def firmar_contrato_digital(request, contrato_id):
 
             if contrato.estado not in ('borrador', 'pendiente_firma') or postulacion.estado != 'en_negociacion':
                 return _respuesta_firma_error(
-                    request, contrato, "Este contrato ya no está disponible para firma.")
+                    request, contrato, "Este contrato ya no está disponible para firma.", status=409)
 
             if postulacion.fecha_limite_negociacion and postulacion.fecha_limite_negociacion < timezone.now():
                 from postulaciones.services import expirar_negociacion
                 expirar_negociacion(postulacion.id)
                 return _respuesta_firma_error(
-                    request, contrato, "El plazo para formalizar este contrato ha expirado.")
+                    request, contrato, "El plazo para formalizar este contrato ha expirado.", status=409)
 
             ya_firmo = contrato.firmado_empresa if rol_contrato == 'empresa' else contrato.firmado_desarrollador
             if ya_firmo:
@@ -420,10 +466,11 @@ def firmar_contrato_digital(request, contrato_id):
 
     if _es_xhr(request):
         return JsonResponse({
+            'ok': True,
             'status': 'ok',
             'message': mensaje,
+            'mensaje': mensaje,
             'esta_firmado': contrato.esta_firmado,
         })
-
     messages.success(request, mensaje)
     return redirect('ver_contrato_digital', contrato_id=contrato.id)
