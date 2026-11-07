@@ -588,3 +588,62 @@
       var txtComentario = document.getElementById('jdmComentario');
       var charCount = document.getElementById('jdmCharCount');
       var captions = ['', '1/5 - Muy insatisfactorio', '2/5 - Regular', '3/5 - Aceptable', '4/5 - Muy bueno', '5/5 - Excelente'];
+
+      function pintarEstrellas(n) {
+        stars.forEach(function (s, idx) {
+          s.classList.toggle('is-active', (idx + 1) <= n);
+        });
+      }
+
+      stars.forEach(function (star) {
+        star.addEventListener('click', function () {
+          puntuacionVal = parseInt(star.getAttribute('data-val'), 10);
+          inputPunt.value = puntuacionVal;
+          pintarEstrellas(puntuacionVal);
+          caption.textContent = captions[puntuacionVal] || '';
+          caption.style.color = '#00e676';
+        });
+        star.addEventListener('mouseenter', function () {
+          pintarEstrellas(parseInt(star.getAttribute('data-val'), 10));
+        });
+      });
+
+      document.getElementById('jdmStars').addEventListener('mouseleave', function () {
+        pintarEstrellas(puntuacionVal);
+      });
+
+      txtComentario.addEventListener('input', function () {
+        var len = txtComentario.value.trim().length;
+        charCount.textContent = len + ' / 20 caracteres mínimos';
+        charCount.style.color = len >= 20 ? '#00e676' : '#666666';
+      });
+
+      var btnEnviar = document.getElementById('jdmBtnEnviarCalificacion');
+      btnEnviar.addEventListener('click', async function () {
+        var errBox = document.getElementById('jdmCalificarError');
+        var com = txtComentario.value.trim();
+
+        if (!puntuacionVal) {
+          errBox.style.display = 'flex';
+          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar una puntuación de 1 a 5 estrellas.</span>';
+          return;
+        }
+        if (com.length < 20) {
+          errBox.style.display = 'flex';
+          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>El comentario debe tener al menos 20 caracteres.</span>';
+          return;
+        }
+
+        errBox.style.display = 'none';
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
+
+        try {
+          var formData = new FormData();
+          formData.append('puntuacion', puntuacionVal);
+          formData.append('comentario', com);
+          formData.append('origen', 'dashboard');
+
+          var postRes = await fetch(data.url_calificar, {
+            method: 'POST',
+            headers: {
