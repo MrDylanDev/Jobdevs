@@ -1,15 +1,28 @@
-{% load static %}
+{% load static i18n idioma %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Panel Corporativo</title>
+  <title>JobDevs | {% trans "Panel Corporativo" %}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=2">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261107_v3">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261107_v1">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
+  <script>
+    (function() {
+      var tema = 'dark';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        }
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 </head>
 <body>
@@ -22,25 +35,25 @@
       <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Empresa</div>
+        <div class="sidebar-brand-sub">{% trans "Empresa" %}</div>
       </div>
-      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="{% trans "Colapsar menú (solo iconos)" %}" aria-label="{% trans "Colapsar menú lateral" %}">
         <i data-lucide="panel-left-close"></i>
       </button>
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Principal</div>
-      <button class="nav-item active" onclick="switchTab('inicio', this)" title="Dashboard">
+      <div class="sidebar-group-label">{% trans "Principal" %}</div>
+      <button class="nav-item active" onclick="switchTab('inicio', this)" title="{% trans "Dashboard" %}">
         <i data-lucide="layout-dashboard"></i>
-        <span>Dashboard</span>
+        <span>{% trans "Dashboard" %}</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('centro-chat', this)" title="Mensajes">
+      <button class="nav-item" onclick="switchTab('centro-chat', this)" title="{% trans "Mensajes" %}">
         <i data-lucide="message-square"></i>
-        <span>Mensajes</span>
+        <span>{% trans "Mensajes" %}</span>
         {% if mensajes_no_leidos > 0 %}
           <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
         {% endif %}
@@ -48,26 +61,26 @@
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Gestión</div>
-      <button class="nav-item" onclick="switchTab('ofertas', this)" title="Mis Ofertas">
+      <div class="sidebar-group-label">{% trans "Gestión" %}</div>
+      <button class="nav-item" onclick="switchTab('ofertas', this)" title="{% trans "Mis Ofertas" %}">
         <i data-lucide="megaphone"></i>
-        <span>Mis Ofertas</span>
+        <span>{% trans "Mis Ofertas" %}</span>
         {% if total_postulaciones > 0 %}
           <span class="nav-badge">{{ total_postulaciones }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('desarrollo', this)" title="En Desarrollo">
+      <button class="nav-item" onclick="switchTab('desarrollo', this)" title="{% trans "En Desarrollo" %}">
         <i data-lucide="folder-kanban"></i>
-        <span>En Desarrollo</span>
+        <span>{% trans "En Desarrollo" %}</span>
       </button>
-      <button class="nav-item" onclick="switchTab('contratos', this)" title="Contratos"><i data-lucide="file-signature"></i><span>Contratos</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
-      <button class="nav-item" onclick="switchTab('historial', this)" title="Historial">
+      <button class="nav-item" onclick="switchTab('contratos', this)" title="{% trans "Contratos" %}"><i data-lucide="file-signature"></i><span>{% trans "Contratos" %}</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
+      <button class="nav-item" onclick="switchTab('historial', this)" title="{% trans "Historial" %}">
         <i data-lucide="history"></i>
-        <span>Historial</span>
+        <span>{% trans "Historial" %}</span>
       </button>
-      <button class="nav-item" onclick="switchTab('disputas', this)" title="Disputas">
+      <button class="nav-item" onclick="switchTab('disputas', this)" title="{% trans "Disputas" %}">
         <i data-lucide="scale"></i>
-        <span>Disputas</span>
+        <span>{% trans "Disputas" %}</span>
         {% if disputas_activas_count > 0 %}
           <span class="nav-badge">{{ disputas_activas_count }}</span>
         {% endif %}
@@ -75,18 +88,18 @@
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Cuenta</div>
-      <button class="nav-item" onclick="switchTab('perfil', this)" title="Perfil Empresa">
+      <div class="sidebar-group-label">{% trans "Cuenta" %}</div>
+      <button class="nav-item" onclick="switchTab('perfil', this)" title="{% trans "Perfil Empresa" %}">
         <i data-lucide="building-2"></i>
-        <span>Perfil Empresa</span>
+        <span>{% trans "Perfil Empresa" %}</span>
       </button>
     </div>
 
     <hr class="sidebar-sep" style="margin-top:auto;">
     <div style="padding:12px;">
-      <a class="nav-item danger" href="{% url 'logout' %}" title="Cerrar Sesión">
+      <a class="nav-item danger" href="{% url 'logout' %}" title="{% trans "Cerrar Sesión" %}">
         <i data-lucide="log-out"></i>
-        <span>Cerrar Sesión</span>
+        <span>{% trans "Cerrar Sesión" %}</span>
       </a>
     </div>
   </aside>
@@ -96,20 +109,38 @@
 
     <!-- Top header -->
     <header class="top-header">
-      <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú de navegación">
+      {% get_current_language as IDIOMA %}
+      {% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
+      <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="{% trans "Abrir menú de navegación" %}">
         <i data-lucide="menu"></i>
       </button>
 
       <div class="top-header-title">
-        <span>Panel Corporativo</span>
+        <span>{% trans "Panel Corporativo" %}</span>
         <span class="header-sep">/</span>
         <span class="header-tenant">{{ perfil.nombre_empresa|default:request.user.username }}</span>
       </div>
 
       <div class="header-actions">
+        <!-- Conmutador de Tema Claro / Oscuro (Idéntico a la Landing) -->
+        <button type="button" class="theme-toggle" id="empresaThemeToggle" onclick="toggleEmpresaTheme()" aria-pressed="false" aria-label="{% trans "Cambiar entre tema oscuro y claro" %}" title="{% trans "Cambiar entre tema oscuro y claro" %}">
+          <span class="theme-toggle-icon theme-toggle-icon--dark" title="{% trans "Tema oscuro" %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </span>
+          <span class="theme-toggle-icon theme-toggle-icon--light" title="{% trans "Tema claro" %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </span>
+        </button>
+
+        <!-- Conmutador de Idioma ES / EN (Solamente Empresa) -->
+        <a class="lang-switch" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" aria-label="{% if IDIOMA == 'en' %}Cambiar a Español{% else %}Switch to English{% endif %}" title="{% if IDIOMA == 'en' %}Cambiar a Español{% else %}Switch to English{% endif %}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          <span class="lang-switch-code">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
+        </a>
+
         <!-- Notificaciones Popover -->
         <div class="notif-wrapper">
-          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="Notificaciones" aria-label="Notificaciones">
+          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="{% trans "Notificaciones" %}" aria-label="{% trans "Notificaciones" %}">
             <i data-lucide="bell"></i>
             {% if notificaciones_pendientes_count > 0 %}
               <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
@@ -117,13 +148,13 @@
           </button>
           <div id="notifPopover" class="notif-popover">
             <div class="notif-popover-header">
-              <span class="notif-popover-title">Notificaciones</span>
+              <span class="notif-popover-title">{% trans "Notificaciones" %}</span>
               {% if notificaciones %}
                 <form action="{% url 'notificaciones_limpiar' %}" method="POST" style="margin:0;" onsubmit="limpiarNotificacionesAjax(event, this)">
                   {% csrf_token %}
-                  <button type="submit" class="btn-corp-action danger-subtle" style="font-size:11px; padding:3px 8px;" title="Borrar todas las notificaciones para que no se acumulen">
+                  <button type="submit" class="btn-corp-action danger-subtle" style="font-size:11px; padding:3px 8px;" title="{% trans "Borrar todas las notificaciones para que no se acumulen" %}">
                     <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
-                    <span>Limpiar</span>
+                    <span>{% trans "Limpiar" %}</span>
                   </button>
                 </form>
               {% endif %}
@@ -137,7 +168,7 @@
               {% empty %}
                 <div class="notif-popover-empty">
                   <i data-lucide="bell-off"></i>
-                  <span>No hay notificaciones</span>
+                  <span>{% trans "No hay notificaciones" %}</span>
                 </div>
               {% endfor %}
             </div>
@@ -145,23 +176,23 @@
         </div>
 
         {% with badge=perfil.badge_info %}
-        <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="Verificación NIT / Identidad">
+        <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="{% trans "Verificación NIT / Identidad" %}">
           <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
-          <span>{{ badge.label }}</span>
+          <span>{% trans badge.label %}</span>
         </a>
         {% endwith %}
 
-        <div class="user-chip-corp" onclick="switchTab('perfil')" style="cursor:pointer;" title="Ver perfil de la empresa">
+        <div class="user-chip-corp" onclick="switchTab('perfil')" style="cursor:pointer;" title="{% trans "Ver perfil de la empresa" %}">
           <div class="user-avatar">
             {% if perfil.logo %}
-              <img src="{{ perfil.logo.url }}" alt="Logo">
+              <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
             {% else %}
               {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
             {% endif %}
           </div>
           <div class="user-chip-info">
             <div class="user-chip-name">{{ request.user.nombre|default:request.user.username }}</div>
-            <div class="user-chip-role">Empresa</div>
+            <div class="user-chip-role">{% trans "Empresa" %}</div>
           </div>
         </div>
       </div>
@@ -183,49 +214,49 @@
       <section id="inicio" class="seccion-v activa">
         <div class="page-header">
           <div>
-            <div class="page-title">Panel de Control</div>
-            <div class="page-subtitle">Vista ejecutiva de proyectos, talento y métricas operativas</div>
+            <div class="page-title">{% trans "Panel de Control" %}</div>
+            <div class="page-subtitle">{% trans "Vista ejecutiva de proyectos, talento y métricas operativas" %}</div>
           </div>
         </div>
 
         <div class="kpi-grid-corp">
           <div class="kpi-card-corp kpi-projects">
             <div class="kpi-card-header">
-              <span class="kpi-card-label">Proyectos Totales</span>
+              <span class="kpi-card-label">{% trans "Proyectos Totales" %}</span>
               <div class="kpi-card-icon"><i data-lucide="folder-archive"></i></div>
             </div>
             <div class="kpi-card-value">{{ total_proyectos }}</div>
             <div class="kpi-card-footer">
-              <span class="kpi-tag tag-neutral">Histórico</span>
-              <span>Convocatorias publicadas</span>
+              <span class="kpi-tag tag-neutral">{% trans "Histórico" %}</span>
+              <span>{% trans "Convocatorias publicadas" %}</span>
             </div>
           </div>
 
           <div class="kpi-card-corp kpi-active">
             <div class="kpi-card-header">
-              <span class="kpi-card-label">En Desarrollo</span>
+              <span class="kpi-card-label">{% trans "En Desarrollo" %}</span>
               <div class="kpi-card-icon"><i data-lucide="laptop"></i></div>
             </div>
             <div class="kpi-card-value">{{ proyectos_activos }}</div>
             <div class="kpi-card-footer">
-              <span class="kpi-tag tag-brand">En marcha</span>
-              <span>Equipos trabajando</span>
+              <span class="kpi-tag tag-brand">{% trans "En marcha" %}</span>
+              <span>{% trans "Equipos trabajando" %}</span>
             </div>
           </div>
 
           <div class="kpi-card-corp kpi-candidates">
             <div class="kpi-card-header">
-              <span class="kpi-card-label">Candidatos</span>
+              <span class="kpi-card-label">{% trans "Candidatos" %}</span>
               <div class="kpi-card-icon"><i data-lucide="user-check"></i></div>
             </div>
             <div class="kpi-card-value">{{ total_postulaciones }}</div>
             <div class="kpi-card-footer">
               {% if total_postulaciones > 0 %}
-                <span class="kpi-tag tag-warning">Requiere acción</span>
+                <span class="kpi-tag tag-warning">{% trans "Requiere acción" %}</span>
               {% else %}
-                <span class="kpi-tag tag-neutral">Al día</span>
+                <span class="kpi-tag tag-neutral">{% trans "Al día" %}</span>
               {% endif %}
-              <span>Pendientes de revisión</span>
+              <span>{% trans "Pendientes de revisión" %}</span>
             </div>
           </div>
         </div>
@@ -235,9 +266,9 @@
         <div class="onboarding-card-corp">
           <div class="onboarding-header-corp">
             <div>
-              <div class="onboarding-title">Guía de Inicio Rápido</div>
+              <div class="onboarding-title">{% trans "Guía de Inicio Rápido" %}</div>
               <div class="onboarding-sub">
-                {{ onboarding_completados }} de {{ pasos_onboarding|length }} pasos completados · {{ onboarding_porcentaje }}% de avance
+                {% blocktrans with done=onboarding_completados total=pasos_onboarding|length pct=onboarding_porcentaje %}{{ done }} de {{ total }} pasos completados · {{ pct }}% de avance{% endblocktrans %}
               </div>
             </div>
             <span class="onboarding-step-icon"><i data-lucide="rocket"></i></span>
@@ -253,7 +284,7 @@
                 </span>
                 <div class="onboarding-step-body">
                   <div class="onboarding-step-title">{{ paso.titulo }}</div>
-                  <div class="onboarding-step-desc">{% if paso.en_revision %}En revisión por el equipo JobDevs.{% else %}{{ paso.descripcion }}{% endif %}</div>
+                  <div class="onboarding-step-desc">{% if paso.en_revision %}{% trans "En revisión por el equipo JobDevs." %}{% else %}{{ paso.descripcion }}{% endif %}</div>
                 </div>
               </div>
             {% endfor %}
@@ -265,8 +296,8 @@
         <div style="margin-top:28px;">
           <div class="page-header" style="margin-bottom:18px;">
             <div>
-              <div class="page-title" style="font-size:18px;">Reputación & Desempeño Corporativo</div>
-              <div class="page-subtitle">Evaluaciones y retroalimentación verificada de los desarrolladores contratados</div>
+              <div class="page-title" style="font-size:18px;">{% trans "Reputación & Desempeño Corporativo" %}</div>
+              <div class="page-subtitle">{% trans "Evaluaciones y retroalimentación verificada de los desarrolladores contratados" %}</div>
             </div>
           </div>
 
@@ -274,7 +305,7 @@
             <!-- Tarjeta de Desglose y Calificación -->
             <div class="reputation-summary-card">
               <div class="rep-score-box">
-                <div class="rep-summary-label">Calificación Global</div>
+                <div class="rep-summary-label">{% trans "Calificación Global" %}</div>
                 <div class="rep-score-value">{{ promedio_empresa }}</div>
                 <div class="rep-stars-row">
                   {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
@@ -284,7 +315,7 @@
                   {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
                 </div>
                 <div class="rep-summary-sub">
-                  Promedio de {{ total_valoraciones }} valoraci{{ total_valoraciones|pluralize:"ón,ones" }} sobre 5.0
+                  {% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Promedio de {{ total }} valoración sobre 5.0{% plural %}Promedio de {{ total }} valoraciones sobre 5.0{% endblocktrans %}
                 </div>
               </div>
 
@@ -330,16 +361,16 @@
               <!-- Indicadores de Cumplimiento -->
               <div class="rep-trust-list">
                 <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="handshake" style="color:var(--corp-brand);"></i> Pago & Contratación</span>
-                  <span class="rep-trust-val" style="color:var(--corp-success);">100% Cumplido</span>
+                  <span class="rep-trust-name"><i data-lucide="handshake" style="color:var(--corp-brand);"></i> {% trans "Pago & Contratación" %}</span>
+                  <span class="rep-trust-val" style="color:var(--corp-success);">100% {% trans "Cumplido" %}</span>
                 </div>
                 <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="list-checks" style="color:var(--corp-brand);"></i> Claridad de Hitos</span>
-                  <span class="rep-trust-val">Alta</span>
+                  <span class="rep-trust-name"><i data-lucide="list-checks" style="color:var(--corp-brand);"></i> {% trans "Claridad de Hitos" %}</span>
+                  <span class="rep-trust-val">{% trans "Alta" %}</span>
                 </div>
                 <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="shield-check" style="color:var(--corp-brand);"></i> Estado de Empresa</span>
-                  <span class="rep-trust-val">{{ perfil.get_estado_verificacion_display|default:"Registrada" }}</span>
+                  <span class="rep-trust-name"><i data-lucide="shield-check" style="color:var(--corp-brand);"></i> {% trans "Estado de Empresa" %}</span>
+                  <span class="rep-trust-val">{% if perfil.get_estado_verificacion_display %}{% trans perfil.get_estado_verificacion_display %}{% else %}{% trans "Registrada" %}{% endif %}</span>
                 </div>
               </div>
             </div>
@@ -347,8 +378,8 @@
             <!-- Feed de Reseñas de Desarrolladores (Top 3 Recientes) -->
             <div class="reviews-list-corp">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                <span style="font-size:12.5px; font-weight:700; color:var(--corp-slate-800);">Opiniones Recientes</span>
-                <span style="font-size:11.5px; color:var(--corp-slate-500);">Últimas 3 de {{ total_valoraciones }} valoraci{{ total_valoraciones|pluralize:"ón,ones" }}</span>
+                <span style="font-size:12.5px; font-weight:700; color:var(--corp-slate-800);">{% trans "Opiniones Recientes" %}</span>
+                <span style="font-size:11.5px; color:var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Últimas 3 de {{ total }} valoración{% plural %}Últimas 3 de {{ total }} valoraciones{% endblocktrans %}</span>
               </div>
               {% for valoracion in valoraciones_recibidas|slice:":3" %}
                 <div class="review-card-corp">
@@ -364,7 +395,7 @@
                       <div>
                         <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
                         <span class="badge-verified-hire">
-                          <i data-lucide="check-circle-2"></i> Contratación Verificada
+                          <i data-lucide="check-circle-2"></i> {% trans "Contratación Verificada" %}
                         </span>
                       </div>
                     </div>
@@ -377,11 +408,11 @@
 
                   <div class="review-project">
                     <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
-                    <span>Proyecto: <strong>{{ valoracion.proyecto.titulo }}</strong></span>
+                    <span>{% trans "Proyecto:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></span>
                   </div>
 
                   <div class="review-comment-box">
-                    "{{ valoracion.comentario|default:"El desarrollador calificó con puntaje positivo sin comentario adicional." }}"
+                    "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "El desarrollador calificó con puntaje positivo sin comentario adicional." %}{% endif %}"
                   </div>
 
                   {% if valoracion.fecha %}
@@ -393,20 +424,20 @@
               {% empty %}
                 <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
                   <i data-lucide="star"></i>
-                  <p>Tu empresa aún no ha recibido valoraciones de desarrolladores.</p>
-                  <span style="font-size:12.5px; color:var(--corp-slate-400); margin-top:4px;">Las calificaciones se habilitan automáticamente al culminar exitosamente un proyecto.</span>
+                  <p>{% trans "Tu empresa aún no ha recibido valoraciones de desarrolladores." %}</p>
+                  <span style="font-size:12.5px; color:var(--corp-slate-400); margin-top:4px;">{% trans "Las calificaciones se habilitan automáticamente al culminar exitosamente un proyecto." %}</span>
                 </div>
               {% endfor %}
 
               {% if total_valoraciones > 3 %}
                 <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:11px 16px; margin-top:4px;">
                   <i data-lucide="message-square"></i>
-                  <span>Ver todas las valoraciones ({{ total_valoraciones }}) →</span>
+                  <span>{% blocktrans with total=total_valoraciones %}Ver todas las valoraciones ({{ total }}) →{% endblocktrans %}</span>
                 </button>
               {% elif total_valoraciones > 0 %}
                 <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:9px 14px; margin-top:4px; font-size:12px;">
                   <i data-lucide="folder-open"></i>
-                  <span>Abrir expediente de reputación completo</span>
+                  <span>{% trans "Abrir expediente de reputación completo" %}</span>
                 </button>
               {% endif %}
             </div>
@@ -418,60 +449,101 @@
       <section id="centro-chat" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Centro de Mensajería</div>
-            <div class="page-subtitle">Comunicaciones directas con tu equipo técnico y soporte institucional</div>
+            <div class="page-title">{% trans "Centro de Mensajería" %}</div>
+            <div class="page-subtitle">{% trans "Comunicaciones directas con tu equipo técnico y soporte institucional" %}</div>
           </div>
         </div>
 
-        <div class="chat-section-label">Canal Oficial de Soporte</div>
-        <div style="margin-bottom:28px;">
-          <div class="chat-contact-card is-support">
-            <div class="chat-contact-info">
-              <div class="chat-contact-avatar support-avatar">
-                <i data-lucide="shield"></i>
-              </div>
-              <div>
-                <div class="chat-contact-name">Administración JobDevs</div>
-                <div class="chat-contact-sub">Soporte administrativo, mediaciones y pagos seguros</div>
-              </div>
+        <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <span>{% trans "Conversaciones" %}</span>
+              <span class="jd-chat-count">{% if admin_id %}{{ colaboradores_activos|length|add:"1" }}{% else %}{{ colaboradores_activos|length }}{% endif %}</span>
             </div>
-            {% if admin_id %}
-              <a href="{% url 'sala_chat_general' admin_id %}" class="btn-corp-action primary">
-                <i data-lucide="message-square"></i>
-                <span>Abrir Chat</span>
-              </a>
-            {% endif %}
-          </div>
-        </div>
+            <div class="jd-chat-items" data-chat-list>
+              {% if admin_id %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' admin_id %}"
+                      data-receptor="{{ admin_id }}" data-proyecto="0">
+                <span class="jd-chat-avatar"><i data-lucide="shield" style="width:16px; height:16px;"></i></span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{% trans "Soporte JobDevs" %}</span>
+                  </span>
+                  <span class="jd-chat-preview">{% trans "Asistencia técnica y administrativa" %}</span>
+                </span>
+              </button>
+              {% endif %}
 
-        <div class="chat-section-label">Desarrolladores Contratados Activos</div>
-        <div class="chat-contacts-grid">
-          {% for colaboracion in colaboradores_activos %}
-            <div class="chat-contact-card">
-              <div class="chat-contact-info">
-                <div class="chat-contact-avatar">
+              {% for colaboracion in colaboradores_activos %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion_proyecto' colaboracion.desarrollador.id colaboracion.proyecto.id %}"
+                      data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
+                <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="Perfil">
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}
+                </span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ colaboracion.proyecto.titulo }}</span>
+                  <span class="jd-chat-tag">{% trans "En desarrollo" %}</span>
+                </span>
+              </button>
+              {% empty %}
+                {% if not admin_id %}
+                <div class="jd-chat-list-empty">
+                  <i data-lucide="messages-square"></i>
+                  <span>{% trans "Sin conversaciones activas" %}</span>
                 </div>
-                <div>
-                  <div class="chat-contact-name">{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}</div>
-                  <div class="chat-contact-sub">{{ colaboracion.proyecto.titulo }}</div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i data-lucide="message-square" style="width:36px; height:36px; margin-bottom:8px; opacity:0.5;"></i>
+              <p>{% trans "Selecciona una conversación" %}</p>
+              <span>{% trans "Elige un contacto de la lista para ver el historial y enviar mensajes" %}</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="{% trans "Volver" %}">
+                  <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name" data-chat-name>—</div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
                 </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="{% trans "Escribe un mensaje…" %}" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="{% trans "Enviar" %}">
+                  <i data-lucide="send" style="width:15px; height:15px;"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i data-lucide="lock" style="width:14px; height:14px;"></i> {% trans "Este proyecto ha finalizado: el chat es de solo lectura." %}
               </div>
-              <a href="{% url 'sala_chat' colaboracion.desarrollador.id colaboracion.proyecto.id %}" class="btn-corp-action secondary" title="Chatear con {{ colaboracion.desarrollador.username }}">
-                <i data-lucide="message-square"></i>
-                <span>Mensaje</span>
-              </a>
             </div>
-          {% empty %}
-            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
-              <i data-lucide="message-square"></i>
-              <p>No hay colaboradores activos en este momento.</p>
-            </div>
-          {% endfor %}
+          </section>
         </div>
       </section>
 
@@ -479,12 +551,12 @@
       <section id="ofertas" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Gestión de Convocatorias & Ofertas</div>
-            <div class="page-subtitle">Publicaciones activas buscando desarrolladores y postulaciones en revisión</div>
+            <div class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</div>
+            <div class="page-subtitle">{% trans "Publicaciones activas buscando desarrolladores y postulaciones en revisión" %}</div>
           </div>
           <button class="btn-corp-primary" onclick="abrirModal()">
             <i data-lucide="plus"></i>
-            <span>Nueva Convocatoria</span>
+            <span>{% trans "Nueva Convocatoria" %}</span>
           </button>
         </div>
 
@@ -492,21 +564,21 @@
         <div class="offers-toolbar-corp">
           <div class="offers-search-wrap">
             <i data-lucide="search" style="color:var(--corp-slate-400);"></i>
-            <input type="text" class="form-input-corp" placeholder="Buscar convocatoria por título..." onkeyup="filtrarOfertasEnTiempoReal(this)" style="border:none; padding:6px 0; background:transparent;">
+            <input type="text" class="form-input-corp" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)" style="border:none; padding:6px 0; background:transparent;">
           </div>
-          <div class="offers-filter-bar"><button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">Todas</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">Remoto</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">Presencial</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">Híbrido</button></div>
+          <div class="offers-filter-bar"><button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">{% trans "Todas" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">{% trans "Remoto" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">{% trans "Presencial" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">{% trans "Híbrido" %}</button></div>
           <div class="offers-stats-wrap">
             <span class="offers-stat-pill">
               <i data-lucide="megaphone" style="color:var(--corp-brand);"></i>
-              <strong>{{ mis_ofertas|length }}</strong> oferta{{ mis_ofertas|length|pluralize }} activa{{ mis_ofertas|length|pluralize }}
+              {% blocktrans with total=mis_ofertas|length count counter=mis_ofertas|length %}<strong>{{ total }}</strong> oferta activa{% plural %}<strong>{{ total }}</strong> ofertas activas{% endblocktrans %}
             </span>
             <span class="offers-stat-pill">
               <i data-lucide="user-plus" style="color:var(--corp-warning);"></i>
-              <strong>{{ total_vacantes_ofertas|default:0 }}</strong> vacante{{ total_vacantes_ofertas|pluralize }} abierta{{ total_vacantes_ofertas|pluralize }}
+              {% blocktrans with total=total_vacantes_ofertas|default:0 count counter=total_vacantes_ofertas|default:0 %}<strong>{{ total }}</strong> vacante abierta{% plural %}<strong>{{ total }}</strong> vacantes abiertas{% endblocktrans %}
             </span>
             <span class="offers-stat-pill">
               <i data-lucide="clock" style="color:var(--corp-info);"></i>
-              <strong>{{ total_postulaciones }}</strong> postulante{{ total_postulaciones|pluralize }} pendiente{{ total_postulaciones|pluralize }}
+              {% blocktrans with total=total_postulaciones count counter=total_postulaciones %}<strong>{{ total }}</strong> postulante pendiente{% plural %}<strong>{{ total }}</strong> postulantes pendientes{% endblocktrans %}
             </span>
           </div>
         </div>
@@ -518,10 +590,10 @@
                 <div class="offer-badges-row">
                   <span class="offer-badge-category">
                     <i data-lucide="layers"></i>
-                    {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Tecnología" }}{% endif %}
+                    {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% elif proyecto.get_tipo_solucion_display %}{{ proyecto.get_tipo_solucion_display }}{% else %}{% trans "Tecnología" %}{% endif %}
                   </span>
                   {% if proyecto.cierra_pronto %}
-                    <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> Cierra pronto</span>
+                    <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> {% trans "Cierra pronto" %}</span>
                   {% endif %}
                   {% if proyecto.modalidad %}
                     <span class="offer-badge-vacancies" style="background:var(--corp-slate-100); color:var(--corp-slate-700);">
@@ -530,7 +602,7 @@
                   {% endif %}
                   {% if proyecto.num_candidatos > 0 %}
                     <span class="offer-badge-vacancies" style="background:var(--corp-brand-light); color:var(--corp-brand); font-weight:700;">
-                      <i data-lucide="clock"></i> {{ proyecto.num_candidatos }} postulante{{ proyecto.num_candidatos|pluralize }}
+                      <i data-lucide="clock"></i> {% blocktrans with total=proyecto.num_candidatos count counter=proyecto.num_candidatos %}{{ total }} postulante{% plural %}{{ total }} postulantes{% endblocktrans %}
                     </span>
                   {% endif %}
                 </div>
@@ -538,12 +610,12 @@
                 <div class="offer-title">{{ proyecto.titulo }}</div>
 
                 <div class="offer-meta">
-                  <span><i data-lucide="calendar" style="margin-right:4px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y"|default:"Reciente" }}</span>
+                  <span><i data-lucide="calendar" style="margin-right:4px;"></i>{% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Reciente" %}{% endif %}</span>
                   <span>·</span>
-                  <span><i data-lucide="users" style="margin-right:4px;"></i>{{ proyecto.vacantes }} vacante{{ proyecto.vacantes|pluralize }}</span>
+                  <span><i data-lucide="users" style="margin-right:4px;"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
                   {% if proyecto.fecha_limite %}
                     <span>·</span>
-                    <span><i data-lucide="clock" style="margin-right:4px;"></i>Cierra: {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
+                    <span><i data-lucide="clock" style="margin-right:4px;"></i>{% trans "Cierra:" %} {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
                   {% endif %}
                 </div>
               </div>
@@ -553,21 +625,21 @@
                    class="btn-corp-action primary"
                    style="flex:1; justify-content:center;"
                    onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
-                   title="Revisar candidatos de esta convocatoria sin salir del panel">
+                   title="{% trans "Revisar candidatos de esta convocatoria sin salir del panel" %}">
                   <i data-lucide="users"></i>
-                  <span>Ver Candidatos {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
+                  <span>{% trans "Ver Candidatos" %} {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
                 </a>
                 <a href="{% url 'editar_proyecto' proyecto.id %}"
                    class="btn-corp-action secondary"
                    style="justify-content:center;"
                    onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
-                   title="Editar especificaciones de la oferta sin salir del panel">
+                   title="{% trans "Editar especificaciones de la oferta sin salir del panel" %}">
                   <i data-lucide="square-pen"></i>
-                  <span>Editar</span>
+                  <span>{% trans "Editar" %}</span>
                 </a>
                 <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
                   {% csrf_token %}
-                  <button type="submit" class="btn-corp-action danger-subtle" title="Retirar publicación">
+                  <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}">
                     <i data-lucide="ban"></i>
                   </button>
                 </form>
@@ -576,13 +648,13 @@
           {% empty %}
             <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
               <i data-lucide="megaphone"></i>
-              <p>No tienes ofertas publicadas actualmente.</p>
+              <p>{% trans "No tienes ofertas publicadas actualmente." %}</p>
               <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:14px;">
-                <i data-lucide="plus"></i> Publicar primera convocatoria
+                <i data-lucide="plus"></i> {% trans "Publicar primera convocatoria" %}
               </button>
             </div>
           {% endfor %}
-          <div id="ofertasSinResultados" class="activity-empty" style="display:none; grid-column:1/-1;"><i data-lucide="search-x"></i><p>No se encontraron convocatorias para los filtros seleccionados.</p></div>
+          <div id="ofertasSinResultados" class="activity-empty" style="display:none; grid-column:1/-1;"><i data-lucide="search-x"></i><p>{% trans "No se encontraron convocatorias para los filtros seleccionados." %}</p></div>
         </div>
       </section>
 
@@ -590,8 +662,8 @@
       <section id="desarrollo" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Proyectos en Marcha</div>
-            <div class="page-subtitle">Control de entregas, avance de hitos y coordinación de equipos</div>
+            <div class="page-title">{% trans "Proyectos en Marcha" %}</div>
+            <div class="page-subtitle">{% trans "Control de entregas, avance de hitos y coordinación de equipos" %}</div>
           </div>
         </div>
         <div class="dev-list-corp">
@@ -603,19 +675,19 @@
                   <div class="dev-card-team">
                     <span class="dev-chip-team">
                       <i data-lucide="users"></i>
-                      <strong>Equipo:</strong> {{ proyecto.desarrolladores|default:"Asignando..." }}
+                      <strong>{% trans "Equipo:" %}</strong> {% if proyecto.desarrolladores %}{{ proyecto.desarrolladores }}{% else %}{% trans "Asignando..." %}{% endif %}
                     </span>
                     {% if proyecto.vacantes_disponibles > 0 %}
                       <span class="dev-chip-vacancies">
                         <i data-lucide="user-plus"></i>
-                        {{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)
+                        {% blocktrans with vac=proyecto.vacantes_disponibles count counter=proyecto.vacantes_disponibles %}{{ vac }} vacante disponible{% plural %}{{ vac }} vacantes disponibles{% endblocktrans %}
                       </span>
                     {% endif %}
                   </div>
                 </div>
                 <div class="dev-badge-deadline">
                   <i data-lucide="calendar-check-2"></i>
-                  <span>{{ proyecto.fecha_fin|date:"d M, Y"|default:"Sin fecha límite" }}</span>
+                  <span>{% if proyecto.fecha_fin %}{{ proyecto.fecha_fin|date:"d M, Y" }}{% else %}{% trans "Sin fecha límite" %}{% endif %}</span>
                 </div>
               </div>
 
@@ -623,8 +695,8 @@
               {% if proyecto.hitos_totales > 0 %}
                 <div class="milestone-progress-box">
                   <div class="milestone-progress-header">
-                    <span><i data-lucide="flag" style="margin-right:6px; color:var(--corp-brand);"></i>Progreso de Hitos y Entregables</span>
-                    <span><strong>{{ proyecto.hitos_completados }}</strong> de {{ proyecto.hitos_totales }} completados ({% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%)</span>
+                    <span><i data-lucide="flag" style="margin-right:6px; color:var(--corp-brand);"></i>{% trans "Progreso de Hitos y Entregables" %}</span>
+                    <span>{% blocktrans with done=proyecto.hitos_completados total=proyecto.hitos_totales %}<strong>{{ done }}</strong> de {{ total }} completados{% endblocktrans %} ({% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%)</span>
                   </div>
                   <div class="milestone-track">
                     <div class="milestone-fill" style="width:{% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%;"></div>
@@ -637,50 +709,50 @@
                   <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}"
                      class="btn-corp-action primary"
                      onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
-                     title="{{ proyecto.vacantes_disponibles }} vacante(s) disponible(s)">
+                     title="{% blocktrans with vac=proyecto.vacantes_disponibles count counter=proyecto.vacantes_disponibles %}{{ vac }} vacante disponible{% plural %}{{ vac }} vacantes disponibles{% endblocktrans %}">
                     <i data-lucide="user-plus"></i>
-                    <span>Ver Candidatos ({{ proyecto.vacantes_disponibles }})</span>
+                    <span>{% trans "Ver Candidatos" %} ({{ proyecto.vacantes_disponibles }})</span>
                   </a>
                 {% endif %}
 
                 <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
                   <i data-lucide="list-checks"></i>
-                  <span>Gestionar Hitos</span>
+                  <span>{% trans "Gestionar Hitos" %}</span>
                 </a>
 
                 {% if proyecto.hitos_completados == proyecto.hitos_totales and proyecto.hitos_totales > 0 %}
                   <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}" class="btn-corp-action success">
                     <i data-lucide="check-check"></i>
-                    <span>Finalizar Proyecto</span>
+                    <span>{% trans "Finalizar Proyecto" %}</span>
                   </a>
                 {% else %}
-                  <button disabled class="btn-corp-action disabled" title="Requiere completar todos los hitos">
+                  <button disabled class="btn-corp-action disabled" title="{% trans "Requiere completar todos los hitos" %}">
                     <i data-lucide="check-check"></i>
-                    <span>Finalizar</span>
+                    <span>{% trans "Finalizar" %}</span>
                   </button>
                 {% endif %}
 
                 {% if proyecto.num_desarrolladores >= 2 %}
                   <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
                     <i data-lucide="users"></i>
-                    <span>Grupos</span>
+                    <span>{% trans "Grupos" %}</span>
                   </a>
                   <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn-corp-action secondary">
                     <i data-lucide="messages-square"></i>
-                    <span>Chat Grupal</span>
+                    <span>{% trans "Chat Grupal" %}</span>
                   </a>
                 {% endif %}
 
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn-corp-action danger-subtle" style="margin-left:auto;" title="Iniciar mediación por conflicto formal">
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn-corp-action danger-subtle" style="margin-left:auto;" title="{% trans "Iniciar mediación por conflicto formal" %}">
                   <i data-lucide="gavel"></i>
-                  <span>Reportar Disputa</span>
+                  <span>{% trans "Reportar Disputa" %}</span>
                 </a>
               </div>
             </div>
           {% empty %}
             <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
               <i data-lucide="folder-kanban"></i>
-              <p>No hay proyectos en desarrollo actualmente.</p>
+              <p>{% trans "No hay proyectos en desarrollo actualmente." %}</p>
             </div>
           {% endfor %}
         </div>
@@ -690,18 +762,18 @@
       <section id="contratos" class="seccion-v" data-contrato-endpoint="{% url 'ver_contrato_digital' 0 %}">
         <div class="page-header">
           <div>
-            <div class="page-title">Contratos Digitales &amp; Acuerdos</div>
-            <div class="page-subtitle">Acuerdos con validez jurídica y firma electrónica: revisa, firma y audita sin salir del panel</div>
+            <div class="page-title">{% trans "Contratos Digitales & Acuerdos" %}</div>
+            <div class="page-subtitle">{% trans "Acuerdos con validez jurídica y firma electrónica: revisa, firma y audita sin salir del panel" %}</div>
           </div>
           <div class="contracts-header-meta">
             <span class="offers-stat-pill">
               <i data-lucide="file-signature" style="color:var(--corp-brand);"></i>
-              <strong>{{ mis_contratos_digitales|length }}</strong> contrato{{ mis_contratos_digitales|length|pluralize }} digital{{ mis_contratos_digitales|length|pluralize:"es" }}
+              {% blocktrans with total=mis_contratos_digitales|length count counter=mis_contratos_digitales|length %}<strong>{{ total }}</strong> contrato digital{% plural %}<strong>{{ total }}</strong> contratos digitales{% endblocktrans %}
             </span>
             {% if contratos_pendientes_firma_count > 0 %}
               <span class="offers-stat-pill is-warning">
                 <i data-lucide="pen-tool" style="color:var(--corp-warning);"></i>
-                <strong>{{ contratos_pendientes_firma_count }}</strong> pendiente{{ contratos_pendientes_firma_count|pluralize }} de tu firma
+                {% blocktrans with total=contratos_pendientes_firma_count count counter=contratos_pendientes_firma_count %}<strong>{{ total }}</strong> pendiente de tu firma{% plural %}<strong>{{ total }}</strong> pendientes de tu firma{% endblocktrans %}
               </span>
             {% endif %}
           </div>
@@ -711,14 +783,14 @@
           <table class="data-table-corp">
             <thead>
               <tr>
-                <th>Expediente / ID</th>
-                <th>Proyecto</th>
-                <th>Desarrollador</th>
-                <th>Términos</th>
-                <th>Estado de Firmas (Empresa / Dev)</th>
-                <th>Estado del Contrato</th>
-                <th>Sello Hash</th>
-                <th style="text-align:right;">Acciones</th>
+                <th>{% trans "Expediente / ID" %}</th>
+                <th>{% trans "Proyecto" %}</th>
+                <th>{% trans "Desarrollador" %}</th>
+                <th>{% trans "Términos" %}</th>
+                <th>{% trans "Estado de Firmas (Empresa / Dev)" %}</th>
+                <th>{% trans "Estado del Contrato" %}</th>
+                <th>{% trans "Sello Hash" %}</th>
+                <th style="text-align:right;">{% trans "Acciones" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -726,11 +798,11 @@
                 <tr data-contrato-row="{{ contrato.id }}">
                   <td>
                     <span class="hash-pill">CD-{{ contrato.id|stringformat:"04d" }}</span>
-                    <div class="contrato-row-sub">Creado {{ contrato.fecha_creacion|date:"d M, Y" }}</div>
+                    <div class="contrato-row-sub">{% trans "Creado" %} {{ contrato.fecha_creacion|date:"d M, Y" }}</div>
                   </td>
                   <td>
                     <div class="contrato-row-title">{{ contrato.postulacion.proyecto.titulo }}</div>
-                    <div class="contrato-row-sub">{{ contrato.postulacion.proyecto.get_tipo_solucion_display|default:"Proyecto de software" }}</div>
+                    <div class="contrato-row-sub">{% if contrato.postulacion.proyecto.get_tipo_solucion_display %}{{ contrato.postulacion.proyecto.get_tipo_solucion_display }}{% else %}{% trans "Proyecto de software" %}{% endif %}</div>
                   </td>
                   <td>
                     <div class="contrato-row-title">{{ contrato.postulacion.desarrollador.nombre|default:contrato.postulacion.desarrollador.username }}</div>
@@ -740,18 +812,18 @@
                     <div class="contrato-monto">{{ contrato.monto_formateado }}</div>
                     <div class="contrato-row-sub">{{ contrato.get_forma_pago_display }}</div>
                     <div class="contrato-row-sub" style="color:var(--corp-brand); font-weight:600;">
-                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {{ contrato.get_medio_pago_display|default:"Transferencia bancaria" }}
+                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {% if contrato.get_medio_pago_display %}{{ contrato.get_medio_pago_display }}{% else %}{% trans "Transferencia bancaria" %}{% endif %}
                     </div>
                   </td>
                   <td>
                     <div class="contrato-firmas-cell">
                       <span class="signature-badge-corp {% if contrato.firmado_empresa %}is-signed{% else %}is-pending{% endif %}" data-role="firma-empresa">
                         <i data-lucide="{% if contrato.firmado_empresa %}check-circle-2{% else %}clock{% endif %}"></i>
-                        <span>Empresa: {% if contrato.firmado_empresa %}Firmado{% else %}Pendiente{% endif %}</span>
+                        <span>{% trans "Empresa:" %} {% if contrato.firmado_empresa %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
                       </span>
                       <span class="signature-badge-corp {% if contrato.firmado_desarrollador %}is-signed{% else %}is-pending{% endif %}" data-role="firma-dev">
                         <i data-lucide="{% if contrato.firmado_desarrollador %}check-circle-2{% else %}clock{% endif %}"></i>
-                        <span>Dev: {% if contrato.firmado_desarrollador %}Firmado{% else %}Pendiente{% endif %}</span>
+                        <span>{% trans "Dev:" %} {% if contrato.firmado_desarrollador %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
                       </span>
                     </div>
                   </td>
@@ -759,8 +831,8 @@
                     <span class="contract-estado-badge estado-{{ contrato.estado }}" data-role="estado-contrato">{{ contrato.get_estado_display }}</span>
                   </td>
                   <td>
-                    <span class="hash-pill" data-role="hash-contrato" title="{% if contrato.hash_contrato %}SHA-256 del contrato firmado{% else %}El sello se genera con la primera firma electrónica{% endif %}">
-                      {% if contrato.hash_contrato %}{{ contrato.hash_contrato|slice:":12" }}…{% else %}Sin sello{% endif %}
+                    <span class="hash-pill" data-role="hash-contrato" title="{% if contrato.hash_contrato %}{% trans "SHA-256 del contrato firmado" %}{% else %}{% trans "El sello se genera con la primera firma electrónica" %}{% endif %}">
+                      {% if contrato.hash_contrato %}{{ contrato.hash_contrato|slice:":12" }}…{% else %}{% trans "Sin sello" %}{% endif %}
                     </span>
                   </td>
                   <td style="text-align:right;">
@@ -768,13 +840,13 @@
                       <a href="{% url 'ver_contrato_digital' contrato.id %}"
                          class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
                          onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
-                         title="Revisar y firmar el contrato sin salir del panel">
+                         title="{% trans "Revisar y firmar el contrato sin salir del panel" %}">
                         <i data-lucide="file-signature"></i>
-                        <span>Ver / Firmar Contrato</span>
+                        <span>{% trans "Ver / Firmar Contrato" %}</span>
                       </a>
                       <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
                          class="btn-corp-action secondary"
-                         title="Chatear con el desarrollador">
+                         title="{% trans "Chatear con el desarrollador" %}">
                         <i data-lucide="message-square"></i>
                       </a>
                     </div>
@@ -785,8 +857,8 @@
                   <td colspan="8">
                     <div class="activity-empty" style="padding:48px 20px;">
                       <i data-lucide="file-signature"></i>
-                      <p style="font-weight:600;">Aún no tienes contratos digitales</p>
-                      <p style="font-size:12.5px; color:var(--corp-slate-500);">Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica.</p>
+                      <p style="font-weight:600;">{% trans "Aún no tienes contratos digitales" %}</p>
+                      <p style="font-size:12.5px; color:var(--corp-slate-500);">{% trans "Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica." %}</p>
                     </div>
                   </td>
                 </tr>
@@ -805,8 +877,8 @@
       <section id="historial" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Historial Completo & Auditoría</div>
-            <div class="page-subtitle">Registro histórico consolidado de proyectos convocados y expedientes de disputas cerradas</div>
+            <div class="page-title">{% trans "Historial Completo & Auditoría" %}</div>
+            <div class="page-subtitle">{% trans "Registro histórico consolidado de proyectos convocados y expedientes de disputas cerradas" %}</div>
           </div>
         </div>
 
@@ -814,12 +886,12 @@
         <div class="history-subnav">
           <button type="button" class="history-tab-btn active" id="btn-historial-proyectos" onclick="switchHistorialSubTab('proyectos', this)">
             <i data-lucide="layers"></i>
-            <span>Proyectos (Historial Completo)</span>
+            <span>{% trans "Proyectos (Historial Completo)" %}</span>
             <span class="subnav-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
           </button>
           <button type="button" class="history-tab-btn" id="btn-historial-disputas" onclick="switchHistorialSubTab('disputas', this)">
             <i data-lucide="scale"></i>
-            <span>Disputas (Historial Completo)</span>
+            <span>{% trans "Disputas (Historial Completo)" %}</span>
             <span class="subnav-counter">{{ disputas_resueltas|length }}</span>
           </button>
         </div>
@@ -831,31 +903,31 @@
             <a href="?section=historial"
                class="segmented-pill {% if not historial_estado_actual %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'todos', this); return false;">
-              <span>Todos</span>
+              <span>{% trans "Todos" %}</span>
               <span class="pill-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=finalizado"
                class="segmented-pill {% if historial_estado_actual == 'finalizado' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'finalizado', this); return false;">
-              <span>Finalizados</span>
+              <span>{% trans "Finalizados" %}</span>
               <span class="pill-counter">{{ historial_por_estado.finalizado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=rechazado"
                class="segmented-pill {% if historial_estado_actual == 'rechazado' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'rechazado', this); return false;">
-              <span>Rechazados</span>
+              <span>{% trans "Rechazados" %}</span>
               <span class="pill-counter">{{ historial_por_estado.rechazado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=inactivo"
                class="segmented-pill {% if historial_estado_actual == 'inactivo' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'inactivo', this); return false;">
-              <span>Inactivos</span>
+              <span>{% trans "Inactivos" %}</span>
               <span class="pill-counter">{{ historial_por_estado.inactivo }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=en_disputa"
                class="segmented-pill {% if historial_estado_actual == 'en_disputa' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'en_disputa', this); return false;">
-              <span>En disputa</span>
+              <span>{% trans "En disputa" %}</span>
               <span class="pill-counter">{{ historial_por_estado.en_disputa }}</span>
             </a>
           </div>
@@ -878,7 +950,7 @@
                       <span>{{ proyecto.get_estado_display }}</span>
                     </span>
                     <span style="font-size:11.5px; color:var(--corp-slate-400);">
-                      <i data-lucide="calendar" style="margin-right:3px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y"|default:"Histórico" }}
+                      <i data-lucide="calendar" style="margin-right:3px;"></i>{% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Histórico" %}{% endif %}
                     </span>
                   </div>
 
@@ -887,17 +959,17 @@
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
                     {% if proyecto.get_tipo_solucion_display or proyecto.categoria %}
                       <span class="offer-badge-category">
-                        <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% else %}{{ proyecto.get_tipo_solucion_display|default:"Proyecto de software" }}{% endif %}
+                        <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% elif proyecto.get_tipo_solucion_display %}{{ proyecto.get_tipo_solucion_display }}{% else %}{% trans "Proyecto de software" %}{% endif %}
                       </span>
                     {% endif %}
                     {% if proyecto.hitos_totales > 0 %}
                       <span class="dev-chip-team">
-                        <i data-lucide="flag"></i> {{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }} hitos
+                        <i data-lucide="flag"></i> {{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }} {% trans "hitos" %}
                       </span>
                     {% endif %}
                     {% if proyecto.num_desarrolladores > 0 %}
                       <span class="dev-chip-team">
-                        <i data-lucide="users"></i> {{ proyecto.num_desarrolladores }} dev{{ proyecto.num_desarrolladores|pluralize }}
+                        <i data-lucide="users"></i> {% blocktrans with count=proyecto.num_desarrolladores count counter=proyecto.num_desarrolladores %}{{ count }} dev{% plural %}{{ count }} devs{% endblocktrans %}
                       </span>
                     {% endif %}
                   </div>
@@ -906,18 +978,18 @@
                 <div class="history-actions-col">
                   <a href="{% url 'ver_avances' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
                     <i data-lucide="eye"></i>
-                    <span>Ver Avances y Detalles</span>
+                    <span>{% trans "Ver Avances y Detalles" %}</span>
                   </a>
                   {% if proyecto.num_desarrolladores >= 2 %}
                     <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
                       <i data-lucide="users"></i>
-                      <span>Chat Grupal</span>
+                      <span>{% trans "Chat Grupal" %}</span>
                     </a>
                   {% endif %}
                   {% if proyecto.contrataciones.all %}
                     <div class="history-collaborators-grid">
                       {% for contratacion in proyecto.contrataciones.all %}
-                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}" class="btn-history-dev" title="Chatear con {{ contratacion.desarrollador.username }}">
+                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}" class="btn-history-dev" title="{% blocktrans with user=contratacion.desarrollador.username %}Chatear con {{ user }}{% endblocktrans %}">
                           <i data-lucide="message-square"></i>
                           <span>{{ contratacion.desarrollador.username }}</span>
                         </a>
@@ -929,12 +1001,12 @@
             {% empty %}
               <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
                 <i data-lucide="history"></i>
-                <p>No hay proyectos en este estado del historial.</p>
+                <p>{% trans "No hay proyectos en este estado del historial." %}</p>
               </div>
             {% endfor %}
             <div id="historialSinResultados" class="activity-empty" style="display:none; grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
               <i data-lucide="history"></i>
-              <p>No hay proyectos en este estado del historial.</p>
+              <p>{% trans "No hay proyectos en este estado del historial." %}</p>
             </div>
           </div>
         </div>
@@ -945,20 +1017,20 @@
             <div class="disputas-card-header">
               <div class="disputas-card-title">
                 <i data-lucide="archive" style="color:var(--corp-slate-500);"></i>
-                <span>Historial de Disputas y Expedientes Cerrados</span>
+                <span>{% trans "Historial de Disputas y Expedientes Cerrados" %}</span>
               </div>
-              <span class="disp-badge-id">{{ disputas_resueltas|length }} expediente{{ disputas_resueltas|length|pluralize }}</span>
+              <span class="disp-badge-id">{% blocktrans with count=disputas_resueltas|length count counter=disputas_resueltas|length %}{{ count }} expediente{% plural %}{{ count }} expedientes{% endblocktrans %}</span>
             </div>
             <div style="overflow-x:auto;">
               <table class="data-table-corp data-table">
                 <thead>
                   <tr>
-                    <th>Expediente</th>
-                    <th>Proyecto</th>
-                    <th>Resolución</th>
-                    <th>Dictamen / Notas</th>
-                    <th>Fecha Resolución</th>
-                    <th style="text-align:right;">Acción</th>
+                    <th>{% trans "Expediente" %}</th>
+                    <th>{% trans "Proyecto" %}</th>
+                    <th>{% trans "Resolución" %}</th>
+                    <th>{% trans "Dictamen / Notas" %}</th>
+                    <th>{% trans "Fecha Resolución" %}</th>
+                    <th style="text-align:right;">{% trans "Acción" %}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -971,11 +1043,11 @@
                         {% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}
                       </span>
                     </td>
-                    <td style="color:var(--corp-slate-600); font-size:12.5px;">{{ d.notas_resolucion|default:"Sin notas adicionales."|truncatechars:70 }}</td>
+                    <td style="color:var(--corp-slate-600); font-size:12.5px;">{% if d.notas_resolucion %}{{ d.notas_resolucion|truncatechars:70 }}{% else %}{% trans "Sin notas adicionales." %}{% endif %}</td>
                     <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
                     <td style="text-align:right;">
                       <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
-                        <i data-lucide="eye"></i> Ver Expediente
+                        <i data-lucide="eye"></i> {% trans "Ver Expediente" %}
                       </a>
                     </td>
                   </tr>
@@ -984,7 +1056,7 @@
                     <td colspan="6">
                       <div class="activity-empty">
                         <i data-lucide="archive"></i>
-                        <p>Aún no hay disputas registradas en el historial.</p>
+                        <p>{% trans "Aún no hay disputas registradas en el historial." %}</p>
                       </div>
                     </td>
                   </tr>
@@ -1000,8 +1072,8 @@
       <section id="perfil" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Perfil Corporativo</div>
-            <div class="page-subtitle">Presencia institucional, información tributaria y reputación en JobDevs</div>
+            <div class="page-title">{% trans "Perfil Corporativo" %}</div>
+            <div class="page-subtitle">{% trans "Presencia institucional, información tributaria y reputación en JobDevs" %}</div>
           </div>
         </div>
 
@@ -1018,13 +1090,13 @@
               </div>
 
               <div class="linkedin-header-actions">
-                <button type="button" class="btn-linkedin-edit" onclick="abrirModalPerfil()" title="Editar información del perfil">
+                <button type="button" class="btn-linkedin-edit" onclick="abrirModalPerfil()" title="{% trans "Editar información del perfil" %}">
                   <i data-lucide="pencil"></i>
-                  <span>Editar página</span>
+                  <span>{% trans "Editar página" %}</span>
                 </button>
-                <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="btn-linkedin-verify" title="Verificar personería jurídica">
-                  <i data-lucide="shield-check"></i>
-                  <span>Verificación</span>
+                <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="btn-linkedin-verify {% if perfil.es_verificada %}is-verified{% endif %}" title="{% if perfil.es_verificada %}{% trans "Empresa Verificada" %}{% else %}{% trans "Verificar personería jurídica" %}{% endif %}">
+                  <i data-lucide="{% if perfil.es_verificada %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}shield-alert{% endif %}"></i>
+                  <span>{% if perfil.es_verificada %}{% trans "Verificado" %}{% else %}{% trans "Sin verificar" %}{% endif %}</span>
                 </a>
               </div>
             </div>
@@ -1032,27 +1104,27 @@
             <div class="linkedin-company-name">
               <span>{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</span>
               {% with badge=perfil.badge_info %}
-              <span class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" title="Insignia oficial">
+              <span class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" title="{% trans "Insignia oficial" %}">
                 <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
-                <span>{{ badge.label }}</span>
+                <span>{% trans badge.label %}</span>
               </span>
               {% endwith %}
             </div>
 
             <div class="linkedin-headline">
-              {% if perfil.sector %}{{ perfil.sector }}{% else %}Empresa Empleadora en Tecnología{% endif %}
+              {% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Empresa Empleadora en Tecnología" %}{% endif %}
               {% if perfil.ciudad %} &nbsp;·&nbsp; {{ perfil.ciudad }}, Colombia{% endif %}
             </div>
 
             <div class="linkedin-meta-row">
-              <span class="meta-item"><i data-lucide="building-2"></i> {{ perfil.get_tipo_persona_display|default:"Persona Jurídica" }}</span>
+              <span class="meta-item"><i data-lucide="building-2"></i> {% if perfil.get_tipo_persona_display %}{{ perfil.get_tipo_persona_display }}{% else %}{% trans "Persona Jurídica" %}{% endif %}</span>
               <span class="meta-sep">·</span>
-              <span class="meta-item"><i data-lucide="id-card"></i> {{ perfil.tipo_documento|default:"NIT" }}: {{ perfil.documento_completo|default:request.user.identificacion|default:"Sin registrar" }}</span>
+              <span class="meta-item"><i data-lucide="id-card"></i> {{ perfil.tipo_documento|default:"NIT" }}: {% if perfil.documento_completo %}{{ perfil.documento_completo }}{% elif request.user.identificacion %}{{ request.user.identificacion }}{% else %}{% trans "Sin registrar" %}{% endif %}</span>
               <span class="meta-sep">·</span>
-              <span class="meta-item"><i data-lucide="users"></i> {{ total_contratados }} desarrollador{{ total_contratados|pluralize:"es" }} contratado{{ total_contratados|pluralize }}</span>
+              <span class="meta-item"><i data-lucide="users"></i> {% blocktrans with count=total_contratados count counter=total_contratados %}{{ count }} desarrollador contratado{% plural %}{{ count }} desarrolladores contratados{% endblocktrans %}</span>
               {% if promedio_empresa > 0 %}
                 <span class="meta-sep">·</span>
-                <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {{ promedio_empresa }} / 5.0 reputación</span>
+                <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {% blocktrans with score=promedio_empresa %}{{ score }} / 5.0 reputación{% endblocktrans %}</span>
               {% endif %}
             </div>
           </div>
@@ -1062,15 +1134,15 @@
         <div class="linkedin-subnav">
           <button type="button" class="linkedin-tab-btn active" onclick="switchPerfilSubTab('info', this)">
             <i data-lucide="building-2"></i>
-            <span>Información General</span>
+            <span>{% trans "Información General" %}</span>
           </button>
           <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('jobs', this)">
             <i data-lucide="briefcase"></i>
-            <span>Convocatorias Abiertas ({{ mis_ofertas|length }})</span>
+            <span>{% blocktrans with total=mis_ofertas|length %}Convocatorias Abiertas ({{ total }}){% endblocktrans %}</span>
           </button>
           <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('reviews', this)">
             <i data-lucide="star"></i>
-            <span>Opiniones & Reputación ({{ valoraciones_recibidas|length }})</span>
+            <span>{% blocktrans with total=valoraciones_recibidas|length %}Opiniones & Reputación ({{ total }}){% endblocktrans %}</span>
           </button>
         </div>
 
@@ -1082,10 +1154,10 @@
               <div class="linkedin-content-card">
                 <div class="linkedin-card-title">
                   <i data-lucide="align-left" style="color:var(--corp-brand);"></i>
-                  <span>Acerca de la Empresa</span>
+                  <span>{% trans "Acerca de la Empresa" %}</span>
                 </div>
                 <p class="linkedin-about-text">
-                  {{ perfil.descripcion|default:"Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera hasta un 60% más de confianza y atrae a los mejores desarrolladores de la plataforma." }}
+                  {% if perfil.descripcion %}{{ perfil.descripcion }}{% else %}{% trans "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera hasta un 60% más de confianza y atrae a los mejores desarrolladores de la plataforma." %}{% endif %}
                 </p>
               </div>
 
@@ -1093,31 +1165,31 @@
               <div class="linkedin-content-card">
                 <div class="linkedin-card-title">
                   <i data-lucide="info" style="color:var(--corp-brand);"></i>
-                  <span>Información Corporativa & Contacto</span>
+                  <span>{% trans "Información Corporativa & Contacto" %}</span>
                 </div>
                 <div class="linkedin-info-grid">
                   <div class="linkedin-info-item">
-                    <div class="info-label">Razón Social</div>
+                    <div class="info-label">{% trans "Razón Social" %}</div>
                     <div class="info-value">{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</div>
                   </div>
                   <div class="linkedin-info-item">
-                    <div class="info-label">Documento Tributario</div>
+                    <div class="info-label">{% trans "Documento Tributario" %}</div>
                     <div class="info-value">{{ perfil.tipo_documento|default:"NIT" }} {{ perfil.documento_completo|default:request.user.identificacion|default:"—" }}</div>
                   </div>
                   <div class="linkedin-info-item">
-                    <div class="info-label">Sector Económico</div>
-                    <div class="info-value">{{ perfil.sector|default:"Tecnología" }}</div>
+                    <div class="info-label">{% trans "Sector Económico" %}</div>
+                    <div class="info-value">{% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Tecnología" %}{% endif %}</div>
                   </div>
                   <div class="linkedin-info-item">
-                    <div class="info-label">Sede / Ubicación</div>
+                    <div class="info-label">{% trans "Sede / Ubicación" %}</div>
                     <div class="info-value">{{ perfil.ciudad|default:"Colombia" }}</div>
                   </div>
                   <div class="linkedin-info-item">
-                    <div class="info-label">Teléfono Corporativo</div>
-                    <div class="info-value">{{ perfil.telefono|default:"No registrado" }}</div>
+                    <div class="info-label">{% trans "Teléfono Corporativo" %}</div>
+                    <div class="info-value">{% if perfil.telefono %}{{ perfil.telefono }}{% else %}{% trans "No registrado" %}{% endif %}</div>
                   </div>
                   <div class="linkedin-info-item">
-                    <div class="info-label">Correo de Contacto</div>
+                    <div class="info-label">{% trans "Correo de Contacto" %}</div>
                     <div class="info-value">{{ request.user.email }}</div>
                   </div>
                 </div>
@@ -1128,13 +1200,13 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                   <div class="linkedin-card-title" style="margin-bottom:0;">
                     <i data-lucide="cpu" style="color:var(--corp-brand);"></i>
-                    <span>Especialidades y Stack Tecnológico de Interés</span>
+                    <span>{% trans "Especialidades y Stack Tecnológico de Interés" %}</span>
                   </div>
-                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:11.5px; padding:3px 10px;" title="Editar tecnologías de interés">
-                    <i data-lucide="pencil"></i> Editar
+                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:11.5px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
+                    <i data-lucide="pencil"></i> {% trans "Editar" %}
                   </button>
                 </div>
-                <p style="font-size:12.5px; color:var(--corp-slate-500); margin-bottom:8px;">Áreas tecnológicas donde tu empresa contrata talento activamente:</p>
+                <p style="font-size:12.5px; color:var(--corp-slate-500); margin-bottom:8px;">{% trans "Áreas tecnológicas donde tu empresa contrata talento activamente:" %}</p>
                 {% if perfil.lista_stack_interes %}
                   <div class="tech-stack-wrap">
                     {% for tech in perfil.lista_stack_interes %}
@@ -1151,7 +1223,7 @@
                     <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Docker</span>
                   </div>
                   <div style="font-size:11.5px; color:var(--corp-slate-400); margin-top:8px;">
-                    <i data-lucide="info" style="margin-right:4px;"></i> Mostrando stack sugerido por defecto. Podés personalizar tus tecnologías desde "Editar página".
+                    <i data-lucide="info" style="margin-right:4px;"></i> {% trans 'Mostrando stack sugerido por defecto. Podés personalizar tus tecnologías desde "Editar página".' %}
                   </div>
                 {% endif %}
               </div>
@@ -1162,24 +1234,24 @@
               <div class="linkedin-content-card" style="margin-bottom:0;">
                 <div class="linkedin-card-title">
                   <i data-lucide="bar-chart-2" style="color:var(--corp-brand);"></i>
-                  <span>Métricas en JobDevs</span>
+                  <span>{% trans "Métricas en JobDevs" %}</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:12px;">
                   <div class="analytics-stat-box">
                     <div class="stat-number">{{ total_proyectos }}</div>
-                    <div class="stat-label">Convocatorias Publicadas</div>
+                    <div class="stat-label">{% trans "Convocatorias Publicadas" %}</div>
                   </div>
                   <div class="analytics-stat-box">
                     <div class="stat-number">{{ proyectos_activos }}</div>
-                    <div class="stat-label">Proyectos en Desarrollo</div>
+                    <div class="stat-label">{% trans "Proyectos en Desarrollo" %}</div>
                   </div>
                   <div class="analytics-stat-box">
                     <div class="stat-number">{{ total_contratados }}</div>
-                    <div class="stat-label">Contrataciones Realizadas</div>
+                    <div class="stat-label">{% trans "Contrataciones Realizadas" %}</div>
                   </div>
                   <div class="analytics-stat-box">
                     <div class="stat-number" style="color:var(--corp-gold);">{{ promedio_empresa }} ★</div>
-                    <div class="stat-label">Calificación de Talento</div>
+                    <div class="stat-label">{% trans "Calificación de Talento" %}</div>
                   </div>
                 </div>
               </div>
@@ -1193,10 +1265,10 @@
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
               <div class="linkedin-card-title" style="margin-bottom:0;">
                 <i data-lucide="briefcase" style="color:var(--corp-brand);"></i>
-                <span>Convocatorias Abiertas para Desarrolladores</span>
+                <span>{% trans "Convocatorias Abiertas para Desarrolladores" %}</span>
               </div>
               <button class="btn-corp-primary btn-sm" onclick="abrirModal()">
-                <i data-lucide="plus"></i> Nueva Convocatoria
+                <i data-lucide="plus"></i> {% trans "Nueva Convocatoria" %}
               </button>
             </div>
 
@@ -1208,7 +1280,7 @@
                     <div class="linkedin-job-meta">
                       <span><i data-lucide="layers" style="margin-right:4px;"></i>{{ proyecto.get_tipo_solucion_display }}</span>
                       <span>·</span>
-                      <span><i data-lucide="users" style="margin-right:4px;"></i>{{ proyecto.vacantes }} vacante{{ proyecto.vacantes|pluralize }}</span>
+                      <span><i data-lucide="users" style="margin-right:4px;"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
                       <span>·</span>
                       <span><i data-lucide="calendar" style="margin-right:4px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y" }}</span>
                     </div>
@@ -1218,23 +1290,23 @@
                        class="btn-corp-action primary"
                        onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;">
                       <i data-lucide="users"></i>
-                      <span>Ver Candidatos</span>
+                      <span>{% trans "Ver Candidatos" %}</span>
                     </a>
                     <a href="{% url 'editar_proyecto' proyecto.id %}"
                        class="btn-corp-action secondary"
                        onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
-                       title="Editar especificaciones">
+                       title="{% trans "Editar especificaciones" %}">
                       <i data-lucide="square-pen"></i>
-                      <span>Editar</span>
+                      <span>{% trans "Editar" %}</span>
                     </a>
                   </div>
                 </div>
               {% empty %}
                 <div class="activity-empty">
                   <i data-lucide="briefcase"></i>
-                  <p>Tu empresa no tiene convocatorias abiertas actualmente.</p>
+                  <p>{% trans "Tu empresa no tiene convocatorias abiertas actualmente." %}</p>
                   <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:12px;">
-                    <i data-lucide="plus"></i> Publicar oferta
+                    <i data-lucide="plus"></i> {% trans "Publicar oferta" %}
                   </button>
                 </div>
               {% endfor %}
@@ -1246,7 +1318,7 @@
         <div id="pane-reviews" class="linkedin-tab-pane">
           <div class="reputation-layout-corp">
             <div class="reputation-summary-card">
-              <div class="rep-summary-label">Calificación Global</div>
+              <div class="rep-summary-label">{% trans "Calificación Global" %}</div>
               <div class="rep-score-value">{{ promedio_empresa }}</div>
               <div class="rep-stars-row">
                 {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
@@ -1255,7 +1327,7 @@
                 {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
                 {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
               </div>
-              <div class="rep-summary-sub">Promedio sobre 5.0 ({{ valoraciones_recibidas|length }} reseña{{ valoraciones_recibidas|length|pluralize }})</div>
+              <div class="rep-summary-sub">{% blocktrans with count=valoraciones_recibidas|length count counter=valoraciones_recibidas|length %}Promedio sobre 5.0 ({{ count }} reseña){% plural %}Promedio sobre 5.0 ({{ count }} reseñas){% endblocktrans %}</div>
             </div>
 
             <div class="reviews-list-corp">
@@ -1270,15 +1342,15 @@
                       {% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}
                     </div>
                   </div>
-                  <div class="review-project">Proyecto evaluado: <strong>{{ valoracion.proyecto.titulo }}</strong></div>
+                  <div class="review-project">{% trans "Proyecto evaluado:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></div>
                   <div class="review-comment-box">
-                    "{{ valoracion.comentario|default:"Sin comentarios adicionales." }}"
+                    "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "Sin comentarios adicionales." %}{% endif %}"
                   </div>
                 </div>
               {% empty %}
                 <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
                   <i data-lucide="star"></i>
-                  <p>Aún no se han recibido valoraciones de desarrolladores para esta empresa.</p>
+                  <p>{% trans "Aún no se han recibido valoraciones de desarrolladores para esta empresa." %}</p>
                 </div>
               {% endfor %}
             </div>
@@ -1294,112 +1366,112 @@
 <div id="modalProyecto" class="modal-overlay">
   <div class="modal-box-corp">
     <div class="modal-header-corp">
-      <h2 class="modal-title-corp">Nueva Convocatoria de Proyecto</h2>
-      <button onclick="cerrarModal()" class="modal-close-btn" aria-label="Cerrar modal">
+      <h2 class="modal-title-corp">{% trans "Nueva Convocatoria de Proyecto" %}</h2>
+      <button onclick="cerrarModal()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
     <form method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
-        <label class="form-label-corp">Título del Proyecto</label>
-        <input type="text" name="titulo" class="form-input-corp" placeholder="Ej: Plataforma SaaS de Gestión de Inventario" required>
+        <label class="form-label-corp">{% trans "Título del Proyecto" %}</label>
+        <input type="text" name="titulo" class="form-input-corp" placeholder="{% trans "Ej: Plataforma SaaS de Gestión de Inventario" %}" required>
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">Descripción y Alcance</label>
-        <textarea name="descripcion" class="form-input-corp" placeholder="Describe los requerimientos y entregables esperados..." required style="min-height:90px; resize:vertical;"></textarea>
+        <label class="form-label-corp">{% trans "Descripción y Alcance" %}</label>
+        <textarea name="descripcion" class="form-input-corp" placeholder="{% trans "Describe los requerimientos y entregables esperados..." %}" required style="min-height:90px; resize:vertical;"></textarea>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp">Tipo de Solución</label>
+          <label class="form-label-corp">{% trans "Tipo de Solución" %}</label>
           <select name="tipo_solucion" class="form-input-corp">
             {% for c in categorias_solucion %}
             <option value="{{ c.slug }}">{{ c.nombre }}</option>
             {% empty %}
-            <option value="sitio_web">Sitio Web</option>
-            <option value="aplicacion_movil">Aplicación Móvil</option>
-            <option value="automatizacion">Automatización</option>
+            <option value="sitio_web">{% trans "Sitio Web" %}</option>
+            <option value="aplicacion_movil">{% trans "Aplicación Móvil" %}</option>
+            <option value="automatizacion">{% trans "Automatización" %}</option>
             {% endfor %}
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Prioridad</label>
+          <label class="form-label-corp">{% trans "Prioridad" %}</label>
           <select name="prioridad" class="form-input-corp">
-            <option value="alta">Alta</option>
-            <option value="media" selected>Media</option>
-            <option value="baja">Baja</option>
+            <option value="alta">{% trans "Alta" %}</option>
+            <option value="media" selected>{% trans "Media" %}</option>
+            <option value="baja">{% trans "Baja" %}</option>
           </select>
         </div>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp" for="modalidad_select_crear">Modalidad de Trabajo</label>
+          <label class="form-label-corp" for="modalidad_select_crear">{% trans "Modalidad de Trabajo" %}</label>
           <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
-            <option value="remoto" selected>Remoto (Nivel Nacional)</option>
-            <option value="presencial">Presencial</option>
-            <option value="hibrido">Híbrido</option>
+            <option value="remoto" selected>{% trans "Remoto (Nivel Nacional)" %}</option>
+            <option value="presencial">{% trans "Presencial" %}</option>
+            <option value="hibrido">{% trans "Híbrido" %}</option>
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Vacantes</label>
+          <label class="form-label-corp">{% trans "Vacantes" %}</label>
           <input type="number" name="vacantes" class="form-input-corp" value="1" min="1" max="10">
         </div>
       </div>
       <div class="form-group-corp" id="ciudad_group_crear" style="display:none;">
-        <label class="form-label-corp" for="ciudad_input_crear">Ciudad o Sede del Proyecto</label>
-        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input-corp" placeholder="Ej: Bogotá, D.C. / Medellín">
+        <label class="form-label-corp" for="ciudad_input_crear">{% trans "Ciudad o Sede del Proyecto" %}</label>
+        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">Fecha Límite de Entrega</label>
+        <label class="form-label-corp">{% trans "Fecha Límite de Entrega" %}</label>
         <div class="corp-datepicker" id="datepicker-crear">
           <div class="datepicker-input-wrap">
             <i data-lucide="calendar" class="datepicker-icon"></i>
             <input type="text"
                    class="form-input-corp datepicker-display"
                    id="crear_fecha_limite_display"
-                   placeholder="Seleccionar fecha límite..."
+                   placeholder="{% trans "Seleccionar fecha límite..." %}"
                    readonly
                    onclick="toggleCorpDatepicker('datepicker-crear')">
             <input type="hidden"
                    name="fecha_limite"
                    id="crear_fecha_limite"
                    required>
-            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="Abrir calendario">
+            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="{% trans "Abrir calendario" %}">
               <i data-lucide="calendar-days"></i>
             </button>
           </div>
 
           <div class="datepicker-popover" id="datepicker-crear-popover">
             <div class="datepicker-presets">
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">+2 Semanas</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">+1 Mes</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">+2 Meses</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">+3 Meses</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">{% trans "+2 Semanas" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">{% trans "+1 Mes" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">{% trans "+2 Meses" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">{% trans "+3 Meses" %}</button>
             </div>
             <div class="datepicker-header">
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="Mes anterior">
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="{% trans "Mes anterior" %}">
                 <i data-lucide="chevron-left"></i>
               </button>
-              <div class="datepicker-month-year" id="datepicker-crear-monthyear">Mes Año</div>
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="Mes siguiente">
+              <div class="datepicker-month-year" id="datepicker-crear-monthyear">{% trans "Mes Año" %}</div>
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="{% trans "Mes siguiente" %}">
                 <i data-lucide="chevron-right"></i>
               </button>
             </div>
             <div class="datepicker-weekdays">
-              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+              <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
             </div>
             <div class="datepicker-days" id="datepicker-crear-days"></div>
             <div class="datepicker-footer">
-              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">Cerrar</button>
-              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">Hoy</button>
+              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">{% trans "Cerrar" %}</button>
+              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">{% trans "Hoy" %}</button>
             </div>
           </div>
         </div>
       </div>
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModal()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
-          <i data-lucide="send"></i> Publicar Convocatoria
+          <i data-lucide="send"></i> {% trans "Publicar Convocatoria" %}
         </button>
       </div>
     </form>
@@ -1411,10 +1483,10 @@
   <div class="modal-box-corp" style="max-width: 580px;">
     <div class="modal-header-corp">
       <div>
-        <h2 class="modal-title-corp" style="margin-bottom:2px;">Editar Página de Empresa</h2>
-        <span style="font-size:12px; color:var(--corp-slate-500);">Actualiza la presencia institucional y de contacto</span>
+        <h2 class="modal-title-corp" style="margin-bottom:2px;">{% trans "Editar Página de Empresa" %}</h2>
+        <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Actualiza la presencia institucional y de contacto" %}</span>
       </div>
-      <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="Cerrar modal">
+      <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -1425,56 +1497,56 @@
       <div class="logo-upload-preview">
         <div id="logoPreviewBox" class="logo-preview-box">
           {% if perfil.logo %}
-            <img src="{{ perfil.logo.url }}" alt="Logo">
+            <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
           {% else %}
             <i data-lucide="building-2"></i>
           {% endif %}
         </div>
         <div style="flex:1;">
-          <label class="form-label-corp" style="margin-bottom:3px;">Logo de la Empresa</label>
+          <label class="form-label-corp" style="margin-bottom:3px;">{% trans "Logo de la Empresa" %}</label>
           <input type="file" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
-          <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">Formatos recomendados: PNG, JPG o WebP cuadrado (400x400).</div>
+          <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)." %}</div>
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp">Nombre Comercial</label>
-          <input type="text" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="Ej: TechCorp SAS" required>
+          <label class="form-label-corp">{% trans "Nombre Comercial" %}</label>
+          <input type="text" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="{% trans "Ej: TechCorp SAS" %}" required>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Sector o Industria</label>
-          <input type="text" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="Ej: Software y Cloud">
+          <label class="form-label-corp">{% trans "Sector o Industria" %}</label>
+          <input type="text" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="{% trans "Ej: Software y Cloud" %}">
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp">Ciudad Sede</label>
-          <input type="text" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="Ej: Bogotá, D.C.">
+          <label class="form-label-corp">{% trans "Ciudad Sede" %}</label>
+          <input type="text" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="{% trans "Ej: Bogotá, D.C." %}">
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Teléfono de Contacto</label>
-          <input type="text" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="Ej: +57 300 123 4567">
+          <label class="form-label-corp">{% trans "Teléfono de Contacto" %}</label>
+          <input type="text" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="{% trans "Ej: +57 300 123 4567" %}">
         </div>
       </div>
 
       <div class="form-group-corp">
-        <label class="form-label-corp">Especialidades y Stack de Interés (Opcional)</label>
-        <input type="text" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST">
-        <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">Indica las tecnologías o áreas clave separadas por comas. No es obligatorio.</div>
+        <label class="form-label-corp">{% trans "Especialidades y Stack de Interés (Opcional)" %}</label>
+        <input type="text" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="{% trans "Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST" %}">
+        <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Indica las tecnologías o áreas clave separadas por comas. No es obligatorio." %}</div>
       </div>
 
       <div class="form-group-corp">
-        <label class="form-label-corp">Descripción Corporativa ("Acerca de")</label>
-        <textarea name="descripcion" class="form-input-corp" rows="4" placeholder="Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
+        <label class="form-label-corp">{% trans 'Descripción Corporativa ("Acerca de")' %}</label>
+        <textarea name="descripcion" class="form-input-corp" rows="4" placeholder="{% trans "Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." %}" style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
       </div>
 
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModalPerfil()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="button" onclick="cerrarModalPerfil()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
           <i data-lucide="save"></i>
-          <span>Guardar Cambios</span>
+          <span>{% trans "Guardar Cambios" %}</span>
         </button>
       </div>
     </form>
@@ -1488,18 +1560,18 @@
       <div>
         <h2 class="modal-title-corp" id="contratoModalTitulo">
           <i data-lucide="file-signature"></i>
-          <span>Contrato Digital</span>
+          <span>{% trans "Contrato Digital" %}</span>
         </h2>
-        <span class="contract-modal-subtitle">Documento con validez jurídica y firma electrónica verificable</span>
+        <span class="contract-modal-subtitle">{% trans "Documento con validez jurídica y firma electrónica verificable" %}</span>
       </div>
-      <button type="button" onclick="cerrarModalContrato()" class="modal-close-btn" aria-label="Cerrar contrato digital">
+      <button type="button" onclick="cerrarModalContrato()" class="modal-close-btn" aria-label="{% trans "Cerrar contrato digital" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
     <div id="contratoModalBody" class="contract-modal-body">
       <div class="drawer-loading">
         <i data-lucide="loader-circle" class="corp-spin"></i>
-        <p>Cargando expediente contractual...</p>
+        <p>{% trans "Cargando expediente contractual..." %}</p>
       </div>
     </div>
   </div>
@@ -1510,114 +1582,114 @@
   <div class="modal-box-corp">
     <div class="modal-header-corp">
       <div>
-        <h2 class="modal-title-corp">Editar Oferta de Proyecto</h2>
-        <span style="font-size:12px; color:var(--corp-slate-500);">Modifica las especificaciones de tu convocatoria</span>
+        <h2 class="modal-title-corp">{% trans "Editar Oferta de Proyecto" %}</h2>
+        <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Modifica las especificaciones de tu convocatoria" %}</span>
       </div>
-      <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="Cerrar modal">
+      <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
     <form id="formEditarProyecto" method="post" action="" style="display:flex; flex-direction:column; gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
-        <label class="form-label-corp">Título del Proyecto</label>
+        <label class="form-label-corp">{% trans "Título del Proyecto" %}</label>
         <input type="text" id="edit_titulo" name="titulo" class="form-input-corp" required>
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">Descripción y Alcance</label>
+        <label class="form-label-corp">{% trans "Descripción y Alcance" %}</label>
         <textarea id="edit_descripcion" name="descripcion" class="form-input-corp" rows="4" required style="min-height:90px; resize:vertical;"></textarea>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp">Tipo de Solución</label>
+          <label class="form-label-corp">{% trans "Tipo de Solución" %}</label>
           <select id="edit_tipo_solucion" name="tipo_solucion" class="form-input-corp">
             {% for c in categorias_solucion %}
             <option value="{{ c.slug }}">{{ c.nombre }}</option>
             {% empty %}
-            <option value="sitio_web">Sitio Web</option>
-            <option value="aplicacion_movil">Aplicación Móvil</option>
-            <option value="automatizacion">Automatización</option>
+            <option value="sitio_web">{% trans "Sitio Web" %}</option>
+            <option value="aplicacion_movil">{% trans "Aplicación Móvil" %}</option>
+            <option value="automatizacion">{% trans "Automatización" %}</option>
             {% endfor %}
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Prioridad</label>
+          <label class="form-label-corp">{% trans "Prioridad" %}</label>
           <select id="edit_prioridad" name="prioridad" class="form-input-corp">
-            <option value="alta">Alta</option>
-            <option value="media">Media</option>
-            <option value="baja">Baja</option>
+            <option value="alta">{% trans "Alta" %}</option>
+            <option value="media">{% trans "Media" %}</option>
+            <option value="baja">{% trans "Baja" %}</option>
           </select>
         </div>
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="form-group-corp">
-          <label class="form-label-corp" for="edit_modalidad">Modalidad de Trabajo</label>
+          <label class="form-label-corp" for="edit_modalidad">{% trans "Modalidad de Trabajo" %}</label>
           <select id="edit_modalidad" name="modalidad" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'edit_ciudad_group')">
-            <option value="remoto">Remoto (Nivel Nacional)</option>
-            <option value="presencial">Presencial</option>
-            <option value="hibrido">Híbrido</option>
+            <option value="remoto">{% trans "Remoto (Nivel Nacional)" %}</option>
+            <option value="presencial">{% trans "Presencial" %}</option>
+            <option value="hibrido">{% trans "Híbrido" %}</option>
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">Vacantes</label>
+          <label class="form-label-corp">{% trans "Vacantes" %}</label>
           <input type="number" id="edit_vacantes" name="vacantes" class="form-input-corp" min="1" max="10" required>
         </div>
       </div>
       <div class="form-group-corp" id="edit_ciudad_group" style="display:none;">
-        <label class="form-label-corp" for="edit_ciudad">Ciudad o Sede Presencial</label>
-        <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="Ej: Bogotá, D.C. / Medellín">
+        <label class="form-label-corp" for="edit_ciudad">{% trans "Ciudad o Sede Presencial" %}</label>
+        <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">Fecha Límite de Entrega</label>
+        <label class="form-label-corp">{% trans "Fecha Límite de Entrega" %}</label>
         <div class="corp-datepicker" id="datepicker-editar">
           <div class="datepicker-input-wrap">
             <i data-lucide="calendar" class="datepicker-icon"></i>
             <input type="text"
                    class="form-input-corp datepicker-display"
                    id="edit_fecha_limite_display"
-                   placeholder="Seleccionar fecha límite..."
+                   placeholder="{% trans "Seleccionar fecha límite..." %}"
                    readonly
                    onclick="toggleCorpDatepicker('datepicker-editar')">
             <input type="hidden"
                    name="fecha_limite"
                    id="edit_fecha_limite">
-            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-editar')" aria-label="Abrir calendario">
+            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-editar')" aria-label="{% trans "Abrir calendario" %}">
               <i data-lucide="calendar-days"></i>
             </button>
           </div>
 
           <div class="datepicker-popover" id="datepicker-editar-popover">
             <div class="datepicker-presets">
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 14)">+2 Semanas</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 30)">+1 Mes</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 60)">+2 Meses</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 90)">+3 Meses</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 14)">{% trans "+2 Semanas" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 30)">{% trans "+1 Mes" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 60)">{% trans "+2 Meses" %}</button>
+              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 90)">{% trans "+3 Meses" %}</button>
             </div>
             <div class="datepicker-header">
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', -1)" aria-label="Mes anterior">
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', -1)" aria-label="{% trans "Mes anterior" %}">
                 <i data-lucide="chevron-left"></i>
               </button>
-              <div class="datepicker-month-year" id="datepicker-editar-monthyear">Mes Año</div>
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', 1)" aria-label="Mes siguiente">
+              <div class="datepicker-month-year" id="datepicker-editar-monthyear">{% trans "Mes Año" %}</div>
+              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', 1)" aria-label="{% trans "Mes siguiente" %}">
                 <i data-lucide="chevron-right"></i>
               </button>
             </div>
             <div class="datepicker-weekdays">
-              <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+              <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
             </div>
             <div class="datepicker-days" id="datepicker-editar-days"></div>
             <div class="datepicker-footer">
-              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-editar')">Cerrar</button>
-              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-editar')">Hoy</button>
+              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-editar')">{% trans "Cerrar" %}</button>
+              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-editar')">{% trans "Hoy" %}</button>
             </div>
           </div>
         </div>
       </div>
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">Cancelar</button>
+        <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
           <i data-lucide="save"></i>
-          <span>Guardar Cambios</span>
+          <span>{% trans "Guardar Cambios" %}</span>
         </button>
       </div>
     </form>
@@ -1627,7 +1699,7 @@
 <!-- Toast flotante corporativo -->
 <div id="corpToast" class="corp-toast">
   <i data-lucide="check-circle-2" style="color:var(--corp-success);"></i>
-  <span>Enlace del perfil público copiado al portapapeles</span>
+  <span>{% trans "Enlace del perfil público copiado al portapapeles" %}</span>
 </div>
 
 <!-- Drawer / Slide-Over de Candidatos In-Situ -->
@@ -1636,12 +1708,12 @@
     <div class="drawer-header">
       <div>
         <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--corp-brand);">
-          <i data-lucide="users"></i> Panel de Selección & Candidatos
+          <i data-lucide="users"></i> {% trans "Panel de Selección & Candidatos" %}
         </div>
-        <h2 id="drawerProjectTitle" class="drawer-title">Candidatos Postulados</h2>
+        <h2 id="drawerProjectTitle" class="drawer-title">{% trans "Candidatos Postulados" %}</h2>
       </div>
       <div>
-        <button type="button" onclick="cerrarDrawerCandidatos()" class="modal-close-btn" aria-label="Cerrar panel">
+        <button type="button" onclick="cerrarDrawerCandidatos()" class="modal-close-btn" aria-label="{% trans "Cerrar panel" %}">
           <i data-lucide="x"></i>
         </button>
       </div>
@@ -1660,17 +1732,17 @@
     <div class="modal-confirm-icon">
       <i data-lucide="alert-triangle"></i>
     </div>
-    <h3 class="modal-confirm-title">¿Deseas retirar esta convocatoria?</h3>
+    <h3 class="modal-confirm-title">{% trans "¿Deseas retirar esta convocatoria?" %}</h3>
     <p class="modal-confirm-desc">
-      La oferta <strong id="nombreOfertaRetirar">este proyecto</strong> dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos.
+      {% trans "La oferta" %} <strong id="nombreOfertaRetirar">{% trans "este proyecto" %}</strong> {% trans "dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos." %}
     </p>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button type="button" onclick="cerrarModalConfirmarRetiro()" class="btn-corp-action secondary">
-        Cancelar
+        {% trans "Cancelar" %}
       </button>
       <button type="button" onclick="ejecutarRetiroConfirmado()" class="btn-corp-danger">
         <i data-lucide="ban"></i>
-        <span>Sí, retirar oferta</span>
+        <span>{% trans "Sí, retirar oferta" %}</span>
       </button>
     </div>
   </div>
@@ -1681,10 +1753,10 @@
   <div class="modal-box-corp" style="max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
     <div class="modal-header-corp" style="padding: 20px 24px; margin-bottom: 0;">
       <div>
-        <h2 class="modal-title-corp" style="margin-bottom: 3px;">Expediente de Reputación y Valoraciones</h2>
-        <span style="font-size: 12px; color: var(--corp-slate-500);">Registro completo de {{ total_valoraciones }} evaluaciones recibidas de desarrolladores contratados</span>
+        <h2 class="modal-title-corp" style="margin-bottom: 3px;">{% trans "Expediente de Reputación y Valoraciones" %}</h2>
+        <span style="font-size: 12px; color: var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Registro completo de {{ total }} evaluación recibida de desarrolladores contratados{% plural %}Registro completo de {{ total }} evaluaciones recibidas de desarrolladores contratados{% endblocktrans %}</span>
       </div>
-      <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="Cerrar modal">
+      <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -1694,18 +1766,18 @@
       <div style="flex: 1; min-width: 220px; position: relative;">
         <input type="text"
                class="form-input-corp"
-               placeholder="Buscar por desarrollador o proyecto..."
+               placeholder="{% trans "Buscar por desarrollador o proyecto..." %}"
                onkeyup="filtrarResenasModal(this)"
                style="padding-left: 32px; background: #ffffff;">
         <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
       </div>
 
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button type="button" class="datepicker-preset-pill active" onclick="filtrarPorEstrellasModal(0, this)">Todas ({{ total_valoraciones }})</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(5, this)">5 ★ ({{ conteo_estrellas.5 }})</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(4, this)">4 ★ ({{ conteo_estrellas.4 }})</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(3, this)">3 ★ ({{ conteo_estrellas.3 }})</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(1, this)">1-2 ★ ({{ conteo_estrellas.1|add:conteo_estrellas.2 }})</button>
+        <button type="button" class="datepicker-preset-pill active" onclick="filtrarPorEstrellasModal(0, this)">{% blocktrans with total=total_valoraciones %}Todas ({{ total }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(5, this)">{% blocktrans with count=conteo_estrellas.5 %}5 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(4, this)">{% blocktrans with count=conteo_estrellas.4 %}4 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(3, this)">{% blocktrans with count=conteo_estrellas.3 %}3 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(1, this)">{% blocktrans with count=conteo_estrellas.1|add:conteo_estrellas.2 %}1-2 ★ ({{ count }}){% endblocktrans %}</button>
       </div>
     </div>
 
@@ -1725,7 +1797,7 @@
               <div>
                 <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
                 <span class="badge-verified-hire">
-                  <i data-lucide="check-circle-2"></i> Contratación Verificada
+                  <i data-lucide="check-circle-2"></i> {% trans "Contratación Verificada" %}
                 </span>
               </div>
             </div>
@@ -1738,11 +1810,11 @@
 
           <div class="review-project">
             <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
-            <span>Proyecto: <strong>{{ valoracion.proyecto.titulo }}</strong></span>
+            <span>{% trans "Proyecto:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></span>
           </div>
 
           <div class="review-comment-box">
-            "{{ valoracion.comentario|default:"El desarrollador calificó con puntaje positivo sin comentario adicional." }}"
+            "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "El desarrollador calificó con puntaje positivo sin comentario adicional." %}{% endif %}"
           </div>
 
           {% if valoracion.fecha %}
@@ -1754,18 +1826,18 @@
       {% empty %}
         <div class="activity-empty">
           <i data-lucide="star"></i>
-          <p>No hay valoraciones registradas en la plataforma.</p>
+          <p>{% trans "No hay valoraciones registradas en la plataforma." %}</p>
         </div>
       {% endfor %}
       <div id="noMatchResenas" class="activity-empty" style="display:none; padding:40px 10px;">
         <i data-lucide="filter"></i>
-        <p>No se encontraron valoraciones con los filtros aplicados.</p>
+        <p>{% trans "No se encontraron valoraciones con los filtros aplicados." %}</p>
       </div>
     </div>
 
     <!-- Footer modal -->
     <div style="padding: 14px 24px; border-top: 1px solid var(--corp-border); display: flex; justify-content: flex-end; background: var(--corp-surface);">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">Cerrar</button>
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">{% trans "Cerrar" %}</button>
     </div>
   </div>
 </div>
@@ -1779,11 +1851,11 @@
           <i data-lucide="shield-check" style="width:20px; height:20px;"></i>
         </div>
         <div>
-          <h2 class="modal-title-corp" style="margin-bottom:2px;">Verificación de Identidad Empresarial</h2>
-          <span style="font-size:12px; color:var(--corp-slate-500);">Validación oficial de persona jurídica o natural con personería comercial</span>
+          <h2 class="modal-title-corp" style="margin-bottom:2px;">{% trans "Verificación de Identidad Empresarial" %}</h2>
+          <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Validación oficial de persona jurídica o natural con personería comercial" %}</span>
         </div>
       </div>
-      <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="Cerrar modal">
+      <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -1793,22 +1865,22 @@
       <div style="background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
         <i data-lucide="check-circle-2" style="color:#007c34; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
         <div>
-          <strong style="display:block; font-size:15px; color:#007c34; margin-bottom:4px;">¡Empresa Verificada con Éxito!</strong>
-          <p style="margin:0 0 6px 0; font-size:13.5px; color:#064e3b;">Tu empresa <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> cuenta con la insignia de confianza oficial.</p>
-          <span style="font-size:12px; color:#047857; font-weight:600;">Documento acreditado: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
+          <strong style="display:block; font-size:15px; color:#007c34; margin-bottom:4px;">{% trans "¡Empresa Verificada con Éxito!" %}</strong>
+          <p style="margin:0 0 6px 0; font-size:13.5px; color:#064e3b;">{% trans "Tu empresa" %} <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> {% trans "cuenta con la insignia de confianza oficial." %}</p>
+          <span style="font-size:12px; color:#047857; font-weight:600;">{% trans "Documento acreditado:" %} {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
         </div>
       </div>
     {% elif perfil.estado_verificacion == 'en_revision' %}
       <div style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
         <i data-lucide="clock" style="color:#a16207; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
         <div>
-          <strong style="display:block; font-size:15px; color:#854d0e; margin-bottom:4px;">Solicitud en Proceso de Revisión</strong>
-          <p style="margin:0 0 8px 0; font-size:13.5px; color:#713f12;">Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen.</p>
-          <div style="font-size:12px; color:#854d0e;">Documento radicado: <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
+          <strong style="display:block; font-size:15px; color:#854d0e; margin-bottom:4px;">{% trans "Solicitud en Proceso de Revisión" %}</strong>
+          <p style="margin:0 0 8px 0; font-size:13.5px; color:#713f12;">{% trans "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen." %}</p>
+          <div style="font-size:12px; color:#854d0e;">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
           {% if perfil.documento_soporte %}
             <div style="margin-top:8px;">
               <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:11.5px; padding:3px 10px;">
-                <i data-lucide="file-text"></i> Ver documento enviado
+                <i data-lucide="file-text"></i> {% trans "Ver documento enviado" %}
               </a>
             </div>
           {% endif %}
@@ -1818,15 +1890,15 @@
       {% if perfil.estado_verificacion == 'rechazada' %}
         <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:16px 18px; margin-bottom:20px; color:#9f1239; font-size:13px;">
           <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-            <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> Tu solicitud anterior fue rechazada
+            <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> {% trans "Tu solicitud anterior fue rechazada" %}
           </strong>
-          {% if perfil.notas_auditoria %}<div><strong>Motivo del mediador:</strong> {{ perfil.notas_auditoria }}</div>{% endif %}
-          <div style="margin-top:4px;">Por favor corrige la información y vuelve a adjuntar el documento de soporte.</div>
+          {% if perfil.notas_auditoria %}<div><strong>{% trans "Motivo del mediador:" %}</strong> {{ perfil.notas_auditoria }}</div>{% endif %}
+          <div style="margin-top:4px;">{% trans "Por favor corrige la información y vuelve a adjuntar el documento de soporte." %}</div>
         </div>
       {% else %}
         <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:12px; padding:16px 18px; margin-bottom:20px; font-size:13px; color:var(--corp-slate-600); display:flex; gap:10px; align-items:center;">
           <i data-lucide="info" style="color:var(--corp-brand); width:18px; height:18px; flex-shrink:0;"></i>
-          <span>Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa.</span>
+          <span>{% trans "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa." %}</span>
         </div>
       {% endif %}
 
@@ -1836,7 +1908,7 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
           <div class="form-group-corp" style="margin-bottom:0;">
-            <label class="form-label-corp" for="modal_tipo_persona">Tipo de persona</label>
+            <label class="form-label-corp" for="modal_tipo_persona">{% trans "Tipo de persona" %}</label>
             <select id="modal_tipo_persona" name="tipo_persona" class="form-input-corp" required>
               {% for value, label in tipos_persona %}
                 <option value="{{ value }}" {% if perfil.tipo_persona == value %}selected{% endif %}>{{ label }}</option>
@@ -1844,7 +1916,7 @@
             </select>
           </div>
           <div class="form-group-corp" style="margin-bottom:0;">
-            <label class="form-label-corp" for="modal_tipo_documento">Tipo de documento</label>
+            <label class="form-label-corp" for="modal_tipo_documento">{% trans "Tipo de documento" %}</label>
             <select id="modal_tipo_documento" name="tipo_documento" class="form-input-corp" required>
               {% for value, label in tipos_documento %}
                 <option value="{{ value }}" {% if perfil.tipo_documento == value %}selected{% endif %}>{{ label }}</option>
@@ -1855,33 +1927,33 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
           <div class="form-group-corp" style="margin-bottom:0;">
-            <label class="form-label-corp" for="modal_numero_documento">Número de documento (sin DV)</label>
+            <label class="form-label-corp" for="modal_numero_documento">{% trans "Número de documento (sin DV)" %}</label>
             <input type="text" id="modal_numero_documento" name="numero_documento" class="form-input-corp"
-                   value="{{ perfil.numero_documento|default:'' }}" placeholder="Ej: 900123456" required>
-            <span style="font-size:11px; color:var(--corp-slate-400); margin-top:3px; display:block;">El dígito de verificación se calcula automáticamente.</span>
+                   value="{{ perfil.numero_documento|default:'' }}" placeholder="{% trans "Ej: 900123456" %}" required>
+            <span style="font-size:11px; color:var(--corp-slate-400); margin-top:3px; display:block;">{% trans "El dígito de verificación se calcula automáticamente." %}</span>
           </div>
           <div class="form-group-corp" style="margin-bottom:0;">
-            <label class="form-label-corp" for="modal_razon_social">Razón social oficial</label>
+            <label class="form-label-corp" for="modal_razon_social">{% trans "Razón social oficial" %}</label>
             <input type="text" id="modal_razon_social" name="razon_social" class="form-input-corp"
-                   value="{{ perfil.razon_social|default:perfil.nombre_empresa }}" placeholder="Ej: Tech Solutions S.A.S." required>
+                   value="{{ perfil.razon_social|default:perfil.nombre_empresa }}" placeholder="{% trans "Ej: Tech Solutions S.A.S." %}" required>
           </div>
         </div>
 
         <div class="form-group-corp" style="margin-bottom:20px;">
-          <label class="form-label-corp" for="modal_documento_soporte">Documento de soporte (Cámara de Comercio o RUT, PDF)</label>
+          <label class="form-label-corp" for="modal_documento_soporte">{% trans "Documento de soporte (Cámara de Comercio o RUT, PDF)" %}</label>
           <input type="file" id="modal_documento_soporte" name="documento_soporte" accept="application/pdf,.pdf" class="form-input-corp" required>
           {% if perfil.documento_soporte %}
             <span style="font-size:11.5px; color:var(--corp-brand); margin-top:4px; display:block;">
-              <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo.
+              <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> {% trans "Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo." %}
             </span>
           {% endif %}
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--corp-border); padding-top:16px;">
-          <button type="button" onclick="cerrarModalVerificacion()" class="btn-corp-action secondary">Cancelar</button>
+          <button type="button" onclick="cerrarModalVerificacion()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
           <button type="submit" class="btn-corp-primary">
             <i data-lucide="upload-cloud"></i>
-            <span>Radicar Solicitud de Verificación</span>
+            <span>{% trans "Radicar Solicitud de Verificación" %}</span>
           </button>
         </div>
       </form>
@@ -1902,7 +1974,8 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
   }
 }
 </script>
-<script src="{% static 'empresa/script/empresa.js' %}?v=2"></script>
+<script src="{% static 'empresa/script/empresa.js' %}?v=20261107_v4"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261107_v1"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 <script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>

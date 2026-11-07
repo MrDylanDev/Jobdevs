@@ -7,6 +7,34 @@
 (function () {
   'use strict';
 
+  // --- Modo Claro / Oscuro ---
+  const THEME_STORAGE_KEY = 'jobdevs-theme';
+
+  function obtenerTemaActual() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function actualizarBotonTema(tema) {
+    const btn = document.getElementById('empresaThemeToggle');
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
+    btn.setAttribute('aria-label', tema === 'light' ? 'Tema claro activo' : 'Tema oscuro activo');
+    btn.title = tema === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro';
+  }
+
+  window.toggleEmpresaTheme = function () {
+    const temaActual = obtenerTemaActual();
+    const nuevoTema = temaActual === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nuevoTema);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nuevoTema);
+    } catch (e) {}
+    actualizarBotonTema(nuevoTema);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  };
+
   // --- 1. Tab Switching & URL Persistence ---
   window.switchTab = function (id, btn) {
     if (!id) return;
@@ -44,10 +72,11 @@
       btn.classList.add('active');
     }
 
-    // Actualizar URL hash de forma limpia sin saltos de scroll
+    // Actualizar URL hash y section param de forma limpia sin saltos de scroll
     if (window.history && window.history.replaceState) {
       const url = new URL(window.location);
       url.hash = id;
+      url.searchParams.set('section', id);
       window.history.replaceState(null, '', url);
     }
 
@@ -1558,13 +1587,37 @@
       }
     });
 
-    // Restaurar pestaña activa desde URL (?section=... o hash #...)
+    // Restaurar pestaña activa desde URL: el hash o la sección actual mandan
     const params = new URLSearchParams(window.location.search);
-    const sectionParam = params.get('section');
     const hash = window.location.hash ? window.location.hash.substring(1) : null;
-    const initialTab = sectionParam || hash || 'inicio';
+    const sectionParam = params.get('section');
+    const initialTab = hash || sectionParam || 'inicio';
 
     window.switchTab(initialTab);
+
+    // Preservar la pestaña y subpestaña actual al cambiar de idioma
+    document.addEventListener('click', function (e) {
+      const langBtn = e.target.closest('.lang-switch');
+      if (langBtn && langBtn.href) {
+        e.preventDefault();
+        const destUrl = new URL(langBtn.href, window.location.origin);
+        
+        // Identificar la sección activa actual
+        const activeSection = document.querySelector('.seccion-v.activa, .section-v.activa');
+        const activeTabId = window.location.hash ? window.location.hash.substring(1) : (activeSection ? activeSection.id : 'inicio');
+        
+        destUrl.searchParams.set('section', activeTabId);
+        destUrl.hash = activeTabId;
+        
+        // Preservar subpestaña si estamos en disputas/historial
+        const currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.has('subtab')) {
+          destUrl.searchParams.set('subtab', currentParams.get('subtab'));
+        }
+        
+        window.location.href = destUrl.toString();
+      }
+    });
 
     // Restaurar subpestaña de historial si aplica
     const subtabParam = params.get('subtab');
@@ -1587,6 +1640,27 @@
         }
       }
     } catch (e) {}
+
+    // Inicializar estado del botón de tema claro/oscuro
+    actualizarBotonTema(obtenerTemaActual());
+
+    // Escuchar cambios de preferencia del sistema
+    if (window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleSystemThemeChange = function (e) {
+        let guardado = null;
+        try { guardado = localStorage.getItem(THEME_STORAGE_KEY); } catch (err) {}
+        if (guardado === 'light' || guardado === 'dark') return;
+        const tema = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', tema);
+        actualizarBotonTema(tema);
+      };
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleSystemThemeChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleSystemThemeChange);
+      }
+    }
 
     // Inicializar íconos Lucide
     if (window.lucide && typeof window.lucide.createIcons === 'function') {

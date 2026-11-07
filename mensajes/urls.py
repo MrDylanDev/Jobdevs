@@ -16,7 +16,7 @@ urlpatterns = [
     # Auditoría de chats (administrador)
     path('auditoria/', views.admin_auditar_mensajes, name='admin_auditar_mensajes'),
 
-    # API JSON del chat embebido (panel tipo WhatsApp)
+    # API JSON del chat embebido (panel in-situ)
     path('api/conversacion/<int:receptor_id>/', views.api_conversacion,
          name='api_conversacion'),
     path('api/conversacion/<int:receptor_id>/<int:proyecto_id>/',

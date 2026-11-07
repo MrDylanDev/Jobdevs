@@ -73,6 +73,232 @@
   --corp-shadow-pop: 0 20px 25px -5px rgba(11, 15, 12, 0.12), 0 8px 10px -6px rgba(11, 15, 12, 0.06);
 }
 
+/* ============================================================
+   TEMA OSCURO CORPORATIVO (Dark Mode - Idéntico a la Landing)
+   Se activa con [data-theme="dark"] en <html>.
+   Negro puro OLED #000000, tarjetas #0a0a0a y bordes #1a1a1a.
+   ============================================================ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --corp-bg:             #000000;
+  --corp-surface:        #0a0a0a;
+  --corp-surface-alt:    #050505;
+  --corp-border:         #1a1a1a;
+  --corp-border-subtle:  #141414;
+  
+  --corp-slate-900:      #ffffff;
+  --corp-slate-800:      #e2e8f0;
+  --corp-slate-700:      #cbd5e1;
+  --corp-slate-600:      #a0a0a0;
+  --corp-slate-500:      #555555;
+  --corp-slate-400:      #333333;
+  --corp-slate-200:      #1a1a1a;
+  --corp-slate-100:      #0f0f0f;
+  --corp-slate-50:       #0a0a0a;
+
+  /* Verde Oficial sobre fondos oscuros (idéntico a index.css) */
+  --corp-brand:          #00e676;
+  --corp-brand-neon:     #00e676;
+  --corp-brand-hover:    #69f0ae;
+  --corp-brand-light:    rgba(0, 230, 118, 0.15);
+  --corp-brand-subtle:   rgba(0, 230, 118, 0.12);
+  --corp-brand-glow:     rgba(0, 230, 118, 0.35);
+
+  --corp-success:        #00e676;
+  --corp-success-light:  rgba(0, 230, 118, 0.15);
+  --corp-warning:        #f59e0b;
+  --corp-warning-light:  rgba(245, 158, 11, 0.15);
+  --corp-danger:         #ef4444;
+  --corp-danger-light:   rgba(239, 68, 68, 0.15);
+  --corp-info:           #38bdf8;
+  --corp-info-light:     rgba(56, 189, 248, 0.15);
+  --corp-gold:           #fbbf24;
+
+  /* Sidebar Negro Puro */
+  --corp-sidebar-bg:     #000000;
+  --corp-sidebar-line:   #1a1a1a;
+  --corp-sidebar-hover:  #0a0a0a;
+
+  /* Sombras sobre fondo negro puro */
+  --corp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --corp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --corp-shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.85);
+  --corp-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.9);
+  --corp-shadow-pop: 0 20px 32px -5px rgba(0, 0, 0, 0.95), 0 8px 14px -6px rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================================
+   SELECTOR DE TEMA CLARO / OSCURO (1:1 Idéntico a la Landing)
+   Switch técnico brutalista con esquinas rectas (border-radius: 0),
+   luna y sol siempre visibles, fondo translúcido con blur e
+   inversión total en hover.
+   ============================================================ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 38px;
+  padding: 0 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--corp-slate-900);
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0 !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 8px;
+  border-radius: 2px;
+  color: var(--corp-brand);
+  opacity: 0.35;
+  transition: opacity 0.25s, background 0.25s, color 0.25s;
+}
+
+.theme-toggle-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* Indicador de estado activo en modo claro (aria-pressed="true" = claro activo) */
+.theme-toggle[aria-pressed="true"] .theme-toggle-icon--light,
+.theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Hover en modo claro: inversión idéntica a la landing */
+.theme-toggle:hover {
+  background: #0b0f0c;
+  color: #ffffff;
+  border-color: #0b0f0c;
+}
+
+.theme-toggle:hover .theme-toggle-icon {
+  color: inherit;
+  opacity: 0.55;
+}
+
+.theme-toggle:hover[aria-pressed="true"] .theme-toggle-icon--light,
+.theme-toggle:hover[aria-pressed="false"] .theme-toggle-icon--dark {
+  opacity: 1;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--corp-brand);
+  outline-offset: 2px;
+}
+
+/* En modo oscuro: idéntico a index.css con translucidez, blur y borde tenue */
+[data-theme="dark"] .theme-toggle {
+  background: rgba(0, 0, 0, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 0 !important;
+}
+
+[data-theme="dark"] .theme-toggle-icon {
+  color: var(--corp-brand); /* #00e676 */
+  opacity: 0.35;
+}
+
+[data-theme="dark"] .theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark,
+[data-theme="dark"] .theme-toggle[aria-pressed="true"] .theme-toggle-icon--light {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* Hover en modo oscuro: inversión blanca sobre negro */
+[data-theme="dark"] .theme-toggle:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+[data-theme="dark"] .theme-toggle:hover .theme-toggle-icon {
+  color: inherit;
+  opacity: 0.55;
+}
+
+[data-theme="dark"] .theme-toggle:hover[aria-pressed="false"] .theme-toggle-icon--dark,
+[data-theme="dark"] .theme-toggle:hover[aria-pressed="true"] .theme-toggle-icon--light {
+  opacity: 1;
+}
+
+/* ============================================================
+   CONMUTADOR DE IDIOMA ES / EN (1:1 Idéntico a la Landing)
+   ============================================================ */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--corp-slate-900);
+  text-decoration: none;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0 !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.lang-switch svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.lang-switch:hover {
+  background: #0b0f0c;
+  color: #ffffff;
+  border-color: #0b0f0c;
+}
+
+.lang-switch:focus-visible {
+  outline: 2px solid var(--corp-brand);
+  outline-offset: 2px;
+}
+
+/* En modo oscuro: fondo translúcido con blur e inversión en hover */
+[data-theme="dark"] .lang-switch {
+  background: rgba(0, 0, 0, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 0 !important;
+}
+
+[data-theme="dark"] .lang-switch:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
 /* Base Body & Layout Overrides para Empresa */
 body {
   background-color: var(--corp-bg);
@@ -1874,6 +2100,17 @@ body {
   color: var(--corp-slate-900);
 }
 
+.btn-linkedin-verify.is-verified {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+}
+
+.btn-linkedin-verify.is-verified:hover {
+  background: var(--corp-brand-subtle);
+  color: var(--corp-brand-hover);
+}
+
 .linkedin-company-name {
   font-size: 24px;
   font-weight: 800;
@@ -2721,7 +2958,7 @@ body {
   top: calc(100% + 6px);
   left: 0;
   width: 320px;
-  background: #ffffff;
+  background: var(--corp-surface);
   border: 1px solid var(--corp-border);
   border-radius: var(--corp-radius-lg);
   box-shadow: var(--corp-shadow-pop);
@@ -3297,7 +3534,7 @@ body {
 
 /* Hoja de documento */
 .contract-doc-paper {
-  background: #ffffff;
+  background: var(--corp-surface);
   border: 1px solid var(--corp-border);
   border-radius: var(--corp-radius-lg);
   box-shadow: 0 8px 28px rgba(11, 15, 12, 0.07);
@@ -3421,7 +3658,7 @@ body {
 
 /* Bloque de cláusulas */
 .contract-clause-box {
-  background: #ffffff;
+  background: var(--corp-surface);
   border: 1px solid var(--corp-border);
   border-left: 3px solid var(--corp-brand);
   border-radius: var(--corp-radius);

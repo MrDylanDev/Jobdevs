@@ -1106,9 +1106,1161 @@ msgstr ""
 "Your password must be at least 8 characters long and include an uppercase "
 "letter, a lowercase letter and a number."
 
+#: templates/empresa/empresa.html:42
+msgid "Principal"
+msgstr "Main"
+
+#: templates/empresa/empresa.html:45
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates/empresa/empresa.html:52
+msgid "Mensajes"
+msgstr "Messages"
+
+#: templates/empresa/empresa.html:59
+msgid "Gestión"
+msgstr "Management"
+
+#: templates/empresa/empresa.html:62
+msgid "Mis Ofertas"
+msgstr "My Job Postings"
+
+#: templates/empresa/empresa.html:69
+msgid "En Desarrollo"
+msgstr "In Development"
+
+#: templates/empresa/empresa.html:72
+msgid "Contratos"
+msgstr "Contracts"
+
+#: templates/empresa/empresa.html:75
+msgid "Historial"
+msgstr "History"
+
+#: templates/empresa/empresa.html:79
+msgid "Disputas"
+msgstr "Disputes"
+
+#: templates/empresa/empresa.html:87
+msgid "Cuenta"
+msgstr "Account"
+
+#: templates/empresa/empresa.html:90
+msgid "Perfil Empresa"
+msgstr "Company Profile"
+
+#: templates/empresa/empresa.html:97
+msgid "Cerrar Sesión"
+msgstr "Log Out"
+
+#: templates/empresa/empresa.html:114
+msgid "Panel Corporativo"
+msgstr "Corporate Dashboard"
+
+#: templates/empresa/empresa.html:148
+msgid "Notificaciones"
+msgstr "Notifications"
+
+#: templates/empresa/empresa.html:153
+msgid "Limpiar"
+msgstr "Clear"
+
+#: templates/empresa/empresa.html:169
+msgid "No hay notificaciones"
+msgstr "No notifications"
+
+#: templates/empresa/empresa.html:219
+msgid "Panel de Control"
+msgstr "Control Panel"
+
+#: templates/empresa/empresa.html:220
+msgid "Vista ejecutiva de proyectos, talento y métricas operativas"
+msgstr "Executive overview of projects, talent, and operational metrics"
+
+#: templates/empresa/empresa.html:227
+msgid "Proyectos Totales"
+msgstr "Total Projects"
+
+#: templates/empresa/empresa.html:232
+msgid "Histórico"
+msgstr "All Time"
+
+#: templates/empresa/empresa.html:233
+msgid "Convocatorias publicadas"
+msgstr "Published listings"
+
+#: templates/empresa/empresa.html:244
+msgid "En marcha"
+msgstr "Active"
+
+#: templates/empresa/empresa.html:245
+msgid "Equipos trabajando"
+msgstr "Teams working"
+
+#: templates/empresa/empresa.html:251
+msgid "Candidatos"
+msgstr "Candidates"
+
+#: templates/empresa/empresa.html:257
+msgid "Requiere acción"
+msgstr "Action required"
+
+#: templates/empresa/empresa.html:259
+msgid "Al día"
+msgstr "Up to date"
+
+#: templates/empresa/empresa.html:261
+msgid "Pendientes de revisión"
+msgstr "Pending review"
+
+msgid "Cumplido"
+msgstr "Fulfilled"
+
+msgid "Sin verificar"
+msgstr "Unverified"
+
+msgid "Verificado"
+msgstr "Verified"
+
+msgid "Sin Verificar"
+msgstr "Unverified"
+
+msgid "En Revisión"
+msgstr "Under Review"
+
+msgid "Verificada"
+msgstr "Verified"
+
+msgid "Rechazada"
+msgstr "Rejected"
+
+msgid "Empresa Verificada"
+msgstr "Verified Company"
+
+msgid "Negocio Verificado"
+msgstr "Verified Business"
+
+msgid "Verificación Rechazada"
+msgstr "Verification Rejected"
 
 
 
 
 
 
+
+
+msgid "+1 Mes"
+msgstr "+1 Month"
+
+msgid "+2 Meses"
+msgstr "+2 Months"
+
+msgid "+2 Semanas"
+msgstr "+2 Weeks"
+
+msgid "+3 Meses"
+msgstr "+3 Months"
+
+msgid "100% Cumplido"
+msgstr "100% Fulfilled"
+
+msgid "Abrir Chat"
+msgstr "Open Chat"
+
+msgid "Abrir calendario"
+msgstr "Open calendar"
+
+msgid "Abrir expediente de reputación completo"
+msgstr "Open full reputation record"
+
+msgid "Abrir menú de navegación"
+msgstr "Open navigation menu"
+
+msgid "Acciones"
+msgstr "Actions"
+
+msgid "Acción"
+msgstr "Action"
+
+msgid "Acerca de la Empresa"
+msgstr "About the Company"
+
+msgid "Actualiza la presencia institucional y de contacto"
+msgstr "Update institutional and contact details"
+
+msgid "Acuerdos con validez jurídica y firma electrónica: revisa, firma y audita sin salir del panel"
+msgstr "Legally binding agreements with electronic signatures: review, sign, and audit without leaving the dashboard"
+
+msgid "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa."
+msgstr "Attach your updated Chamber of Commerce certificate or RUT in PDF format (max 5 MB) to validate your company's legal entity status."
+
+msgid "Administración JobDevs"
+msgstr "JobDevs Administration"
+
+msgid "Alta"
+msgstr "High"
+
+msgid "Aplicación Móvil"
+msgstr "Mobile Application"
+
+msgid "Asignando..."
+msgstr "Assigning..."
+
+msgid "Automatización"
+msgstr "Automation"
+
+msgid "Aún no hay disputas registradas en el historial."
+msgstr "No disputes registered in history yet."
+
+msgid "Aún no se han recibido valoraciones de desarrolladores para esta empresa."
+msgstr "No developer reviews have been received for this company yet."
+
+msgid "Aún no tienes contratos digitales"
+msgstr "You do not have digital contracts yet"
+
+msgid "Baja"
+msgstr "Low"
+
+msgid "Borrar todas las notificaciones para que no se acumulen"
+msgstr "Clear all notifications to prevent accumulation"
+
+msgid "Buscar convocatoria por título..."
+msgstr "Search listing by title..."
+
+msgid "Buscar por desarrollador o proyecto..."
+msgstr "Search by developer or project..."
+
+msgid "Calificación Global"
+msgstr "Overall Rating"
+
+msgid "Calificación de Talento"
+msgstr "Talent Rating"
+
+msgid "Canal Oficial de Soporte"
+msgstr "Official Support Channel"
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Candidatos Postulados"
+msgstr "Applied Candidates"
+
+msgid "Cargando expediente contractual..."
+msgstr "Loading contract file..."
+
+msgid "Centro de Mensajería"
+msgstr "Messaging Center"
+
+msgid "Cerrar"
+msgstr "Close"
+
+msgid "Cerrar contrato digital"
+msgstr "Close digital contract"
+
+msgid "Cerrar modal"
+msgstr "Close modal"
+
+msgid "Cerrar panel"
+msgstr "Close panel"
+
+msgid "Chat Grupal"
+msgstr "Group Chat"
+
+msgid "Chatear con el desarrollador"
+msgstr "Chat with developer"
+
+msgid "Cierra pronto"
+msgstr "Closing soon"
+
+msgid "Cierra:"
+msgstr "Closes:"
+
+msgid "Ciudad Sede"
+msgstr "Headquarters City"
+
+msgid "Ciudad o Sede Presencial"
+msgstr "City or On-site Location"
+
+msgid "Ciudad o Sede del Proyecto"
+msgstr "City or Project Site"
+
+msgid "Claridad de Hitos"
+msgstr "Milestone Clarity"
+
+msgid "Colapsar menú (solo iconos)"
+msgstr "Collapse menu (icons only)"
+
+msgid "Colapsar menú lateral"
+msgstr "Collapse sidebar"
+
+msgid "Comunicaciones directas con tu equipo técnico y soporte institucional"
+msgstr "Direct communications with your technical team and institutional support"
+
+msgid "Contrataciones Realizadas"
+msgstr "Completed Hires"
+
+msgid "Contratación Verificada"
+msgstr "Verified Hire"
+
+msgid "Contrato Digital"
+msgstr "Digital Contract"
+
+msgid "Contratos Digitales & Acuerdos"
+msgstr "Digital Contracts & Agreements"
+
+msgid "Control de entregas, avance de hitos y coordinación de equipos"
+msgstr "Delivery tracking, milestone progress, and team coordination"
+
+msgid "Convocatorias Abiertas para Desarrolladores"
+msgstr "Open Listings for Developers"
+
+msgid "Convocatorias Publicadas"
+msgstr "Published Listings"
+
+msgid "Correo de Contacto"
+msgstr "Contact Email"
+
+msgid "Creado"
+msgstr "Created"
+
+msgid "Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica."
+msgstr "When you start a negotiation with a candidate, the contract will appear here ready for review and electronic signature."
+
+msgid "Desarrolladores Contratados Activos"
+msgstr "Active Hired Developers"
+
+msgid "Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..."
+msgstr "Describe what the company does, what technologies it uses, and what benefits it offers to talent..."
+
+msgid "Describe los requerimientos y entregables esperados..."
+msgstr "Describe the requirements and expected deliverables..."
+
+msgid "Descripción Corporativa (\"Acerca de\")"
+msgstr "Corporate Description (\"About\")"
+
+msgid "Descripción y Alcance"
+msgstr "Description & Scope"
+
+msgid "Dev:"
+msgstr "Dev:"
+
+msgid "Dictamen / Notas"
+msgstr "Ruling / Notes"
+
+msgid "Disputas (Historial Completo)"
+msgstr "Disputes (Full History)"
+
+msgid "Do"
+msgstr "Su"
+
+msgid "Documento Tributario"
+msgstr "Tax Identification"
+
+msgid "Documento acreditado:"
+msgstr "Accredited document:"
+
+msgid "Documento con validez jurídica y firma electrónica verificable"
+msgstr "Document with legal validity and verifiable electronic signature"
+
+msgid "Documento de soporte (Cámara de Comercio o RUT, PDF)"
+msgstr "Supporting document (Chamber of Commerce or RUT, PDF)"
+
+msgid "Documento radicado:"
+msgstr "Filed document:"
+
+msgid "Editar"
+msgstr "Edit"
+
+msgid "Editar Oferta de Proyecto"
+msgstr "Edit Project Listing"
+
+msgid "Editar Página de Empresa"
+msgstr "Edit Company Page"
+
+msgid "Editar especificaciones"
+msgstr "Edit specifications"
+
+msgid "Editar especificaciones de la oferta sin salir del panel"
+msgstr "Edit listing specifications without leaving the dashboard"
+
+msgid "Editar información del perfil"
+msgstr "Edit profile information"
+
+msgid "Editar página"
+msgstr "Edit page"
+
+msgid "Editar tecnologías de interés"
+msgstr "Edit technologies of interest"
+
+msgid "Ej: +57 300 123 4567"
+msgstr "Ex: +57 300 123 4567"
+
+msgid "Ej: 900123456"
+msgstr "Ex: 900123456"
+
+msgid "Ej: Bogotá, D.C."
+msgstr "Ex: Bogotá, D.C."
+
+msgid "Ej: Bogotá, D.C. / Medellín"
+msgstr "Ex: Bogotá, D.C. / Medellín"
+
+msgid "Ej: Plataforma SaaS de Gestión de Inventario"
+msgstr "Ex: Inventory Management SaaS Platform"
+
+msgid "Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST"
+msgstr "Ex: Python, Django, React, PostgreSQL, Docker, AWS, REST APIs"
+
+msgid "Ej: Software y Cloud"
+msgstr "Ex: Software and Cloud"
+
+msgid "Ej: Tech Solutions S.A.S."
+msgstr "Ex: Tech Solutions S.A.S."
+
+msgid "Ej: TechCorp SAS"
+msgstr "Ex: TechCorp SAS"
+
+msgid "El desarrollador calificó con puntaje positivo sin comentario adicional."
+msgstr "The developer gave a positive rating without additional comments."
+
+msgid "El dígito de verificación se calcula automáticamente."
+msgstr "The verification digit is calculated automatically."
+
+msgid "El sello se genera con la primera firma electrónica"
+msgstr "The stamp is generated upon the first electronic signature"
+
+msgid "Empresa Empleadora en Tecnología"
+msgstr "Technology Employer Company"
+
+msgid "Empresa:"
+msgstr "Company:"
+
+msgid "En disputa"
+msgstr "In dispute"
+
+msgid "En revisión por el equipo JobDevs."
+msgstr "Under review by the JobDevs team."
+
+msgid "Enlace del perfil público copiado al portapapeles"
+msgstr "Public profile link copied to clipboard"
+
+msgid "Equipo:"
+msgstr "Team:"
+
+msgid "Especialidades y Stack Tecnológico de Interés"
+msgstr "Specialties & Tech Stack of Interest"
+
+msgid "Especialidades y Stack de Interés (Opcional)"
+msgstr "Specialties & Tech Stack of Interest (Optional)"
+
+msgid "Estado de Empresa"
+msgstr "Company Status"
+
+msgid "Estado de Firmas (Empresa / Dev)"
+msgstr "Signature Status (Company / Dev)"
+
+msgid "Estado del Contrato"
+msgstr "Contract Status"
+
+msgid "Evaluaciones y retroalimentación verificada de los desarrolladores contratados"
+msgstr "Verified evaluations and feedback from hired developers"
+
+msgid "Expediente"
+msgstr "File"
+
+msgid "Expediente / ID"
+msgstr "Record / ID"
+
+msgid "Expediente de Reputación y Valoraciones"
+msgstr "Reputation & Ratings Record"
+
+msgid "Fecha Límite de Entrega"
+msgstr "Delivery Deadline"
+
+msgid "Fecha Resolución"
+msgstr "Resolution Date"
+
+msgid "Finalizados"
+msgstr "Completed"
+
+msgid "Finalizar"
+msgstr "Finish"
+
+msgid "Finalizar Proyecto"
+msgstr "Finish Project"
+
+msgid "Firmado"
+msgstr "Signed"
+
+msgid "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)."
+msgstr "Recommended formats: square PNG, JPG, or WebP (400x400)."
+
+msgid "Gestionar Hitos"
+msgstr "Manage Milestones"
+
+msgid "Gestión de Convocatorias & Ofertas"
+msgstr "Job Listings & Openings Management"
+
+msgid "Grupos"
+msgstr "Teams"
+
+msgid "Guardar Cambios"
+msgstr "Save Changes"
+
+msgid "Guía de Inicio Rápido"
+msgstr "Quick Start Guide"
+
+msgid "Historial Completo & Auditoría"
+msgstr "Full History & Audit"
+
+msgid "Historial de Disputas y Expedientes Cerrados"
+msgstr "History of Disputes and Closed Files"
+
+msgid "Hoy"
+msgstr "Today"
+
+msgid "Híbrido"
+msgstr "Hybrid"
+
+msgid "Inactivos"
+msgstr "Inactive"
+
+msgid "Indica las tecnologías o áreas clave separadas por comas. No es obligatorio."
+msgstr "Indicate key technologies or areas separated by commas. Not required."
+
+msgid "Información Corporativa & Contacto"
+msgstr "Corporate Information & Contact"
+
+msgid "Información General"
+msgstr "General Information"
+
+msgid "Iniciar mediación por conflicto formal"
+msgstr "Initiate mediation for formal dispute"
+
+msgid "Insignia oficial"
+msgstr "Official badge"
+
+msgid "Ju"
+msgstr "Th"
+
+msgid "La oferta"
+msgstr "The listing"
+
+msgid "Las calificaciones se habilitan automáticamente al culminar exitosamente un proyecto."
+msgstr "Ratings are automatically enabled upon successful project completion."
+
+msgid "Logo"
+msgstr "Logo"
+
+msgid "Logo de la Empresa"
+msgstr "Company Logo"
+
+msgid "Lu"
+msgstr "Mo"
+
+msgid "Ma"
+msgstr "Tu"
+
+msgid "Media"
+msgstr "Medium"
+
+msgid "Mensaje"
+msgstr "Message"
+
+msgid "Mes Año"
+msgstr "Month Year"
+
+msgid "Mes anterior"
+msgstr "Previous month"
+
+msgid "Mes siguiente"
+msgstr "Next month"
+
+msgid "Mi"
+msgstr "We"
+
+msgid "Modalidad de Trabajo"
+msgstr "Work Modality"
+
+msgid "Modifica las especificaciones de tu convocatoria"
+msgstr "Modify your listing specifications"
+
+msgid "Mostrando stack sugerido por defecto. Podés personalizar tus tecnologías desde \"Editar página\"."
+msgstr "Showing suggested default stack. You can customize your technologies from \"Edit page\"."
+
+msgid "Motivo del mediador:"
+msgstr "Mediator reason:"
+
+msgid "Métricas en JobDevs"
+msgstr "JobDevs Metrics"
+
+msgid "No hay colaboradores activos en este momento."
+msgstr "No active collaborators at this moment."
+
+msgid "No hay proyectos en desarrollo actualmente."
+msgstr "There are no projects currently in development."
+
+msgid "No hay proyectos en este estado del historial."
+msgstr "No projects found in this history status."
+
+msgid "No hay valoraciones registradas en la plataforma."
+msgstr "No ratings registered on the platform."
+
+msgid "No registrado"
+msgstr "Not registered"
+
+msgid "No se encontraron convocatorias para los filtros seleccionados."
+msgstr "No listings found for the selected filters."
+
+msgid "No se encontraron valoraciones con los filtros aplicados."
+msgstr "No ratings found with applied filters."
+
+msgid "No tienes ofertas publicadas actualmente."
+msgstr "You do not have any published listings currently."
+
+msgid "Nombre Comercial"
+msgstr "Trade Name"
+
+msgid "Nueva Convocatoria"
+msgstr "New Job Listing"
+
+msgid "Nueva Convocatoria de Proyecto"
+msgstr "New Project Listing"
+
+msgid "Número de documento (sin DV)"
+msgstr "Document number (without verification digit)"
+
+msgid "Opiniones Recientes"
+msgstr "Recent Reviews"
+
+msgid "Pago & Contratación"
+msgstr "Payment & Hiring"
+
+msgid "Panel de Selección & Candidatos"
+msgstr "Selection & Candidates Panel"
+
+msgid "Pendiente"
+msgstr "Pending"
+
+msgid "Perfil"
+msgstr "Profile"
+
+msgid "Perfil Corporativo"
+msgstr "Corporate Profile"
+
+msgid "Persona Jurídica"
+msgstr "Legal Entity"
+
+msgid "Por favor corrige la información y vuelve a adjuntar el documento de soporte."
+msgstr "Please correct the information and re-attach the supporting document."
+
+msgid "Presencia institucional, información tributaria y reputación en JobDevs"
+msgstr "Institutional presence, tax information, and reputation on JobDevs"
+
+msgid "Presencial"
+msgstr "On-site"
+
+msgid "Prioridad"
+msgstr "Priority"
+
+msgid "Progreso de Hitos y Entregables"
+msgstr "Milestones and Deliverables Progress"
+
+msgid "Proyecto"
+msgstr "Project"
+
+msgid "Proyecto de software"
+msgstr "Software project"
+
+msgid "Proyecto evaluado:"
+msgstr "Evaluated project:"
+
+msgid "Proyecto:"
+msgstr "Project:"
+
+msgid "Proyectos (Historial Completo)"
+msgstr "Projects (Full History)"
+
+msgid "Proyectos en Desarrollo"
+msgstr "Projects in Development"
+
+msgid "Proyectos en Marcha"
+msgstr "Active Projects"
+
+msgid "Publicaciones activas buscando desarrolladores y postulaciones en revisión"
+msgstr "Active listings seeking developers and applications under review"
+
+msgid "Publicar Convocatoria"
+msgstr "Publish Listing"
+
+msgid "Publicar oferta"
+msgstr "Publish listing"
+
+msgid "Publicar primera convocatoria"
+msgstr "Publish your first listing"
+
+msgid "Radicar Solicitud de Verificación"
+msgstr "Submit Verification Request"
+
+msgid "Razón Social"
+msgstr "Legal Company Name"
+
+msgid "Razón social oficial"
+msgstr "Official legal entity name"
+
+msgid "Rechazados"
+msgstr "Rejected"
+
+msgid "Reciente"
+msgstr "Recent"
+
+msgid "Registrada"
+msgstr "Registered"
+
+msgid "Conversaciones"
+msgstr "Conversations"
+
+msgid "Soporte JobDevs"
+msgstr "JobDevs Support"
+
+msgid "Asistencia técnica y administrativa"
+msgstr "Technical and administrative support"
+
+msgid "Sin conversaciones activas"
+msgstr "No active conversations"
+
+msgid "Selecciona una conversación"
+msgstr "Select a conversation"
+
+msgid "Elige un contacto de la lista para ver el historial y enviar mensajes"
+msgstr "Choose a contact from the list to view history and send messages"
+
+msgid "Volver"
+msgstr "Back"
+
+msgid "Escribe un mensaje…"
+msgstr "Type a message…"
+
+msgid "Enviar"
+msgstr "Send"
+
+msgid "Este proyecto ha finalizado: el chat es de solo lectura."
+msgstr "This project has ended: chat is read-only."
+
+msgid "Registro histórico consolidado de proyectos convocados y expedientes de disputas cerradas"
+msgstr "Consolidated historical record of listings and closed dispute files"
+
+msgid "Remoto"
+msgstr "Remote"
+
+msgid "Remoto (Nivel Nacional)"
+msgstr "Remote (Nationwide)"
+
+msgid "Reportar Disputa"
+msgstr "Report Dispute"
+
+msgid "Reputación & Desempeño Corporativo"
+msgstr "Corporate Reputation & Performance"
+
+msgid "Requiere completar todos los hitos"
+msgstr "Requires completing all milestones"
+
+msgid "Resolución"
+msgstr "Resolution"
+
+msgid "Retirar publicación"
+msgstr "Withdraw listing"
+
+msgid "Revisar candidatos de esta convocatoria sin salir del panel"
+msgstr "Review candidates for this listing without leaving the dashboard"
+
+msgid "Revisar y firmar el contrato sin salir del panel"
+msgstr "Review and sign the contract without leaving the dashboard"
+
+msgid "SHA-256 del contrato firmado"
+msgstr "SHA-256 of the signed contract"
+
+msgid "Sector Económico"
+msgstr "Industry Sector"
+
+msgid "Sector o Industria"
+msgstr "Sector or Industry"
+
+msgid "Sede / Ubicación"
+msgstr "Headquarters / Location"
+
+msgid "Seleccionar fecha límite..."
+msgstr "Select deadline..."
+
+msgid "Sello Hash"
+msgstr "Hash Stamp"
+
+msgid "Sin comentarios adicionales."
+msgstr "No additional comments."
+
+msgid "Sin fecha límite"
+msgstr "No deadline"
+
+msgid "Sin notas adicionales."
+msgstr "No additional notes."
+
+msgid "Sin registrar"
+msgstr "Unregistered"
+
+msgid "Sin sello"
+msgstr "No stamp"
+
+msgid "Sitio Web"
+msgstr "Website"
+
+msgid "Solicitud en Proceso de Revisión"
+msgstr "Application Under Review"
+
+msgid "Soporte administrativo, mediaciones y pagos seguros"
+msgstr "Administrative support, mediation, and secure payments"
+
+msgid "Sá"
+msgstr "Sa"
+
+msgid "Sí, retirar oferta"
+msgstr "Yes, withdraw listing"
+
+msgid "Tecnología"
+msgstr "Technology"
+
+msgid "Teléfono Corporativo"
+msgstr "Corporate Phone"
+
+msgid "Teléfono de Contacto"
+msgstr "Contact Phone"
+
+msgid "Tema oscuro"
+msgstr "Dark theme"
+
+msgid "Tipo de Solución"
+msgstr "Solution Type"
+
+msgid "Tipo de documento"
+msgstr "Document type"
+
+msgid "Tipo de persona"
+msgstr "Entity type"
+
+msgid "Todas"
+msgstr "All"
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Transferencia bancaria"
+msgstr "Bank transfer"
+
+msgid "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen."
+msgstr "Your documentation has been filed and is being audited by the administrative team. We will notify you once a determination is made."
+
+msgid "Tu empresa"
+msgstr "Your company"
+
+msgid "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera hasta un 60% más de confianza y atrae a los mejores desarrolladores de la plataforma."
+msgstr "Your company does not have a corporate description yet. A complete and detailed profile generates up to 60% more trust and attracts the best developers on the platform."
+
+msgid "Tu empresa aún no ha recibido valoraciones de desarrolladores."
+msgstr "Your company has not yet received reviews from developers."
+
+msgid "Tu empresa no tiene convocatorias abiertas actualmente."
+msgstr "Your company does not have open listings currently."
+
+msgid "Tu solicitud anterior fue rechazada"
+msgstr "Your previous request was rejected"
+
+msgid "Términos"
+msgstr "Terms"
+
+msgid "Título del Proyecto"
+msgstr "Project Title"
+
+msgid "Vacantes"
+msgstr "Vacancies"
+
+msgid "Validación oficial de persona jurídica o natural con personería comercial"
+msgstr "Official validation of legal entity or sole proprietor with commercial registration"
+
+msgid "Ver / Firmar Contrato"
+msgstr "View / Sign Contract"
+
+msgid "Ver Avances y Detalles"
+msgstr "View Progress & Details"
+
+msgid "Ver Candidatos"
+msgstr "View Candidates"
+
+msgid "Ver Expediente"
+msgstr "View File"
+
+msgid "Ver documento enviado"
+msgstr "View submitted document"
+
+msgid "Ver perfil de la empresa"
+msgstr "View company profile"
+
+msgid "Verificación"
+msgstr "Verification"
+
+msgid "Verificación NIT / Identidad"
+msgstr "Tax ID / Identity verification"
+
+msgid "Verificación de Identidad Empresarial"
+msgstr "Business Identity Verification"
+
+msgid "Verificar personería jurídica"
+msgstr "Verify legal entity"
+
+msgid "Vi"
+msgstr "Fr"
+
+msgid "Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo."
+msgstr "You already have a previously uploaded document. Attach a new one only to update it."
+
+msgid "cuenta con la insignia de confianza oficial."
+msgstr "holds the official trust badge."
+
+msgid "dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos."
+msgstr "will no longer be visible for developer applications and will be moved to your inactive projects history."
+
+msgid "este proyecto"
+msgstr "this project"
+
+msgid "hitos"
+msgstr "milestones"
+
+msgid "¡Empresa Verificada con Éxito!"
+msgstr "Company Verified Successfully!"
+
+msgid "¿Deseas retirar esta convocatoria?"
+msgstr "Do you want to withdraw this listing?"
+
+msgid "Áreas tecnológicas donde tu empresa contrata talento activamente:"
+msgstr "Technology areas where your company actively hires talent:"
+
+msgid "1-2 ★ ({{ count }})"
+msgstr "1-2 ★ ({{ count }})"
+
+msgid "3 ★ ({{ count }})"
+msgstr "3 ★ ({{ count }})"
+
+msgid "4 ★ ({{ count }})"
+msgstr "4 ★ ({{ count }})"
+
+msgid "5 ★ ({{ count }})"
+msgstr "5 ★ ({{ count }})"
+
+msgid "<strong>{{ done }}</strong> de {{ total }} completados"
+msgstr "<strong>{{ done }}</strong> of {{ total }} completed"
+
+msgid "Chatear con {{ user }}"
+msgstr "Chat with {{ user }}"
+
+msgid "Convocatorias Abiertas ({{ total }})"
+msgstr "Open Listings ({{ total }})"
+
+msgid "Opiniones & Reputación ({{ total }})"
+msgstr "Reviews & Reputation ({{ total }})"
+
+msgid "Todas ({{ total }})"
+msgstr "All ({{ total }})"
+
+msgid "Ver todas las valoraciones ({{ total }}) →"
+msgstr "View all reviews ({{ total }}) →"
+
+msgid "{{ done }} de {{ total }} pasos completados · {{ pct }}% de avance"
+msgstr "{{ done }} of {{ total }} steps completed · {{ pct }}% progress"
+
+msgid "{{ score }} / 5.0 reputación"
+msgstr "{{ score }} / 5.0 reputation"
+
+msgid "{{ total }} vacante"
+msgid_plural "{{ total }} vacantes"
+msgstr[0] "{{ total }} vacancy"
+msgstr[1] "{{ total }} vacancies"
+
+msgid "Últimas 3 de {{ total }} valoración"
+msgid_plural "Últimas 3 de {{ total }} valoraciones"
+msgstr[0] "Latest 3 of {{ total }} review"
+msgstr[1] "Latest 3 of {{ total }} reviews"
+
+msgid "Promedio sobre 5.0 ({{ count }} reseña)"
+msgid_plural "Promedio sobre 5.0 ({{ count }} reseñas)"
+msgstr[0] "Average out of 5.0 ({{ count }} review)"
+msgstr[1] "Average out of 5.0 ({{ count }} reviews)"
+
+msgid "{{ count }} desarrollador contratado"
+msgid_plural "{{ count }} desarrolladores contratados"
+msgstr[0] "{{ count }} developer hired"
+msgstr[1] "{{ count }} developers hired"
+
+msgid "{{ count }} expediente"
+msgid_plural "{{ count }} expedientes"
+msgstr[0] "{{ count }} file"
+msgstr[1] "{{ count }} files"
+
+msgid "{{ vac }} vacante disponible"
+msgid_plural "{{ vac }} vacantes disponibles"
+msgstr[0] "{{ vac }} vacancy available"
+msgstr[1] "{{ vac }} vacancies available"
+
+msgid "Promedio de {{ total }} valoración sobre 5.0"
+msgid_plural "Promedio de {{ total }} valoraciones sobre 5.0"
+msgstr[0] "Average of {{ total }} rating out of 5.0"
+msgstr[1] "Average of {{ total }} ratings out of 5.0"
+
+msgid "<strong>{{ total }}</strong> vacante abierta"
+msgid_plural "<strong>{{ total }}</strong> vacantes abiertas"
+msgstr[0] "<strong>{{ total }}</strong> open position"
+msgstr[1] "<strong>{{ total }}</strong> open positions"
+
+msgid "Registro completo de {{ total }} evaluación recibida de desarrolladores contratados"
+msgid_plural "Registro completo de {{ total }} evaluaciones recibidas de desarrolladores contratados"
+msgstr[0] "Full record of {{ total }} evaluation received from hired developers"
+msgstr[1] "Full record of {{ total }} evaluations received from hired developers"
+
+msgid "<strong>{{ total }}</strong> pendiente de tu firma"
+msgid_plural "<strong>{{ total }}</strong> pendientes de tu firma"
+msgstr[0] "<strong>{{ total }}</strong> pending your signature"
+msgstr[1] "<strong>{{ total }}</strong> pending your signature"
+
+msgid "{{ total }} postulante"
+msgid_plural "{{ total }} postulantes"
+msgstr[0] "{{ total }} applicant"
+msgstr[1] "{{ total }} applicants"
+
+msgid "<strong>{{ total }}</strong> oferta activa"
+msgid_plural "<strong>{{ total }}</strong> ofertas activas"
+msgstr[0] "<strong>{{ total }}</strong> active listing"
+msgstr[1] "<strong>{{ total }}</strong> active listings"
+
+msgid "<strong>{{ total }}</strong> postulante pendiente"
+msgid_plural "<strong>{{ total }}</strong> postulantes pendientes"
+msgstr[0] "<strong>{{ total }}</strong> pending applicant"
+msgstr[1] "<strong>{{ total }}</strong> pending applicants"
+
+msgid "{{ count }} dev"
+msgid_plural "{{ count }} devs"
+msgstr[0] "{{ count }} dev"
+msgstr[1] "{{ count }} devs"
+
+msgid "<strong>{{ total }}</strong> contrato digital"
+msgid_plural "<strong>{{ total }}</strong> contratos digitales"
+msgstr[0] "<strong>{{ total }}</strong> digital contract"
+msgstr[1] "<strong>{{ total }}</strong> digital contracts"
+
+msgid "%(done)s de %(total)s pasos completados · %(pct)s%% de avance"
+msgstr "%(done)s of %(total)s steps completed · %(pct)s%% progress"
+
+msgid "%(score)s / 5.0 reputación"
+msgstr "%(score)s / 5.0 reputation"
+
+msgid "1-2 ★ (%(count)s)"
+msgstr "1-2 ★ (%(count)s)"
+
+msgid "3 ★ (%(count)s)"
+msgstr "3 ★ (%(count)s)"
+
+msgid "4 ★ (%(count)s)"
+msgstr "4 ★ (%(count)s)"
+
+msgid "5 ★ (%(count)s)"
+msgstr "5 ★ (%(count)s)"
+
+msgid "<strong>%(done)s</strong> de %(total)s completados"
+msgstr "<strong>%(done)s</strong> of %(total)s completed"
+
+msgid "Chatear con %(user)s"
+msgstr "Chat with %(user)s"
+
+msgid "Convocatorias Abiertas (%(total)s)"
+msgstr "Open Listings (%(total)s)"
+
+msgid "Opiniones & Reputación (%(total)s)"
+msgstr "Reviews & Reputation (%(total)s)"
+
+msgid "Todas (%(total)s)"
+msgstr "All (%(total)s)"
+
+msgid "Ver todas las valoraciones (%(total)s) →"
+msgstr "View all reviews (%(total)s) →"
+
+msgid "%(total)s vacante"
+msgid_plural "%(total)s vacantes"
+msgstr[0] "%(total)s vacancy"
+msgstr[1] "%(total)s vacancies"
+
+msgid "Últimas 3 de %(total)s valoración"
+msgid_plural "Últimas 3 de %(total)s valoraciones"
+msgstr[0] "Latest 3 of %(total)s review"
+msgstr[1] "Latest 3 of %(total)s reviews"
+
+msgid "Promedio sobre 5.0 (%(count)s reseña)"
+msgid_plural "Promedio sobre 5.0 (%(count)s reseñas)"
+msgstr[0] "Average out of 5.0 (%(count)s review)"
+msgstr[1] "Average out of 5.0 (%(count)s reviews)"
+
+msgid "%(count)s desarrollador contratado"
+msgid_plural "%(count)s desarrolladores contratados"
+msgstr[0] "%(count)s developer hired"
+msgstr[1] "%(count)s developers hired"
+
+msgid "%(count)s expediente"
+msgid_plural "%(count)s expedientes"
+msgstr[0] "%(count)s file"
+msgstr[1] "%(count)s files"
+
+msgid "%(vac)s vacante disponible"
+msgid_plural "%(vac)s vacantes disponibles"
+msgstr[0] "%(vac)s vacancy available"
+msgstr[1] "%(vac)s vacancies available"
+
+msgid "Promedio de %(total)s valoración sobre 5.0"
+msgid_plural "Promedio de %(total)s valoraciones sobre 5.0"
+msgstr[0] "Average of %(total)s rating out of 5.0"
+msgstr[1] "Average of %(total)s ratings out of 5.0"
+
+msgid "<strong>%(total)s</strong> vacante abierta"
+msgid_plural "<strong>%(total)s</strong> vacantes abiertas"
+msgstr[0] "<strong>%(total)s</strong> open position"
+msgstr[1] "<strong>%(total)s</strong> open positions"
+
+msgid "Registro completo de %(total)s evaluación recibida de desarrolladores contratados"
+msgid_plural "Registro completo de %(total)s evaluaciones recibidas de desarrolladores contratados"
+msgstr[0] "Full record of %(total)s evaluation received from hired developers"
+msgstr[1] "Full record of %(total)s evaluations received from hired developers"
+
+msgid "<strong>%(total)s</strong> pendiente de tu firma"
+msgid_plural "<strong>%(total)s</strong> pendientes de tu firma"
+msgstr[0] "<strong>%(total)s</strong> pending your signature"
+msgstr[1] "<strong>%(total)s</strong> pending your signature"
+
+msgid "%(total)s postulante"
+msgid_plural "%(total)s postulantes"
+msgstr[0] "%(total)s applicant"
+msgstr[1] "%(total)s applicants"
+
+msgid "<strong>%(total)s</strong> oferta activa"
+msgid_plural "<strong>%(total)s</strong> ofertas activas"
+msgstr[0] "<strong>%(total)s</strong> active listing"
+msgstr[1] "<strong>%(total)s</strong> active listings"
+
+msgid "<strong>%(total)s</strong> postulante pendiente"
+msgid_plural "<strong>%(total)s</strong> postulantes pendientes"
+msgstr[0] "<strong>%(total)s</strong> pending applicant"
+msgstr[1] "<strong>%(total)s</strong> pending applicants"
+
+msgid "%(count)s dev"
+msgid_plural "%(count)s devs"
+msgstr[0] "%(count)s dev"
+msgstr[1] "%(count)s devs"
+
+msgid "<strong>%(total)s</strong> contrato digital"
+msgid_plural "<strong>%(total)s</strong> contratos digitales"
+msgstr[0] "<strong>%(total)s</strong> digital contract"
+msgstr[1] "<strong>%(total)s</strong> digital contracts"
