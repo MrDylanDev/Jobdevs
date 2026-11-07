@@ -48,3 +48,53 @@
 .jdm-card {
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  max-height: 88vh;
+  overflow: hidden;
+  background: #080d0b;
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 230, 118, 0.1) inset;
+  animation: jdmSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jdm-card-lg {
+  max-width: 880px;
+}
+
+.jdm-card-sm {
+  max-width: 540px;
+}
+
+/* Tech frame corner accents */
+.jdm-card::before,
+.jdm-card::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 3;
+}
+.jdm-card::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid #00e676;
+  border-left: 2px solid #00e676;
+}
+.jdm-card::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid #00e676;
+  border-right: 2px solid #00e676;
+}
+
+/* Modal Header */
+.jdm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px 16px;
