@@ -248,3 +248,121 @@
         '<span class="jd-chat-preview">Conversación abierta</span></span>';
 
       var texto = (nombre || 'Conversación').trim();
+      item.querySelector('.jd-chat-name').textContent = texto;
+      item.querySelector('.jd-chat-avatar').textContent =
+        texto.charAt(0).toUpperCase();
+
+      bindItem(item);
+      items.push(item);
+      list.prepend(item);
+      var vacio = root.querySelector('.jd-chat-list-empty');
+      if (vacio) vacio.hidden = true;
+      return item;
+    }
+
+    function openInline(receptorId, proyectoId, nombre) {
+      var seccion = root.closest('.seccion-v, .section-v');
+      if (seccion) {
+        var activa =
+          seccion.classList.contains('active') ||
+          seccion.classList.contains('activa');
+        if (!activa) {
+          var nav = document.querySelector(
+            '.nav-item[onclick*="' + seccion.id + '"]'
+          );
+          if (nav) nav.click();
+        }
+      }
+
+      var item = ensureItem(receptorId, proyectoId, nombre);
+      if (!item) return false;
+      selectItem(item);
+      startPolling();
+      return true;
+    }
+
+    window.JdChat = { open: openInline };
+
+    items.forEach(bindItem);
+
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        root.classList.remove('is-conv-open');
+        stopPolling();
+      });
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (!active || sending) return;
+
+      var texto = (input.value || '').trim();
+      if (!texto) return;
+
+      sending = true;
+      if (sendBtn) sendBtn.disabled = true;
+      showError('');
+
+      var payload = {
+        receptor_id: parseInt(active.getAttribute('data-receptor'), 10),
+        proyecto_id: parseInt(active.getAttribute('data-proyecto') || '0', 10),
+        contenido: texto,
+      };
+
+      fetch(sendUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken,
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.error || 'No se pudo enviar.');
+            return data;
+          });
+        })
+        .then(function (data) {
+          appendMessage(data.mensaje);
+          input.value = '';
+          scrollToBottom(true);
+          updatePreview(active, data.mensaje.contenido, data.mensaje.hora);
+        })
+        .catch(function (err) {
+          showError(err.message || 'Error al enviar el mensaje.');
+        })
+        .finally(function () {
+          sending = false;
+          if (sendBtn) sendBtn.disabled = false;
+          input.focus();
+        });
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && active) load(active, true);
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var trigger = event.target.closest
+      ? event.target.closest('[data-chat-open]')
+      : null;
+    if (!trigger) return;
+    if (!window.JdChat || typeof window.JdChat.open !== 'function') return;
+    event.preventDefault();
+    window.JdChat.open(
+      trigger.getAttribute('data-receptor'),
+      trigger.getAttribute('data-proyecto'),
+      trigger.getAttribute('data-nombre')
+    );
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    Array.prototype.slice
+      .call(document.querySelectorAll('[data-chat-root]'))
+      .forEach(initChat);
+  });
+})();
