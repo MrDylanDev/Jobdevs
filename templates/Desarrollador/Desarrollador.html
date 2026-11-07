@@ -698,75 +698,154 @@
                     </button>
                   {% endif %}
                   <a href="{% url 'ver_avances' proyecto.proyecto_id %}" data-abrir-avances data-url="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
-
-                  </td>
-                  <td>
-                    <span style="font-size:13px; color:var(--text-secondary);">{{ contrato.get_forma_pago_display }}</span>
-                  </td>
-                  <td>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                      <span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span>
-                      <div style="font-size:11px; color:var(--text-muted);">
-                        Empresa: {% if contrato.firmado_empresa %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmó</span>{% else %}<span style="color:#f59e0b;">Pendiente</span>{% endif %}
-                        · Tú: {% if contrato.firmado_desarrollador %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmaste</span>{% else %}<span style="color:#ef4444; font-weight:600;">Por firmar</span>{% endif %}
-                      </div>
-                    </div>
-                  </td>
-                  <td style="text-align:right;">
-                    <div style="display:inline-flex; gap:6px; justify-content:flex-end;">
-                      <a href="{% url 'ver_contrato_digital' contrato.id %}" class="btn {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
-                        <i class="fa fa-file-signature"></i> {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}Firmar Contrato{% else %}Ver Contrato{% endif %}
-                      </a>
-                      <a href="{% url 'sala_chat' contrato.postulacion.proyecto.empresa_id contrato.postulacion.proyecto.id %}" class="btn btn-secondary btn-sm" title="Chatear con la empresa">
-                        <i class="fa fa-message"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="5">
-                  <div class="empty-state" style="padding:40px 20px;">
-                    <i class="fa fa-file-contract" style="font-size:32px; color:var(--text-muted); margin-bottom:12px;"></i>
-                    <p style="font-weight:600; font-size:15px; margin-bottom:4px;">Aún no tienes contratos digitales</p>
-                    <p style="color:var(--text-muted); font-size:13px;">Cuando una empresa inicie negociación en tus postulaciones, tus contratos aparecerán aquí para su firma y seguimiento.</p>
-                  </div>
-                </td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Favoritos -->
-      <div id="favoritos" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Mis Favoritos</div>
-            <div class="page-subtitle">¡Postúlate antes de que se agoten las vacantes!</div>
-          </div>
-        </div>
-        <div class="cards-grid">
-          {% for fav in favoritos %}
-            <div class="project-card">
-              <div class="project-card-title">{{ fav.proyecto.titulo }}</div>
-              <div class="project-card-sub" style="margin:8px 0 16px;">{{ fav.proyecto.get_tipo_solucion_display }}</div>
-              <a href="{% url 'postularse_a_proyecto' fav.proyecto.id %}" class="btn btn-primary btn-full">
-                <i class="fa fa-paper-plane"></i> Postularme ahora
-              </a>
+                    <i class="fa fa-eye"></i> Historial
+                  </a>
+                </div>
+                {% if proyecto.num_desarrolladores >= 2 %}
+                  <button type="button" class="btn btn-secondary btn-full"
+                          data-chat-open data-receptor="{{ proyecto.empresa_id }}"
+                          data-proyecto="{{ proyecto.proyecto_id }}"
+                          data-nombre="{{ proyecto.empresa_nombre }}">
+                    <i class="fa fa-users"></i> Espacio de Trabajo
+                  </button>
+                {% endif %}
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" data-abrir-formulario-disputa data-url="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-full" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
+                  <i class="fa fa-gavel"></i> Reportar Disputa
+                </a>
+              </div>
             </div>
           {% empty %}
-            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-heart"></i><p>No tienes favoritos guardados</p></div>
+            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-rocket"></i><p>No tienes proyectos activos</p></div>
           {% endfor %}
         </div>
       </div>
 
-    </main>
-  </div>
-</div>
+      <!-- Disputas -->
+      <div id="disputas" class="seccion-v">
+        {% include 'disputas/_seccion_disputas.html' %}
+      </div>
 
-<script src="{% static 'Desarrollador/script/desarrollador.js' %}"></script>
-<script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
-<script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
-<script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
-</body>
-</html>
+      <!-- Historial -->
+      <div id="completados" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Historial de Proyectos</div>
+            <div class="page-subtitle">Proyectos finalizados y testimonios de empresas</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          {% for contratacion in mis_proyectos_finalizados %}
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div class="project-card-title">{{ contratacion.proyecto.titulo }}</div>
+                <div style="color:#f59e0b;font-size:16px;letter-spacing:2px;">
+                  {% if contratacion.valoracion %}
+                    {% with ''|center:contratacion.valoracion.puntuacion as range %}
+                      {% for _ in range %}★{% endfor %}
+                    {% endwith %}
+                  {% else %}
+                    <span style="font-size:12px;color:var(--text-muted);">Sin calificación</span>
+                  {% endif %}
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+                Empresa: {{ contratacion.empresa.username }}
+                {% with perfil_emp=contratacion.empresa.perfil_empresa %}
+                  {% if perfil_emp %}
+                    <span class="badge {% if perfil_emp.es_verificada %}{% if perfil_emp.tipo_persona == 'natural' %}badge-info{% else %}badge-success{% endif %}{% elif perfil_emp.estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">{{ perfil_emp.badge_info.label }}</span>
+                  {% endif %}
+                {% endwith %}
+              </p>
+              {% if contratacion.valoracion %}
+                <div style="background:var(--page-bg);border-radius:var(--radius-sm);padding:14px;font-style:italic;font-size:13px;color:var(--text-secondary);border-left:3px solid #e5e7eb;">
+                  "{{ contratacion.valoracion.comentario|default:"El cliente no dejó un comentario." }}"
+                </div>
+              {% endif %}
+              <div style="display:flex;gap:8px;margin-top:14px;">
+                <button type="button" class="btn btn-secondary btn-sm"
+                        data-chat-open data-receptor="{{ contratacion.proyecto.empresa.id }}"
+                        data-proyecto="{{ contratacion.proyecto.id }}"
+                        data-nombre="{{ contratacion.proyecto.empresa.nombre|default:contratacion.proyecto.empresa.username }}">
+                  <i class="fa fa-comments"></i> Chat Privado
+                </button>
+                <a href="{% url 'ver_avances' contratacion.proyecto.id %}" data-abrir-avances data-url="{% url 'ver_avances' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
+                  <i class="fa fa-folder-open"></i> Evidencias
+                </a>
+                <a href="{% url 'calificar_empresa' contratacion.proyecto.id %}" data-abrir-calificar data-url="{% url 'calificar_empresa' contratacion.proyecto.id %}" class="btn btn-primary btn-sm">
+                  <i class="fa fa-star"></i> Calificar Empresa
+                </a>
+                {% if contratacion.num_desarrolladores >= 2 %}
+                  <button type="button" class="btn btn-secondary btn-sm"
+                          data-chat-open data-receptor="{{ contratacion.proyecto.empresa.id }}"
+                          data-proyecto="{{ contratacion.proyecto.id }}"
+                          data-nombre="{{ contratacion.proyecto.empresa.nombre|default:contratacion.proyecto.empresa.username }}">
+                    <i class="fa fa-users"></i> Chat Grupal
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-state"><i class="fa fa-trophy"></i><p>Aún no has finalizado proyectos</p></div>
+          {% endfor %}
+
+          <div data-testid="contratos-historial">
+            <details style="background:var(--card-bg,#fff); border:1px solid var(--border); border-radius:8px; padding:14px 18px;">
+              <summary style="cursor:pointer; font-weight:600; color:var(--text-secondary);">
+                <i class="fa fa-circle-xmark" style="margin-right:6px;"></i>Contratos finalizados y cancelados
+              </summary>
+              <div class="table-wrapper" style="margin-top:14px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Proyecto</th>
+                      <th>Empresa</th>
+                      <th>Inicio</th>
+                      <th>Estado del contrato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for contrato in contratos_historial %}
+                      <tr>
+                        <td><strong>{{ contrato.proyecto.titulo }}</strong></td>
+                        <td style="color:var(--text-secondary)">{{ contrato.empresa.nombre|default:contrato.empresa.username }}</td>
+                        <td style="color:var(--text-secondary)">{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td><span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span></td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="4">
+                        <div class="empty-state"><i class="fa fa-circle-check"></i><p>Sin contratos finalizados ni cancelados</p></div>
+                      </td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contratos Digitales (SCRUM-204) -->
+      <div id="contratos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Contratos Digitales</div>
+            <div class="page-subtitle">Acuerdos formales, términos económicos y firmas digitales con empresas</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Proyecto y Empresa</th>
+                <th>Términos Económicos</th>
+                <th>Forma de Pago</th>
+                <th>Estado y Firmas</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contrato in mis_contratos_digitales %}
+                <tr>
+                  <td>
+
