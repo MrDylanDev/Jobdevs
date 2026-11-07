@@ -765,3 +765,62 @@
 
       setContent(html);
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. SALA DE DISPUTA & EXPEDIENTE
+  // ─────────────────────────────────────────────────────────────
+  async function cargarSalaDisputa(url) {
+    abrirModal('jdm-card-lg');
+    setHeader('DISPUTAS // SALA DE MEDIACIÓN', 'Cargando expediente arbitral…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (!data.ok || !data.disputa) throw new Error(data.error || 'No se pudo obtener el expediente de disputa');
+
+      var d = data.disputa;
+      setHeader('SALA DE MEDIACIÓN #' + d.id, d.proyecto_titulo, 'Causal: ' + d.categoria + ' · Estado: ' + d.estado_label);
+
+      var estadoCls = d.estado === 'resuelta' ? 'jdm-badge-success' : (d.estado === 'cancelada' ? 'jdm-badge-gray' : 'jdm-badge-danger');
+
+      var html =
+        '<div class="jdm-disputa-summary">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">' +
+            '<div>' +
+              '<span class="jdm-badge ' + estadoCls + '">' + escapeHtml(d.estado_label) + '</span> ' +
+              '<span class="jdm-badge jdm-badge-gray">' + escapeHtml(d.categoria) + '</span>' +
+            '</div>' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#a0a0a0;">Iniciada por: <strong style="color:#ffffff;">' + escapeHtml(d.iniciado_por) + '</strong></div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;font-size:12px;color:#a0a0a0;border-top:1px dashed #14221a;padding-top:8px;">' +
+            '<div>Empresa: <strong style="color:#ffffff;">' + escapeHtml(d.empresa) + '</strong></div>' +
+            '<div>Desarrollador: <strong style="color:#ffffff;">' + escapeHtml(d.desarrollador) + '</strong></div>' +
+            '<div>Mediador JobDevs: <strong style="color:#00e676;">' + escapeHtml(d.mediador) + '</strong></div>' +
+          '</div>' +
+          '<div style="margin-top:10px;font-size:12.5px;color:#c0d0c6;background:#050a07;border-radius:4px;padding:8px 12px;border:1px solid #14221a;">' +
+            '<strong>Motivo de apertura:</strong> ' + escapeHtml(d.motivo) +
+            (d.evidencia_url ? '<div style="margin-top:4px;"><a href="' + escapeHtml(d.evidencia_url) + '" target="_blank" rel="noopener" style="color:#00e676;font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i class="fa-solid fa-link"></i> Ver enlace de evidencia</a></div>' : '') +
+          '</div>';
+
+      if (d.resolucion) {
+        html +=
+          '<div style="margin-top:10px;padding:12px 14px;background:rgba(0,230,118,0.08);border:1px solid #00e676;border-radius:4px;">' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#00e676;font-weight:700;"><i class="fa-solid fa-gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: ' + escapeHtml(d.resolucion) + '</div>' +
+            (d.dictamen ? '<div style="margin-top:4px;font-size:12px;color:#e6f4ec;">Dictamen: ' + escapeHtml(d.dictamen) + '</div>' : '') +
+          '</div>';
+      }
+
+      html += '</div>';
+
+      html +=
+        '<div class="jdm-form-label"><i class="fa-solid fa-comments"></i> Mensajes y Argumentos de Mediación</div>' +
+        '<div class="jdm-disputa-chat" id="jdmDisputaChat">';
