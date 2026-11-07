@@ -848,4 +848,204 @@
               {% for contrato in mis_contratos_digitales %}
                 <tr>
                   <td>
+                    <strong>{{ contrato.postulacion.proyecto.titulo }}</strong>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                      Empresa: <strong>{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}</strong>
+                      {% if contrato.postulacion.proyecto.empresa.perfil_empresa.es_verificada %}
+                        <span class="badge badge-success" style="font-size:10px; padding:2px 6px; margin-left:4px;"><i class="fa fa-circle-check"></i> Verificada</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <div style="font-size:15px; font-weight:700; color:var(--text-primary);">{{ contrato.monto_formateado }}</div>
+                    <div style="font-size:11.5px; color:var(--text-muted);">Moneda: {{ contrato.moneda }}</div>
+                  </td>
+                  <td>
+                    <span style="font-size:13px; color:var(--text-secondary);">{{ contrato.get_forma_pago_display }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      <span class="badge badge-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span>
+                      <div style="font-size:11px; color:var(--text-muted);">
+                        Empresa: {% if contrato.firmado_empresa %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmó</span>{% else %}<span style="color:#f59e0b;">Pendiente</span>{% endif %}
+                        · Tú: {% if contrato.firmado_desarrollador %}<span style="color:#10b981; font-weight:600;"><i class="fa fa-check"></i> Firmaste</span>{% else %}<span style="color:#ef4444; font-weight:600;">Por firmar</span>{% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align:right;">
+                    <div style="display:inline-flex; gap:6px; justify-content:flex-end;">
+                      <a href="{% url 'ver_contrato_digital' contrato.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' contrato.id %}" class="btn {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                        <i class="fa fa-file-signature"></i> {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}Firmar Contrato{% else %}Ver Contrato{% endif %}
+                      </a>
+                      <button type="button" class="btn btn-secondary btn-sm" title="Chatear con la empresa"
+                              data-chat-open data-receptor="{{ contrato.postulacion.proyecto.empresa_id }}"
+                              data-proyecto="{{ contrato.postulacion.proyecto.id }}"
+                              data-nombre="{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}">
+                        <i class="fa fa-message"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5">
+                  <div class="empty-state" style="padding:40px 20px;">
+                    <i class="fa fa-file-contract" style="font-size:32px; color:var(--text-muted); margin-bottom:12px;"></i>
+                    <p style="font-weight:600; font-size:15px; margin-bottom:4px;">Aún no tienes contratos digitales</p>
+                    <p style="color:var(--text-muted); font-size:13px;">Cuando una empresa inicie negociación en tus postulaciones, tus contratos aparecerán aquí para su firma y seguimiento.</p>
+                  </div>
+                </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Favoritos -->
+      <div id="favoritos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mis Favoritos</div>
+            <div class="page-subtitle">¡Postúlate antes de que se agoten las vacantes!</div>
+          </div>
+        </div>
+        <div class="cards-grid">
+          {% for fav in favoritos %}
+            <div class="project-card">
+              <div class="project-card-title">{{ fav.proyecto.titulo }}</div>
+              <div class="project-card-sub" style="margin:8px 0 16px;">{{ fav.proyecto.get_tipo_solucion_display }}</div>
+              <button type="button" class="btn btn-primary btn-full"
+                      data-abrir-postulacion
+                      data-url="{% url 'postularse_a_proyecto' fav.proyecto.id %}"
+                      data-titulo="{{ fav.proyecto.titulo|escape }}"
+                      data-empresa="{{ fav.proyecto.empresa.nombre|default:fav.proyecto.empresa.username|escape }}"
+                      data-tipo="{{ fav.proyecto.get_tipo_solucion_display|default:fav.proyecto.tipo_solucion|escape }}"
+                      data-prioridad="{{ fav.proyecto.prioridad|upper|escape }}"
+                      data-vacantes="{{ fav.proyecto.vacantes_disponibles }}"
+                      data-cierre="{{ fav.proyecto.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                      data-descripcion="{{ fav.proyecto.descripcion|striptags|escape }}">
+                <i class="fa fa-paper-plane"></i> Postularme ahora
+              </button>
+            </div>
+          {% empty %}
+            <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-heart"></i><p>No tienes favoritos guardados</p></div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Mi Perfil (integrado: no abre otra página) -->
+      <div id="perfil" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mi Perfil</div>
+            <div class="page-subtitle">Actualiza tu información profesional sin salir del panel</div>
+          </div>
+        </div>
+
+        <div class="perfil-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa fa-user"></i> Datos del perfil</div>
+            </div>
+
+            <div class="perfil-identity">
+              <div class="perfil-avatar">
+                {% if perfil.foto_perfil %}
+                  <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil">
+                {% else %}
+                  {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="perfil-name">{{ request.user.nombre|default:request.user.username }}</div>
+                <div class="perfil-meta">{{ request.user.email }}</div>
+              </div>
+            </div>
+
+            <form method="post" action="{% url 'dashboard_desarrollador' %}" enctype="multipart/form-data" class="jd-form" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="perfil">
+
+              {% for field in perfil_form %}
+                <div class="jd-field">
+                  <label class="jd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<div class="jd-help">{{ field.help_text }}</div>{% endif %}
+                  {% for error in field.errors %}<div class="jd-error">{{ error }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+
+              <div class="jd-form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa fa-floppy-disk"></i> Guardar cambios
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="verSeccion('inicio', null)">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa fa-id-card"></i> Verificación SENA</div>
+            </div>
+
+            <div class="jd-status-row">
+              <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-testid="badge-verificacion-sena-perfil">
+                <i class="fa {% if perfil.es_verificado_sena %}fa-circle-check{% elif perfil.estado_verificacion == 'en_revision' %}fa-hourglass-half{% else %}fa-id-card{% endif %}"></i>
+                {{ perfil.badge_info.label }}
+              </span>
+            </div>
+
+            <dl class="jd-datalist">
+              <div><dt>Ficha</dt><dd>{{ perfil.ficha|default:"Sin registrar" }}</dd></div>
+              <div><dt>Programa</dt><dd>{{ perfil.programa_formacion|default:"Sin registrar" }}</dd></div>
+              <div><dt>Condición</dt><dd>{{ perfil.get_condicion_sena_display|default:"Aprendiz" }}</dd></div>
+            </dl>
+
+            <p class="jd-help" style="margin-bottom:16px;">
+              {% if perfil.es_verificado_sena %}
+                Tu identidad SENA está verificada. La ficha y el programa quedan bloqueados para proteger tu insignia.
+              {% elif perfil.estado_verificacion == 'en_revision' %}
+                Tu solicitud está en revisión administrativa. Puedes consultar el estado y el documento enviado.
+              {% else %}
+                Verifica tu condición de aprendiz o egresado SENA para postularte a proyectos reales.
+              {% endif %}
+            </p>
+
+            <button type="button" class="btn {% if perfil.es_verificado_sena %}btn-secondary{% else %}btn-primary{% endif %} btn-full" onclick="abrirVerificacion()">
+              <i class="fa fa-shield-halved"></i>
+              {% if perfil.es_verificado_sena %}Ver mi verificación{% else %}Verificar mi ficha SENA{% endif %}
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal flotante: Verificación SENA (mismo lenguaje visual que el login de la landing) -->
+<div class="jd-modal" id="modalVerificacion" role="dialog" aria-modal="true" aria-labelledby="modalVerificacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-verificacion></div>
+  <div class="jd-modal-card tech-frame">
+    <div class="jd-modal-header">
+      <div>
+        <div class="jd-modal-kicker">[ SENA // IDENTIDAD ]</div>
+        <h2 class="jd-modal-title" id="modalVerificacionTitulo">Verificación de identidad SENA</h2>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-verificacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-modal-status">
+        <span class="jd-modal-status-label">Estado actual</span>
+        <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-verificacion-badge>
+          <i class="fa {% if perfil.es_verificado_sena %}fa-circle-check{% elif perfil.estado_verificacion == 'en_revision' %}fa-hourglass-half{% else %}fa-id-card{% endif %}"></i>
+          {{ perfil.badge_info.label }}
+        </span>
+      </div>
+
+      <div class="jd-inline-feedback" data-verificacion-feedback hidden></div>
+
 
