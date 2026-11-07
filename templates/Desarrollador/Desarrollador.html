@@ -7,32 +7,45 @@
   <title>JobDevs | Desarrollador</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'Desarrollador/css/desarrollador.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
 </head>
-<body>
+<body data-seccion-inicial="{{ seccion_activa }}">
+
+<!-- Texturas Cyber Tech (Estilo Landing Page) -->
+<div class="grain" id="grain"></div>
+<div class="scan-line"></div>
+<div class="tech-bg"></div>
+
 <div class="app-layout">
 
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
-      <div>
-        <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Desarrollador</div>
+      <div class="brand-tech-wrap">
+        <div class="brand-square blink"></div>
+        <div>
+          <div class="sidebar-brand-text">JobDevs<span class="brand-dot"></span></div>
+          <div class="sidebar-brand-sub">[ DESARROLLADOR ]</div>
+        </div>
       </div>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
       <button class="nav-item active" onclick="verSeccion('inicio', this)">
-        <i class="fa fa-house"></i>
+        <i data-lucide="layout-dashboard" class="fa fa-house"></i>
         <span>Inicio</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="verSeccion('centro-chat', this)">
-        <i class="fa fa-comments"></i>
+        <i data-lucide="message-square" class="fa fa-comments"></i>
         <span>Mensajes</span>
         {% if mensajes_no_leidos > 0 %}
           <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
@@ -42,35 +55,38 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Proyectos</div>
-      <a class="nav-item" href="{% url 'listar_proyectos' %}">
-        <i class="fa fa-magnifying-glass"></i>
+      <button class="nav-item" onclick="verSeccion('explorar', this)">
+        <i data-lucide="compass" class="fa fa-compass"></i>
         <span>Explorar</span>
-      </a>
+        {% if proyectos_explorar|length > 0 %}
+          <span class="nav-badge">{{ proyectos_explorar|length }}</span>
+        {% endif %}
+      </button>
       <button class="nav-item" onclick="verSeccion('postulaciones', this)">
-        <i class="fa fa-file-lines"></i>
+        <i data-lucide="file-text" class="fa fa-file-lines"></i>
         <span>Postulaciones</span>
       </button>
       <button class="nav-item" onclick="verSeccion('activos', this)">
-        <i class="fa fa-rocket"></i>
+        <i data-lucide="rocket" class="fa fa-rocket"></i>
         <span>Trabajo Actual</span>
       </button>
       <button class="nav-item" onclick="verSeccion('completados', this)">
-        <i class="fa fa-trophy"></i>
+        <i data-lucide="trophy" class="fa fa-trophy"></i>
         <span>Finalizados</span>
       </button>
       <button class="nav-item" onclick="verSeccion('contratos', this)">
-        <i class="fa fa-file-signature"></i>
+        <i data-lucide="file-check" class="fa fa-file-signature"></i>
         <span>Contratos</span>
         {% if contratos_pendientes_firma_count > 0 %}
           <span class="nav-badge" style="background:#2563eb;">{{ contratos_pendientes_firma_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="verSeccion('favoritos', this)">
-        <i class="fa fa-heart"></i>
+        <i data-lucide="heart" class="fa fa-heart"></i>
         <span>Favoritos</span>
       </button>
       <button class="nav-item" onclick="verSeccion('disputas', this)">
-        <i class="fa fa-scale-balanced"></i>
+        <i data-lucide="scale" class="fa fa-scale-balanced"></i>
         <span>Disputas</span>
         {% if disputas_activas_count > 0 %}
           <span class="nav-badge">{{ disputas_activas_count }}</span>
@@ -80,16 +96,19 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Cuenta</div>
-      <a class="nav-item" href="{% url 'editar_perfil' %}">
-        <i class="fa fa-user"></i>
+      <button class="nav-item" onclick="verSeccion('perfil', this)">
+        <i data-lucide="user" class="fa fa-user"></i>
         <span>Mi Perfil</span>
-      </a>
+        {% if perfil and not perfil.es_verificado_sena %}
+          <span class="nav-badge" style="background:var(--warning);color:#000;">!</span>
+        {% endif %}
+      </button>
     </div>
 
     <hr class="sidebar-sep" style="margin-top: auto;">
     <div style="padding: 12px;">
       <a class="nav-item danger" href="{% url 'logout' %}">
-        <i class="fa fa-right-from-bracket"></i>
+        <i data-lucide="log-out" class="fa fa-right-from-bracket"></i>
         <span>Cerrar Sesión</span>
       </a>
     </div>
@@ -103,6 +122,7 @@
       <div class="top-header-title">
         Panel Desarrollador
         <span>/ JobDevs Platform</span>
+        <span class="top-sys-pill"><span class="top-sys-dot"></span> DEV // ONLINE</span>
       </div>
       <button class="notif-btn" title="Notificaciones">
         <i class="fa fa-bell"></i>
@@ -145,19 +165,19 @@
         {% endfor %}
       {% endif %}
 
-      <!-- Alerta Verificación SENA -->
+      <!-- Alerta Verificación SENA (tema oscuro del dashboard) -->
       {% if perfil and not perfil.es_verificado_sena %}
-        <div class="alert alert-warning" data-testid="alerta-verificacion-sena" style="background:#fff3cd; border:1px solid #ffe69c; color:#664d03; padding:14px 18px; border-radius:8px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fa fa-triangle-exclamation" style="font-size:22px; color:#d97706;"></i>
+        <div class="jd-alert jd-alert-warning" data-testid="alerta-verificacion-sena">
+          <div class="jd-alert-main">
+            <i class="fa fa-triangle-exclamation jd-alert-icon"></i>
             <div>
-              <strong style="font-size:15px;">Tu perfil no está verificado como aprendiz SENA.</strong>
-              <div style="font-size:13px; color:#78350f;">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
+              <strong class="jd-alert-title">Tu perfil no está verificado como aprendiz SENA.</strong>
+              <div class="jd-alert-text">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
             </div>
           </div>
-          <a href="{% url 'solicitar_verificacion_desarrollador' %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:8px 14px; background:#f59e0b; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:6px;">
+          <button type="button" class="jd-btn jd-btn-warning" onclick="abrirVerificacion()">
             <i class="fa fa-id-card"></i> Verificar mi ficha SENA
-          </a>
+          </button>
         </div>
       {% endif %}
 
@@ -172,7 +192,7 @@
                 <div style="font-size:13px; color:#1d4ed8; margin-top:2px;">La empresa <strong>{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</strong> inició negociación para el proyecto '{{ post.proyecto.titulo }}'{% if post.contrato_digital.monto > 0 %} ({{ post.contrato_digital.monto_formateado }}){% endif %}.</div>
               </div>
             </div>
-            <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:9px 18px; background:#2563eb; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2);">
+            <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" style="white-space:nowrap; font-weight:600; text-decoration:none; padding:9px 18px; background:#2563eb; color:#fff; border-radius:6px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(37,99,235,0.2); cursor:pointer;">
               <i class="fa fa-file-signature"></i> Firmar Contrato Digital
             </a>
           </div>
@@ -252,7 +272,7 @@
         </div>
       </div>
 
-      <!-- Chat -->
+      <!-- Chat (panel tipo WhatsApp: lista a la izquierda, conversación a la derecha) -->
       <div id="centro-chat" class="seccion-v">
         <div class="page-header">
           <div>
@@ -260,42 +280,271 @@
             <div class="page-subtitle">Conversaciones con empresas y soporte</div>
           </div>
         </div>
-        <div class="cards-grid">
-          <div class="project-card" style="border-left:3px solid var(--accent);">
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-              <div class="user-avatar" style="width:44px;height:44px;font-size:16px;"><i class="fa fa-shield-halved"></i></div>
-              <div>
-                <div class="project-card-title">Soporte JobDevs</div>
-                <div class="project-card-sub">Asistencia técnica y administrativa</div>
+
+        <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <span>Conversaciones</span>
+              <span class="jd-chat-count">{% if admin_id %}{{ conversaciones_chat|length|add:"1" }}{% else %}{{ conversaciones_chat|length }}{% endif %}</span>
+            </div>
+            <div class="jd-chat-items" data-chat-list>
+              {% if admin_id %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' admin_id %}"
+                      data-receptor="{{ admin_id }}" data-proyecto="0">
+                <span class="jd-chat-avatar"><i class="fa fa-shield-halved"></i></span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">Soporte JobDevs</span>
+                  </span>
+                  <span class="jd-chat-preview">Asistencia técnica y administrativa</span>
+                </span>
+              </button>
+              {% endif %}
+
+              {% for conv in conversaciones_chat %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion_proyecto' conv.empresa_id conv.proyecto_id %}"
+                      data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
+                <span class="jd-chat-avatar">{{ conv.empresa_nombre|slice:":1"|upper }}</span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ conv.empresa_nombre }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ conv.titulo }}</span>
+                  {% if conv.es_negociacion %}
+                  <span class="jd-chat-tag">En negociación</span>
+                  {% endif %}
+                </span>
+              </button>
+              {% empty %}
+                {% if not admin_id %}
+                <div class="jd-chat-list-empty">
+                  <i class="fa fa-comments"></i>
+                  Sin conversaciones activas
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i class="fa fa-comments"></i>
+              <p>Selecciona una conversación</p>
+              <span>Elige un contacto de la lista</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="Volver">
+                  <i class="fa fa-arrow-left"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name" data-chat-name>—</div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
+                </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="Escribe un mensaje…" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="Enviar">
+                  <i class="fa fa-paper-plane"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i class="fa fa-lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
               </div>
             </div>
-            {% if admin_id %}
-            <a href="{% url 'sala_chat_general' admin_id %}" class="btn btn-primary btn-full">
-              <i class="fa fa-comments"></i> Chatear con Admin
-            </a>
-            {% endif %}
+          </section>
+        </div>
+      </div>
+
+      <!-- Explorar Proyectos (Sección Integrada) -->
+      <div id="explorar" class="seccion-v">
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="compass" style="color:var(--accent); width:24px; height:24px;"></i>
+              Explorar Catálogo de Proyectos
+            </div>
+            <div class="page-subtitle">Encuentra oportunidades reales, filtra por especialidad y postula tu talento</div>
           </div>
-          {% for conv in conversaciones_chat %}
-            <div class="project-card">
-              <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-                <div class="user-avatar" style="width:44px;height:44px;font-size:16px;background:#374151;">
-                  {{ conv.empresa_nombre|slice:":1"|upper }}
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge badge-info" id="devExploreCountBadge" style="font-family:var(--font-mono); font-size:11px;">
+              {{ proyectos_explorar|length }} DISPONIBLES
+            </span>
+          </div>
+        </div>
+
+        <!-- Barra de Filtros Cyber Dark -->
+        <div class="filters-bar" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:24px; background:var(--card-bg); padding:16px; border:1px solid var(--border); border-radius:var(--radius);">
+          <div class="filter-group" style="flex:1; min-width:220px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Buscar por palabra clave
+            </label>
+            <div style="position:relative;">
+              <input type="text" id="devExploreSearch" class="form-control" placeholder="Título, empresa, stack o tecnología..." style="width:100%; padding-left:34px; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px;">
+              <i data-lucide="search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); width:15px; height:15px;"></i>
+            </div>
+          </div>
+
+          <div class="filter-group" style="min-width:180px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Tipo de Solución
+            </label>
+            <select id="devExploreCategory" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todas las categorías</option>
+              {% for c in categorias_solucion %}
+                <option value="{{ c.slug }}">{{ c.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="filter-group" style="min-width:140px;">
+            <label class="form-label" style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:6px; display:block;">
+              Prioridad
+            </label>
+            <select id="devExplorePriority" class="form-select" style="width:100%; background:var(--page-bg); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); height:40px; font-size:13px; padding:0 12px;">
+              <option value="">Todas</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary" id="devExploreResetBtn" style="height:40px; padding:0 16px; font-size:12.5px;" onclick="resetDevExploreFilters()">
+              <i data-lucide="rotate-ccw" style="width:14px; height:14px; margin-right:4px;"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid de Proyectos Cyber Tech -->
+        <div class="cards-grid" id="devExploreGrid">
+          {% for p in proyectos_explorar %}
+            <div class="project-card dev-explore-card"
+                 data-id="{{ p.id }}"
+                 data-titulo="{{ p.titulo|lower }}"
+                 data-desc="{{ p.descripcion|lower }}"
+                 data-tipo="{{ p.tipo_solucion|lower }}"
+                 data-prioridad="{{ p.prioridad|lower }}"
+                 data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}"
+                 style="display:flex; flex-direction:column; justify-content:space-between;">
+              
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:8px;">
+                  <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
+                  
+                  <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
+                    {% csrf_token %}
+                    <button type="submit"
+                            aria-label="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            title="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            style="background:none; border:none; padding:4px; cursor:pointer; font-size:16px; line-height:1; transition:transform 0.2s;"
+                            class="fav-toggle-btn">
+                      {% if p.id in favoritos_ids %}
+                        <i class="fa-solid fa-heart" style="color:var(--danger, #ef4444);"></i>
+                      {% else %}
+                        <i class="fa-regular fa-heart" style="color:var(--text-muted);"></i>
+                      {% endif %}
+                    </button>
+                  </form>
                 </div>
-                <div>
-                  <div class="project-card-title">{{ conv.empresa_nombre }}</div>
-                  <div class="project-card-sub">{{ conv.titulo }}</div>
-                  {% if conv.es_negociacion %}
-                    <span class="badge badge-info" style="margin-top:4px;font-size:10px;"><i class="fa fa-handshake"></i> En Negociación</span>
-                  {% endif %}
+
+                <h3 class="project-card-title" style="font-size:16px; font-weight:700; margin-bottom:8px; line-height:1.3;">
+                  {{ p.titulo }}
+                </h3>
+
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; align-items:center;">
+                  <span class="badge badge-{% if p.prioridad == 'alta' %}danger{% elif p.prioridad == 'media' %}warning{% else %}info{% endif %}" style="font-family:var(--font-mono); font-size:10.5px;">
+                    {{ p.prioridad|upper }}
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="users" style="width:11px; height:11px;"></i> {{ p.num_postulaciones }} postulantes
+                  </span>
+                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="door-open" style="width:11px; height:11px;"></i> {{ p.vacantes_disponibles }} libres
+                  </span>
                 </div>
+
+                <p class="project-desc" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                  {{ p.descripcion }}
+                </p>
               </div>
-              <a href="{% url 'sala_chat' conv.empresa_id conv.proyecto_id %}" class="btn btn-secondary btn-full">
-                <i class="fa fa-message"></i> Hablar con Empresa
-              </a>
+
+              <!-- Footer de la Card -->
+              <div class="card-footer" style="padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <div class="user-avatar" style="width:34px; height:34px; font-size:12px; border-radius:6px; flex-shrink:0;">
+                    {% if p.empresa.perfil_empresa.logo %}
+                      <img src="{{ p.empresa.perfil_empresa.logo.url }}" alt="{{ p.empresa.nombre }}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                    {% else %}
+                      {{ p.empresa.nombre|default:p.empresa.username|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="font-size:12.5px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      {{ p.empresa.nombre|default:p.empresa.username }}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-top:2px;">
+                      {% if p.empresa_reputacion > 0 %}
+                        <i data-lucide="star" style="width:11px; height:11px; color:#f59e0b; fill:#f59e0b;"></i>
+                        <span style="color:#f59e0b; font-weight:600;">{{ p.empresa_reputacion|floatformat:1 }}</span>
+                      {% else %}
+                        <span>Empresa nueva</span>
+                      {% endif %}
+                      {% if p.empresa.perfil_empresa.es_verificada %}
+                        <span style="color:var(--accent); display:inline-flex; align-items:center;" title="Verificada">
+                          <i data-lucide="check-circle" style="width:11px; height:11px; margin-left:3px;"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-sm" style="flex-shrink:0;"
+                        data-abrir-postulacion
+                        data-url="{% url 'postularse_a_proyecto' p.id %}"
+                        data-titulo="{{ p.titulo|escape }}"
+                        data-empresa="{{ p.empresa.nombre|default:p.empresa.username|escape }}"
+                        data-tipo="{{ p.get_tipo_solucion_display|default:p.tipo_solucion|escape }}"
+                        data-prioridad="{{ p.prioridad|upper|escape }}"
+                        data-vacantes="{{ p.vacantes_disponibles }}"
+                        data-cierre="{{ p.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                        data-descripcion="{{ p.descripcion|striptags|escape }}">
+                  <i data-lucide="send" style="width:13px; height:13px; margin-right:4px;"></i> Postularme
+                </button>
+              </div>
+
             </div>
           {% empty %}
-            <div class="empty-state"><i class="fa fa-comments"></i><p>Sin conversaciones activas</p></div>
+            <div class="empty-state" style="grid-column:1 / -1;">
+              <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+              <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No hay proyectos disponibles en este momento</p>
+              <p style="color:var(--text-muted); font-size:13px;">Vuelve a consultar pronto o revisa tus proyectos activos.</p>
+            </div>
           {% endfor %}
+
+          <!-- Elemento Empty de Filtro JS -->
+          <div id="devExploreNoMatches" class="empty-state" style="grid-column:1 / -1; display:none;">
+            <i data-lucide="search-x" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+            <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No se encontraron proyectos con los filtros actuales</p>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Prueba ajustando los términos de búsqueda o limpiando los filtros.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="resetDevExploreFilters()">
+              Limpiar filtros
+            </button>
+          </div>
         </div>
       </div>
 
@@ -335,14 +584,17 @@
                   <td style="text-align:right;">
                     <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
                       {% if post.contrato_digital %}
-                        <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" class="btn {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                        <a href="{% url 'ver_contrato_digital' post.contrato_digital.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" class="btn {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
                           <i class="fa fa-file-signature"></i> {% if post.estado == 'en_negociacion' and not post.contrato_digital.firmado_desarrollador %}Firmar Contrato{% else %}Ver Contrato{% endif %}
                         </a>
                       {% endif %}
                       {% if post.estado in 'pendiente,en_negociacion,aceptada' %}
-                        <a href="{% url 'sala_chat' post.proyecto.empresa_id post.proyecto.id %}" class="btn btn-secondary btn-sm" title="Conversar con la empresa">
+                        <button type="button" class="btn btn-secondary btn-sm" title="Conversar con la empresa"
+                                data-chat-open data-receptor="{{ post.proyecto.empresa_id }}"
+                                data-proyecto="{{ post.proyecto.id }}"
+                                data-nombre="{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}">
                           <i class="fa fa-message"></i> Chatear
-                        </a>
+                        </button>
                       {% endif %}
                     </div>
                   </td>
@@ -412,7 +664,7 @@
                 </span>
               </div>
               <div class="project-card-sub" style="margin-bottom:16px;">
-                Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:inherit; text-decoration:none; font-weight:600;" title="Ver perfil institucional y reseñas">{{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i></a>
+                Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" data-abrir-empresa data-url="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:inherit; text-decoration:none; font-weight:600; cursor:pointer;" title="Ver perfil institucional y reseñas">{{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i></a>
                 {% if proyecto.empresa_badge %}
                   <span class="badge {% if proyecto.empresa_verificada %}{% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}{% elif proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" style="margin-left:6px;">
                     <i class="fa {% if proyecto.empresa_verificada %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
@@ -437,7 +689,7 @@
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <div style="display:flex;gap:8px;">
                   {% if proyecto.hitos_pendientes > 0 %}
-                    <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
+                    <a href="{% url 'registrar_avance' proyecto.proyecto_id %}" data-abrir-registrar-avance data-url="{% url 'registrar_avance' proyecto.proyecto_id %}" class="btn btn-primary" style="flex:1;justify-content:center;">
                       <i class="fa fa-pen"></i> Registrar Avance
                     </a>
                   {% else %}
@@ -445,16 +697,19 @@
                       <i class="fa fa-ban"></i> Sin hitos pendientes
                     </button>
                   {% endif %}
-                  <a href="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
+                  <a href="{% url 'ver_avances' proyecto.proyecto_id %}" data-abrir-avances data-url="{% url 'ver_avances' proyecto.proyecto_id %}" class="btn btn-secondary" style="flex:1;justify-content:center;">
                     <i class="fa fa-eye"></i> Historial
                   </a>
                 </div>
                 {% if proyecto.num_desarrolladores >= 2 %}
-                  <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn btn-secondary btn-full">
+                  <button type="button" class="btn btn-secondary btn-full"
+                          data-chat-open data-receptor="{{ proyecto.empresa_id }}"
+                          data-proyecto="{{ proyecto.proyecto_id }}"
+                          data-nombre="{{ proyecto.empresa_nombre }}">
                     <i class="fa fa-users"></i> Espacio de Trabajo
-                  </a>
+                  </button>
                 {% endif %}
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-full" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
+                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" data-abrir-formulario-disputa data-url="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn btn-secondary btn-full" style="color:var(--danger);" title="Iniciar mediación por conflicto grave">
                   <i class="fa fa-gavel"></i> Reportar Disputa
                 </a>
               </div>
@@ -507,19 +762,25 @@
                 </div>
               {% endif %}
               <div style="display:flex;gap:8px;margin-top:14px;">
-                <a href="{% url 'sala_chat' contratacion.proyecto.empresa.id contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
+                <button type="button" class="btn btn-secondary btn-sm"
+                        data-chat-open data-receptor="{{ contratacion.proyecto.empresa.id }}"
+                        data-proyecto="{{ contratacion.proyecto.id }}"
+                        data-nombre="{{ contratacion.proyecto.empresa.nombre|default:contratacion.proyecto.empresa.username }}">
                   <i class="fa fa-comments"></i> Chat Privado
-                </a>
-                <a href="{% url 'ver_avances' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
+                </button>
+                <a href="{% url 'ver_avances' contratacion.proyecto.id %}" data-abrir-avances data-url="{% url 'ver_avances' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
                   <i class="fa fa-folder-open"></i> Evidencias
                 </a>
-                <a href="{% url 'calificar_empresa' contratacion.proyecto.id %}" class="btn btn-primary btn-sm">
+                <a href="{% url 'calificar_empresa' contratacion.proyecto.id %}" data-abrir-calificar data-url="{% url 'calificar_empresa' contratacion.proyecto.id %}" class="btn btn-primary btn-sm">
                   <i class="fa fa-star"></i> Calificar Empresa
                 </a>
                 {% if contratacion.num_desarrolladores >= 2 %}
-                  <a href="{% url 'sala_chat_grupal' contratacion.proyecto.id %}" class="btn btn-secondary btn-sm">
+                  <button type="button" class="btn btn-secondary btn-sm"
+                          data-chat-open data-receptor="{{ contratacion.proyecto.empresa.id }}"
+                          data-proyecto="{{ contratacion.proyecto.id }}"
+                          data-nombre="{{ contratacion.proyecto.empresa.nombre|default:contratacion.proyecto.empresa.username }}">
                     <i class="fa fa-users"></i> Chat Grupal
-                  </a>
+                  </button>
                 {% endif %}
               </div>
             </div>
@@ -613,12 +874,15 @@
                   </td>
                   <td style="text-align:right;">
                     <div style="display:inline-flex; gap:6px; justify-content:flex-end;">
-                      <a href="{% url 'ver_contrato_digital' contrato.id %}" class="btn {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
+                      <a href="{% url 'ver_contrato_digital' contrato.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' contrato.id %}" class="btn {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm" title="Revisar contrato digital">
                         <i class="fa fa-file-signature"></i> {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}Firmar Contrato{% else %}Ver Contrato{% endif %}
                       </a>
-                      <a href="{% url 'sala_chat' contrato.postulacion.proyecto.empresa_id contrato.postulacion.proyecto.id %}" class="btn btn-secondary btn-sm" title="Chatear con la empresa">
+                      <button type="button" class="btn btn-secondary btn-sm" title="Chatear con la empresa"
+                              data-chat-open data-receptor="{{ contrato.postulacion.proyecto.empresa_id }}"
+                              data-proyecto="{{ contrato.postulacion.proyecto.id }}"
+                              data-nombre="{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}">
                         <i class="fa fa-message"></i>
-                      </a>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -649,9 +913,18 @@
             <div class="project-card">
               <div class="project-card-title">{{ fav.proyecto.titulo }}</div>
               <div class="project-card-sub" style="margin:8px 0 16px;">{{ fav.proyecto.get_tipo_solucion_display }}</div>
-              <a href="{% url 'postularse_a_proyecto' fav.proyecto.id %}" class="btn btn-primary btn-full">
+              <button type="button" class="btn btn-primary btn-full"
+                      data-abrir-postulacion
+                      data-url="{% url 'postularse_a_proyecto' fav.proyecto.id %}"
+                      data-titulo="{{ fav.proyecto.titulo|escape }}"
+                      data-empresa="{{ fav.proyecto.empresa.nombre|default:fav.proyecto.empresa.username|escape }}"
+                      data-tipo="{{ fav.proyecto.get_tipo_solucion_display|default:fav.proyecto.tipo_solucion|escape }}"
+                      data-prioridad="{{ fav.proyecto.prioridad|upper|escape }}"
+                      data-vacantes="{{ fav.proyecto.vacantes_disponibles }}"
+                      data-cierre="{{ fav.proyecto.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                      data-descripcion="{{ fav.proyecto.descripcion|striptags|escape }}">
                 <i class="fa fa-paper-plane"></i> Postularme ahora
-              </a>
+              </button>
             </div>
           {% empty %}
             <div class="empty-state" style="grid-column:1/-1;"><i class="fa fa-heart"></i><p>No tienes favoritos guardados</p></div>
@@ -659,13 +932,360 @@
         </div>
       </div>
 
+      <!-- Mi Perfil (integrado: no abre otra página) -->
+      <div id="perfil" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mi Perfil</div>
+            <div class="page-subtitle">Actualiza tu información profesional sin salir del panel</div>
+          </div>
+        </div>
+
+        <div class="perfil-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa fa-user"></i> Datos del perfil</div>
+            </div>
+
+            <div class="perfil-identity">
+              <div class="perfil-avatar">
+                {% if perfil.foto_perfil %}
+                  <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil">
+                {% else %}
+                  {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="perfil-name">{{ request.user.nombre|default:request.user.username }}</div>
+                <div class="perfil-meta">{{ request.user.email }}</div>
+              </div>
+            </div>
+
+            <form method="post" action="{% url 'dashboard_desarrollador' %}" enctype="multipart/form-data" class="jd-form" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="perfil">
+
+              {% for field in perfil_form %}
+                <div class="jd-field">
+                  <label class="jd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<div class="jd-help">{{ field.help_text }}</div>{% endif %}
+                  {% for error in field.errors %}<div class="jd-error">{{ error }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+
+              <div class="jd-form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa fa-floppy-disk"></i> Guardar cambios
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="verSeccion('inicio', null)">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa fa-id-card"></i> Verificación SENA</div>
+            </div>
+
+            <div class="jd-status-row">
+              <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-testid="badge-verificacion-sena-perfil">
+                <i class="fa {% if perfil.es_verificado_sena %}fa-circle-check{% elif perfil.estado_verificacion == 'en_revision' %}fa-hourglass-half{% else %}fa-id-card{% endif %}"></i>
+                {{ perfil.badge_info.label }}
+              </span>
+            </div>
+
+            <dl class="jd-datalist">
+              <div><dt>Ficha</dt><dd>{{ perfil.ficha|default:"Sin registrar" }}</dd></div>
+              <div><dt>Programa</dt><dd>{{ perfil.programa_formacion|default:"Sin registrar" }}</dd></div>
+              <div><dt>Condición</dt><dd>{{ perfil.get_condicion_sena_display|default:"Aprendiz" }}</dd></div>
+            </dl>
+
+            <p class="jd-help" style="margin-bottom:16px;">
+              {% if perfil.es_verificado_sena %}
+                Tu identidad SENA está verificada. La ficha y el programa quedan bloqueados para proteger tu insignia.
+              {% elif perfil.estado_verificacion == 'en_revision' %}
+                Tu solicitud está en revisión administrativa. Puedes consultar el estado y el documento enviado.
+              {% else %}
+                Verifica tu condición de aprendiz o egresado SENA para postularte a proyectos reales.
+              {% endif %}
+            </p>
+
+            <button type="button" class="btn {% if perfil.es_verificado_sena %}btn-secondary{% else %}btn-primary{% endif %} btn-full" onclick="abrirVerificacion()">
+              <i class="fa fa-shield-halved"></i>
+              {% if perfil.es_verificado_sena %}Ver mi verificación{% else %}Verificar mi ficha SENA{% endif %}
+            </button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
 
-<script src="{% static 'Desarrollador/script/desarrollador.js' %}"></script>
+<!-- Modal flotante: Verificación SENA (mismo lenguaje visual que el login de la landing) -->
+<div class="jd-modal" id="modalVerificacion" role="dialog" aria-modal="true" aria-labelledby="modalVerificacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-verificacion></div>
+  <div class="jd-modal-card tech-frame">
+    <div class="jd-modal-header">
+      <div>
+        <div class="jd-modal-kicker">[ SENA // IDENTIDAD ]</div>
+        <h2 class="jd-modal-title" id="modalVerificacionTitulo">Verificación de identidad SENA</h2>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-verificacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-modal-status">
+        <span class="jd-modal-status-label">Estado actual</span>
+        <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-verificacion-badge>
+          <i class="fa {% if perfil.es_verificado_sena %}fa-circle-check{% elif perfil.estado_verificacion == 'en_revision' %}fa-hourglass-half{% else %}fa-id-card{% endif %}"></i>
+          {{ perfil.badge_info.label }}
+        </span>
+      </div>
+
+      <div class="jd-inline-feedback" data-verificacion-feedback hidden></div>
+
+      {% if perfil.es_verificado_sena %}
+        <div class="jd-callout jd-callout-success">
+          <i class="fa fa-circle-check"></i>
+          <div>
+            <strong>Identidad SENA verificada</strong>
+            <p>Tu perfil como aprendiz SENA está completamente verificado y habilitado para postularte a proyectos.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+          </div>
+        </div>
+      {% elif perfil.estado_verificacion == 'en_revision' %}
+        <div class="jd-callout jd-callout-warning">
+          <i class="fa fa-hourglass-half"></i>
+          <div>
+            <strong>Solicitud en revisión</strong>
+            <p>Tu solicitud de verificación se encuentra en revisión por el equipo administrativo del SENA.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+            {% if perfil.documento_soporte %}
+              <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="jd-link">
+                <i class="fa fa-file-pdf"></i> Ver documento enviado
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        {% if perfil.estado_verificacion == 'rechazado' %}
+          <div class="jd-callout jd-callout-danger">
+            <i class="fa fa-triangle-exclamation"></i>
+            <div>
+              <strong>Solicitud rechazada</strong>
+              <p>Tu solicitud anterior fue rechazada.{% if perfil.notas_auditoria %} Motivo: {{ perfil.notas_auditoria }}{% endif %}</p>
+              <p class="jd-callout-meta">Verifica tu ficha o adjunta un documento legible y vuelve a enviarla.</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="jd-callout jd-callout-info">
+            <i class="fa fa-circle-info"></i>
+            <div>
+              <strong>Verifica tu condición de aprendiz SENA</strong>
+              <p>Podrás postularte a proyectos reales y obtener la insignia oficial.</p>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if errores %}
+          <div class="jd-inline-feedback is-error">Por favor revisa los campos marcados a continuación.</div>
+        {% endif %}
+
+        <div class="jd-tabs" role="tablist" aria-label="Método de verificación">
+          <button type="button" class="jd-tab active" data-verificacion-tab="auto" role="tab" aria-selected="true">
+            <i class="fa fa-bolt"></i> Aprendiz (Lista Blanca)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="manual" role="tab" aria-selected="false">
+            <i class="fa fa-id-badge"></i> Aprendiz (Carnet / Certificado)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="egresado" role="tab" aria-selected="false">
+            <i class="fa fa-graduation-cap"></i> Egresado SENA (Diploma)
+          </button>
+        </div>
+
+        <!-- Automática -->
+        <div class="jd-tab-panel active" data-verificacion-panel="auto" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="automatica">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_auto">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_auto" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+              <div class="jd-help">Se verificará automáticamente contra el catálogo oficial de fichas activas registradas en la plataforma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_auto">Programa de Formación (Opcional)</label>
+              <input type="text" name="programa_formacion" id="id_programa_auto" class="jd-input" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)">
+              <div class="jd-error" data-error-para="programa_formacion"></div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-circle-check"></i> Verificar ficha ahora
+            </button>
+          </form>
+        </div>
+
+        <!-- Manual aprendiz -->
+        <div class="jd-tab-panel" data-verificacion-panel="manual" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="aprendiz">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_manual">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_manual" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_manual">Programa de Formación <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_manual" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_documento_soporte">Documento de Soporte (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_documento_soporte" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Adjunta tu carnet de aprendiz o certificado de matrícula/estudio en formato PDF (máximo 5 MB).</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-paper-plane"></i> Enviar solicitud de aprendiz
+            </button>
+          </form>
+        </div>
+
+        <!-- Egresado -->
+        <div class="jd-tab-panel" data-verificacion-panel="egresado" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="egresado">
+
+            <div class="jd-callout jd-callout-info jd-callout-compact">
+              <i class="fa fa-circle-info"></i>
+              <div>
+                <strong>¿Eres egresado titulado del SENA?</strong>
+                <p>Adjunta tu diploma o acta de grado oficial descargada de SofíaPlus para obtener la insignia de <strong>Egresado SENA</strong>.</p>
+              </div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_egresado">Programa Técnico o Tecnológico Culminado <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_egresado" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Tecnólogo en Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_egresado">Número de Ficha Antigua (Opcional)</label>
+              <input type="text" name="ficha" id="id_ficha_egresado" class="jd-input" value="{{ valores.ficha }}" placeholder="Ej: 2142345 (opcional si no la recuerdas)">
+              <div class="jd-error" data-error-para="ficha"></div>
+              <div class="jd-help">Si no recuerdas tu número de ficha, puedes dejarlo en blanco. Lo validaremos con tu diploma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_soporte_egresado">Diploma o Acta de Grado (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_soporte_egresado" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Documento en formato PDF (máximo 5 MB) con código de verificación o firma oficial.</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i class="fa fa-graduation-cap"></i> Enviar diploma a revisión
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal flotante: Postularse a un proyecto (sin cambiar de página) -->
+<div class="jd-modal" id="modalPostulacion" role="dialog" aria-modal="true" aria-labelledby="modalPostulacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-postulacion></div>
+  <div class="jd-modal-card tech-frame jd-modal-card-postulacion">
+    <div class="jd-modal-header">
+      <div>
+        <div class="jd-modal-kicker">[ PROYECTO // CANDIDATURA ]</div>
+        <h2 class="jd-modal-title" id="modalPostulacionTitulo">Enviar candidatura</h2>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-postulacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-postulacion-resumen">
+        <div class="jd-postulacion-badges">
+          <span class="badge badge-info" data-postulacion-tipo>—</span>
+          <span class="badge badge-warning" data-postulacion-prioridad>—</span>
+        </div>
+        <h3 class="jd-postulacion-titulo" data-postulacion-titulo>—</h3>
+        <p class="jd-postulacion-empresa" data-postulacion-empresa>—</p>
+        <div class="jd-postulacion-meta">
+          <span><i class="fa fa-users"></i> <b data-postulacion-vacantes>—</b> vacantes libres</span>
+          <span><i class="fa fa-calendar-alt"></i> Cierre: <b data-postulacion-cierre>—</b></span>
+        </div>
+        <p class="jd-postulacion-desc" data-postulacion-descripcion></p>
+      </div>
+
+      <div class="jd-inline-feedback" data-postulacion-feedback hidden></div>
+      <button type="button" class="jd-submit" data-ir-verificacion hidden>
+        <i class="fa fa-id-card"></i> Verificar mi ficha SENA
+      </button>
+
+      <form data-postulacion-form novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="origen" value="dashboard">
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_carta">Carta de presentación <span class="jd-required">*</span></label>
+          <textarea name="carta" id="id_post_carta" class="jd-input" rows="4" required
+                    placeholder="¿Por qué te interesa este proyecto y cómo planeas abordarlo?"></textarea>
+          <div class="jd-error" data-error-para="carta"></div>
+        </div>
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_experiencia">Experiencia relevante</label>
+          <textarea name="experiencia" id="id_post_experiencia" class="jd-input" rows="3"
+                    placeholder="Tecnologías o proyectos similares que hayas realizado..."></textarea>
+          <div class="jd-help">Opcional, pero recomendado para destacar tu perfil.</div>
+        </div>
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_link">Portafolio / repositorio</label>
+          <input type="url" name="link" id="id_post_link" class="jd-input"
+                 placeholder="https://github.com/tu-usuario o https://tu-portafolio.com">
+        </div>
+
+        <div class="jd-modal-actions">
+          <button type="button" class="btn btn-secondary" data-cerrar-postulacion>Cancelar</button>
+          <button type="submit" class="jd-submit" data-postulacion-submit>
+            <i class="fa fa-rocket"></i> Enviar candidatura
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script src="{% static 'Desarrollador/script/desarrollador.js' %}?v=4"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
+<script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
 </body>
 </html>

@@ -113,6 +113,20 @@ def registrar_avance(request, proyecto_id):
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     )
 
+    if request.method == 'GET' and is_ajax:
+        return JsonResponse({
+            'ok': True,
+            'proyecto': {
+                'id': proyecto.id,
+                'titulo': proyecto.titulo,
+            },
+            'hitos_pendientes': [
+                {'id': h.id, 'titulo': h.titulo, 'descripcion': h.descripcion or ''}
+                for h in hitos_pendientes
+            ],
+            'url_registrar': reverse('registrar_avance', args=[proyecto.id]),
+        })
+
     form_data = {
         'entregable_id': '',
         'descripcion': '',
@@ -382,6 +396,52 @@ def ver_avances(request, proyecto_id):
     )
     hitos_completados = progreso['hitos_completados'] or 0
     hitos_totales = progreso['hitos_totales'] or 0
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+        avances_data = []
+        for a in avances:
+            avances_data.append({
+                'id': a.id,
+                'entregable_id': a.entregable_id,
+                'entregable_titulo': a.entregable.titulo if a.entregable else 'Avance general',
+                'desarrollador': a.desarrollador.nombre or a.desarrollador.username,
+                'descripcion': a.descripcion,
+                'archivo_url': a.archivo_url or '',
+                'archivo_adjunto_url': a.archivo_adjunto.url if a.archivo_adjunto else '',
+                'archivo_adjunto_nombre': os.path.basename(a.archivo_adjunto.name) if a.archivo_adjunto else '',
+                'fecha': a.fecha_hora.strftime('%d/%m/%Y %H:%M'),
+                'estado': a.estado,
+                'estado_label': a.get_estado_display(),
+                'observaciones': a.observaciones or '',
+            })
+
+        hitos_data = []
+        for h in proyecto.entregables.all().order_by('fecha_creacion'):
+            hitos_data.append({
+                'id': h.id,
+                'titulo': h.titulo,
+                'descripcion': h.descripcion or '',
+                'estado': h.estado,
+                'estado_label': h.get_estado_display(),
+            })
+
+        return JsonResponse({
+            'ok': True,
+            'proyecto': {
+                'id': proyecto.id,
+                'titulo': proyecto.titulo,
+                'estado': proyecto.estado,
+                'estado_label': proyecto.get_estado_display(),
+                'progreso': round((hitos_completados / hitos_totales) * 100) if hitos_totales else 0,
+                'hitos_completados': hitos_completados,
+                'hitos_totales': hitos_totales,
+                'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
+            },
+            'hitos': hitos_data,
+            'avances': avances_data,
+            'puede_registrar': (request.user.rol == 'desarrollador' and proyecto.estado == 'en_desarrollo'),
+            'registrar_url': reverse('registrar_avance', args=[proyecto.id]),
+        })
 
     # Datos del sub-tab "Hitos del Proyecto" para alternar sin recargar la página (solo empresa)
     hitos = []

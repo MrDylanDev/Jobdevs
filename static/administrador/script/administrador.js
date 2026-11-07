@@ -3,7 +3,13 @@ function showSection(id, btn) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const target = document.getElementById(id);
     if (target) target.classList.add('active');
+    if (!btn) {
+      btn = Array.from(document.querySelectorAll('.nav-item[onclick]')).find(b => (b.getAttribute('onclick') || '').indexOf("('" + id + "'") !== -1);
+    }
     if (btn) btn.classList.add('active');
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
 
   // Crud lógica
@@ -91,7 +97,78 @@ function showSection(id, btn) {
   window.onload = function() {
     const s = new URLSearchParams(window.location.search).get('section');
     if (s) showSection(s);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const search = document.getElementById('adminExploreSearch');
+    const cat = document.getElementById('adminExploreCategory');
+    const estado = document.getElementById('adminExploreEstado');
+    if (search) search.addEventListener('input', filterAdminExplore);
+    if (cat) cat.addEventListener('change', filterAdminExplore);
+    if (estado) estado.addEventListener('change', filterAdminExplore);
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+
+// ═══════════════════════════════════════════════
+// FILTRADO DINÁMICO: Explorar Catálogo (Admin)
+// ═══════════════════════════════════════════════
+function filterAdminExplore() {
+  const searchInput = document.getElementById('adminExploreSearch');
+  const catSelect = document.getElementById('adminExploreCategory');
+  const estadoSelect = document.getElementById('adminExploreEstado');
+  if (!searchInput) return;
+
+  const q = (searchInput.value || '').toLowerCase().trim();
+  const cat = (catSelect ? catSelect.value : '').toLowerCase().trim();
+  const estado = (estadoSelect ? estadoSelect.value : '').toLowerCase().trim();
+
+  const cards = document.querySelectorAll('.admin-explore-card');
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const titulo = card.getAttribute('data-titulo') || '';
+    const desc = card.getAttribute('data-desc') || '';
+    const empresa = card.getAttribute('data-empresa') || '';
+    const tipo = card.getAttribute('data-tipo') || '';
+    const cardEstado = card.getAttribute('data-estado') || '';
+
+    const matchesQ = !q || titulo.includes(q) || desc.includes(q) || empresa.includes(q);
+    const matchesCat = !cat || tipo === cat;
+    const matchesEstado = !estado || cardEstado === estado;
+
+    if (matchesQ && matchesCat && matchesEstado) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const noMatches = document.getElementById('adminExploreNoMatches');
+  if (noMatches) {
+    noMatches.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+  }
+  const badge = document.getElementById('adminExploreCountBadge');
+  if (badge) {
+    badge.textContent = visibleCount + ' PROYECTOS';
+  }
+}
+
+function resetAdminExploreFilters() {
+  const searchInput = document.getElementById('adminExploreSearch');
+  const catSelect = document.getElementById('adminExploreCategory');
+  const estadoSelect = document.getElementById('adminExploreEstado');
+  if (searchInput) searchInput.value = '';
+  if (catSelect) catSelect.value = '';
+  if (estadoSelect) estadoSelect.value = '';
+  filterAdminExplore();
+}
 
 // ═══════════════════════════════════════════════
 // SEARCH & FILTER: Users

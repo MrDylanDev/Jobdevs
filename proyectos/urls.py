@@ -12,6 +12,7 @@ urlpatterns = [
     path('hitos/eliminar/<int:hito_id>/', views.eliminar_hito, name='eliminar_hito'),
     path('equipos/<int:proyecto_id>/', views.gestionar_equipos, name='gestionar_equipos'),
     path('equipos/eliminar/<int:equipo_id>/', views.eliminar_equipo, name='eliminar_equipo'),
+    path('api/<int:proyecto_id>/detalle/', views.api_detalle_proyecto, name='api_detalle_proyecto'),
     path('api/categorias/', views.api_categorias_listar, name='api_categorias_listar'),
     path('api/categorias/crear/', views.api_categoria_crear, name='api_categoria_crear'),
     path('api/categorias/<int:categoria_id>/actualizar/', views.api_categoria_actualizar, name='api_categoria_actualizar'),

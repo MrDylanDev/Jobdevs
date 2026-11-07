@@ -100,51 +100,97 @@ def ver_postulaciones_empresa(request, proyecto_id):
         'filtros': {'programa': programa, 'ficha': ficha, 'habilidad': habilidad},
     })
 
+def _es_peticion_ajax(request):
+    """El modal del dashboard envía X-Requested-With y origen=dashboard."""
+    return (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.POST.get('origen') == 'dashboard'
+    )
+
+
 @login_required
 def postularse_a_proyecto(request, proyecto_id):
+    ajax = _es_peticion_ajax(request)
+
+    def fallo(mensaje, nivel='error', status=400, **extra):
+        """Responde JSON para el modal o mantiene el flujo HTML clásico."""
+        if ajax:
+            return JsonResponse({'ok': False, 'mensaje': mensaje, **extra}, status=status)
+        getattr(messages, nivel)(request, mensaje)
+        return redirect('dashboard_desarrollador')
+
     if request.user.rol != 'desarrollador':
+        if ajax:
+            return JsonResponse(
+                {'ok': False, 'mensaje': 'Solo los desarrolladores pueden postularse a proyectos.'},
+                status=403,
+            )
         return redirect('inicio')
-    
+
     perfil_dev, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
     if not perfil_dev.es_verificado_sena:
-        messages.error(
-            request,
+        mensaje_verificacion = (
             "Debes verificar tu identidad como aprendiz SENA antes de postularte a proyectos."
         )
+        if ajax:
+            return JsonResponse(
+                {'ok': False, 'mensaje': mensaje_verificacion, 'requiere_verificacion': True},
+                status=403,
+            )
+        messages.error(request, mensaje_verificacion)
         return redirect('solicitar_verificacion_desarrollador')
-    
+
     proyecto = Proyecto.objects.filter(id=proyecto_id).first()
 
     if not proyecto:
+        if ajax:
+            return JsonResponse(
+                {'ok': False, 'mensaje': 'El proyecto solicitado no existe.'}, status=404
+            )
         messages.error(request, "El proyecto solicitado no existe.")
         return redirect('dashboard_desarrollador')
 
     # Hallazgo 17: Evitar auto-postulación
     if proyecto.empresa_id == request.user.id:
-        messages.error(request, "No puedes postularte a un proyecto publicado por tu propia cuenta.")
-        return redirect('dashboard_desarrollador')
+        return fallo(
+            "No puedes postularte a un proyecto publicado por tu propia cuenta.",
+            status=403,
+        )
 
     if not proyecto.acepta_postulaciones:
-        messages.warning(request, f"Lo sentimos, el proyecto '{proyecto.titulo}' ya no acepta postulaciones (Estado: {proyecto.get_estado_display()}).")
-        return redirect('dashboard_desarrollador')
+        return fallo(
+            f"Lo sentimos, el proyecto '{proyecto.titulo}' ya no acepta postulaciones "
+            f"(Estado: {proyecto.get_estado_display()}).",
+            nivel='warning',
+            status=409,
+        )
 
     # RF 3.3.2: no aceptar postulaciones sin cupo, aunque el proyecto siga abierto.
     if proyecto.vacantes_disponibles <= 0:
-        messages.warning(request, f"El proyecto '{proyecto.titulo}' ya no tiene vacantes disponibles.")
-        return redirect('dashboard_desarrollador')
+        return fallo(
+            f"El proyecto '{proyecto.titulo}' ya no tiene vacantes disponibles.",
+            nivel='warning',
+            status=409,
+        )
 
     # Hallazgo 9: Validar si la fecha límite de postulación ya venció
     if proyecto.fecha_limite and proyecto.fecha_limite < timezone.localdate():
-        messages.warning(request, f"El plazo de postulación para '{proyecto.titulo}' venció el {proyecto.fecha_limite}.")
-        return redirect('dashboard_desarrollador')
-    
+        return fallo(
+            f"El plazo de postulación para '{proyecto.titulo}' venció el {proyecto.fecha_limite}.",
+            nivel='warning',
+            status=409,
+        )
+
     if request.method == 'POST':
-        carta = request.POST.get('carta', '')
-        experiencia = request.POST.get('experiencia', '')
-        link = request.POST.get('link', '')
-        
+        carta = (request.POST.get('carta') or '').strip()
+        experiencia = (request.POST.get('experiencia') or '').strip()
+        link = (request.POST.get('link') or '').strip()
+
+        if not carta:
+            return fallo("La carta de presentación es obligatoria.", status=400)
+
         mensaje = f"CARTA DE PRESENTACIÓN:\n{carta}\n\nEXPERIENCIA:\n{experiencia}\n\nPORTAFOLIO/ENLACE:\n{link}"
-        
+
         try:
             with transaction.atomic():
                 # Hallazgo 12: Bloquear el registro del usuario para prevenir race condition en el límite de postulaciones
@@ -152,18 +198,23 @@ def postularse_a_proyecto(request, proyecto_id):
 
                 # Validar duplicado
                 if Postulacion.objects.filter(proyecto=proyecto, desarrollador=request.user).exists():
-                    messages.warning(request, "Ya te habías postulado a este proyecto anteriormente.")
-                    return redirect('dashboard_desarrollador')
-                
+                    return fallo(
+                        "Ya te habías postulado a este proyecto anteriormente.",
+                        nivel='warning',
+                        status=409,
+                    )
+
                 # Validar límite de 3 postulaciones/proyectos activos
                 active_count = (
                     Postulacion.objects.filter(desarrollador=request.user, estado__in=['pendiente', 'en_negociacion']).count() +
                     Contratacion.objects.filter(desarrollador=request.user, estado='activa').count()
                 )
                 if active_count >= 3:
-                    messages.error(request, "Límite alcanzado: No puedes tener más de 3 postulaciones o proyectos activos.")
-                    return redirect('dashboard_desarrollador')
-                
+                    return fallo(
+                        "Límite alcanzado: No puedes tener más de 3 postulaciones o proyectos activos.",
+                        status=409,
+                    )
+
                 Postulacion.objects.create(
                     proyecto=proyecto,
                     desarrollador=request.user,
@@ -181,13 +232,24 @@ def postularse_a_proyecto(request, proyecto_id):
                         f"'{proyecto.titulo}'."
                     ),
                 )
-            
+
+            if ajax:
+                return JsonResponse({
+                    'ok': True,
+                    'mensaje': f"¡Te has postulado al proyecto '{proyecto.titulo}'!",
+                    'proyecto_id': proyecto.id,
+                })
+
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")
             return redirect('dashboard_desarrollador')
         except Exception as e:
+            if ajax:
+                return JsonResponse(
+                    {'ok': False, 'mensaje': f"Error del sistema: {str(e)}"}, status=500
+                )
             messages.error(request, f"Error del sistema: {str(e)}")
             return redirect('dashboard_desarrollador')
-                
+
     return render(request, 'postulaciones/postularse.html', {'proyecto': proyecto})
 
 @login_required

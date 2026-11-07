@@ -80,3 +80,6 @@ odd/
 
 # Respaldos de base de datos (RNF-14)
 backups/
+
+# Logs locales temporales
+.jarvis/
