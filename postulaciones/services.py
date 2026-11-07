@@ -106,8 +106,8 @@ def aceptar_postulacion(postulacion_id, ejecutado_por):
 
         # Despacho asíncrono de correo transaccional vía Celery (SCRUM-199)
         if postulacion.desarrollador.email:
-            from notificaciones.tasks import enviar_email_transaccional_task
-            enviar_email_transaccional_task.delay(
+            from notificaciones.tasks import despachar_email_transaccional
+            despachar_email_transaccional(
                 asunto=f"¡Tu postulación al proyecto '{proyecto.titulo}' fue aceptada!",
                 template_name='emails/postulacion_aceptada.html',
                 contexto={
