@@ -1,0 +1,192 @@
+/* ==========================================================================
+   JobDevs — Popover de notificaciones (dashboards admin y desarrollador)
+   Comparte la identidad visual oscura/neón usada en los paneles.
+   ========================================================================== */
+
+.notif-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.notif-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-card, #0a0a0a);
+  border: 1px solid var(--border-mid, #282828);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+  z-index: 1200;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+
+.notif-popover.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.notif-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-card-hover, #111111);
+}
+
+.notif-popover-title {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg, #ffffff);
+}
+
+.notif-popover-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-popover-actions form {
+  margin: 0;
+}
+
+.notif-action-btn {
+  background: transparent;
+  border: 1px solid var(--border-mid, #282828);
+  border-radius: 6px;
+  color: var(--fg-dim, #a0a0a0);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.notif-action-btn:hover {
+  color: var(--accent, #00e676);
+  border-color: var(--accent, #00e676);
+  background: var(--accent-light, rgba(0, 230, 118, 0.1));
+}
+
+.notif-action-btn.danger:hover {
+  color: var(--danger, #ff1744);
+  border-color: var(--danger, #ff1744);
+  background: var(--danger-light, rgba(255, 23, 68, 0.12));
+}
+
+.notif-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notif-popover-body {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-popover-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border, #1a1a1a);
+  color: var(--fg-dim, #a0a0a0);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.notif-popover-item:last-child {
+  border-bottom: none;
+}
+
+.notif-popover-item > i {
+  color: var(--border-high, rgba(255, 255, 255, 0.15));
+  font-size: 8px;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.notif-popover-item.is-unread > i {
+  color: var(--accent, #00e676);
+  filter: drop-shadow(0 0 4px var(--accent-glow, rgba(0, 230, 118, 0.35)));
+}
+
+.notif-popover-item.is-unread .notif-popover-text > span {
+  color: var(--fg, #ffffff);
+  font-weight: 500;
+}
+
+.notif-popover-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.notif-popover-text > span {
+  word-break: break-word;
+}
+
+.notif-popover-text > small {
+  color: var(--text-muted, #666666);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+}
+
+.notif-popover-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 12px;
+  color: var(--text-muted, #666666);
+  font-size: 12px;
+}
+
+.notif-popover-empty > i {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+.notif-popover-footer {
+  display: block;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-card-hover, #111111);
+  color: var(--accent, #00e676);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 0.15s ease;
+}
+
+.notif-popover-footer:hover {
+  background: var(--accent-light, rgba(0, 230, 118, 0.1));
+}
+
+@media (max-width: 640px) {
+  .notif-popover {
+    position: fixed;
+    top: calc(var(--topbar-h, 64px) + 8px);
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
