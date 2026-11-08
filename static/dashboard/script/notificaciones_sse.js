@@ -134,9 +134,28 @@
         closeBtn.addEventListener('click', cerrar);
 
         toast.addEventListener('click', (e) => {
-            if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
-                window.location.href = '/notificaciones/';
+            if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+            // Evita que el mismo click cierre el popover recién abierto.
+            e.stopPropagation();
+
+            // En dashboards con campana, abrir el popover en la misma página
+            // en lugar de navegar al listado de notificaciones.
+            const popover = document.getElementById('notifPopover');
+            if (popover) {
+                if (!popover.classList.contains('is-open')) {
+                    if (window.JobDevsNotificaciones && typeof window.JobDevsNotificaciones.abrir === 'function') {
+                        window.JobDevsNotificaciones.abrir();
+                    } else if (typeof window.toggleNotifPopover === 'function') {
+                        window.toggleNotifPopover();
+                    } else {
+                        popover.classList.add('is-open');
+                    }
+                }
+                cerrar();
+                return;
             }
+
+            window.location.href = '/notificaciones/';
         });
 
         container.appendChild(toast);
