@@ -180,6 +180,37 @@ def marcar_todas_leidas(request):
 
 
 @login_required
+def api_lista_notificaciones(request):
+    """Lista las notificaciones del usuario en JSON para verlas sin salir del dashboard."""
+    try:
+        limite = int(request.GET.get('limite', 100))
+    except (TypeError, ValueError):
+        limite = 100
+    limite = max(1, min(limite, 500))
+
+    notificaciones = list(
+        Notificacion.objects.filter(usuario=request.user)
+        .order_by('-fecha')[:limite]
+    )
+    unread_count = Notificacion.objects.filter(usuario=request.user, leida=False).count()
+
+    return JsonResponse({
+        'notificaciones': [
+            {
+                'id': notificacion.id,
+                'tipo': notificacion.tipo,
+                'tipo_display': notificacion.get_tipo_display(),
+                'mensaje': notificacion.mensaje,
+                'fecha': notificacion.fecha.strftime('%d/%m/%Y %H:%M'),
+                'leida': notificacion.leida,
+            }
+            for notificacion in notificaciones
+        ],
+        'unread_count': unread_count,
+    })
+
+
+@login_required
 @require_POST
 def limpiar_notificaciones(request):
     """Elimina las notificaciones del usuario para que no se acumulen en el panel."""
