@@ -37,20 +37,8 @@ def _selected_browsers():
     return names
 
 
-@pytest.fixture(scope='session', autouse=True)
-def fix_sqlite_column_renames(django_db_setup, django_db_blocker):
-    """
-    Migration 0005 uses SeparateDatabaseAndState with empty database_operations.
-    SQLite in-memory needs the column rename applied manually.
-    """
-    with django_db_blocker.unblock():
-        with connection.cursor() as cursor:
-            try:
-                cursor.execute(
-                    "ALTER TABLE usuarios RENAME COLUMN cedula TO identificacion"
-                )
-            except Exception:
-                pass  # Already renamed or doesn't exist
+# SQLite column rename legacy hack previously required when 0005 had empty database_operations.
+# Migration 0005 now contains RunPython(rename_cedula_to_identificacion_if_exists), making the fixture redundant.
 
 
 @pytest.fixture(scope='session', params=_selected_browsers())

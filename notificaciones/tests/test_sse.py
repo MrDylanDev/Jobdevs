@@ -26,6 +26,29 @@ class TestNotificacionesSSE:
         assert 'no-cache' in response['Cache-Control']
         assert response['X-Accel-Buffering'] == 'no'
 
+    def test_sse_endpoint_ignora_params_en_produccion(self, auth_client, desarrollador_user, monkeypatch):
+        """SCRUM-447: En producción no se permite forzar interval bajo ni max_iterations vía query params."""
+        from django.test import override_settings
+        import notificaciones.views as n_views
+
+        generator_args = {}
+
+        def mock_generator(user, interval=2.0, max_iterations=None):
+            generator_args['interval'] = interval
+            generator_args['max_iterations'] = max_iterations
+            async def _empty():
+                yield "event: init\ndata: {}\n\n"
+            return _empty()
+
+        monkeypatch.setattr(n_views, 'notificaciones_event_generator', mock_generator)
+
+        with override_settings(TESTING=False):
+            url = reverse('notificaciones_stream')
+            response = auth_client.get(url + '?interval=0.01&max_iterations=5')
+            assert response.status_code == 200
+            assert generator_args['interval'] == 2.0
+            assert generator_args['max_iterations'] is None
+
     @pytest.mark.asyncio
     async def test_generador_emite_init_y_notificacion(self):
         """El generador emite evento init inicial y evento notificacion al detectar nuevas."""

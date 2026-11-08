@@ -7,25 +7,8 @@ from django.db import connection
 User = get_user_model()
 
 
-@pytest.fixture(autouse=True, scope='session')
-def fix_sqlite_column_renames(django_db_setup, django_db_blocker):
-    """
-    Migration 0005 uses SeparateDatabaseAndState with empty database_operations
-    (column was renamed manually in MySQL). SQLite needs the rename applied.
-    """
-    with django_db_blocker.unblock():
-        with connection.cursor() as cursor:
-            # Rename cedula → identificacion (migration 0005)
-            try:
-                cursor.execute(
-                    "ALTER TABLE usuarios RENAME COLUMN cedula TO identificacion"
-                )
-            except Exception:
-                pass  # Already renamed or doesn't exist
-
-            # Migration 0008 removes first_name/last_name columns
-            # These are set to None on the model but the columns still exist
-            # in SQLite from 0001. Django's RemoveField in 0008 only affects state.
+# SQLite column rename legacy hack previously required when 0005 had empty database_operations.
+# Migration 0005 now contains RunPython(rename_cedula_to_identificacion_if_exists), making the fixture redundant.
 
 
 @pytest.fixture(autouse=True)

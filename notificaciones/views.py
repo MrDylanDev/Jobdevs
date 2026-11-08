@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from .models import Notificacion
 from django.contrib import messages
 
@@ -91,14 +92,20 @@ def notificaciones_stream(request):
     if not request.user.is_authenticated:
         return HttpResponse("No autenticado", status=401, content_type="text/plain")
 
-    try:
-        interval = float(request.GET.get('interval', 2.0))
-        interval = max(0.05, min(interval, 60.0))
-    except (ValueError, TypeError):
-        interval = 2.0
+    # Seguridad: En producción fijar valores seguros para prevenir saturación (DoS).
+    # Solo en entorno de pruebas (settings.TESTING) se permiten overrides vía query params.
+    if getattr(settings, 'TESTING', False):
+        try:
+            interval = float(request.GET.get('interval', 2.0))
+            interval = max(0.05, min(interval, 60.0))
+        except (ValueError, TypeError):
+            interval = 2.0
 
-    max_iter_val = request.GET.get('max_iterations')
-    max_iter = int(max_iter_val) if max_iter_val and max_iter_val.isdigit() else None
+        max_iter_val = request.GET.get('max_iterations')
+        max_iter = int(max_iter_val) if max_iter_val and max_iter_val.isdigit() else None
+    else:
+        interval = 2.0
+        max_iter = None
 
     response = StreamingHttpResponse(
         notificaciones_event_generator(request.user, interval=interval, max_iterations=max_iter),
