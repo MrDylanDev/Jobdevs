@@ -163,6 +163,9 @@
 
 .notif-popover-footer {
   display: block;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
   padding: 9px 12px;
   border-top: 1px solid var(--border, #1a1a1a);
   background: var(--bg-card-hover, #111111);

@@ -82,6 +82,28 @@
         return empty;
     }
 
+    function crearItem(notificacion) {
+        const item = document.createElement('div');
+        item.className = 'notif-popover-item' + (notificacion.leida ? '' : ' is-unread');
+        item.setAttribute('data-notif-id', notificacion.id || '');
+
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-circle-dot';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'notif-popover-text';
+        const mensaje = document.createElement('span');
+        mensaje.textContent = notificacion.mensaje || '';
+        const fecha = document.createElement('small');
+        fecha.textContent = notificacion.fecha || 'Ahora';
+        wrapper.appendChild(mensaje);
+        wrapper.appendChild(fecha);
+
+        item.appendChild(icon);
+        item.appendChild(wrapper);
+        return item;
+    }
+
     async function ejecutarAccion(btn, onSuccess) {
         const url = btn.getAttribute('data-url');
         if (!url) return;
@@ -139,6 +161,10 @@
         });
     }
 
+    const btnVerTodas = popover.querySelector('[data-notif-ver-todas]');
+    let htmlInicial = null;
+    let expandido = false;
+
     const btnLimpiar = popover.querySelector('[data-notif-clear]');
     if (btnLimpiar) {
         btnLimpiar.addEventListener('click', function () {
@@ -147,6 +173,9 @@
                     body.innerHTML = '';
                     body.appendChild(estadoVacio());
                 }
+                htmlInicial = '';
+                expandido = false;
+                if (btnVerTodas) btnVerTodas.hidden = true;
                 actualizarBadges(0);
                 ocultarFormulariosMarcarLeidas();
                 vaciarTarjetasNotificaciones();
@@ -154,6 +183,54 @@
                 if (btnMarcarTodas) btnMarcarTodas.hidden = true;
                 mostrarToast(data.mensaje || 'Notificaciones eliminadas.');
             });
+        });
+    }
+
+    // "Ver todas" carga el historial completo dentro del popover, sin navegar.
+    if (btnVerTodas) {
+        btnVerTodas.addEventListener('click', async function () {
+            if (expandido) {
+                if (body) body.innerHTML = htmlInicial || '';
+                expandido = false;
+                btnVerTodas.textContent = 'Ver todas';
+                return;
+            }
+
+            if (htmlInicial === null && body) htmlInicial = body.innerHTML;
+
+            const textoOriginal = btnVerTodas.textContent;
+            btnVerTodas.disabled = true;
+            btnVerTodas.textContent = 'Cargando...';
+            try {
+                const response = await fetch(btnVerTodas.getAttribute('data-url'), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                const notificaciones = data.notificaciones || [];
+
+                if (body) {
+                    body.innerHTML = '';
+                    if (notificaciones.length) {
+                        notificaciones.forEach(function (notificacion) {
+                            body.appendChild(crearItem(notificacion));
+                        });
+                    } else {
+                        body.appendChild(estadoVacio());
+                    }
+                }
+                expandido = true;
+                btnVerTodas.textContent = 'Ver menos';
+            } catch (error) {
+                console.error('JobDevs notificaciones: error al cargar el historial', error);
+                mostrarToast('No se pudieron cargar las notificaciones.');
+                btnVerTodas.textContent = textoOriginal;
+            } finally {
+                btnVerTodas.disabled = false;
+            }
         });
     }
 
@@ -165,25 +242,7 @@
         const empty = body.querySelector('[data-notif-empty]');
         if (empty) empty.remove();
 
-        const item = document.createElement('div');
-        item.className = 'notif-popover-item is-unread';
-        item.setAttribute('data-notif-id', data.id || '');
-
-        const icon = document.createElement('i');
-        icon.className = 'fa fa-circle-dot';
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'notif-popover-text';
-        const mensaje = document.createElement('span');
-        mensaje.textContent = data.mensaje;
-        const fecha = document.createElement('small');
-        fecha.textContent = data.fecha || 'Ahora';
-        wrapper.appendChild(mensaje);
-        wrapper.appendChild(fecha);
-
-        item.appendChild(icon);
-        item.appendChild(wrapper);
-        body.prepend(item);
+        body.prepend(crearItem({ ...data, leida: false }));
     });
 
     window.JobDevsNotificaciones = {
