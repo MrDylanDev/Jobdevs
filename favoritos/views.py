@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Favorito
@@ -22,16 +23,22 @@ def toggle_favorito(request, proyecto_id):
             return JsonResponse({'error': 'Solo los desarrolladores pueden gestionar favoritos.'}, status=403)
         return redirect('inicio')
         
-    favorito = Favorito.objects.filter(desarrollador=request.user, proyecto_id=proyecto_id).first()
-    if favorito:
-        favorito.delete()
-        mensaje = "Proyecto eliminado de favoritos."
-        agregado = False
-    else:
-        proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='publicado')
-        Favorito.objects.create(desarrollador=request.user, proyecto=proyecto)
-        mensaje = "Proyecto añadido a favoritos."
-        agregado = True
+    with transaction.atomic():
+        deleted_count, _ = Favorito.objects.filter(
+            desarrollador=request.user, proyecto_id=proyecto_id
+        ).delete()
+        if deleted_count > 0:
+            mensaje = "Proyecto eliminado de favoritos."
+            agregado = False
+        else:
+            proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='publicado')
+            try:
+                Favorito.objects.create(desarrollador=request.user, proyecto=proyecto)
+                mensaje = "Proyecto añadido a favoritos."
+                agregado = True
+            except IntegrityError:
+                mensaje = "Proyecto añadido a favoritos."
+                agregado = True
 
     if is_ajax:
         return JsonResponse({

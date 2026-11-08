@@ -77,3 +77,47 @@ class TestCacheAdministradores:
         response = admin_client.delete(reverse('api_eliminar_usuario', args=[admin_user.id]))
         assert response.status_code == 400
         assert Usuario.objects.filter(id=admin_user.id).exists()
+
+
+class TestCachedOrCompute:
+    """SCRUM-445: Validación de comportamiento de cached_or_compute con y sin TESTING."""
+
+    def test_cached_or_compute_usa_cache_cuando_no_testing(self):
+        from django.test import override_settings
+        from usuarios.views._helpers import cached_or_compute
+
+        llamadas = 0
+
+        def builder():
+            nonlocal llamadas
+            llamadas += 1
+            return {"data": 42}
+
+        with override_settings(TESTING=False):
+            key = "test_key_cached_or_compute"
+            cache.delete(key)
+            val1 = cached_or_compute(key, 60, builder)
+            val2 = cached_or_compute(key, 60, builder)
+
+            assert val1 == {"data": 42}
+            assert val2 == {"data": 42}
+            assert llamadas == 1  # Solo se llamó una vez gracias al cache
+            cache.delete(key)
+
+    def test_cached_or_compute_bypassa_cache_bajo_testing(self):
+        from usuarios.views._helpers import cached_or_compute
+
+        llamadas = 0
+
+        def builder():
+            nonlocal llamadas
+            llamadas += 1
+            return {"run": llamadas}
+
+        # En entorno de pruebas (TESTING=True por defecto)
+        val1 = cached_or_compute("test_bypass", 60, builder)
+        val2 = cached_or_compute("test_bypass", 60, builder)
+        assert val1 == {"run": 1}
+        assert val2 == {"run": 2}
+        assert llamadas == 2
+
