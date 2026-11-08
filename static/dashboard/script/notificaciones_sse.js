@@ -45,7 +45,7 @@
         if (parsedCount > 0) {
             badges.forEach(badge => {
                 badge.textContent = parsedCount;
-                badge.style.display = 'inline-flex';
+                badge.style.setProperty('display', 'inline-flex', 'important');
             });
 
             const notifBtn = document.querySelector('.notif-btn');
@@ -58,7 +58,7 @@
         } else {
             badges.forEach(badge => {
                 badge.textContent = '0';
-                badge.style.display = 'none';
+                badge.style.setProperty('display', 'none', 'important');
             });
         }
     }
