@@ -222,20 +222,31 @@ class TestToggleFavorito:
         assert not Favorito.objects.filter(proyecto=proyecto).exists()
 
     def test_toggle_favorito_race_condition_handled(self, dev_client, desarrollador_user, empresa_user, monkeypatch):
-        """SCRUM-445: Concurrencia que genere IntegrityError en create se maneja con éxito."""
+        """SCRUM-445: Concurrencia que genere IntegrityError cuando otra transacción insertó el favorito."""
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='Fav Concurrente',
             descripcion='D', tipo_solucion='sitio_web',
             estado='publicado',
         )
-        original_create = Favorito.objects.create
 
         def mock_create(*args, **kwargs):
-            # Simular que otra petición paralela ya creó el favorito
-            original_create(*args, **kwargs)
             raise IntegrityError("duplicate key")
 
+        original_filter = Favorito.objects.filter
+
+        def mock_filter(*args, **kwargs):
+            if kwargs.get('proyecto_id') == proyecto.id and 'desarrollador' in kwargs:
+                if not getattr(mock_filter, 'first_call_done', False):
+                    mock_filter.first_call_done = True
+                    return original_filter(*args, **kwargs)
+                # Segunda llamada: la transacción concurrente ya creó el favorito
+                Favorito.objects.get_or_create(desarrollador=desarrollador_user, proyecto=proyecto)
+                return original_filter(*args, **kwargs)
+            return original_filter(*args, **kwargs)
+
         monkeypatch.setattr(Favorito.objects, 'create', mock_create)
+        monkeypatch.setattr(Favorito.objects, 'filter', mock_filter)
+
         response = dev_client.post(
             reverse('toggle_favorito', args=[proyecto.id]),
             headers={'Accept': 'application/json'}
@@ -244,4 +255,23 @@ class TestToggleFavorito:
         data = response.json()
         assert data['status'] == 'ok'
         assert data['agregado'] is True
+        assert Favorito.objects.filter(desarrollador=desarrollador_user, proyecto=proyecto).count() == 1
+
+    def test_toggle_favorito_re_raises_non_duplicate_integrity_error(self, dev_client, desarrollador_user, empresa_user, monkeypatch):
+        """Cubic review: IntegrityError no causado por duplicado (fila no existe) debe ser relanzado."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Fav Foreign Key Fail',
+            descripcion='D', tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+
+        def mock_create(*args, **kwargs):
+            raise IntegrityError("violates foreign key constraint")
+
+        monkeypatch.setattr(Favorito.objects, 'create', mock_create)
+        with pytest.raises(IntegrityError):
+            dev_client.post(
+                reverse('toggle_favorito', args=[proyecto.id]),
+                headers={'Accept': 'application/json'}
+            )
 

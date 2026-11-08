@@ -60,7 +60,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["config", "usuarios", "proyectos", "postulaciones", "contrataciones", "disputas", "mensajes", "notificaciones", "avances", "logs", "favoritos"]
+source = ["config", "usuarios", "proyectos", "postulaciones", "contrataciones", "disputas", "mensajes", "notificaciones", "avances", "logs", "favoritos", "theme"]
 omit = [
     "*/migrations/*",
     "*/tests/*",

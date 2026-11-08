@@ -31,12 +31,19 @@ def toggle_favorito(request, proyecto_id):
             mensaje = "Proyecto eliminado de favoritos."
             agregado = False
         else:
-            proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='publicado')
+            proyecto = get_object_or_404(
+                Proyecto.objects.select_for_update(), id=proyecto_id, estado='publicado'
+            )
             try:
-                Favorito.objects.create(desarrollador=request.user, proyecto=proyecto)
+                with transaction.atomic():
+                    Favorito.objects.create(desarrollador=request.user, proyecto=proyecto)
                 mensaje = "Proyecto añadido a favoritos."
                 agregado = True
             except IntegrityError:
+                if not Favorito.objects.filter(
+                    desarrollador=request.user, proyecto_id=proyecto_id
+                ).exists():
+                    raise
                 mensaje = "Proyecto añadido a favoritos."
                 agregado = True
 
