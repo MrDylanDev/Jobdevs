@@ -14,10 +14,14 @@ def test_base_template_external_assets_have_sri_integrity():
     rendered = render_to_string('base.html')
 
     external_links = re.findall(r'<link[^>]+href=["\']https?://[^>]+>', rendered)
-    assert len(external_links) >= 2, "Deben existir enlaces CDN para Bootstrap y FontAwesome"
+    assert len(external_links) >= 1, "Debe existir enlace CDN para Bootstrap"
     for tag in external_links:
         assert 'integrity=' in tag, f"El enlace externo carece de atributo integrity: {tag}"
         assert 'crossorigin="anonymous"' in tag, f"El enlace externo carece de crossorigin: {tag}"
+
+    # Los iconos son Lucide vendido localmente; cualquier CDN de Font
+    # Awesome en base.html es un residuo de la migración SCRUM-422.
+    assert 'cdnjs' not in rendered, "base.html no debe cargar CDNs residuales (Font Awesome / cdnjs)"
 
     external_scripts = re.findall(r'<script[^>]+src=["\']https?://[^>]+>', rendered)
     assert len(external_scripts) >= 1, "Debe existir al menos un script CDN para Bootstrap"
