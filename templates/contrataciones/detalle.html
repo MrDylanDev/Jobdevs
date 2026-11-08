@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Detalle Contrato</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 
@@ -23,7 +22,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'listar_contrataciones_empresa' %}">
-        <i class="fa fa-arrow-left"></i>
+        <i data-lucide="arrow-left"></i>
         <span>Mis Contratados</span>
       </a>
     </div>
@@ -49,7 +48,7 @@
       {% if messages %}
         {% for message in messages %}
           <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
             {{ message }}
           </div>
         {% endfor %}
@@ -105,5 +104,11 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

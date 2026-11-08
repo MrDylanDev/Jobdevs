@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Explorar Proyectos</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/listar.css' %}">
 </head>
 <body data-user-rol="{{ request.user.rol }}">
@@ -26,7 +25,7 @@
 
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'dashboard_desarrollador' %}">
-        <i class="fa fa-arrow-left"></i>
+        <i data-lucide="arrow-left"></i>
         <span>Volver al Panel</span>
       </a>
     </div>
@@ -67,7 +66,7 @@
               <label class="form-label">Buscar proyecto</label>
               <div style="position:relative;">
                   <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="Buscar por título o palabra clave..." style="padding-left:34px;">
-                  <i class="fa fa-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px;"></i>
+                  <i style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px;" data-lucide="search"></i>
               </div>
           </div>
           <div class="filter-group" style="min-width:180px;">
@@ -98,7 +97,7 @@
               </select>
           </div>
           <div style="display:flex;gap:12px;height:40px;">
-            <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Filtrar</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="filter"></i> Filtrar</button>
             {% if request.GET.tipo or request.GET.prioridad or request.GET.modalidad or request.GET.q %}
                 <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary">Limpiar</a>
             {% endif %}
@@ -115,7 +114,7 @@
                     <form method="post" action="{% url 'toggle_favorito' proyecto.id %}" style="display:inline; margin:0; padding:0;">
                         {% csrf_token %}
                         <button type="submit" aria-label="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" title="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
-                            {% if proyecto.id in favoritos_ids %}<i class="fa-solid fa-heart" style="color:var(--danger)"></i>{% else %}<i class="fa-regular fa-heart" style="color:var(--text-muted)"></i>{% endif %}
+                            {% if proyecto.id in favoritos_ids %}<i style="color:var(--danger)" data-lucide="heart"></i>{% else %}<i style="color:var(--text-muted)" data-lucide="heart"></i>{% endif %}
                         </button>
                     </form>
                     {% endif %}
@@ -126,14 +125,14 @@
                 <div style="margin: 8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
                     <span class="badge badge-{% if proyecto.prioridad == 'alta' %}danger{% elif proyecto.prioridad == 'media' %}warning{% else %}info{% endif %}">{{ proyecto.prioridad }}</span>
                     <span class="badge badge-{% if proyecto.modalidad == 'remoto' %}success{% elif proyecto.modalidad == 'presencial' %}info{% else %}warning{% endif %}" title="{{ proyecto.ubicacion_display }}" style="display:inline-flex; align-items:center; gap:4px;">
-                      <i class="fa {% if proyecto.modalidad == 'remoto' %}fa-globe{% elif proyecto.modalidad == 'presencial' %}fa-location-dot{% else %}fa-laptop-house{% endif %}"></i>
+                      <i data-lucide="{% if proyecto.modalidad == 'remoto' %}globe{% elif proyecto.modalidad == 'presencial' %}map-pin{% else %}laptop{% endif %}"></i>
                       {{ proyecto.ubicacion_display }}
                     </span>
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i class="fa fa-users" style="margin-right:4px;"></i>{{ proyecto.num_postulaciones }} postulantes
+                        <i style="margin-right:4px;" data-lucide="users"></i>{{ proyecto.num_postulaciones }} postulantes
                     </span>
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i class="fa fa-door-open" style="margin-right:4px;"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
+                        <i style="margin-right:4px;" data-lucide="door-open"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
                     </span>
                 </div>
                 
@@ -145,14 +144,14 @@
                           {% if proyecto.empresa_logo %}
                             <img src="{{ proyecto.empresa_logo }}" alt="Logo">
                           {% else %}
-                            <i class="fa fa-building" style="color: var(--text-muted);"></i>
+                            <i style="color: var(--text-muted);" data-lucide="building"></i>
                           {% endif %}
                         </div>
                         <div>
                             {% if proyecto.empresa_id %}
                               <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="text-decoration:none; color:inherit;" title="Ver perfil institucional y reseñas">
                                 <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:inline-flex; align-items:center; gap:4px;">
-                                  {{ proyecto.empresa_nombre }} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i>
+                                  {{ proyecto.empresa_nombre }} <i style="font-size:10px; opacity:0.6;" data-lucide="arrow-up-right-from-square"></i>
                                 </div>
                               </a>
                             {% else %}
@@ -164,18 +163,18 @@
                               <div style="margin-top:4px;">
                                 {% if proyecto.empresa_verificada %}
                                   <span class="badge {% if proyecto.empresa_badge.label == 'Negocio Verificado' %}badge-info{% else %}badge-success{% endif %}" data-testid="badge-verificacion" title="{{ proyecto.empresa_badge.label }}">
-                                    <i class="fa fa-circle-check" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
+                                    <i style="margin-right:4px;" data-lucide="check-circle"></i>{{ proyecto.empresa_badge.label }}
                                   </span>
                                 {% else %}
                                   <span class="badge {% if proyecto.empresa_estado_verificacion == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" data-testid="badge-verificacion" title="{{ proyecto.empresa_badge.label }}">
-                                    <i class="fa fa-triangle-exclamation" style="margin-right:4px;"></i>{{ proyecto.empresa_badge.label }}
+                                    <i style="margin-right:4px;" data-lucide="alert-triangle"></i>{{ proyecto.empresa_badge.label }}
                                   </span>
                                 {% endif %}
                               </div>
                             {% endif %}
                             <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
                               {% if proyecto.empresa_reputacion > 0 %}
-                                <i class="fa fa-star" style="color:#f59e0b; margin-right:3px;"></i>{{ proyecto.empresa_reputacion|floatformat:1 }} reputación
+                                <i style="color:#f59e0b; margin-right:3px;" data-lucide="star"></i>{{ proyecto.empresa_reputacion|floatformat:1 }} reputación
                               {% else %}
                                 Empresa nueva
                               {% endif %}
@@ -183,13 +182,13 @@
                         </div>
                     </div>
                     <a href="{% url 'postularse_a_proyecto' proyecto.id %}" class="btn btn-primary btn-sm">
-                      <i class="fa fa-paper-plane"></i> Postularme
+                      <i data-lucide="paper-plane"></i> Postularme
                     </a>
                 </div>
             </div>
           {% empty %}
             <div class="empty-state" style="grid-column: 1 / -1; padding: 60px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-                <i class="fa fa-magnifying-glass" style="font-size: 32px; color: var(--text-muted); margin-bottom: 15px;"></i>
+                <i style="font-size: 32px; color: var(--text-muted); margin-bottom: 15px;" data-lucide="search"></i>
                 <p style="color: var(--text-secondary); font-size: 15px;">No se encontraron proyectos con los filtros seleccionados.</p>
                 {% if request.GET.tipo or request.GET.prioridad %}
                     <a href="{% url 'listar_proyectos' %}" class="btn btn-primary" style="margin-top: 15px;">Limpiar filtros</a>
@@ -202,7 +201,7 @@
         <nav aria-label="Paginación de proyectos" style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:35px; margin-bottom:25px;">
           {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.modalidad %}&modalidad={{ request.GET.modalidad }}{% endif %}{% if request.GET.ciudad %}&ciudad={{ request.GET.ciudad }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-secondary btn-sm">
-              <i class="fa fa-chevron-left" style="margin-right:4px;"></i> Anterior
+              <i style="margin-right:4px;" data-lucide="chevron-left"></i> Anterior
             </a>
           {% endif %}
           <span style="font-size:13px; color:var(--text-muted); font-family:var(--font-mono);">
@@ -210,7 +209,7 @@
           </span>
           {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.modalidad %}&modalidad={{ request.GET.modalidad }}{% endif %}{% if request.GET.ciudad %}&ciudad={{ request.GET.ciudad }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-secondary btn-sm">
-              Siguiente <i class="fa fa-chevron-right" style="margin-left:4px;"></i>
+              Siguiente <i style="margin-left:4px;" data-lucide="chevron-right"></i>
             </a>
           {% endif %}
         </nav>
@@ -222,5 +221,11 @@
 
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
 <script src="{% static 'dashboard/script/catalogo_async.js' %}"></script>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

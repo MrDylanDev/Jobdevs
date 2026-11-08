@@ -8,7 +8,7 @@
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'listar_proyectos' %}"><i class="fa fa-arrow-left me-1"></i> Explorar Proyectos</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'listar_proyectos' %}"><i data-lucide="arrow-left"></i> Explorar Proyectos</a></li>
       <li class="breadcrumb-item active" aria-current="page">Perfil de Empresa</li>
     </ol>
   </nav>
@@ -29,15 +29,15 @@
             <h1 class="h3 mb-0 fw-bold text-dark">{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}</h1>
             {% with badge=perfil.badge_info %}
               <span class="badge {{ badge.css_class }}" data-testid="badge-empresa" style="font-size: 12px; padding: 4px 10px;">
-                <i class="fa {% if perfil.es_verificada %}fa-circle-check{% elif perfil.estado_verificacion == 'rechazada' %}fa-circle-xmark{% else %}fa-triangle-exclamation{% endif %} me-1"></i>
+                <i data-lucide="{% if perfil.es_verificada %}check-circle{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}" class="me-1"></i>
                 {{ badge.label }}
               </span>
             {% endwith %}
           </div>
           <div class="text-muted mt-1" style="font-size: 14px;">
-            {% if perfil.sector %}<i class="fa fa-briefcase me-1 text-secondary"></i> {{ perfil.sector }} &nbsp;·&nbsp; {% endif %}
-            {% if perfil.ciudad %}<i class="fa fa-location-dot me-1 text-secondary"></i> {{ perfil.ciudad }} &nbsp;·&nbsp; {% endif %}
-            <i class="fa fa-user me-1 text-secondary"></i> Contacto: {{ empresa.nombre|default:empresa.username }}
+            {% if perfil.sector %}<i data-lucide="briefcase"></i> {{ perfil.sector }} &nbsp;·&nbsp; {% endif %}
+            {% if perfil.ciudad %}<i data-lucide="location-dot"></i> {{ perfil.ciudad }} &nbsp;·&nbsp; {% endif %}
+            <i data-lucide="user"></i> Contacto: {{ empresa.nombre|default:empresa.username }}
           </div>
         </div>
       </div>
@@ -50,9 +50,9 @@
             <div class="text-warning fs-5">
               {% for i in "12345" %}
                 {% if forloop.counter <= promedio_reputacion %}
-                  <i class="fa fa-star"></i>
+                  <i data-lucide="star"></i>
                 {% else %}
-                  <i class="fa-regular fa-star text-muted"></i>
+                  <i data-lucide="star"></i>
                 {% endif %}
               {% endfor %}
             </div>
@@ -107,7 +107,7 @@
     <div class="col-lg-7">
       <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
         <div class="d-flex align-items-center justify-content-between mb-3">
-          <h2 class="h5 fw-bold mb-0 text-dark"><i class="fa fa-comments me-2 text-primary"></i>Opiniones de Desarrolladores</h2>
+          <h2 class="h5 fw-bold mb-0 text-dark"><i data-lucide="comments"></i>Opiniones de Desarrolladores</h2>
           <span class="badge bg-light text-dark border">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
         </div>
 
@@ -133,9 +133,9 @@
                     <div class="text-warning" style="font-size: 13px;">
                       {% for i in "12345" %}
                         {% if forloop.counter <= r.puntuacion %}
-                          <i class="fa fa-star"></i>
+                          <i data-lucide="star"></i>
                         {% else %}
-                          <i class="fa-regular fa-star text-muted"></i>
+                          <i data-lucide="star"></i>
                         {% endif %}
                       {% endfor %}
                     </div>
@@ -145,7 +145,7 @@
 
                 {% if r.proyecto %}
                   <div class="small text-muted mb-2">
-                    <i class="fa fa-folder-closed me-1"></i> Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
+                    <i data-lucide="folder"></i> Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
                   </div>
                 {% endif %}
 
@@ -157,7 +157,7 @@
           </div>
         {% else %}
           <div class="text-center py-5 text-muted">
-            <i class="fa fa-comment-slash fa-3x mb-3 text-secondary opacity-50"></i>
+            <i data-lucide="comment-slash"></i>
             <p class="mb-0">Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados.</p>
           </div>
         {% endif %}
@@ -167,7 +167,7 @@
     <!-- Columna de Proyectos Abiertos para Postularse -->
     <div class="col-lg-5">
       <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
-        <h2 class="h5 fw-bold mb-3 text-dark"><i class="fa fa-briefcase me-2 text-success"></i>Oportunidades Abiertas</h2>
+        <h2 class="h5 fw-bold mb-3 text-dark"><i data-lucide="briefcase"></i>Oportunidades Abiertas</h2>
         
         {% if proyectos_abiertos %}
           <div class="d-flex flex-column gap-3">
@@ -179,9 +179,9 @@
                 </div>
                 <p class="text-muted small mb-2" style="line-height: 1.4;">{{ p.descripcion|truncatewords:18 }}</p>
                 <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                  <small class="text-muted"><i class="fa fa-users me-1"></i> {{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</small>
+                  <small class="text-muted"><i data-lucide="users"></i> {{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</small>
                   <a href="{% url 'postularse_a_proyecto' p.id %}" class="btn btn-sm btn-outline-primary" style="font-size: 12px; padding: 4px 10px;">
-                    Postularme <i class="fa fa-chevron-right ms-1"></i>
+                    Postularme <i data-lucide="chevron-right"></i>
                   </a>
                 </div>
               </div>
@@ -189,7 +189,7 @@
           </div>
         {% else %}
           <div class="text-center py-5 text-muted">
-            <i class="fa fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i>
+            <i data-lucide="folder-open"></i>
             <p class="mb-0">No hay convocatorias abiertas en este momento.</p>
           </div>
         {% endif %}

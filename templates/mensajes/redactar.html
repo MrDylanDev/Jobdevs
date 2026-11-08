@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Redactar Mensaje</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 <div class="app-layout">
@@ -20,7 +19,7 @@
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item" href="{% url 'mensajeria_inbox' %}"><i class="fa fa-arrow-left"></i><span>Volver a Mensajes</span></a>
+      <a class="nav-item" href="{% url 'mensajeria_inbox' %}"><i data-lucide="arrow-left"></i><span>Volver a Mensajes</span></a>
     </div>
   </aside>
   <div class="main-wrapper">
@@ -31,14 +30,14 @@
       <div style="max-width:640px; width:100%;">
         <div class="page-header">
           <div>
-            <div class="page-title"><i class="fa fa-pen-to-square" style="margin-right:10px; color:var(--text-muted);"></i>Redactar Mensaje</div>
+            <div class="page-title"><i style="margin-right:10px; color:var(--text-muted);" data-lucide="edit"></i>Redactar Mensaje</div>
           </div>
         </div>
 
         {% if messages %}
           {% for message in messages %}
             <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
-              <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+              <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
               {{ message }}
             </div>
           {% endfor %}
@@ -81,7 +80,7 @@
             <div style="border-top:1px solid var(--border); padding-top:18px; display:flex; gap:12px;">
               <a href="{% url 'mensajeria_inbox' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancelar</a>
               <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center;">
-                <i class="fa fa-paper-plane"></i> Enviar Mensaje
+                <i data-lucide="paper-plane"></i> Enviar Mensaje
               </button>
             </div>
           </form>
@@ -90,5 +89,11 @@
     </main>
   </div>
 </div>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

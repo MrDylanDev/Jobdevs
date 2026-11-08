@@ -58,15 +58,18 @@
                     icon.style.transform = 'scale(1.35)';
 
                     if (data.agregado) {
-                        icon.className = 'fa-solid fa-heart';
+                        icon.setAttribute('data-lucide', 'heart');
                         icon.style.color = 'var(--danger, #ef4444)';
                         btn.setAttribute('title', 'Quitar de favoritos');
                         btn.setAttribute('aria-label', 'Quitar de favoritos');
                     } else {
-                        icon.className = 'fa-regular fa-heart';
+                        icon.setAttribute('data-lucide', 'heart');
                         icon.style.color = 'var(--text-muted, #94a3b8)';
                         btn.setAttribute('title', 'Guardar en favoritos');
                         btn.setAttribute('aria-label', 'Guardar en favoritos');
+                    }
+                    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                        window.lucide.createIcons();
                     }
 
                     setTimeout(() => {
@@ -87,10 +90,10 @@
                         if (grid && grid.querySelectorAll('.project-card').length === 0) {
                             grid.innerHTML = `
                                 <div class="empty-state" style="grid-column:1/-1;">
-                                    <i class="fa fa-heart-crack"></i>
+                                    <i data-lucide="heart-crack"></i>
                                     <p style="font-size:16px; font-weight:600; margin-bottom:8px;">Aún no tienes favoritos</p>
                                     <p style="margin-bottom:20px;">Guarda proyectos que te interesen para postularte después.</p>
-                                    <a href="/proyectos/" class="btn btn-primary"><i class="fa fa-magnifying-glass"></i> Explorar Proyectos</a>
+                                    <a href="/proyectos/" class="btn btn-primary"><i data-lucide="search"></i> Explorar Proyectos</a>
                                 </div>
                             `;
                         }

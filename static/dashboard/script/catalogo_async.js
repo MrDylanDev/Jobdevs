@@ -23,7 +23,7 @@
                 <form method="post" action="/favoritos/toggle/${p.id}/" style="display:inline; margin:0; padding:0;">
                     <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
                     <button type="submit" aria-label="${esFav ? 'Quitar de favoritos' : 'Guardar en favoritos'}" title="${esFav ? 'Quitar de favoritos' : 'Guardar en favoritos'}" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
-                        <i class="${esFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}" style="color:${esFav ? 'var(--danger)' : 'var(--text-muted)'}"></i>
+                        <i class="${esFav ? 'heart' : 'heart'}" style="color:${esFav ? 'var(--danger)' : 'var(--text-muted)'}"></i>
                     </button>
                 </form>
             `;
@@ -37,7 +37,7 @@
                 badgeEmpresaHtml = `
                     <div style="margin-top:4px;">
                         <span class="badge ${bClass}" data-testid="badge-verificacion" title="${badgeLabel}">
-                            <i class="fa fa-circle-check" style="margin-right:4px;"></i>${badgeLabel}
+                            <i data-lucide="check-circle" style="margin-right:4px;"></i>${badgeLabel}
                         </span>
                     </div>
                 `;
@@ -46,7 +46,7 @@
                 badgeEmpresaHtml = `
                     <div style="margin-top:4px;">
                         <span class="badge ${bClass}" data-testid="badge-verificacion" title="${badgeLabel}">
-                            <i class="fa fa-triangle-exclamation" style="margin-right:4px;"></i>${badgeLabel}
+                            <i data-lucide="alert-triangle" style="margin-right:4px;"></i>${badgeLabel}
                         </span>
                     </div>
                 `;
@@ -54,17 +54,17 @@
         }
 
         const reputacionHtml = p.empresa_reputacion > 0
-            ? `<i class="fa fa-star" style="color:#f59e0b; margin-right:3px;"></i>${parseFloat(p.empresa_reputacion).toFixed(1)} reputación`
+            ? `<i data-lucide="star" style="color:#f59e0b; margin-right:3px;"></i>${parseFloat(p.empresa_reputacion).toFixed(1)} reputación`
             : `Empresa nueva`;
 
         const logoHtml = p.empresa_logo
             ? `<img src="${escapeHtml(p.empresa_logo)}" alt="Logo">`
-            : `<i class="fa fa-building" style="color: var(--text-muted);"></i>`;
+            : `<i data-lucide="building" style="color: var(--text-muted);"></i>`;
 
         const empresaNombreHtml = p.empresa_id
             ? `<a href="/usuarios/empresa/${p.empresa_id}/" style="text-decoration:none; color:inherit;" title="Ver perfil institucional y reseñas">
                  <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:inline-flex; align-items:center; gap:4px;">
-                   ${escapeHtml(p.empresa_nombre)} <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; opacity:0.6;"></i>
+                   ${escapeHtml(p.empresa_nombre)} <i data-lucide="arrow-up-right" style="font-size:10px; opacity:0.6;"></i>
                  </div>
                </a>`
             : `<div style="font-size:13px; font-weight:600; color:var(--text-primary);">${escapeHtml(p.empresa_nombre)}</div>`;
@@ -79,14 +79,14 @@
                 <div style="margin: 8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
                     <span class="badge badge-${prioridadBadgeClass}">${escapeHtml(p.prioridad)}</span>
                     <span class="badge badge-${p.modalidad === 'remoto' ? 'success' : (p.modalidad === 'presencial' ? 'info' : 'warning')}" style="display:inline-flex; align-items:center; gap:4px;">
-                        <i class="fa ${p.modalidad === 'remoto' ? 'fa-globe' : (p.modalidad === 'presencial' ? 'fa-location-dot' : 'fa-laptop-house')}"></i>
+                        <i data-lucide="${p.modalidad === 'remoto' ? 'globe' : (p.modalidad === 'presencial' ? 'map-pin' : 'laptop')}"></i>
                         ${escapeHtml(p.ubicacion_display || (p.modalidad === 'remoto' ? 'Remoto (Nivel Nacional)' : p.ciudad))}
                     </span>
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i class="fa fa-users" style="margin-right:4px;"></i>${p.num_postulaciones || 0} postulantes
+                        <i data-lucide="users" style="margin-right:4px;"></i>${p.num_postulaciones || 0} postulantes
                     </span>
                     <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i class="fa fa-door-open" style="margin-right:4px;"></i>${p.vacantes_disponibles !== undefined ? p.vacantes_disponibles : p.vacantes} de ${p.vacantes} cupos libres
+                        <i data-lucide="door-open" style="margin-right:4px;"></i>${p.vacantes_disponibles !== undefined ? p.vacantes_disponibles : p.vacantes} de ${p.vacantes} cupos libres
                     </span>
                 </div>
                 <p class="project-desc">${escapeHtml(p.descripcion)}</p>
@@ -104,7 +104,7 @@
                         </div>
                     </div>
                     <a href="/postulaciones/postular/${p.id}/" class="btn btn-primary btn-sm">
-                      <i class="fa fa-paper-plane"></i> Postularme
+                      <i data-lucide="send"></i> Postularme
                     </a>
                 </div>
             </div>
@@ -141,7 +141,7 @@
                 } else {
                     grid.innerHTML = `
                         <div class="empty-state" style="grid-column: 1 / -1; padding: 60px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-                            <i class="fa fa-magnifying-glass" style="font-size: 32px; color: var(--text-muted); margin-bottom: 15px;"></i>
+                            <i data-lucide="search" style="font-size: 32px; color: var(--text-muted); margin-bottom: 15px;"></i>
                             <p style="color: var(--text-secondary); font-size: 15px;">No se encontraron proyectos con los filtros seleccionados.</p>
                             <a href="/proyectos/" class="btn btn-primary" style="margin-top: 15px;">Limpiar filtros</a>
                         </div>
@@ -151,6 +151,11 @@
                 // Re-vincular eventos reactivos de favoritos en las tarjetas recién renderizadas
                 if (window.JobDevsFavoritos && typeof window.JobDevsFavoritos.inicializar === 'function') {
                     window.JobDevsFavoritos.inicializar();
+                }
+
+                // Re-render lucide icons after DOM update
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
                 }
 
                 // Actualizar URL del navegador sin recarga

@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Finalizar Proyecto</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/finalizar.css' %}">
 </head>
 <body>
@@ -23,7 +22,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'dashboard_empresa' %}">
-        <i class="fa fa-arrow-left"></i><span>Volver al Panel</span>
+        <i data-lucide="arrow-left"></i><span>Volver al Panel</span>
       </a>
     </div>
   </aside>
@@ -37,14 +36,14 @@
 
         <div class="page-header">
           <div>
-            <div class="page-title"><i class="fa fa-trophy" style="margin-right:10px; color:#f59e0b;"></i>¡Proyecto Completado!</div>
+            <div class="page-title"><i style="margin-right:10px; color:#f59e0b;" data-lucide="trophy"></i>¡Proyecto Completado!</div>
             <div class="page-subtitle">Califica el desempeño del desarrollador para cerrar el ciclo</div>
           </div>
         </div>
 
         {% if not desarrollador %}
         <div class="card" style="text-align:center; padding:30px 20px;">
-          <i class="fa fa-circle-check" style="font-size:48px; color:var(--success); margin-bottom:15px; display:block;"></i>
+          <i style="font-size:48px; color:var(--success); margin-bottom:15px; display:block;" data-lucide="check-circle"></i>
           <div class="card-title" style="font-size:18px; margin-bottom:8px;">Calificaciones Completadas</div>
           <p style="font-size:14px; color:var(--text-secondary); margin-bottom:24px;">Todos los colaboradores del proyecto <strong>{{ proyecto.titulo }}</strong> han sido calificados. Presiona el botón para finalizar el proyecto oficialmente.</p>
           <form method="post">
@@ -52,7 +51,7 @@
             <div style="display:flex; gap:12px; justify-content:center;">
               <a href="{% url 'dashboard_empresa' %}" class="btn btn-secondary">Cancelar</a>
               <button type="submit" class="btn btn-success">
-                <i class="fa fa-flag-checkered"></i> Confirmar y Finalizar Proyecto
+                <i data-lucide="flag-checkered"></i> Confirmar y Finalizar Proyecto
               </button>
             </div>
           </form>
@@ -65,7 +64,7 @@
           </div>
           {% if restantes > 0 %}
             <div class="msg-error" style="margin-top:12px;">
-              <i class="fa fa-triangle-exclamation"></i> Faltan {{ restantes }} colaboradores por calificar.
+              <i data-lucide="alert-triangle"></i> Faltan {{ restantes }} colaboradores por calificar.
             </div>
           {% endif %}
         </div>
@@ -86,14 +85,14 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label"><i class="fa fa-comment" style="margin-right:6px;"></i>Comentarios Adicionales</label>
+              <label class="form-label"><i style="margin-right:6px;" data-lucide="comment"></i>Comentarios Adicionales</label>
               <textarea name="comentario" required minlength="20" maxlength="2000" placeholder="Describe tu experiencia trabajando con este desarrollador..." style="width:100%; min-height:130px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;"></textarea>
             </div>
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; gap:12px;">
               <a href="{% url 'dashboard_empresa' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancelar</a>
               <button type="submit" class="btn btn-success" style="flex:2; justify-content:center;">
-                <i class="fa fa-check-circle"></i> Finalizar y Calificar
+                <i data-lucide="check-circle"></i> Finalizar y Calificar
               </button>
             </div>
           </form>
@@ -104,5 +103,11 @@
     </main>
   </div>
 </div>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

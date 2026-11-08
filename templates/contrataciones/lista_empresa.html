@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Mis Contratados</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 
@@ -23,7 +22,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'dashboard_empresa' %}">
-        <i class="fa fa-arrow-left"></i>
+        <i data-lucide="arrow-left"></i>
         <span>Volver al Panel</span>
       </a>
     </div>
@@ -49,7 +48,7 @@
       {% if messages %}
         {% for message in messages %}
           <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i class="fa {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
             {{ message }}
           </div>
         {% endfor %}
@@ -75,9 +74,9 @@
                     {{ c.desarrollador.nombre }}
                   </h3>
                   <div style="font-size: 12px; color: var(--text-secondary);">
-                    <i class="fa fa-folder"></i> {{ c.proyecto.titulo }}
+                    <i data-lucide="folder"></i> {{ c.proyecto.titulo }}
                     &nbsp;·&nbsp;
-                    <i class="fa fa-calendar"></i> {{ c.fecha_inicio|date:"d M Y" }}
+                    <i data-lucide="calendar"></i> {{ c.fecha_inicio|date:"d M Y" }}
                   </div>
                 </div>
               </div>
@@ -87,13 +86,13 @@
                 {{ c.get_estado_display }}
               </span>
               <a href="{% url 'ver_detalle_contrato' c.id %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
-                <i class="fa fa-eye"></i> Ver
+                <i data-lucide="eye"></i> Ver
               </a>
             </div>
           </div>
         {% empty %}
           <div class="empty-state" style="padding: 80px 20px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-            <i class="fa fa-handshake" style="font-size: 40px; color: var(--border); margin-bottom: 15px;"></i>
+            <i style="font-size: 40px; color: var(--border); margin-bottom: 15px;" data-lucide="handshake"></i>
             <p style="color: var(--text-secondary); font-size: 15px;">Aún no tienes desarrolladores contratados.</p>
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Cuando aceptes una postulación, aparecerá aquí.</p>
           </div>
@@ -104,5 +103,11 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

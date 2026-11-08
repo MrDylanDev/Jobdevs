@@ -31,7 +31,7 @@
   {% if perfil.estado_verificacion == 'verificado' %}
     <div class="card border-success">
       <div class="card-body">
-        <h2 class="h5 text-success"><i class="fa fa-circle-check me-2"></i>Identidad SENA verificada</h2>
+        <h2 class="h5 text-success"><i data-lucide="check-circle"></i>Identidad SENA verificada</h2>
         <p class="mb-1">Tu perfil como aprendiz SENA está completamente verificado y habilitado para postularte a proyectos.</p>
         <p class="mb-0 text-muted"><strong>Ficha:</strong> {{ perfil.ficha }} | <strong>Programa:</strong> {{ perfil.programa_formacion|default:"No especificado" }}</p>
       </div>
@@ -40,25 +40,25 @@
     {% if perfil.estado_verificacion == 'en_revision' %}
       <div class="card border-warning">
         <div class="card-body">
-          <h2 class="h5 text-warning-emphasis"><i class="fa fa-hourglass-half me-2"></i>Solicitud en revisión</h2>
+          <h2 class="h5 text-warning-emphasis"><i data-lucide="hourglass"></i>Solicitud en revisión</h2>
           <p class="mb-1">Tu solicitud de verificación manual se encuentra en revisión por el equipo administrativo del SENA.</p>
           <p class="mb-1 text-muted"><strong>Ficha:</strong> {{ perfil.ficha }} | <strong>Programa:</strong> {{ perfil.programa_formacion|default:"No especificado" }}</p>
           {% if perfil.documento_soporte %}
             <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mt-2">
-              <i class="fa fa-file-pdf me-1"></i> Ver documento enviado
+              <i data-lucide="file-text"></i> Ver documento enviado
             </a>
           {% endif %}
         </div>
       </div>
     {% elif perfil.estado_verificacion == 'rechazado' %}
       <div class="alert alert-danger" role="alert">
-        <i class="fa fa-triangle-exclamation me-1"></i> Tu solicitud anterior fue rechazada.
+        <i data-lucide="alert-triangle"></i> Tu solicitud anterior fue rechazada.
         {% if perfil.notas_auditoria %}<br><strong>Motivo:</strong> {{ perfil.notas_auditoria }}{% endif %}
         <br>Por favor verifica tu ficha o adjunta un documento legible y vuelve a enviarla.
       </div>
     {% else %}
       <div class="alert alert-info" role="alert">
-        <i class="fa fa-info-circle me-1"></i> Verifica tu condición de aprendiz SENA para poder postularte a proyectos reales y obtener la insignia oficial.
+        <i data-lucide="info"></i> Verifica tu condición de aprendiz SENA para poder postularte a proyectos reales y obtener la insignia oficial.
       </div>
     {% endif %}
 
@@ -72,17 +72,17 @@
           <ul class="nav nav-tabs card-header-tabs" id="metodoTab" role="tablist">
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if valores.metodo != 'manual' %}active{% endif %}" id="auto-tab" data-bs-toggle="tab" data-bs-target="#auto-pane" type="button" role="tab" aria-controls="auto-pane" aria-selected="{% if valores.metodo != 'manual' %}true{% else %}false{% endif %}">
-                <i class="fa fa-bolt me-1 text-warning"></i> Aprendiz (Lista Blanca)
+                <i data-lucide="zap"></i> Aprendiz (Lista Blanca)
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}active{% endif %}" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}true{% else %}false{% endif %}">
-                <i class="fa fa-id-badge me-1 text-primary"></i> Aprendiz (Carnet / Certificado)
+                <i data-lucide="id-card"></i> Aprendiz (Carnet / Certificado)
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if valores.condicion_sena == 'egresado' %}active{% endif %}" id="egresado-tab" data-bs-toggle="tab" data-bs-target="#egresado-pane" type="button" role="tab" aria-controls="egresado-pane" aria-selected="{% if valores.condicion_sena == 'egresado' %}true{% else %}false{% endif %}">
-                <i class="fa fa-graduation-cap me-1 text-success"></i> Egresado SENA (Diploma)
+                <i data-lucide="graduation-cap"></i> Egresado SENA (Diploma)
               </button>
             </li>
           </ul>
@@ -111,7 +111,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-success">
-                  <i class="fa fa-circle-check me-1"></i> Verificar Ficha Ahora
+                  <i data-lucide="check-circle"></i> Verificar Ficha Ahora
                 </button>
               </form>
             </div>
@@ -150,7 +150,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                  <i class="fa fa-paper-plane me-1"></i> Enviar Solicitud de Aprendiz
+                  <i data-lucide="paper-plane"></i> Enviar Solicitud de Aprendiz
                 </button>
               </form>
             </div>
@@ -163,7 +163,7 @@
                 <input type="hidden" name="condicion_sena" value="egresado">
 
                 <div class="alert alert-light border mb-3">
-                  <i class="fa fa-info-circle text-success me-1"></i>
+                  <i data-lucide="info"></i>
                   <strong>¿Sos egresado titulado del SENA?</strong> Adjuntá tu diploma o acta de grado oficial descargada de SofíaPlus para obtener la insignia de <strong>Egresado SENA</strong> y postularte a proyectos sin límite.
                 </div>
 
@@ -192,7 +192,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-success">
-                  <i class="fa fa-graduation-cap me-1"></i> Enviar Diploma a Revisión
+                  <i data-lucide="graduation-cap"></i> Enviar Diploma a Revisión
                 </button>
               </form>
             </div>

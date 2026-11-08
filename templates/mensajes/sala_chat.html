@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Chat — {% if es_grupal %}Grupo: {{ proyecto.titulo }}{% else %}{{ receptor.nombre|default:receptor.username }}{% endif %}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/chat.css' %}">
 </head>
 <body>
@@ -24,11 +23,11 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       {% if request.user.rol == 'administrador' %}
-        <a class="nav-item" href="{% url 'dashboard_admin' %}"><i class="fa fa-arrow-left"></i><span>Panel Admin</span></a>
+        <a class="nav-item" href="{% url 'dashboard_admin' %}"><i data-lucide="arrow-left"></i><span>Panel Admin</span></a>
       {% elif request.user.rol == 'empresa' %}
-        <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=centro-chat"><i class="fa fa-arrow-left"></i><span>Panel Empresa</span></a>
+        <a class="nav-item" href="{% url 'dashboard_empresa' %}?section=centro-chat"><i data-lucide="arrow-left"></i><span>Panel Empresa</span></a>
       {% else %}
-        <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=centro-chat"><i class="fa fa-arrow-left"></i><span>Panel Dev</span></a>
+        <a class="nav-item" href="{% url 'dashboard_desarrollador' %}?section=centro-chat"><i data-lucide="arrow-left"></i><span>Panel Dev</span></a>
       {% endif %}
     </div>
   </aside>
@@ -40,10 +39,10 @@
     <header class="top-header">
       <div class="top-header-title">
         {% if es_grupal %}
-          <i class="fa fa-users" style="margin-right:8px; color:var(--text-muted);"></i> Espacio Grupal
+          <i style="margin-right:8px; color:var(--text-muted);" data-lucide="users"></i> Espacio Grupal
           <span>/ {{ proyecto.titulo }}</span>
         {% else %}
-          <i class="fa fa-message" style="margin-right:8px; color:var(--text-muted);"></i>
+          <i style="margin-right:8px; color:var(--text-muted);" data-lucide="message"></i>
           {{ receptor.nombre|default:receptor.username }}
           <span>/ {{ receptor.get_rol_display }}</span>
         {% endif %}
@@ -63,7 +62,7 @@
 
         {% if proyecto %}
           <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="chat-participant-link {% if es_grupal %}active{% endif %}">
-            <i class="fa fa-rocket"></i> Espacio Grupal
+            <i data-lucide="rocket"></i> Espacio Grupal
           </a>
           <hr style="border:none; border-top:1px solid var(--border); margin:10px 0;">
         {% endif %}
@@ -104,7 +103,7 @@
             </div>
           {% empty %}
             <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
-              <i class="fa fa-comments" style="font-size:36px; margin-bottom:12px; opacity:0.3; display:block;"></i>
+              <i style="font-size:36px; margin-bottom:12px; opacity:0.3; display:block;" data-lucide="comments"></i>
               No hay mensajes aún. ¡Sé el primero en escribir! 👋
             </div>
           {% endfor %}
@@ -113,7 +112,7 @@
         <div class="chat-input-area">
           {% if proyecto and proyecto.estado == 'finalizado' %}
             <div class="chat-readonly">
-              <i class="fa fa-lock" style="margin-right:8px;"></i>
+              <i style="margin-right:8px;" data-lucide="lock"></i>
               Este proyecto ha finalizado. El chat es ahora de solo lectura.
             </div>
           {% else %}
@@ -125,7 +124,7 @@
               {% csrf_token %}
               <input type="text" name="contenido" class="chat-input-field" placeholder="Escribe un mensaje..." required autocomplete="off">
               <button type="submit" class="btn btn-primary chat-send-btn">
-                <i class="fa fa-paper-plane"></i>
+                <i data-lucide="paper-plane"></i>
               </button>
             </form>
           {% endif %}
@@ -137,5 +136,11 @@
 </div><!-- fin app-layout -->
 
 <script src="{% static 'dashboard/script/chat.js' %}"></script>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

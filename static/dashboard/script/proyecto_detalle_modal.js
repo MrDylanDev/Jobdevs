@@ -20,7 +20,7 @@
   }
 
   function safeIcon(name) {
-    return /^fa-[a-z0-9- ]+$/i.test(name || '') ? name : 'fa-solid fa-circle-info';
+    return /^[a-z0-9- ]+$/i.test(name || '') ? name : 'info';
   }
 
   function estadoClass(estado) {
@@ -47,7 +47,7 @@
           '<button type="button" class="jdp-close" data-jdp-close aria-label="Cerrar">&times;</button>' +
         '</header>' +
         '<div class="jdp-body" data-jdp-body aria-live="polite">' +
-          '<div class="jdp-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Consultando la ficha del proyecto…</span></div>' +
+          '<div class="jdp-loading"><i class="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>' +
         '</div>' +
         '<footer class="jdp-footer" data-jdp-footer hidden></footer>' +
       '</div>';
@@ -98,7 +98,7 @@
     var titulo = modal.querySelector('#jdpTitulo');
     var sub = modal.querySelector('[data-jdp-sub]');
     body.scrollTop = 0;
-    body.innerHTML = '<div class="jdp-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Consultando la ficha del proyecto…</span></div>';
+    body.innerHTML = '<div class="jdp-loading"><i class="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>';
     footer.hidden = true;
     footer.innerHTML = '';
     titulo.textContent = 'Cargando proyecto…';
@@ -145,7 +145,7 @@
     modal.querySelector('[data-jdp-sub]').textContent = '';
     var body = modal.querySelector('[data-jdp-body]');
     body.innerHTML =
-      '<div class="jdp-error"><i class="fa-solid fa-triangle-exclamation"></i>' +
+      '<div class="jdp-error"><i data-lucide="triangle-exclamation"></i>' +
       '<p>' + escapeHtml(mensaje) + '</p>' +
       '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button></div>';
     var footer = modal.querySelector('[data-jdp-footer]');
@@ -159,12 +159,12 @@
     modal.querySelector('#jdpTitulo').textContent = p.titulo || 'Proyecto';
 
     sub.innerHTML =
-      '<span><i class="fa-solid fa-building" style="color:#00e676;margin-right:5px;"></i>' + escapeHtml(empresa.nombre || '') + '</span>' +
+      '<span><i class="building" style="color:#00e676;margin-right:5px;"></i>' + escapeHtml(empresa.nombre || '') + '</span>' +
       (empresa.verificada
-        ? '<span class="jdp-verified"><i class="fa-solid fa-circle-check"></i>' + escapeHtml(empresa.badge || 'Verificada') + '</span>'
+        ? '<span class="jdp-verified"><i class="check-circle"></i>' + escapeHtml(empresa.badge || 'Verificada') + '</span>'
         : '') +
       (Number(empresa.calificacion) > 0
-        ? '<span><i class="fa-solid fa-star" style="color:#ffc107;margin-right:4px;"></i>' + Number(empresa.calificacion).toFixed(1) + '</span>'
+        ? '<span><i class="star" style="color:#ffc107;margin-right:4px;"></i>' + Number(empresa.calificacion).toFixed(1) + '</span>'
         : '');
 
     var html = '';
@@ -173,7 +173,7 @@
     html += '<span class="jdp-badge">' + escapeHtml(p.tipo || 'Proyecto') + '</span>';
     html += '<span class="jdp-badge ' + (p.prioridad === 'alta' ? 'is-en_disputa' : (p.prioridad === 'media' ? 'is-pendiente' : '')) + '">Prioridad ' + escapeHtml(p.prioridad_label || p.prioridad || '') + '</span>';
     if (p.acepta_postulaciones) {
-      html += '<span class="jdp-badge is-publicado"><i class="fa-solid fa-door-open"></i> Recibe postulaciones</span>';
+      html += '<span class="jdp-badge is-publicado"><i class="door-open"></i> Recibe postulaciones</span>';
     }
     html += '</div>';
 
@@ -191,17 +191,17 @@
     var total = p.hitos_totales || 0;
     var hechos = p.hitos_completados || 0;
     html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-bars-progress"></i>Progreso de hitos</span><span class="jdp-section-count">' + hechos + '/' + total + '</span></div>';
+    html += '<div class="jdp-section-title"><span><i class="bars-progress"></i>Progreso de hitos</span><span class="jdp-section-count">' + hechos + '/' + total + '</span></div>';
     html += '<div class="jdp-progress-bar"><div class="jdp-progress-fill" style="width:' + Math.max(0, Math.min(100, Number(p.progreso) || 0)) + '%"></div></div>';
     html += '</section>';
 
     html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-list-check"></i>Hitos del proyecto</span><span class="jdp-section-count">' + total + '</span></div>';
+    html += '<div class="jdp-section-title"><span><i class="list-checks"></i>Hitos del proyecto</span><span class="jdp-section-count">' + total + '</span></div>';
     if (p.hitos && p.hitos.length) {
       html += '<ul class="jdp-list">';
       p.hitos.forEach(function (h) {
         html += '<li class="jdp-list-item ' + estadoClass(h.estado) + '">' +
-          '<i class="' + (h.estado === 'completado' ? 'fa-solid fa-circle-check' : (h.estado === 'en_revision' ? 'fa-solid fa-clock' : 'fa-regular fa-circle')) + '"></i>' +
+          '<i data-lucide="' + (h.estado === 'completado' ? 'check-circle' : (h.estado === 'en_revision' ? 'clock' : 'circle')) + '"></i>' +
           '<div class="jdp-list-main"><span class="jdp-list-title">' + escapeHtml(h.titulo) + '</span>' +
           (h.descripcion ? '<span class="jdp-list-sub">' + escapeHtml(h.descripcion) + '</span>' : '') +
           '</div><span class="jdp-list-state">' + escapeHtml(h.estado_label || '') + '</span></li>';
@@ -213,11 +213,11 @@
     html += '</section>';
 
     html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="fa-solid fa-users"></i>Equipo vinculado</span><span class="jdp-section-count">' + (p.num_desarrolladores || 0) + '</span></div>';
+    html += '<div class="jdp-section-title"><span><i class="users"></i>Equipo vinculado</span><span class="jdp-section-count">' + (p.num_desarrolladores || 0) + '</span></div>';
     if (p.contrataciones && p.contrataciones.length) {
       html += '<div class="jdp-team">';
       p.contrataciones.forEach(function (c) {
-        html += '<span class="jdp-chip"><i class="fa-solid fa-user-gear"></i>' + escapeHtml(c.desarrollador || c.username || '') +
+        html += '<span class="jdp-chip"><i data-lucide="user-gear"></i>' + escapeHtml(c.desarrollador || c.username || '') +
           ' <span class="jdp-list-state">' + escapeHtml(c.estado_label || '') + '</span></span>';
       });
       html += '</div>';
@@ -234,7 +234,7 @@
     acciones.forEach(function (a) {
       var clase = a.estilo === 'primary' ? 'jdp-btn is-primary' : 'jdp-btn';
       footerHtml += '<a class="' + clase + '" href="' + escapeHtml(a.url || '#') + '">' +
-        '<i class="' + safeIcon(a.icono) + '"></i>' + escapeHtml(a.label || 'Abrir') + '</a>';
+        '<i data-lucide="' + safeIcon(a.icono) + '"></i>' + escapeHtml(a.label || 'Abrir') + '</a>';
     });
     footerHtml += '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button>';
     footer.innerHTML = footerHtml;

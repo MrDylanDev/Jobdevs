@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Gestionar Equipos</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 <div class="app-layout">
@@ -21,8 +20,8 @@
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item" href="{% url 'gestionar_hitos' proyecto.id %}"><i class="fa fa-arrow-left"></i><span>Volver a Hitos</span></a>
-      <a class="nav-item" href="{% url 'dashboard_empresa' %}"><i class="fa fa-house"></i><span>Panel Empresa</span></a>
+      <a class="nav-item" href="{% url 'gestionar_hitos' proyecto.id %}"><i data-lucide="arrow-left"></i><span>Volver a Hitos</span></a>
+      <a class="nav-item" href="{% url 'dashboard_empresa' %}"><i data-lucide="home"></i><span>Panel Empresa</span></a>
     </div>
   </aside>
 
@@ -34,7 +33,7 @@
 
       <div class="page-header">
         <div>
-          <div class="page-title"><i class="fa fa-users" style="margin-right:10px; color:var(--text-muted);"></i>Grupos y Parejas de Trabajo</div>
+          <div class="page-title"><i style="margin-right:10px; color:var(--text-muted);" data-lucide="users"></i>Grupos y Parejas de Trabajo</div>
           <div class="page-subtitle">Organiza tus desarrolladores en equipos para asignarles hitos específicos</div>
         </div>
       </div>
@@ -42,7 +41,7 @@
       <!-- Formulario crear equipo -->
       <div class="card" style="margin-bottom:24px;">
         <div class="card-header">
-          <div class="card-title"><i class="fa fa-user-plus" style="margin-right:8px;"></i>Crear Nuevo Grupo</div>
+          <div class="card-title"><i style="margin-right:8px;" data-lucide="user-plus"></i>Crear Nuevo Grupo</div>
         </div>
         <form method="post" style="display:flex; flex-direction:column; gap:14px;">
           {% csrf_token %}
@@ -58,7 +57,7 @@
               {% endfor %}
             </select>
           </div>
-          <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Guardar Grupo</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Guardar Grupo</button>
         </form>
       </div>
 
@@ -69,12 +68,12 @@
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
               <div style="font-size:15px; font-weight:600; color:var(--text-primary);">
-                <i class="fa fa-users" style="margin-right:8px; color:var(--info);"></i>{{ equipo.nombre }}
+                <i style="margin-right:8px; color:var(--info);" data-lucide="users"></i>{{ equipo.nombre }}
               </div>
               <form method="post" action="{% url 'eliminar_equipo' equipo.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este grupo? Los hitos asignados quedarán sin equipo.');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm" title="Eliminar grupo">
-                  <i class="fa fa-trash"></i>
+                  <i data-lucide="trash-2"></i>
                 </button>
               </form>
             </div>
@@ -91,7 +90,7 @@
           </div>
         {% empty %}
           <div class="empty-state" style="grid-column:1/-1;">
-            <i class="fa fa-users"></i>
+            <i data-lucide="users"></i>
             <p>No has creado grupos para este proyecto todavía.</p>
           </div>
         {% endfor %}
@@ -99,5 +98,11 @@
     </main>
   </div>
 </div>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

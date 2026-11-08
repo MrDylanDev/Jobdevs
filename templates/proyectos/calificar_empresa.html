@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Calificar Empresa</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/calificar.css' %}">
 </head>
 <body>
@@ -23,7 +22,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'dashboard_desarrollador' %}">
-        <i class="fa fa-arrow-left"></i><span>Volver al Panel</span>
+        <i data-lucide="arrow-left"></i><span>Volver al Panel</span>
       </a>
     </div>
   </aside>
@@ -36,7 +35,7 @@
       <div style="max-width:520px; width:100%;">
         <div class="page-header">
           <div>
-            <div class="page-title"><i class="fa fa-star" style="margin-right:10px; color:#f59e0b;"></i>Evalúa tu Experiencia</div>
+            <div class="page-title"><i style="margin-right:10px; color:#f59e0b;" data-lucide="star"></i>Evalúa tu Experiencia</div>
             <div class="page-subtitle">Tu feedback ayuda a otros desarrolladores a conocer cómo es trabajar con <strong>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</strong></div>
           </div>
         </div>
@@ -57,13 +56,13 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label"><i class="fa fa-comment" style="margin-right:6px;"></i>Comentarios</label>
+              <label class="form-label"><i style="margin-right:6px;" data-lucide="comment"></i>Comentarios</label>
               <textarea name="comentario" required minlength="20" maxlength="2000" placeholder="¿Cómo fue tu experiencia en este proyecto? ¿La empresa fue clara, justa y puntual?" style="width:100%; min-height:120px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;"></textarea>
             </div>
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; flex-direction:column; gap:10px;">
               <button type="submit" class="btn btn-primary btn-full">
-                <i class="fa fa-star"></i> Enviar Calificación
+                <i data-lucide="star"></i> Enviar Calificación
               </button>
               <a href="{% url 'dashboard_desarrollador' %}" class="btn btn-secondary btn-full" style="justify-content:center;">
                 Omitir por ahora
@@ -75,5 +74,11 @@
     </main>
   </div>
 </div>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

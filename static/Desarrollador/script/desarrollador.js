@@ -227,7 +227,7 @@ document.addEventListener('submit', async (event) => {
   const textoOriginal = submit ? submit.innerHTML : '';
   if (submit) {
     submit.disabled = true;
-    submit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
+    submit.innerHTML = '<i data-lucide="loader-2"></i> Enviando...';
   }
 
   try {
@@ -417,7 +417,7 @@ document.addEventListener('submit', async (event) => {
   const textoOriginal = submit ? submit.innerHTML : '';
   if (submit) {
     submit.disabled = true;
-    submit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
+    submit.innerHTML = '<i data-lucide="loader-2"></i> Enviando...';
   }
   mostrarFeedbackPostulacion('', false);
 

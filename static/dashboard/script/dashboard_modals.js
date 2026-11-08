@@ -37,7 +37,7 @@
       toast.setAttribute('role', 'status');
       document.body.appendChild(toast);
     }
-    toast.innerHTML = '<i class="fa-solid ' + (esError ? 'fa-circle-exclamation' : 'fa-circle-check') + '"></i><span>' + escapeHtml(mensaje) + '</span>';
+    toast.innerHTML = '<i data-lucide="' + (esError ? 'alert-circle' : 'check-circle') + '"></i><span>' + escapeHtml(mensaje) + '</span>';
     toast.style.borderColor = esError ? '#ef4444' : '#00e676';
     toast.style.color = esError ? '#f87171' : '#69f0ae';
     toast.classList.add('is-visible');
@@ -72,7 +72,7 @@
           '<button type="button" class="jdm-close" data-jdm-close aria-label="Cerrar">&times;</button>' +
         '</header>' +
         '<div class="jdm-body" id="jdmBody" aria-live="polite">' +
-          '<div class="jdm-loading"><i class="fa-solid fa-circle-notch"></i><span>Cargando información…</span></div>' +
+          '<div class="jdm-loading"><i data-lucide="loader-2"></i><span>Cargando información…</span></div>' +
         '</div>' +
         '<footer class="jdm-footer" id="jdmFooter" hidden></footer>' +
       '</div>';
@@ -108,7 +108,7 @@
     var body = document.getElementById('jdmBody');
     var footer = document.getElementById('jdmFooter');
     body.scrollTop = 0;
-    body.innerHTML = '<div class="jdm-loading"><i class="fa-solid fa-circle-notch"></i><span>Cargando información…</span></div>';
+    body.innerHTML = '<div class="jdm-loading"><i data-lucide="loader-2"></i><span>Cargando información…</span></div>';
     footer.hidden = true;
     footer.innerHTML = '';
   }
@@ -202,19 +202,19 @@
             '<div class="jdm-party-role">[ EMPRESA CONTRATANTE ]</div>' +
             '<div class="jdm-party-name">' + escapeHtml(c.empresa_nombre) + '</div>' +
             '<div class="jdm-party-status">' +
-              (c.firmado_empresa ? '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado (' + escapeHtml(c.fecha_firma_empresa || '') + ')</span>' : '<span style="color:#fbbf24;"><i class="fa-solid fa-clock"></i> Pendiente de firma</span>') +
+              (c.firmado_empresa ? '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_empresa || '') + ')</span>' : '<span style="color:#fbbf24;"><i data-lucide="clock"></i> Pendiente de firma</span>') +
             '</div>' +
           '</div>' +
           '<div class="jdm-party-card">' +
             '<div class="jdm-party-role">[ DESARROLLADOR / APRENDIZ ]</div>' +
             '<div class="jdm-party-name">' + escapeHtml(c.desarrollador_nombre) + '</div>' +
             '<div class="jdm-party-status" id="jdmDevSignStatus">' +
-              (c.firmado_desarrollador ? '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado (' + escapeHtml(c.fecha_firma_desarrollador || '') + ')</span>' : '<span style="color:#f87171;"><i class="fa-solid fa-file-signature"></i> Pendiente de tu firma</span>') +
+              (c.firmado_desarrollador ? '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_desarrollador || '') + ')</span>' : '<span style="color:#f87171;"><i data-lucide="file-signature"></i> Pendiente de tu firma</span>') +
             '</div>' +
           '</div>' +
         '</div>' +
 
-        '<div class="jdm-form-label"><i class="fa-solid fa-scroll"></i> Cláusulas y Términos del Acuerdo</div>' +
+        '<div class="jdm-form-label"><i data-lucide="scroll"></i> Cláusulas y Términos del Acuerdo</div>' +
         '<div class="jdm-clauses-container">';
 
       if (c.clausulas && c.clausulas.length) {
@@ -230,11 +230,11 @@
         html +=
           '<div class="jdm-sign-callout" id="jdmSignCallout">' +
             '<div>' +
-              '<strong style="color:#00e676;display:block;margin-bottom:2px;"><i class="fa-solid fa-fingerprint"></i> Firma electrónica lista para emitir</strong>' +
+              '<strong style="color:#00e676;display:block;margin-bottom:2px;"><i data-lucide="fingerprint"></i> Firma electrónica lista para emitir</strong>' +
               '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos y retribución estipulados para este proyecto.</span>' +
             '</div>' +
             '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url) + '">' +
-              '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora' +
+              '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora' +
             '</button>' +
           '</div>';
       }
@@ -246,7 +246,7 @@
       if (btnFirmar) {
         btnFirmar.addEventListener('click', async function () {
           btnFirmar.disabled = true;
-          btnFirmar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Firmando...';
+          btnFirmar.innerHTML = '<i data-lucide="loader-2"></i> Firmando...';
           try {
             var signBody = new FormData();
             signBody.append('acepta_terminos', 'on');
@@ -267,28 +267,28 @@
               if (callout) callout.remove();
               var devStatus = document.getElementById('jdmDevSignStatus');
               if (devStatus) {
-                devStatus.innerHTML = '<span style="color:#00e676;"><i class="fa-solid fa-check-double"></i> Firmado ahora</span>';
+                devStatus.innerHTML = '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado ahora</span>';
               }
               if (triggerBtn) {
                 triggerBtn.classList.remove('btn-primary');
                 triggerBtn.classList.add('btn-secondary');
-                triggerBtn.innerHTML = '<i class="fa fa-file-signature"></i> Ver Contrato';
+                triggerBtn.innerHTML = '<i data-lucide="file-signature"></i> Ver Contrato';
               }
             } else {
               mostrarToast(signData.mensaje || signData.error || 'No se pudo firmar el contrato.', true);
               btnFirmar.disabled = false;
-              btnFirmar.innerHTML = '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora';
+              btnFirmar.innerHTML = '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora';
             }
           } catch (err) {
             mostrarToast('Error de conexión al firmar.', true);
             btnFirmar.disabled = false;
-            btnFirmar.innerHTML = '<i class="fa-solid fa-signature"></i> Firmar Contrato Ahora';
+            btnFirmar.innerHTML = '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora';
           }
         });
       }
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -323,12 +323,12 @@
         '</div>';
 
       if (data.hitos && data.hitos.length) {
-        html += '<div class="jdm-form-label"><i class="fa-solid fa-list-check"></i> Hitos del Proyecto</div><div class="jdm-hitos-scroll">';
+        html += '<div class="jdm-form-label"><i data-lucide="list-check"></i> Hitos del Proyecto</div><div class="jdm-hitos-scroll">';
         data.hitos.forEach(function (h) {
-          var icon = h.estado === 'completado' ? 'fa-circle-check" style="color:#00e676;' : (h.estado === 'en_revision' ? 'fa-clock" style="color:#fbbf24;' : 'fa-circle" style="color:#666666;');
+          var icon = h.estado === 'completado' ? 'check-circle" style="color:#00e676;' : (h.estado === 'en_revision' ? 'clock" style="color:#fbbf24;' : 'circle" style="color:#666666;');
           html +=
             '<div class="jdm-hito-pill">' +
-              '<i class="fa-solid ' + icon + '"></i>' +
+              '<i data-lucide="' + icon + '"></i>' +
               '<div>' +
                 '<strong>' + escapeHtml(h.titulo) + '</strong>' +
                 '<div style="font-size:10px;color:#a0a0a0;">' + escapeHtml(h.estado_label) + '</div>' +
@@ -338,7 +338,7 @@
         html += '</div>';
       }
 
-      html += '<div class="jdm-form-label"><i class="fa-solid fa-timeline"></i> Registro de Entregas y Evidencias (' + (data.avances ? data.avances.length : 0) + ')</div>';
+      html += '<div class="jdm-form-label"><i data-lucide="git-branch"></i> Registro de Entregas y Evidencias (' + (data.avances ? data.avances.length : 0) + ')</div>';
 
       if (data.avances && data.avances.length) {
         html += '<div class="jdm-advances-feed">';
@@ -358,28 +358,28 @@
           if (a.archivo_adjunto_url || a.archivo_url) {
             html += '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">';
             if (a.archivo_adjunto_url) {
-              html += '<a href="' + escapeHtml(a.archivo_adjunto_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i class="fa-solid fa-paperclip"></i> ' + escapeHtml(a.archivo_adjunto_nombre || 'Descargar archivo') + '</a>';
+              html += '<a href="' + escapeHtml(a.archivo_adjunto_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i data-lucide="paperclip"></i> ' + escapeHtml(a.archivo_adjunto_nombre || 'Descargar archivo') + '</a>';
             }
             if (a.archivo_url) {
-              html += '<a href="' + escapeHtml(a.archivo_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver enlace externo</a>';
+              html += '<a href="' + escapeHtml(a.archivo_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment"><i data-lucide="arrow-up-right"></i> Ver enlace externo</a>';
             }
             html += '</div>';
           }
 
           if (a.observaciones) {
-            html += '<div class="jdm-advance-feedback"><i class="fa-solid fa-comment-dots"></i> Observaciones: ' + escapeHtml(a.observaciones) + '</div>';
+            html += '<div class="jdm-advance-feedback"><i data-lucide="message-circle"></i> Observaciones: ' + escapeHtml(a.observaciones) + '</div>';
           }
 
           html += '</div>';
         });
         html += '</div>';
       } else {
-        html += '<div class="jdm-empty"><i class="fa-solid fa-box-open"></i>No se han registrado entregas para este proyecto aún.</div>';
+        html += '<div class="jdm-empty"><i data-lucide="package-open"></i>No se han registrado entregas para este proyecto aún.</div>';
       }
 
       var footerBtns = '';
       if (data.puede_registrar && data.registrar_url) {
-        footerBtns += '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnIrRegistrar" data-url-registrar="' + escapeHtml(data.registrar_url) + '"><i class="fa-solid fa-pen"></i> Registrar Nuevo Avance</button>';
+        footerBtns += '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnIrRegistrar" data-url-registrar="' + escapeHtml(data.registrar_url) + '"><i data-lucide="pen"></i> Registrar Nuevo Avance</button>';
       }
       footerBtns += '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>';
 
@@ -394,7 +394,7 @@
       }
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -451,7 +451,7 @@
       setContent(html);
       setFooter(
         '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarAvance"><i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance</button>'
+        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarAvance"><i data-lucide="upload-cloud"></i> Registrar Avance</button>'
       );
 
       var btnEnviar = document.getElementById('jdmBtnEnviarAvance');
@@ -467,23 +467,23 @@
 
           if (!hito) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar un hito.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar un hito.</span>';
             return;
           }
           if (!desc) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes ingresar una descripción del avance.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes ingresar una descripción del avance.</span>';
             return;
           }
           if (!urlEv && !file) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes ingresar una URL de evidencia o adjuntar un archivo.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes ingresar una URL de evidencia o adjuntar un archivo.</span>';
             return;
           }
 
           errBox.style.display = 'none';
           btnEnviar.disabled = true;
-          btnEnviar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
+          btnEnviar.innerHTML = '<i data-lucide="loader-2"></i> Registrando...';
 
           try {
             var formData = new FormData(form);
@@ -504,21 +504,21 @@
               setTimeout(function () { window.location.reload(); }, 1200);
             } else {
               errBox.style.display = 'flex';
-              errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.error || resJson.mensaje || 'Error al guardar avance') + '</span>';
+              errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.error || resJson.mensaje || 'Error al guardar avance') + '</span>';
               btnEnviar.disabled = false;
-              btnEnviar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance';
+              btnEnviar.innerHTML = '<i data-lucide="upload-cloud"></i> Registrar Avance';
             }
           } catch (e) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de conexión al enviar el avance.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de conexión al enviar el avance.</span>';
             btnEnviar.disabled = false;
-            btnEnviar.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Registrar Avance';
+            btnEnviar.innerHTML = '<i data-lucide="upload-cloud"></i> Registrar Avance';
           }
         });
       }
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -544,7 +544,7 @@
       if (data.ya_califico) {
         setContent(
           '<div style="text-align:center;padding:24px 10px;">' +
-            '<i class="fa-solid fa-circle-check" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;"></i>' +
+            '<i data-lucide="check-circle" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;"></i>' +
             '<h3 style="margin:0 0 8px;font-family:\'JetBrains Mono\',monospace;color:#ffffff;">¡Ya has calificado a esta empresa!</h3>' +
             '<p style="color:#a0a0a0;font-size:13px;">Tu reseña para este proyecto ya fue registrada en el perfil de la empresa.</p>' +
           '</div>'
@@ -558,11 +558,11 @@
           '<div id="jdmCalificarError" class="jdm-error" style="display:none;"></div>' +
           '<div class="jdm-rating-container">' +
             '<div class="jdm-stars-row" id="jdmStars">' +
-              '<button type="button" class="jdm-star-btn" data-val="1"><i class="fa-solid fa-star"></i></button>' +
-              '<button type="button" class="jdm-star-btn" data-val="2"><i class="fa-solid fa-star"></i></button>' +
-              '<button type="button" class="jdm-star-btn" data-val="3"><i class="fa-solid fa-star"></i></button>' +
-              '<button type="button" class="jdm-star-btn" data-val="4"><i class="fa-solid fa-star"></i></button>' +
-              '<button type="button" class="jdm-star-btn" data-val="5"><i class="fa-solid fa-star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="1"><i data-lucide="star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="2"><i data-lucide="star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="3"><i data-lucide="star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="4"><i data-lucide="star"></i></button>' +
+              '<button type="button" class="jdm-star-btn" data-val="5"><i data-lucide="star"></i></button>' +
             '</div>' +
             '<div class="jdm-rating-caption" id="jdmRatingCaption">Selecciona una puntuación (1 a 5)</div>' +
             '<input type="hidden" name="puntuacion" id="jdmInputPuntuacion" value="">' +
@@ -578,7 +578,7 @@
       setContent(html);
       setFooter(
         '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i class="fa-solid fa-star"></i> Enviar Calificación</button>'
+        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i data-lucide="star"></i> Enviar Calificación</button>'
       );
 
       var puntuacionVal = 0;
@@ -625,18 +625,18 @@
 
         if (!puntuacionVal) {
           errBox.style.display = 'flex';
-          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar una puntuación de 1 a 5 estrellas.</span>';
+          errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar una puntuación de 1 a 5 estrellas.</span>';
           return;
         }
         if (com.length < 20) {
           errBox.style.display = 'flex';
-          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>El comentario debe tener al menos 20 caracteres.</span>';
+          errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>El comentario debe tener al menos 20 caracteres.</span>';
           return;
         }
 
         errBox.style.display = 'none';
         btnEnviar.disabled = true;
-        btnEnviar.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
+        btnEnviar.innerHTML = '<i data-lucide="loader-2"></i> Registrando...';
 
         try {
           var formData = new FormData();
@@ -661,25 +661,25 @@
             if (triggerBtn) {
               triggerBtn.classList.remove('btn-primary');
               triggerBtn.classList.add('btn-secondary');
-              triggerBtn.innerHTML = '<i class="fa fa-star" style="color:#00e676;"></i> Calificada (' + puntuacionVal + '/5)';
+              triggerBtn.innerHTML = '<i data-lucide="star" style="color:#00e676;"></i> Calificada (' + puntuacionVal + '/5)';
               triggerBtn.disabled = true;
             }
           } else {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.mensaje || 'No se pudo registrar la calificación.') + '</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.mensaje || 'No se pudo registrar la calificación.') + '</span>';
             btnEnviar.disabled = false;
-            btnEnviar.innerHTML = '<i class="fa-solid fa-star"></i> Enviar Calificación';
+            btnEnviar.innerHTML = '<i data-lucide="star"></i> Enviar Calificación';
           }
         } catch (e) {
           errBox.style.display = 'flex';
-          errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de conexión al enviar la calificación.</span>';
+          errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de conexión al enviar la calificación.</span>';
           btnEnviar.disabled = false;
-          btnEnviar.innerHTML = '<i class="fa-solid fa-star"></i> Enviar Calificación';
+          btnEnviar.innerHTML = '<i data-lucide="star"></i> Enviar Calificación';
         }
       });
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -703,8 +703,8 @@
       setHeader('EMPRESA // FICHA INSTITUCIONAL', e.nombre, e.sector + ' · ' + e.ciudad);
 
       var badgeHtml = e.es_verificada
-        ? '<span class="jdm-badge jdm-badge-success"><i class="fa-solid fa-circle-check"></i> ' + escapeHtml(e.badge_label || 'Verificada') + '</span>'
-        : '<span class="jdm-badge jdm-badge-gray"><i class="fa-solid fa-shield"></i> ' + escapeHtml(e.badge_label || 'Sin verificar') + '</span>';
+        ? '<span class="jdm-badge jdm-badge-success"><i data-lucide="check-circle"></i> ' + escapeHtml(e.badge_label || 'Verificada') + '</span>'
+        : '<span class="jdm-badge jdm-badge-gray"><i data-lucide="shield"></i> ' + escapeHtml(e.badge_label || 'Sin verificar') + '</span>';
 
       var initial = (e.nombre || 'E').slice(0, 1).toUpperCase();
 
@@ -738,12 +738,12 @@
           '</div>' +
         '</div>' +
 
-        '<div class="jdm-form-label"><i class="fa-solid fa-building"></i> Acerca de la empresa</div>' +
+        '<div class="jdm-form-label"><i data-lucide="building"></i> Acerca de la empresa</div>' +
         '<div style="background:#030604;border:1px solid #14221a;border-radius:4px;padding:14px;font-size:13px;line-height:1.6;color:#c0d0c6;margin-bottom:18px;">' +
           escapeHtml(e.descripcion) +
         '</div>' +
 
-        '<div class="jdm-form-label"><i class="fa-solid fa-comments"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
+        '<div class="jdm-form-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
 
       if (e.resenas && e.resenas.length) {
         html += '<div style="display:flex;flex-direction:column;gap:10px;">';
@@ -760,14 +760,14 @@
         });
         html += '</div>';
       } else {
-        html += '<div class="jdm-empty"><i class="fa-solid fa-comment-slash"></i>Aún no registra reseñas de proyectos finalizados.</div>';
+        html += '<div class="jdm-empty"><i data-lucide="message-square-off"></i>Aún no registra reseñas de proyectos finalizados.</div>';
       }
 
       setContent(html);
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -808,13 +808,13 @@
           '</div>' +
           '<div style="margin-top:10px;font-size:12.5px;color:#c0d0c6;background:#050a07;border-radius:4px;padding:8px 12px;border:1px solid #14221a;">' +
             '<strong>Motivo de apertura:</strong> ' + escapeHtml(d.motivo) +
-            (d.evidencia_url ? '<div style="margin-top:4px;"><a href="' + escapeHtml(d.evidencia_url) + '" target="_blank" rel="noopener" style="color:#00e676;font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i class="fa-solid fa-link"></i> Ver enlace de evidencia</a></div>' : '') +
+            (d.evidencia_url ? '<div style="margin-top:4px;"><a href="' + escapeHtml(d.evidencia_url) + '" target="_blank" rel="noopener" style="color:#00e676;font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="link"></i> Ver enlace de evidencia</a></div>' : '') +
           '</div>';
 
       if (d.resolucion) {
         html +=
           '<div style="margin-top:10px;padding:12px 14px;background:rgba(0,230,118,0.08);border:1px solid #00e676;border-radius:4px;">' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#00e676;font-weight:700;"><i class="fa-solid fa-gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: ' + escapeHtml(d.resolucion) + '</div>' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#00e676;font-weight:700;"><i data-lucide="gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: ' + escapeHtml(d.resolucion) + '</div>' +
             (d.dictamen ? '<div style="margin-top:4px;font-size:12px;color:#e6f4ec;">Dictamen: ' + escapeHtml(d.dictamen) + '</div>' : '') +
           '</div>';
       }
@@ -822,7 +822,7 @@
       html += '</div>';
 
       html +=
-        '<div class="jdm-form-label"><i class="fa-solid fa-comments"></i> Mensajes y Argumentos de Mediación</div>' +
+        '<div class="jdm-form-label"><i data-lucide="message-circle"></i> Mensajes y Argumentos de Mediación</div>' +
         '<div class="jdm-disputa-chat" id="jdmDisputaChat">';
 
       if (data.mensajes && data.mensajes.length) {
@@ -838,7 +838,7 @@
             '</div>';
         });
       } else {
-        html += '<div class="jdm-empty" style="padding:20px;"><i class="fa-solid fa-comment-dots"></i>Aún no hay mensajes en esta sala.</div>';
+        html += '<div class="jdm-empty" style="padding:20px;"><i data-lucide="message-circle"></i>Aún no hay mensajes en esta sala.</div>';
       }
 
       html += '</div>';
@@ -847,7 +847,7 @@
         html +=
           '<form id="jdmFormDisputaMsg" class="jdm-disputa-composer" novalidate>' +
             '<input type="text" id="jdmMsgContenido" name="contenido" class="jdm-input" placeholder="Escribe un mensaje para los participantes y el mediador…" autocomplete="off" required>' +
-            '<button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarMsg"><i class="fa-solid fa-paper-plane"></i></button>' +
+            '<button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarMsg"><i data-lucide="send"></i></button>' +
           '</form>';
       }
 
@@ -855,7 +855,7 @@
       if (d.es_admin && d.resolver_url && d.estado !== 'resuelta' && d.estado !== 'cancelada') {
         html +=
           '<div class="jdm-admin-resolution-box">' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#f87171;margin-bottom:8px;"><i class="fa-solid fa-gavel"></i> PANEL DE RESOLUCIÓN ARBITRAL (ADMIN)</div>' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#f87171;margin-bottom:8px;"><i data-lucide="gavel"></i> PANEL DE RESOLUCIÓN ARBITRAL (ADMIN)</div>' +
             '<form id="jdmFormResolverDisputa" novalidate>' +
               '<div class="jdm-form-group">' +
                 '<label class="jdm-form-label">Dictamen de Fallo <span class="req">*</span></label>' +
@@ -871,7 +871,7 @@
                 '<label class="jdm-form-label">Fundamentos / Notas de la resolución <span class="req">*</span></label>' +
                 '<textarea name="dictamen" class="jdm-textarea" placeholder="Indica detalladamente los argumentos técnicos y evidencias consideradas para este dictamen…" required></textarea>' +
               '</div>' +
-              '<button type="submit" class="jdm-btn jdm-btn-danger" id="jdmBtnResolver"><i class="fa-solid fa-gavel"></i> Emitir Resolución Final</button>' +
+              '<button type="submit" class="jdm-btn jdm-btn-danger" id="jdmBtnResolver"><i data-lucide="gavel"></i> Emitir Resolución Final</button>' +
             '</form>' +
           '</div>';
       }
@@ -940,7 +940,7 @@
 
           var btnR = document.getElementById('jdmBtnResolver');
           btnR.disabled = true;
-          btnR.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Procesando resolución...';
+          btnR.innerHTML = '<i data-lucide="loader-2"></i> Procesando resolución...';
 
           try {
             var rData = new FormData(formResolver);
@@ -962,18 +962,18 @@
             } else {
               mostrarToast(rJson.mensaje || 'Error al resolver la disputa.', true);
               btnR.disabled = false;
-              btnR.innerHTML = '<i class="fa-solid fa-gavel"></i> Emitir Resolución Final';
+              btnR.innerHTML = '<i data-lucide="gavel"></i> Emitir Resolución Final';
             }
           } catch (err) {
             mostrarToast('Error de red al procesar la resolución.', true);
             btnR.disabled = false;
-            btnR.innerHTML = '<i class="fa-solid fa-gavel"></i> Emitir Resolución Final';
+            btnR.innerHTML = '<i data-lucide="gavel"></i> Emitir Resolución Final';
           }
         });
       }
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }
@@ -1008,7 +1008,7 @@
           '<div id="jdmDisputaError" class="jdm-error" style="display:none;"></div>' +
 
           '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);padding:12px 14px;border-radius:4px;margin-bottom:16px;font-size:12.5px;color:#fca5a5;">' +
-            '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;color:#ef4444;"></i>' +
+            '<i data-lucide="alert-triangle" style="margin-right:6px;color:#ef4444;"></i>' +
             '<strong>Importante:</strong> Abrir una disputa <strong>congela de inmediato</strong> el proyecto y su contratación hasta resolución arbitral. Solo procede ante faltas graves.' +
           '</div>' +
 
@@ -1036,7 +1036,7 @@
       setContent(html);
       setFooter(
         '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-danger" id="jdmBtnConfirmarDisputa"><i class="fa-solid fa-gavel"></i> Abrir Disputa Formal</button>'
+        '<button type="button" class="jdm-btn jdm-btn-danger" id="jdmBtnConfirmarDisputa"><i data-lucide="gavel"></i> Abrir Disputa Formal</button>'
       );
 
       var btnConf = document.getElementById('jdmBtnConfirmarDisputa');
@@ -1051,23 +1051,23 @@
 
           if (!cat) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes seleccionar una causal.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar una causal.</span>';
             return;
           }
           if (!mot) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes relatar el motivo de la disputa.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes relatar el motivo de la disputa.</span>';
             return;
           }
           if (!check) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Debes aceptar la declaración de responsabilidad.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes aceptar la declaración de responsabilidad.</span>';
             return;
           }
 
           errBox.style.display = 'none';
           btnConf.disabled = true;
-          btnConf.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Formalizando...';
+          btnConf.innerHTML = '<i data-lucide="loader-2"></i> Formalizando...';
 
           try {
             var fData = new FormData(formD);
@@ -1090,21 +1090,21 @@
               setTimeout(function () { window.location.reload(); }, 1200);
             } else {
               errBox.style.display = 'flex';
-              errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>' + escapeHtml(resJson.mensaje || 'Error al abrir disputa') + '</span>';
+              errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.mensaje || 'Error al abrir disputa') + '</span>';
               btnConf.disabled = false;
-              btnConf.innerHTML = '<i class="fa-solid fa-gavel"></i> Abrir Disputa Formal';
+              btnConf.innerHTML = '<i data-lucide="gavel"></i> Abrir Disputa Formal';
             }
           } catch (e) {
             errBox.style.display = 'flex';
-            errBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Error de red al formalizar la disputa.</span>';
+            errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de red al formalizar la disputa.</span>';
             btnConf.disabled = false;
-            btnConf.innerHTML = '<i class="fa-solid fa-gavel"></i> Abrir Disputa Formal';
+            btnConf.innerHTML = '<i data-lucide="gavel"></i> Abrir Disputa Formal';
           }
         });
       }
 
     } catch (err) {
-      setContent('<div class="jdm-error"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
   }

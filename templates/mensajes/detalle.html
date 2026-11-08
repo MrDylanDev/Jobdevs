@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | {{ mensaje.titulo|default:"Detalle del Mensaje" }}</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 <div class="app-layout">
@@ -20,7 +19,7 @@
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item" href="{% url 'mensajeria_inbox' %}"><i class="fa fa-arrow-left"></i><span>Bandeja de Entrada</span></a>
+      <a class="nav-item" href="{% url 'mensajeria_inbox' %}"><i data-lucide="arrow-left"></i><span>Bandeja de Entrada</span></a>
     </div>
   </aside>
   <div class="main-wrapper">
@@ -61,11 +60,11 @@
           <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:24px; display:flex; gap:12px;">
             {% if mensaje.receptor == user and mensaje.proyecto %}
               <a href="{% url 'sala_chat' mensaje.remitente.id mensaje.proyecto.id %}" class="btn btn-primary" style="flex:1; justify-content:center;">
-                <i class="fa fa-reply"></i> Responder vía Chat
+                <i data-lucide="reply"></i> Responder vía Chat
               </a>
             {% endif %}
             <a href="{% url 'mensajeria_inbox' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">
-              <i class="fa fa-inbox"></i> Volver a la Bandeja
+              <i data-lucide="inbox"></i> Volver a la Bandeja
             </a>
           </div>
         </div>
@@ -73,5 +72,11 @@
     </main>
   </div>
 </div>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

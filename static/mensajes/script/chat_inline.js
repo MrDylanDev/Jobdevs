@@ -98,7 +98,7 @@
       var wrap = document.createElement('div');
       wrap.className = 'jd-chat-messages-empty';
       var icon = document.createElement('i');
-      icon.className = 'fa fa-comments';
+      icon.setAttribute('data-lucide', 'message-circle');
       wrap.appendChild(icon);
       wrap.appendChild(
         document.createTextNode('Aún no hay mensajes. Escribe el primero.')

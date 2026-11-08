@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Panel Administrador</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
@@ -37,14 +36,14 @@
     <div class="sidebar-group">
       <div class="sidebar-group-label">Visión General</div>
       <button class="nav-item active" onclick="showSection('statsSection', this)">
-        <i data-lucide="pie-chart" class="fa fa-chart-pie"></i>
+        <i data-lucide="pie-chart"></i>
         <span>Estadísticas</span>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="showSection('chatSection', this)">
-        <i data-lucide="message-square" class="fa fa-comments"></i>
+        <i data-lucide="message-square"></i>
         <span>Chat Central</span>
         {% if mensajes_no_leidos_admin > 0 %}
           <span class="nav-badge">{{ mensajes_no_leidos_admin }}</span>
@@ -55,49 +54,49 @@
     <div class="sidebar-group">
       <div class="sidebar-group-label">Gestión</div>
       <button class="nav-item" onclick="showSection('usersSection', this)">
-        <i data-lucide="users" class="fa fa-users"></i>
+        <i data-lucide="users"></i>
         <span>Usuarios</span>
       </button>
       <button class="nav-item" onclick="showSection('projectsSection', this)">
-        <i data-lucide="folder-kanban" class="fa fa-diagram-project"></i>
+        <i data-lucide="folder-kanban"></i>
         <span>Proyectos</span>
       </button>
       <button class="nav-item" onclick="showSection('explorarSection', this)">
-        <i data-lucide="compass" class="fa fa-compass"></i>
+        <i data-lucide="compass"></i>
         <span>Explorar Catálogo</span>
       </button>
       <button class="nav-item" onclick="showSection('categoriesSection', this)">
-        <i data-lucide="tags" class="fa fa-tags"></i>
+        <i data-lucide="tags"></i>
         <span>Categorías</span>
       </button>
       <button class="nav-item" onclick="showSection('disputasSection', this)">
-        <i data-lucide="scale" class="fa fa-gavel"></i>
+        <i data-lucide="scale"></i>
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
-        <i data-lucide="building" class="fa fa-building-circle-check"></i>
+        <i data-lucide="building"></i>
         <span>Verificación Empresas</span>
         {% if total_empresas_en_revision %}<span class="badge bg-danger ms-auto">{{ total_empresas_en_revision }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('verificacionDevsSection', this)">
-        <i data-lucide="user-check" class="fa fa-user-check"></i>
+        <i data-lucide="user-check"></i>
         <span>Verificación Talento SENA</span>
         {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('fichasSenaSection', this)">
-        <i data-lucide="id-card" class="fa fa-id-card"></i>
+        <i data-lucide="id-card"></i>
         <span>Lista Blanca SENA</span>
         {% if total_fichas_sena %}<span class="badge bg-secondary ms-auto">{{ total_fichas_sena }}</span>{% endif %}
       </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
-        <i data-lucide="shield" class="fa fa-file-shield"></i>
+        <i data-lucide="shield"></i>
         <span>Auditoría</span>
       </button>
-      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i data-lucide="shield-alert" class="fa fa-shield-halved"></i><span>Auditoría de Chats</span></button>
-      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i data-lucide="terminal" class="fa fa-terminal"></i><span>Logs Técnicos</span></button>
+      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i data-lucide="shield-alert"></i><span>Auditoría de Chats</span></button>
+      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i data-lucide="terminal"></i><span>Logs Técnicos</span></button>
       <button class="nav-item" onclick="showSection('reportsSection', this)">
-        <i data-lucide="file-bar-chart" class="fa fa-file-export"></i>
+        <i data-lucide="file-bar-chart"></i>
         <span>Reportes</span>
       </button>
     </div>
@@ -105,7 +104,7 @@
     <hr class="sidebar-sep" style="margin-top:auto;">
     <div style="padding:12px;">
       <a class="nav-item danger" href="{% url 'logout' %}">
-        <i data-lucide="log-out" class="fa fa-right-from-bracket"></i>
+        <i data-lucide="log-out"></i>
         <span>Cerrar Sesión</span>
       </a>
     </div>
@@ -122,13 +121,13 @@
         <span class="top-sys-pill"><span class="top-sys-dot"></span> ROOT // ONLINE</span>
       </div>
       <button class="notif-btn" title="Notificaciones">
-        <i class="fa fa-bell"></i>
+        <i data-lucide="bell"></i>
         {% if notificaciones_pendientes_count > 0 %}
           <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <div class="user-chip">
-        <div class="user-avatar"><i class="fa fa-shield-halved" style="font-size:12px;"></i></div>
+        <div class="user-avatar"><i style="font-size:12px;" data-lucide="shield-halved"></i></div>
         <div>
           <div class="user-name">Administrador</div>
           <div class="user-role">Control Total</div>
@@ -153,7 +152,7 @@
           <div class="metric-card dark">
             <div class="mc-header">
               <div class="mc-label">Usuarios Totales</div>
-              <div class="mc-icon"><i class="fa fa-users"></i></div>
+              <div class="mc-icon"><i data-lucide="users"></i></div>
             </div>
             <div class="mc-value">{{ total_usuarios }}</div>
             <div class="mc-sub" style="color:rgba(255,255,255,.5);">Registrados en plataforma</div>
@@ -161,7 +160,7 @@
           <div class="metric-card accent">
             <div class="mc-header">
               <div class="mc-label">Empresas Activas</div>
-              <div class="mc-icon"><i class="fa fa-building"></i></div>
+              <div class="mc-icon"><i data-lucide="building"></i></div>
             </div>
             <div class="mc-value">{{ total_empresas }}</div>
             <div class="mc-sub">Corporaciones registradas</div>
@@ -169,7 +168,7 @@
           <div class="metric-card info">
             <div class="mc-header">
               <div class="mc-label">Desarrolladores</div>
-              <div class="mc-icon"><i class="fa fa-code"></i></div>
+              <div class="mc-icon"><i data-lucide="code"></i></div>
             </div>
             <div class="mc-value">{{ total_devs }}</div>
             <div class="mc-sub">Talentos activos</div>
@@ -177,7 +176,7 @@
           <div class="metric-card warning" data-testid="metric-usuarios-inactivos">
             <div class="mc-header">
               <div class="mc-label">Usuarios Inactivos</div>
-              <div class="mc-icon"><i class="fa fa-user-slash"></i></div>
+              <div class="mc-icon"><i data-lucide="user-slash"></i></div>
             </div>
             <div class="mc-value">{{ usuarios_inactivos }}</div>
             <div class="mc-sub">Cuentas sin actividad</div>
@@ -185,7 +184,7 @@
           <div class="metric-card danger" data-testid="metric-usuarios-suspendidos">
             <div class="mc-header">
               <div class="mc-label">Usuarios Suspendidos</div>
-              <div class="mc-icon"><i class="fa fa-user-lock"></i></div>
+              <div class="mc-icon"><i data-lucide="user-lock"></i></div>
             </div>
             <div class="mc-value">{{ usuarios_suspendidos }}</div>
             <div class="mc-sub">Cuentas restringidas</div>
@@ -197,7 +196,7 @@
           <div class="metric-card success">
             <div class="mc-header">
               <div class="mc-label">Finalizados</div>
-              <div class="mc-icon"><i class="fa fa-check"></i></div>
+              <div class="mc-icon"><i data-lucide="check"></i></div>
             </div>
             <div class="mc-value">{{ p_fin }}</div>
             <div class="mc-sub">Proyectos completados</div>
@@ -205,7 +204,7 @@
           <div class="metric-card info">
             <div class="mc-header">
               <div class="mc-label">En Desarrollo</div>
-              <div class="mc-icon"><i class="fa fa-rocket"></i></div>
+              <div class="mc-icon"><i data-lucide="rocket"></i></div>
             </div>
             <div class="mc-value">{{ p_des }}</div>
             <div class="mc-sub">En marcha ahora</div>
@@ -213,7 +212,7 @@
           <div class="metric-card warning">
             <div class="mc-header">
               <div class="mc-label">Disponibles</div>
-              <div class="mc-icon"><i class="fa fa-clock"></i></div>
+              <div class="mc-icon"><i data-lucide="clock"></i></div>
             </div>
             <div class="mc-value">{{ p_pub }}</div>
             <div class="mc-sub">Buscando talento</div>
@@ -221,7 +220,7 @@
           <div class="metric-card accent">
             <div class="mc-header">
               <div class="mc-label">Postulaciones</div>
-              <div class="mc-icon"><i class="fa fa-file-lines"></i></div>
+              <div class="mc-icon"><i data-lucide="file-text"></i></div>
             </div>
             <div class="mc-value">{{ post_pen }}</div>
             <div class="mc-sub">Pendientes de revisión</div>
@@ -229,7 +228,7 @@
           <div class="metric-card warning">
             <div class="mc-header">
               <div class="mc-label">Calificación</div>
-              <div class="mc-icon"><i class="fa fa-star"></i></div>
+              <div class="mc-icon"><i data-lucide="star"></i></div>
             </div>
             <div class="mc-value">{{ promedio_global }}</div>
             <div class="mc-sub">Promedio global</div>
@@ -237,7 +236,7 @@
           <div class="metric-card danger">
             <div class="mc-header">
               <div class="mc-label">En Retraso</div>
-              <div class="mc-icon"><i class="fa fa-triangle-exclamation"></i></div>
+              <div class="mc-icon"><i data-lucide="alert-triangle"></i></div>
             </div>
             <div class="mc-value">{{ p_ret }}</div>
             <div class="mc-sub">Requieren atención</div>
@@ -248,25 +247,25 @@
         <div class="grid-2col">
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><i class="fa fa-bell" style="margin-right:8px;opacity:.5;"></i>Notificaciones Recientes</div>
+              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="bell"></i>Notificaciones Recientes</div>
             </div>
             <ul class="notif-list">
               {% for notif in notificaciones %}
                 <li class="notif-item">
-                  <i class="fa fa-circle-dot"></i>
+                  <i data-lucide="circle"></i>
                   <div>
                     <strong>{{ notif.get_tipo_display }}:</strong> {{ notif.mensaje }}
                     <br><small style="color:var(--text-muted);">{{ notif.fecha|date:"d/m H:i" }}</small>
                   </div>
                 </li>
               {% empty %}
-                <div class="empty-state" style="padding:20px;"><i class="fa fa-inbox"></i><p>Sin notificaciones</p></div>
+                <div class="empty-state" style="padding:20px;"><i data-lucide="inbox"></i><p>Sin notificaciones</p></div>
               {% endfor %}
             </ul>
           </div>
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><i class="fa fa-folder-open" style="margin-right:8px;opacity:.5;"></i>Últimos Proyectos</div>
+              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="folder-open"></i>Últimos Proyectos</div>
             </div>
             <table class="data-table" style="margin-top:0;">
               <tbody>
@@ -286,7 +285,7 @@
           <!-- Ranking talento -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><i class="fa fa-ranking-star" style="margin-right:8px;opacity:.5;"></i>Talento Destacado</div>
+              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="star"></i>Talento Destacado</div>
             </div>
             <div style="margin-bottom:16px;">
               <div class="label-section">Mejor Calificados</div>
@@ -328,7 +327,7 @@
           <!-- Ranking empresas -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><i class="fa fa-building" style="margin-right:8px;opacity:.5;"></i>Desempeño de Empresas</div>
+              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="building"></i>Desempeño de Empresas</div>
             </div>
             <div style="margin-bottom:16px;">
               <div class="label-section">Mejor Calificadas</div>
@@ -341,7 +340,7 @@
                       <td style="text-align:right;">
                         <button type="button" class="btn btn-secondary btn-sm"
                                 data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
-                                data-nombre="{{ emp.1|default:emp.0 }}"><i class="fa fa-message"></i></button>
+                                data-nombre="{{ emp.1|default:emp.0 }}"><i data-lucide="message"></i></button>
                       </td>
                     </tr>
                   {% empty %}
@@ -376,7 +375,7 @@
         <!-- Historial de reseñas -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><i class="fa fa-comments" style="margin-right:8px;opacity:.5;"></i>Historial de Reseñas</div>
+            <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="comments"></i>Historial de Reseñas</div>
             <div class="card-subtitle">Monitor de comentarios entre Empresas y Desarrolladores</div>
           </div>
           <div class="table-wrapper" style="margin-top:0;border:none;box-shadow:none;">
@@ -398,7 +397,7 @@
                     <td style="font-style:italic;color:var(--text-secondary);">"{{ r.3|truncatechars:60 }}"</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="4"><div class="empty-state" style="padding:20px;"><i class="fa fa-file-circle-xmark"></i><p>No hay reseñas registradas aún</p></div></td></tr>
+                  <tr><td colspan="4"><div class="empty-state" style="padding:20px;"><i data-lucide="file-x"></i><p>No hay reseñas registradas aún</p></div></td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -469,10 +468,10 @@
                       <button type="button" class="btn btn-secondary btn-sm"
                               data-chat-open data-receptor="{{ p.empresa.id }}" data-proyecto="0"
                               data-nombre="{{ p.empresa.nombre|default:p.empresa.username }}">
-                        <i class="fa fa-comments"></i>
+                        <i data-lucide="comments"></i>
                       </button>
                       <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="btn btn-secondary btn-sm">
-                        <i class="fa fa-eye"></i>
+                        <i data-lucide="eye"></i>
                       </a>
                     </div>
                   </td>
@@ -486,7 +485,7 @@
         {% if alertas_retraso %}
           <div style="margin-top:32px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-              <i class="fa fa-triangle-exclamation" style="color:var(--danger);"></i>
+              <i style="color:var(--danger);" data-lucide="alert-triangle"></i>
               <div class="page-title" style="font-size:16px;color:var(--danger);">Proyectos con Alerta de Inactividad (&gt; {{ dias_alerta_retraso|default:15 }} días)</div>
             </div>
             <div class="table-wrapper" style="border-color:#fecaca;" data-testid="tabla-alertas-inactividad">
@@ -722,7 +721,7 @@
               </button>
               {% empty %}
               <div class="jd-chat-list-empty">
-                <i class="fa fa-comments"></i>
+                <i data-lucide="comments"></i>
                 No hay conversaciones registradas
               </div>
               {% endfor %}
@@ -731,7 +730,7 @@
 
           <section class="jd-chat-panel">
             <div class="jd-chat-empty" data-chat-empty>
-              <i class="fa fa-comments"></i>
+              <i data-lucide="comments"></i>
               <p>Selecciona una conversación</p>
               <span>Elige un contacto de la lista</span>
             </div>
@@ -739,7 +738,7 @@
             <div class="jd-chat-conv" data-chat-conv>
               <header class="jd-chat-head">
                 <button type="button" class="jd-chat-back" data-chat-back aria-label="Volver">
-                  <i class="fa fa-arrow-left"></i>
+                  <i data-lucide="arrow-left"></i>
                 </button>
                 <span class="jd-chat-avatar" data-chat-avatar>?</span>
                 <div class="jd-chat-head-info">
@@ -757,12 +756,12 @@
                        placeholder="Escribe un mensaje…" autocomplete="off"
                        maxlength="2000" data-chat-input>
                 <button type="submit" class="jd-chat-send" data-chat-send aria-label="Enviar">
-                  <i class="fa fa-paper-plane"></i>
+                  <i data-lucide="paper-plane"></i>
                 </button>
               </form>
 
               <div class="jd-chat-readonly" data-chat-readonly hidden>
-                <i class="fa fa-lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
+                <i data-lucide="lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
               </div>
             </div>
           </section>
@@ -777,7 +776,7 @@
             <div class="page-subtitle">Gestión y control de acceso a la plataforma</div>
           </div>
           <button class="btn btn-primary" onclick="openCreateUserModal()">
-            <i class="fa fa-user-plus"></i> Nuevo Usuario
+            <i data-lucide="user-plus"></i> Nuevo Usuario
           </button>
         </div>
 
@@ -809,8 +808,8 @@
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
           </form>
           <div id="bulkActions" style="display:none; gap:8px;">
-            <button class="btn btn-success btn-sm" onclick="bulkToggleUsers('activate')"><i class="fa fa-check"></i> Activar</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkToggleUsers('suspend')"><i class="fa fa-ban"></i> Suspender</button>
+            <button class="btn btn-success btn-sm" onclick="bulkToggleUsers('activate')"><i data-lucide="check"></i> Activar</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkToggleUsers('suspend')"><i data-lucide="ban"></i> Suspender</button>
             <span id="bulkCount" style="font-size:12px; color:var(--text-muted);"></span>
           </div>
         </div>
@@ -854,17 +853,17 @@
                       {% csrf_token %}
                       <button type="submit" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px;" title="Alternar Estado">
                         {% if u.is_active %}
-                          <i class="fa fa-toggle-on" style="color:var(--success);"></i>
+                          <i style="color:var(--success);" data-lucide="toggle-on"></i>
                         {% else %}
-                          <i class="fa fa-toggle-off" style="color:var(--text-muted);"></i>
+                          <i style="color:var(--text-muted);" data-lucide="toggle-off"></i>
                         {% endif %}
                       </button>
                     </form>
                     <button onclick="openEditUserModal({{ u.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
-                      <i class="fa fa-edit"></i>
+                      <i data-lucide="pencil"></i>
                     </button>
                     <button onclick="deleteUser({{ u.id }}, '{{ u.username }}')" style="border:none;background:none;cursor:pointer;font-size:16px; color:var(--danger);" title="Eliminar">
-                      <i class="fa fa-trash"></i>
+                      <i data-lucide="trash-2"></i>
                     </button>
                   </td>
                 </tr>
@@ -946,7 +945,7 @@
             <div class="page-subtitle">Administra los tipos de solución disponibles para los proyectos</div>
           </div>
           <button class="btn btn-primary" onclick="openCategoryModal()">
-            <i class="fa fa-plus"></i> Nueva Categoría
+            <i data-lucide="plus"></i> Nueva Categoría
           </button>
         </div>
 
@@ -976,13 +975,13 @@
                   </td>
                   <td style="text-align:center; white-space:nowrap;">
                     <button onclick="openCategoryModal({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
-                      <i class="fa fa-edit"></i>
+                      <i data-lucide="pencil"></i>
                     </button>
                     <button onclick="toggleCategory({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px;" title="{% if c.activo %}Desactivar{% else %}Activar{% endif %}">
                       {% if c.activo %}
-                        <i class="fa fa-toggle-on" style="color:var(--success);"></i>
+                        <i style="color:var(--success);" data-lucide="toggle-on"></i>
                       {% else %}
-                        <i class="fa fa-toggle-off" style="color:var(--text-muted);"></i>
+                        <i style="color:var(--text-muted);" data-lucide="toggle-off"></i>
                       {% endif %}
                     </button>
                   </td>
@@ -1070,7 +1069,7 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:16px;border-left:4px solid var(--warning, #f59e0b);">
-          <i class="fa fa-triangle-exclamation"></i>
+          <i data-lucide="alert-triangle"></i>
           Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
         </div>
         <form id="auditChatsForm" class="card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
@@ -1078,7 +1077,7 @@
           <div class="form-group"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>
           <div class="form-group"><label class="form-label">Proyecto (título o ID)</label><input type="text" name="proyecto" class="form-input" autocomplete="off"></div>
           <div class="form-group"><label class="form-label">Texto</label><input type="text" name="q" class="form-input" autocomplete="off"></div>
-          <div class="form-group" style="align-self:end;"><button type="submit" class="btn btn-primary btn-full"><i class="fa fa-magnifying-glass"></i> Buscar / Auditar</button></div>
+          <div class="form-group" style="align-self:end;"><button type="submit" class="btn btn-primary btn-full"><i data-lucide="search"></i> Buscar / Auditar</button></div>
         </form>
         <div class="table-wrapper">
           <table class="data-table" id="auditChatsTable">
@@ -1123,7 +1122,7 @@
             <div class="page-subtitle">Disputas activas pendientes de mediación</div>
           </div>
           <span class="btn btn-primary" style="cursor:default;">
-            <i class="fa fa-gavel"></i> Centro de Mediación
+            <i data-lucide="gavel"></i> Centro de Mediación
           </span>
         </div>
         <div class="card">
@@ -1177,23 +1176,23 @@
                 <td>{{ e.razon_social|default:"—" }}</td>
                 <td>
                   {% if e.documento_soporte %}
-                  <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i class="fa fa-file-pdf"></i> Ver PDF</a>
+                  <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i data-lucide="file-text"></i> Ver PDF</a>
                   {% else %}Sin documento{% endif %}
                 </td>
                 <td>
                   {% if e.dictamen_ia %}
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                       {% if e.dictamen_ia.score_confianza >= 90 %}
-                        <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-circle-check me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-success" style="font-size:11px;"><i data-lucide="check-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
                       {% elif e.dictamen_ia.score_confianza >= 70 %}
-                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i class="fa fa-circle-exclamation me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i data-lucide="alert-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
                       {% elif e.dictamen_ia.score_confianza >= 40 %}
-                        <span class="badge bg-secondary" style="font-size:11px;"><i class="fa fa-circle-question me-1"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-secondary" style="font-size:11px;"><i data-lucide="help-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
                       {% else %}
-                        <span class="badge bg-danger" style="font-size:11px;"><i class="fa fa-triangle-exclamation me-1"></i>Score: {{ e.dictamen_ia.score_confianza|default:0 }}/100</span>
+                        <span class="badge bg-danger" style="font-size:11px;"><i data-lucide="alert-triangle"></i>Score: {{ e.dictamen_ia.score_confianza|default:0 }}/100</span>
                       {% endif %}
                       {% if e.dictamen_ia.calidad_imagen == 'borrosa' %}
-                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i class="fa fa-camera"></i> Borrosa</span>
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i data-lucide="camera"></i> Borrosa</span>
                       {% endif %}
                     </div>
                     <details style="margin-top:6px;font-size:12px;cursor:pointer;">
@@ -1276,9 +1275,9 @@
                 </td>
                 <td>
                   {% if d.condicion_sena == 'egresado' %}
-                    <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-graduation-cap me-1"></i>Egresado SENA</span>
+                    <span class="badge bg-success" style="font-size:11px;"><i data-lucide="graduation-cap"></i>Egresado SENA</span>
                   {% else %}
-                    <span class="badge bg-info text-dark" style="font-size:11px;"><i class="fa fa-id-badge me-1"></i>Aprendiz</span>
+                    <span class="badge bg-info text-dark" style="font-size:11px;"><i data-lucide="id-card"></i>Aprendiz</span>
                   {% endif %}
                 </td>
                 <td><span class="badge bg-secondary">{{ d.ficha|default:"—" }}</span></td>
@@ -1286,7 +1285,7 @@
                 <td>
                   {% if d.documento_soporte %}
                   <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
-                    <i class="fa {% if d.condicion_sena == 'egresado' %}fa-graduation-cap{% else %}fa-file-pdf{% endif %} me-1"></i>
+                    <i data-lucide="{% if d.condicion_sena == 'egresado' %}graduation-cap{% else %}file-text{% endif %}" class="me-1"></i>
                     {% if d.condicion_sena == 'egresado' %}Ver Diploma{% else %}Ver Soporte{% endif %}
                   </a>
                   {% else %}Sin documento{% endif %}
@@ -1295,16 +1294,16 @@
                   {% if d.dictamen_ia %}
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                       {% if d.dictamen_ia.score_confianza >= 90 %}
-                        <span class="badge bg-success" style="font-size:11px;"><i class="fa fa-circle-check me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-success" style="font-size:11px;"><i data-lucide="check-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
                       {% elif d.dictamen_ia.score_confianza >= 70 %}
-                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i class="fa fa-circle-exclamation me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i data-lucide="alert-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
                       {% elif d.dictamen_ia.score_confianza >= 40 %}
-                        <span class="badge bg-secondary" style="font-size:11px;"><i class="fa fa-circle-question me-1"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                        <span class="badge bg-secondary" style="font-size:11px;"><i data-lucide="help-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
                       {% else %}
-                        <span class="badge bg-danger" style="font-size:11px;"><i class="fa fa-triangle-exclamation me-1"></i>Score: {{ d.dictamen_ia.score_confianza|default:0 }}/100</span>
+                        <span class="badge bg-danger" style="font-size:11px;"><i data-lucide="alert-triangle"></i>Score: {{ d.dictamen_ia.score_confianza|default:0 }}/100</span>
                       {% endif %}
                       {% if d.dictamen_ia.calidad_imagen == 'borrosa' %}
-                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i class="fa fa-camera"></i> Borrosa</span>
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i data-lucide="camera"></i> Borrosa</span>
                       {% endif %}
                     </div>
                     <details style="margin-top:6px;font-size:12px;cursor:pointer;">
@@ -1375,10 +1374,10 @@
 
         <!-- SCRUM-311: mecanismo oficial de verificación SENA -->
         <div class="card" style="margin-bottom:24px;" data-testid="badge-modo-verificacion-sena" data-modo="{{ sena_modo_verificacion }}">
-          <h3 class="h5 mb-2"><i class="fa fa-shield-halved me-1 text-primary"></i> Mecanismo Oficial de Verificación SENA</h3>
+          <h3 class="h5 mb-2"><i data-lucide="shield-halved"></i> Mecanismo Oficial de Verificación SENA</h3>
           {% if sena_modo_verificacion == 'pasarela_externa' %}
           <p style="margin:0;">
-            <span class="badge bg-success"><i class="fa fa-plug me-1"></i> Pasarela externa conectada</span>
+            <span class="badge bg-success"><i data-lucide="plug"></i> Pasarela externa conectada</span>
             <small class="text-muted d-block mt-2">
               Se consulta la pasarela institucional configurada en <code>SENA_API_URL</code>
               ({% if sena_api_url %}{{ sena_api_url }}{% else %}no configurada{% endif %}).
@@ -1387,7 +1386,7 @@
           </p>
           {% else %}
           <p style="margin:0;">
-            <span class="badge bg-primary"><i class="fa fa-database me-1"></i> Padrón Institucional Local (Lista Blanca Oficial)</span>
+            <span class="badge bg-primary"><i data-lucide="database"></i> Padrón Institucional Local (Lista Blanca Oficial)</span>
             <small class="text-muted d-block mt-2">
               No existe API pública oficial de SOFIA Plus / SENA. Por ello, la lista blanca local
               (<code>FichaSena</code>) es la fuente oficial y primaria de verificación de fichas en JobDevs.
@@ -1398,7 +1397,7 @@
         </div>
 
         <div class="card" style="margin-bottom:24px;">
-          <h3 class="h5 mb-3"><i class="fa fa-plus-circle me-1 text-primary"></i> Registrar Nueva Ficha SENA</h3>
+          <h3 class="h5 mb-3"><i data-lucide="plus-circle"></i> Registrar Nueva Ficha SENA</h3>
           <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;">
             {% csrf_token %}
             <div>
@@ -1419,14 +1418,14 @@
             </div>
             <div>
               <button type="submit" class="btn btn-primary" style="width:100%;height:38px;">
-                <i class="fa fa-save me-1"></i> Guardar Ficha
+                <i data-lucide="save"></i> Guardar Ficha
               </button>
             </div>
           </form>
         </div>
 
         <div class="card">
-          <h3 class="h5 mb-3"><i class="fa fa-list me-1 text-secondary"></i> Catálogo de Fichas Registradas</h3>
+          <h3 class="h5 mb-3"><i data-lucide="list"></i> Catálogo de Fichas Registradas</h3>
           {% if fichas_sena %}
           <table style="width:100%;">
             <thead>
@@ -1467,7 +1466,7 @@
         <!-- SCRUM-225 (RF 9.1.2): excepciones individuales justificadas -->
         <div class="card" style="margin-top:24px;">
           <h3 class="h5 mb-3">
-            <i class="fa fa-shield-halved me-1 text-primary"></i> Excepciones Autorizadas de Ficha
+            <i data-lucide="shield-halved"></i> Excepciones Autorizadas de Ficha
             <span class="badge bg-secondary">{{ total_excepciones_fichas_sena }}</span>
           </h3>
           <p class="project-card-sub" style="margin-bottom:16px;">
@@ -1500,14 +1499,14 @@
             </div>
             <div>
               <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-crear-excepcion-sena">
-                <i class="fa fa-plus me-1"></i> Autorizar excepción
+                <i data-lucide="plus"></i> Autorizar excepción
               </button>
             </div>
           </form>
         </div>
 
         <div class="card" style="margin-top:24px;">
-          <h3 class="h5 mb-3"><i class="fa fa-list me-1 text-secondary"></i> Catálogo de Excepciones</h3>
+          <h3 class="h5 mb-3"><i data-lucide="list"></i> Catálogo de Excepciones</h3>
           {% if excepciones_fichas_sena %}
           <table style="width:100%;" data-testid="tabla-excepciones-sena">
             <thead>
@@ -1575,7 +1574,7 @@
             </div>
             <button type="button" class="btn btn-primary" data-testid="btn-refrescar-logs"
                     onclick="cargarLogsTecnicos()">
-              <i class="fa fa-rotate-right me-1"></i> Refrescar
+              <i data-lucide="rotate-cw"></i> Refrescar
             </button>
           </div>
           <pre id="visor-logs-output" data-testid="visor-logs-tecnicos"
@@ -1599,7 +1598,7 @@
               Exporta el listado completo de necesidades tecnológicas y estados actuales.
             </div>
             <a href="{% url 'reporte_proyectos_csv' %}" class="btn btn-primary btn-full">
-              <i class="fa fa-download"></i> Descargar Excel (.csv)
+              <i data-lucide="download"></i> Descargar Excel (.csv)
             </a>
           </div>
           <div class="card">
@@ -1609,13 +1608,13 @@
               Estadísticas de desempeño y calificaciones de desarrolladores registrados.
             </div>
             <a href="{% url 'reporte_aprendices_csv' %}" class="btn btn-primary btn-full">
-              <i class="fa fa-download"></i> Descargar Excel (.csv)
+              <i data-lucide="download"></i> Descargar Excel (.csv)
             </a>
           </div>
         </div>
 
         <div class="card" style="margin-top:24px;">
-          <h3 class="h5 mb-3"><i class="fa fa-broom me-1 text-primary"></i> Mantenimiento del Sistema</h3>
+          <h3 class="h5 mb-3"><i data-lucide="eraser"></i> Mantenimiento del Sistema</h3>
           <p class="project-card-sub" style="margin-bottom:16px;">
             Elimina notificaciones antiguas para optimizar el espacio y el rendimiento de la base de datos.
             Cada ejecución queda registrada en el log de auditoría.
@@ -1634,7 +1633,7 @@
             </div>
             <div>
               <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-depurar-notificaciones">
-                <i class="fa fa-trash me-1"></i> Depurar notificaciones
+                <i data-lucide="trash-2"></i> Depurar notificaciones
               </button>
             </div>
           </form>
@@ -1751,7 +1750,7 @@
         td.style.textAlign = 'center';
         const btn = document.createElement('button');
         btn.type = 'button'; btn.className = 'btn btn-secondary';
-        btn.innerHTML = '<i class="fa fa-eye"></i>';
+        btn.innerHTML = '<i data-lucide="eye"></i>';
         btn.title = 'Ver mensaje completo';
         btn.addEventListener('click', function () { openAuditChatModal(i); });
         td.appendChild(btn); tr.appendChild(td);
@@ -1831,5 +1830,10 @@
 </script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
 <script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

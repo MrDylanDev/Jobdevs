@@ -65,12 +65,12 @@
 
     function obtenerIconoTipo(tipo) {
         switch (tipo) {
-            case 'postulacion': return 'fa-file-lines';
-            case 'avance': return 'fa-bars-progress';
-            case 'aprobacion': return 'fa-circle-check';
-            case 'mensaje': return 'fa-comments';
-            case 'alerta': return 'fa-triangle-exclamation';
-            default: return 'fa-bell';
+            case 'postulacion': return 'file-text';
+            case 'avance': return 'bars-progress';
+            case 'aprobacion': return 'check-circle';
+            case 'mensaje': return 'message-circle';
+            case 'alerta': return 'alert-triangle';
+            default: return 'bell';
         }
     }
 
@@ -103,7 +103,7 @@
 
         toast.innerHTML = `
             <div style="color: #60a5fa; font-size: 16px; margin-top: 2px;">
-                <i class="fa ${iconClass}"></i>
+                <i data-lucide="${iconClass}"></i>
             </div>
             <div style="flex: 1; min-width: 0;">
                 <div style="font-weight: 600; color: #ffffff; margin-bottom: 2px; text-transform: capitalize;">
@@ -115,7 +115,7 @@
                 ${data.fecha ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${data.fecha}</div>` : ''}
             </div>
             <button type="button" aria-label="Cerrar notificación" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0 4px; font-size: 14px;">
-                <i class="fa fa-xmark"></i>
+                <i data-lucide="x"></i>
             </button>
         `;
 
@@ -140,6 +140,10 @@
         });
 
         container.appendChild(toast);
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
 
         requestAnimationFrame(() => {
             toast.style.transform = 'translateX(0)';

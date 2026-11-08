@@ -1017,46 +1017,46 @@ def api_detalle_proyecto(request, proyecto_id):
     if es_admin:
         acciones.append({
             'label': 'Gestionar avances', 'url': reverse('ver_avances', args=[proyecto.id]),
-            'icono': 'fa-solid fa-diagram-project', 'estilo': 'primary',
+            'icono': 'git-branch', 'estilo': 'primary',
         })
         acciones.append({
             'label': 'Gestionar hitos', 'url': reverse('gestionar_hitos', args=[proyecto.id]),
-            'icono': 'fa-solid fa-list-check', 'estilo': 'secondary',
+            'icono': 'list-checks', 'estilo': 'secondary',
         })
         acciones.append({
             'label': 'Ver empresa', 'url': reverse('detalle_empresa', args=[proyecto.empresa_id]),
-            'icono': 'fa-solid fa-building', 'estilo': 'secondary',
+            'icono': 'building', 'estilo': 'secondary',
         })
     elif es_empresa:
         acciones.append({
             'label': 'Ver avances', 'url': reverse('ver_avances', args=[proyecto.id]),
-            'icono': 'fa-solid fa-diagram-project', 'estilo': 'primary',
+            'icono': 'git-branch', 'estilo': 'primary',
         })
         acciones.append({
             'label': 'Gestionar hitos', 'url': reverse('gestionar_hitos', args=[proyecto.id]),
-            'icono': 'fa-solid fa-list-check', 'estilo': 'secondary',
+            'icono': 'list-checks', 'estilo': 'secondary',
         })
         if proyecto.vacantes_disponibles > 0 and proyecto.acepta_postulaciones:
             acciones.append({
                 'label': 'Ver candidatos',
                 'url': reverse('ver_postulaciones_empresa', args=[proyecto.id]),
-                'icono': 'fa-solid fa-user-plus', 'estilo': 'secondary',
+                'icono': 'user-plus', 'estilo': 'secondary',
             })
     else:
         acciones.append({
             'label': 'Ver historial completo', 'url': reverse('ver_avances', args=[proyecto.id]),
-            'icono': 'fa-solid fa-timeline', 'estilo': 'primary',
+            'icono': 'git-branch', 'estilo': 'primary',
         })
         if proyecto.estado == 'en_desarrollo':
             acciones.append({
                 'label': 'Registrar avance', 'url': reverse('registrar_avance', args=[proyecto.id]),
-                'icono': 'fa-solid fa-pen', 'estilo': 'secondary',
+                'icono': 'pen', 'estilo': 'secondary',
             })
 
     if num_desarrolladores >= 2:
         acciones.append({
             'label': 'Chat grupal', 'url': reverse('sala_chat_grupal', args=[proyecto.id]),
-            'icono': 'fa-solid fa-users', 'estilo': 'secondary',
+            'icono': 'users', 'estilo': 'secondary',
         })
 
     return JsonResponse({

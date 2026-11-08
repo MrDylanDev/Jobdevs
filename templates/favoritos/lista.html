@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Mis Favoritos</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 <div class="app-layout">
@@ -21,9 +20,9 @@
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
-      <a class="nav-item active" href="#"><i class="fa fa-heart"></i><span>Guardados</span></a>
-      <a class="nav-item" href="{% url 'listar_proyectos' %}"><i class="fa fa-magnifying-glass"></i><span>Explorar</span></a>
-      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}"><i class="fa fa-arrow-left"></i><span>Volver al Panel</span></a>
+      <a class="nav-item active" href="#"><i data-lucide="heart"></i><span>Guardados</span></a>
+      <a class="nav-item" href="{% url 'listar_proyectos' %}"><i data-lucide="search"></i><span>Explorar</span></a>
+      <a class="nav-item" href="{% url 'dashboard_desarrollador' %}"><i data-lucide="arrow-left"></i><span>Volver al Panel</span></a>
     </div>
   </aside>
 
@@ -34,10 +33,10 @@
     <main class="main-content">
       <div class="page-header">
         <div>
-          <div class="page-title"><i class="fa fa-heart" style="margin-right:10px; color:#ef4444;"></i>Proyectos Guardados</div>
+          <div class="page-title"><i style="margin-right:10px; color:#ef4444;" data-lucide="heart"></i>Proyectos Guardados</div>
           <div class="page-subtitle">Proyectos que marcaste como favoritos para postularte más tarde</div>
         </div>
-        <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary"><i class="fa fa-plus"></i> Explorar más</a>
+        <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary"><i data-lucide="plus"></i> Explorar más</a>
       </div>
 
       <div class="cards-grid">
@@ -49,7 +48,7 @@
                 <form method="post" action="{% url 'toggle_favorito' fav.proyecto.id %}" style="display:inline; margin:0;">
                   {% csrf_token %}
                   <button type="submit" title="Quitar de favoritos" class="btn btn-secondary btn-sm" style="color:#ef4444; border-color:#fee2e2;">
-                    <i class="fa fa-heart"></i>
+                    <i data-lucide="heart"></i>
                   </button>
                 </form>
               </div>
@@ -58,20 +57,20 @@
             </div>
             <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px; display:flex; justify-content:space-between; align-items:center;">
               <div style="font-size:13px; color:var(--text-secondary);">
-                <i class="fa fa-building" style="margin-right:6px; color:var(--text-muted);"></i>
+                <i style="margin-right:6px; color:var(--text-muted);" data-lucide="building"></i>
                 {{ fav.proyecto.empresa.nombre|default:fav.proyecto.empresa.username }}
               </div>
               <a href="{% url 'postularse_a_proyecto' fav.proyecto.id %}" class="btn btn-primary btn-sm">
-                <i class="fa fa-paper-plane"></i> Postularme
+                <i data-lucide="paper-plane"></i> Postularme
               </a>
             </div>
           </div>
         {% empty %}
           <div class="empty-state" style="grid-column:1/-1;">
-            <i class="fa fa-heart-crack"></i>
+            <i data-lucide="heart-crack"></i>
             <p style="font-size:16px; font-weight:600; margin-bottom:8px;">Aún no tienes favoritos</p>
             <p style="margin-bottom:20px;">Guarda proyectos que te interesen para postularte después.</p>
-            <a href="{% url 'listar_proyectos' %}" class="btn btn-primary"><i class="fa fa-magnifying-glass"></i> Explorar Proyectos</a>
+            <a href="{% url 'listar_proyectos' %}" class="btn btn-primary"><i data-lucide="search"></i> Explorar Proyectos</a>
           </div>
         {% endfor %}
       </div>
@@ -79,5 +78,11 @@
   </div>
 </div>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

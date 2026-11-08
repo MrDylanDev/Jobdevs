@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Postularse al Proyecto</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 
@@ -24,7 +23,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'listar_proyectos' %}">
-        <i class="fa fa-arrow-left"></i>
+        <i data-lucide="arrow-left"></i>
         <span>Volver a Explorar</span>
       </a>
     </div>
@@ -50,17 +49,17 @@
             <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">{{ proyecto.descripcion }}</p>
             
             <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: var(--text-secondary);">
-                <div><i class="fa fa-building" style="margin-right:6px;opacity:.7;"></i> Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:var(--accent); text-decoration:none;" title="Ver reputación y reseñas de la empresa"><strong>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</strong> <i class="fa fa-arrow-up-right-from-square" style="font-size:10px; margin-left:2px;"></i></a></div>
-                <div><i class="fa {% if proyecto.modalidad == 'remoto' %}fa-globe{% elif proyecto.modalidad == 'presencial' %}fa-location-dot{% else %}fa-laptop-house{% endif %}" style="margin-right:6px;opacity:.7;"></i> Modalidad: <strong>{{ proyecto.ubicacion_display }}</strong></div>
-                <div><i class="fa fa-users" style="margin-right:6px;opacity:.7;"></i> Vacantes: <strong>{{ proyecto.vacantes }}</strong></div>
-                <div><i class="fa fa-calendar-alt" style="margin-right:6px;opacity:.7;"></i> Cierre: <strong>{{ proyecto.fecha_limite|date:"d M Y"|default:"Sin límite" }}</strong></div>
+                <div><i style="margin-right:6px;opacity:.7;" data-lucide="building"></i> Empresa: <a href="{% url 'detalle_empresa' proyecto.empresa_id %}" style="color:var(--accent); text-decoration:none;" title="Ver reputación y reseñas de la empresa"><strong>{{ proyecto.empresa.nombre|default:proyecto.empresa.username }}</strong> <i style="font-size:10px; margin-left:2px;" data-lucide="arrow-up-right-from-square"></i></a></div>
+                <div><i data-lucide="{% if proyecto.modalidad == 'remoto' %}globe{% elif proyecto.modalidad == 'presencial' %}map-pin{% else %}laptop{% endif %}" style="margin-right:6px;opacity:.7;"></i> Modalidad: <strong>{{ proyecto.ubicacion_display }}</strong></div>
+                <div><i style="margin-right:6px;opacity:.7;" data-lucide="users"></i> Vacantes: <strong>{{ proyecto.vacantes }}</strong></div>
+                <div><i style="margin-right:6px;opacity:.7;" data-lucide="calendar"></i> Cierre: <strong>{{ proyecto.fecha_limite|date:"d M Y"|default:"Sin límite" }}</strong></div>
             </div>
         </div>
 
         <!-- Formulario de Postulación -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title"><i class="fa fa-paper-plane" style="margin-right:8px; opacity:.5;"></i>Completa tu Perfil para Postular</h3>
+            <h3 class="card-title"><i style="margin-right:8px; opacity:.5;" data-lucide="paper-plane"></i>Completa tu Perfil para Postular</h3>
           </div>
           
           <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
@@ -85,7 +84,7 @@
             <div style="border-top: 1px solid var(--border); padding-top: 20px; display: flex; gap: 12px; margin-top: 10px;">
                 <a href="{% url 'listar_proyectos' %}" class="btn btn-secondary" style="flex: 1; justify-content: center;">Cancelar</a>
                 <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">
-                  <i class="fa fa-rocket"></i> Enviar Candidatura Oficial
+                  <i data-lucide="rocket"></i> Enviar Candidatura Oficial
                 </button>
             </div>
           </form>
@@ -96,5 +95,11 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

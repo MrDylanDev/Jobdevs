@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Configuración de Perfil</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/editar_perfil.css' %}">
 </head>
 <body>
@@ -25,7 +24,7 @@
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% if user.rol == 'empresa' %}{% url 'dashboard_empresa' %}{% else %}{% url 'dashboard_desarrollador' %}{% endif %}">
-        <i class="fa fa-arrow-left"></i>
+        <i data-lucide="arrow-left"></i>
         <span>Volver al Panel</span>
       </a>
     </div>
@@ -59,8 +58,8 @@
             {% for field in form %}
               <div class="form-group">
                   <label for="{{ field.id_for_label }}">
-                      {% if field.name == 'logo' %}<i class="fa fa-image" style="margin-right:6px; color:var(--text-muted)"></i>{% endif %}
-                      {% if field.name == 'foto_perfil' %}<i class="fa fa-camera" style="margin-right:6px; color:var(--text-muted)"></i>{% endif %}
+                      {% if field.name == 'logo' %}<i style="margin-right:6px; color:var(--text-muted)" data-lucide="image"></i>{% endif %}
+                      {% if field.name == 'foto_perfil' %}<i style="margin-right:6px; color:var(--text-muted)" data-lucide="camera"></i>{% endif %}
                       {{ field.label }}
                   </label>
                   
@@ -71,7 +70,7 @@
                   {% endif %}
                   
                   {% for error in field.errors %}
-                      <p class="error-msg"><i class="fa fa-circle-exclamation"></i> {{ error }}</p>
+                      <p class="error-msg"><i data-lucide="alert-circle"></i> {{ error }}</p>
                   {% endfor %}
               </div>
             {% endfor %}
@@ -79,7 +78,7 @@
             <div style="border-top: 1px solid var(--border); padding-top: 24px; display: flex; gap: 12px; margin-top: 10px;">
                 <a href="{% if user.rol == 'empresa' %}{% url 'dashboard_empresa' %}{% else %}{% url 'dashboard_desarrollador' %}{% endif %}" class="btn btn-secondary" style="flex: 1; justify-content: center;">Cancelar</a>
                 <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">
-                  <i class="fa fa-save"></i> Guardar Cambios
+                  <i data-lucide="save"></i> Guardar Cambios
                 </button>
             </div>
           </form>
@@ -90,5 +89,11 @@
   </div>
 </div>
 
+<script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 </body>
 </html>

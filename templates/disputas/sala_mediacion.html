@@ -8,26 +8,26 @@
 
   {% if error %}
     <div class="disp-notice disp-notice-danger" role="alert">
-      <i class="fa fa-circle-exclamation"></i>
+      <i data-lucide="alert-circle"></i>
       <div>{{ error }}</div>
     </div>
   {% endif %}
 
   <div class="page-header">
     <div>
-      <div class="page-title"><i class="fa fa-gavel" style="color:var(--danger);margin-right:8px;"></i>Sala de Mediación #{{ disputa.pk }}</div>
+      <div class="page-title"><i style="color:var(--danger);margin-right:8px;" data-lucide="gavel"></i>Sala de Mediación #{{ disputa.pk }}</div>
       <div class="page-subtitle" style="margin-top:8px;">
         <span class="badge {% if disputa.estado == 'resuelta' %}badge-success{% elif disputa.estado == 'cancelada' %}badge-gray{% elif disputa.estado == 'en_mediacion' %}badge-warning{% else %}badge-danger{% endif %}">{{ disputa.get_estado_display }}</span>
       </div>
     </div>
-    <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"></i> Volver</a>
+    <a href="{% url 'disputas:lista_disputas' %}" class="btn btn-secondary btn-sm"><i data-lucide="arrow-left"></i> Volver</a>
   </div>
 
   <div class="disp-stack">
 
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><i class="fa fa-circle-info" style="margin-right:8px;"></i>Datos de la disputa</div>
+        <div class="card-title"><i style="margin-right:8px;" data-lucide="info"></i>Datos de la disputa</div>
       </div>
       <dl class="disp-grid" style="margin:0;">
         <div><dt>Proyecto</dt><dd>{{ proyecto.titulo }}</dd></div>
@@ -38,7 +38,7 @@
     </div>
 
     <div class="disp-notice disp-notice-warning" role="alert">
-      <i class="fa fa-triangle-exclamation"></i>
+      <i data-lucide="alert-triangle"></i>
       <div>
         <strong>Motivo de la disputa</strong>
         <p style="margin:6px 0;">{{ disputa.motivo|linebreaksbr }}</p>
@@ -46,7 +46,7 @@
           {% if disputa.estado == 'resuelta' or disputa.estado == 'cancelada' %}
             El congelamiento del proyecto fue levantado al cerrarse la disputa.
           {% else %}
-            <i class="fa fa-snowflake" style="margin-right:4px;"></i>El proyecto y la contratación permanecen congelados hasta la resolución.
+            <i style="margin-right:4px;" data-lucide="snowflake"></i>El proyecto y la contratación permanecen congelados hasta la resolución.
           {% endif %}
         </span>
       </div>
@@ -55,7 +55,7 @@
     {% if disputa.estado == 'resuelta' %}
       <div class="card" style="border-left:4px solid var(--success);">
         <div class="card-header">
-          <div class="card-title" style="color:#166534;"><i class="fa fa-circle-check" style="margin-right:8px;"></i>Resolución</div>
+          <div class="card-title" style="color:#166534;"><i style="margin-right:8px;" data-lucide="check-circle"></i>Resolución</div>
         </div>
         {% if disputa.resolucion %}<p style="font-weight:600;margin-bottom:6px;">{{ disputa.get_resolucion_display }}</p>{% endif %}
         <p style="margin-bottom:6px;">{{ disputa.notas_resolucion|linebreaksbr }}</p>
@@ -70,9 +70,9 @@
         <div class="card-header" id="toggle-resolucion" role="button" tabindex="0"
              aria-expanded="false" aria-controls="panelResolucion" style="cursor:pointer;margin-bottom:0;">
           <div class="card-title" style="color:var(--danger);">
-            <i class="fa fa-scale-balanced" style="margin-right:8px;"></i>Emitir Resolución Vinculante (Administrador / Mediador SENA)
+            <i style="margin-right:8px;" data-lucide="scale-balanced"></i>Emitir Resolución Vinculante (Administrador / Mediador SENA)
           </div>
-          <i class="fa fa-chevron-down" id="icon-resolucion"></i>
+          <i id="icon-resolucion" data-lucide="chevron-down"></i>
         </div>
         <div id="panelResolucion" class="disp-collapse">
           <form method="post" action="{% url 'disputas:resolver_disputa' disputa.pk %}" novalidate
@@ -95,11 +95,11 @@
                         placeholder="Explica los fundamentos de la decisión..."></textarea>
             </div>
             <div class="disp-notice disp-notice-warning">
-              <i class="fa fa-triangle-exclamation"></i>
+              <i data-lucide="alert-triangle"></i>
               <div>Esta acción es irreversible y notificará a la empresa y al desarrollador.</div>
             </div>
             <div class="disp-actions">
-              <button type="submit" class="btn btn-danger"><i class="fa fa-gavel"></i> Emitir resolución</button>
+              <button type="submit" class="btn btn-danger"><i data-lucide="gavel"></i> Emitir resolución</button>
             </div>
           </form>
         </div>
@@ -108,7 +108,7 @@
 
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><i class="fa fa-comments" style="margin-right:8px;"></i>Conversación tripartita</div>
+        <div class="card-title"><i style="margin-right:8px;" data-lucide="comments"></i>Conversación tripartita</div>
       </div>
       <div class="disp-chat" id="disputa-chat-container">
         {% for m in mensajes %}
@@ -140,11 +140,11 @@
                         placeholder="Escribe tu mensaje..."></textarea>
             </div>
             <div class="disp-actions" style="border-top:none;padding-top:0;margin-top:0;">
-              <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Enviar</button>
+              <button type="submit" class="btn btn-primary"><i data-lucide="paper-plane"></i> Enviar</button>
             </div>
           </form>
         {% else %}
-          <p class="disp-hint" style="margin:0;"><i class="fa fa-lock" style="margin-right:4px;"></i>La disputa está cerrada; no se admiten nuevos mensajes.</p>
+          <p class="disp-hint" style="margin:0;"><i style="margin-right:4px;" data-lucide="lock"></i>La disputa está cerrada; no se admiten nuevos mensajes.</p>
         {% endif %}
       </div>
     </div>
@@ -172,8 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const open = panelResolucion.classList.toggle('open');
       toggleResolucion.setAttribute('aria-expanded', open ? 'true' : 'false');
       const icon = document.getElementById('icon-resolucion');
-      if (icon) icon.classList.toggle('fa-chevron-up', open);
-      if (icon) icon.classList.toggle('fa-chevron-down', !open);
+      if (icon) {
+        icon.setAttribute('data-lucide', open ? 'chevron-up' : 'chevron-down');
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
     };
     toggleResolucion.addEventListener('click', abrir);
     toggleResolucion.addEventListener('keydown', (e) => {
