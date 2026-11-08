@@ -27,10 +27,10 @@
   --corp-slate-100:      #f1f4f2;
   --corp-slate-50:       #f7f8f7;
 
-  /* Verde Oficial de la Landing Page */
-  --corp-brand:          #00c853;
+  /* Verde Oficial de la Landing Page (modo claro: 6.1:1 sobre blanco, AA) */
+  --corp-brand:          #00713f;
   --corp-brand-neon:     #00e676;
-  --corp-brand-hover:    #00e676;
+  --corp-brand-hover:    #00693a;
   --corp-brand-light:    #e6faf0;
   --corp-brand-subtle:   rgba(0, 230, 118, 0.12);
   --corp-brand-glow:     rgba(0, 230, 118, 0.35);
@@ -46,7 +46,7 @@
   --text-secondary:      var(--corp-slate-600);
   --text-muted:          var(--corp-slate-500);
 
-  --corp-success:        #00c853;
+  --corp-success:        #00713f;
   --corp-success-light:  #e6faf0;
   --corp-warning:        #d97706;
   --corp-warning-light:  #fffbeb;
