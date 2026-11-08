@@ -332,6 +332,7 @@
                         actualizarBadges(data.unread_count);
                     }
                     mostrarToast(data);
+                    document.dispatchEvent(new CustomEvent('jobdevs:notificacion', { detail: data }));
                 } catch (err) {
                     console.error('Error procesando evento notificacion SSE:', err);
                 }
