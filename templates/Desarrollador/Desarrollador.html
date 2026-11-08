@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=2">
 </head>
 <body data-seccion-inicial="{{ seccion_activa }}">
 
@@ -165,7 +165,8 @@
               </div>
             {% endfor %}
           </div>
-          <a class="notif-popover-footer" href="{% url 'notificaciones_lista' %}">Ver todas</a>
+          <button type="button" class="notif-popover-footer" data-notif-ver-todas
+                  data-url="{% url 'notificaciones_api_lista' %}">Ver todas</button>
         </div>
       </div>
       <div class="user-chip">
@@ -1324,7 +1325,7 @@
 <script src="{% static 'mensajes/script/chat_inline.js' %}?v=4"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
-<script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=1"></script>
+<script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
 <script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}"></script>
 <script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
