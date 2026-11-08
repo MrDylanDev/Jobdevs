@@ -715,3 +715,22 @@ class TestPostularseAjax:
         assert response.status_code == 403
         assert response.json()['ok'] is False
         assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+
+    def test_ajax_error_inesperado_no_filtra_str_e(self, dev_client, desarrollador_user, empresa_user, monkeypatch):
+        """SCRUM-445: Errores inesperados en postulación no deben filtrar detalles internos str(e)."""
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proy Leak Test', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+
+        def mock_create(*args, **kwargs):
+            raise RuntimeError("DB_SECRET_INTERNAL_ERROR_XYZ")
+
+        monkeypatch.setattr(Postulacion.objects, 'create', mock_create)
+        response = self._post_ajax(dev_client, proyecto)
+
+        assert response.status_code == 500
+        data = response.json()
+        assert data['ok'] is False
+        assert 'DB_SECRET_INTERNAL_ERROR_XYZ' not in data['mensaje']
+        assert 'error inesperado' in data['mensaje'].lower()

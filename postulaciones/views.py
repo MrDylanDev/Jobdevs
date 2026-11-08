@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import JsonResponse, HttpResponseRedirect
@@ -17,6 +18,8 @@ from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
 from proyectos.models import Equipo
 from usuarios.models import Usuario, PerfilDesarrollador
+
+logger = logging.getLogger(__name__)
 
 
 def _espera_json(request):
@@ -242,12 +245,18 @@ def postularse_a_proyecto(request, proyecto_id):
 
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")
             return redirect('dashboard_desarrollador')
-        except Exception as e:
+        except Exception:
+            logger.exception(
+                "Error inesperado al procesar postulación al proyecto %s por usuario %s",
+                proyecto_id,
+                request.user.id,
+            )
+            mensaje_error = "Ocurrió un error inesperado al procesar tu postulación. Por favor intenta más tarde."
             if ajax:
                 return JsonResponse(
-                    {'ok': False, 'mensaje': f"Error del sistema: {str(e)}"}, status=500
+                    {'ok': False, 'mensaje': mensaje_error}, status=500
                 )
-            messages.error(request, f"Error del sistema: {str(e)}")
+            messages.error(request, mensaje_error)
             return redirect('dashboard_desarrollador')
 
     return render(request, 'postulaciones/postularse.html', {'proyecto': proyecto})
@@ -277,10 +286,12 @@ def aceptar_postulacion(request, postulacion_id):
         messages.error(request, ' '.join(exc.messages))
         if _espera_json(request):
             return JsonResponse({'status': 'error', 'message': ' '.join(exc.messages)}, status=400)
-    except Exception as e:
-        messages.error(request, f"Error al procesar: {str(e)}")
+    except Exception:
+        logger.exception("Error inesperado al aceptar postulación %s por usuario %s", postulacion_id, request.user.id)
+        mensaje_error = "Error inesperado al procesar la solicitud."
+        messages.error(request, mensaje_error)
         if _espera_json(request):
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            return JsonResponse({'status': 'error', 'message': mensaje_error}, status=500)
 
     next_url = request.POST.get('next')
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
@@ -390,10 +401,12 @@ def rechazar_postulacion(request, postulacion_id):
         messages.error(request, msg)
         if _espera_json(request):
             return JsonResponse({'status': 'error', 'message': msg}, status=400)
-    except Exception as e:
-        messages.error(request, f"Error al procesar: {str(e)}")
+    except Exception:
+        logger.exception("Error inesperado al rechazar postulación %s por usuario %s", postulacion_id, request.user.id)
+        mensaje_error = "Error inesperado al procesar la solicitud."
+        messages.error(request, mensaje_error)
         if _espera_json(request):
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            return JsonResponse({'status': 'error', 'message': mensaje_error}, status=500)
 
     next_url = request.POST.get('next')
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
