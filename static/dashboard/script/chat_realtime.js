@@ -37,7 +37,79 @@
     init() {
       // Punto de inicio de la inicialización de listeners y conexión
       console.log('[ChatRealtime] Inicializando gestor en tiempo real');
+      this.setupImageAndMutationObservers();
       this.scrollToBottom(true, false);
+    }
+
+    /**
+     * Observa la carga asíncrona de imágenes y mutaciones del DOM para garantizar
+     * que el scroll permanezca al final cuando las imágenes terminen de descargarse.
+     */
+    setupImageAndMutationObservers() {
+      if (!this.container) return;
+
+      // 1. Observar imágenes existentes
+      this.attachImageListeners(this.container);
+
+      // 2. Observar inserción de nuevos mensajes con imágenes o adjuntos
+      if ('MutationObserver' in window) {
+        this.mutationObserver = new MutationObserver((mutations) => {
+          let hasNewNodes = false;
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                  hasNewNodes = true;
+                  this.attachImageListeners(node);
+                }
+              });
+            }
+          });
+
+          if (hasNewNodes) {
+            this.scrollToBottom(false, true);
+          }
+        });
+
+        this.mutationObserver.observe(this.container, {
+          childList: true,
+          subtree: true
+        });
+      }
+
+      // 3. ResizeObserver para ajustar dimensiones si el contenedor sufre reflow
+      if ('ResizeObserver' in window) {
+        const resizeObserver = new ResizeObserver(() => {
+          this.scrollToBottom(false, false);
+        });
+        resizeObserver.observe(this.container);
+      }
+    }
+
+    /**
+     * Asocia manejadores de carga a cualquier <img> no completada dentro de una raíz dada.
+     * @param {Element} rootNode
+     */
+    attachImageListeners(rootNode) {
+      if (!rootNode) return;
+      const images = rootNode.matches && rootNode.matches('img')
+        ? [rootNode]
+        : Array.from(rootNode.querySelectorAll ? rootNode.querySelectorAll('img') : []);
+
+      images.forEach((img) => {
+        if (this.imageObservers.has(img)) return;
+        this.imageObservers.add(img);
+
+        if (!img.complete) {
+          const onImgFinish = () => {
+            img.removeEventListener('load', onImgFinish);
+            img.removeEventListener('error', onImgFinish);
+            this.scrollToBottom(false, true);
+          };
+          img.addEventListener('load', onImgFinish);
+          img.addEventListener('error', onImgFinish);
+        }
+      });
     }
 
     /**
