@@ -65,7 +65,7 @@
 
       const text = bubble.innerText || bubble.textContent || '';
       
-      // Patrón para repositorios GitHub: https://github.com/owner/repo
+      // 1. Patrón para repositorios GitHub: https://github.com/owner/repo
       const ghPattern = /https?:\/\/(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]+)\/([a-zA-Z0-9_\-\.]+)(?:\/[^\s<>"']*)?/i;
       const ghMatch = text.match(ghPattern);
 
@@ -78,7 +78,86 @@
         const card = this.createGitHubCard(fullUrl, owner, repo);
         this.insertPreviewCardIntoBubble(bubble, card);
         bubble.dataset.hasPreviews = 'true';
+        return;
       }
+
+      // 2. Patrón para imágenes compartidas
+      const imgPattern = /https?:\/\/[^\s<>"']+\.(?:png|jpe?g|webp|gif|svg)(?:\?[^\s<>"']*)?/i;
+      const imgMatch = text.match(imgPattern);
+
+      if (imgMatch) {
+        const imgCard = this.createImagePreviewCard(imgMatch[0]);
+        this.insertPreviewCardIntoBubble(bubble, imgCard);
+        bubble.dataset.hasPreviews = 'true';
+        return;
+      }
+
+      // 3. Patrón para archivos compartidos (PDF, ZIP, DOC, etc.)
+      const filePattern = /https?:\/\/[^\s<>"']+\.(?:pdf|zip|rar|docx?|xlsx?|tar\.gz)(?:\?[^\s<>"']*)?/i;
+      const fileMatch = text.match(filePattern);
+
+      if (fileMatch) {
+        const fileCard = this.createFilePreviewCard(fileMatch[0]);
+        this.insertPreviewCardIntoBubble(bubble, fileCard);
+        bubble.dataset.hasPreviews = 'true';
+      }
+    }
+
+    /**
+     * Construye un preview visual de imagen con auto-ajuste y click para ampliar.
+     */
+    createImagePreviewCard(imageUrl) {
+      const wrap = document.createElement('div');
+      wrap.className = 'chat-preview-image-wrap';
+
+      const img = document.createElement('img');
+      img.className = 'chat-preview-image';
+      img.src = imageUrl;
+      img.alt = 'Adjunto compartido';
+      img.loading = 'lazy';
+
+      img.addEventListener('click', () => {
+        window.open(imageUrl, '_blank', 'noopener,noreferrer');
+      });
+
+      this.attachImageListeners(img);
+      wrap.appendChild(img);
+      return wrap;
+    }
+
+    /**
+     * Construye la tarjeta visual para archivos compartidos (PDF, ZIP, etc.).
+     */
+    createFilePreviewCard(fileUrl) {
+      const card = document.createElement('a');
+      card.className = 'chat-preview-card file-card';
+      card.href = fileUrl;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+
+      let fileName = 'archivo_adjunto';
+      try {
+        const parsed = new URL(fileUrl);
+        const parts = parsed.pathname.split('/');
+        fileName = decodeURIComponent(parts[parts.length - 1] || fileName);
+      } catch (e) {
+        fileName = fileUrl.split('/').pop() || fileName;
+      }
+
+      const extMatch = fileName.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
+      const ext = extMatch ? extMatch[1].toUpperCase() : 'DOC';
+
+      card.innerHTML = `
+        <div class="file-card-inner">
+          <div class="file-card-icon">${this.escapeHtml(ext)}</div>
+          <div class="file-card-info">
+            <div class="file-card-name" title="${this.escapeHtml(fileName)}">${this.escapeHtml(fileName)}</div>
+            <div class="file-card-meta">Archivo adjunto &bull; Clic para abrir / descargar</div>
+          </div>
+        </div>
+      `;
+
+      return card;
     }
 
     /**
