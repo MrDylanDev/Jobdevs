@@ -68,24 +68,18 @@ def registrar_avance(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id)
     
-    # 1. Verificar el estado del proyecto: 
-    # Solo se permiten avances en proyectos 'en_desarrollo' o 'en_revision' (si hay hitos pendientes)
-    hitos_pendientes_count = Entregable.objects.filter(proyecto=proyecto, estado='pendiente').count()
-
-    if proyecto.estado == 'en_revision' and hitos_pendientes_count > 0:
-        # Corrección automática: El proyecto está en revisión pero tiene trabajo pendiente
-        estado_anterior = proyecto.estado
-        proyecto.estado = 'en_desarrollo'
-        proyecto.save()
-        proyecto.registrar_cambio_estado('en_desarrollo', request.user, estado_anterior=estado_anterior)
-    elif proyecto.estado != 'en_desarrollo':
-        messages.warning(request, f"Ya no puedes subir más avances para el proyecto '{proyecto.titulo}', pues ya no se encuentra en estado de desarrollo.")
-        return redirect(reverse('dashboard_desarrollador') + '?section=activos')
-
-    # 2. Verificar que el desarrollador está contratado para este proyecto
+    # 1. Verificar que el desarrollador está contratado para este proyecto (SCRUM-459 / AUD-001)
     contratado = Contratacion.objects.filter(proyecto=proyecto, desarrollador=request.user, estado='activa').exists()
     if not contratado:
         messages.error(request, "No tienes un contrato activo para este proyecto.")
+        return redirect(reverse('dashboard_desarrollador') + '?section=activos')
+
+    # 2. Verificar el estado del proyecto: 
+    # Solo se permiten avances en proyectos 'en_desarrollo' o 'en_revision' (si hay hitos pendientes).
+    # IMPORTANTE: No mutar estado en GET. La transición a 'en_desarrollo' se efectúa atómicamente en POST.
+    hitos_pendientes_count = Entregable.objects.filter(proyecto=proyecto, estado='pendiente').count()
+    if proyecto.estado not in ('en_desarrollo', 'en_revision') or (proyecto.estado == 'en_revision' and hitos_pendientes_count == 0):
+        messages.warning(request, f"Ya no puedes subir más avances para el proyecto '{proyecto.titulo}', pues ya no se encuentra en estado de desarrollo.")
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
     # 3. SCRUM-205 / SCRUM-309: Verificar si hay hitos pendientes disponibles para el desarrollador
