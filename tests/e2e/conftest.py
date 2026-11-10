@@ -2,10 +2,26 @@ import os
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.db import connection
+from django.db import connection, connections
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
 from playwright.sync_api import sync_playwright
 
 User = get_user_model()
+
+
+@receiver(connection_created)
+def _allow_thread_sharing_on_created(sender, connection, **kwargs):
+    """Permite el acceso a la base de datos entre hilos durante pruebas E2E concurrentes."""
+    connection.allow_thread_sharing = True
+
+
+@pytest.fixture(autouse=True)
+def allow_db_thread_sharing():
+    """Habilita allow_thread_sharing para prevenir conflictos de validate_thread_sharing."""
+    for conn in connections.all():
+        conn.allow_thread_sharing = True
+    yield
 
 # RNF-12 (compatibilidad multi-navegador): navegadores soportados por los tests E2E.
 #   clave -> (motor de Playwright, canal del navegador instalado en el sistema)
