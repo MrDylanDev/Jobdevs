@@ -191,18 +191,33 @@
 
             <div class="form-group-corp" id="grupoArchivo" style="margin-bottom:0;">
               <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
-                <i data-lucide="paperclip" style="width:14px; height:14px; color:var(--corp-brand);"></i>
-                <span>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
+                <i data-lucide="cloud-upload" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                <span>Archivo de Evidencia (Cloudflare R2) <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
               </label>
-              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" class="form-input-corp">
-              <div id="archivoPreviewBadge" style="display:none; margin-top:10px; padding:10px 14px; background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:8px; font-size:12.5px; color:#007c34; align-items:center; justify-content:space-between;">
-                <span style="display:flex; align-items:center; gap:8px;">
-                  <i data-lucide="check-circle-2" style="width:15px; height:15px; color:var(--corp-brand);"></i>
-                  <strong id="archivoNombreLabel"></strong> (<span id="archivoTamanoLabel"></span>)
-                </span>
-                <button type="button" id="quitarArchivoBtn" style="background:none; border:none; color:#e11d48; cursor:pointer; font-size:12px; font-weight:700;">Quitar</button>
+
+              <!-- Inputs técnicos para archivo local y clave de Cloudflare R2 -->
+              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" style="display:none;">
+              <input type="hidden" id="r2FileKeyInput" name="r2_file_key" value="">
+
+              <!-- Zona Drag & Drop interactiva -->
+              <div id="dropzoneEvidencias" class="dropzone-area" tabindex="0" role="button" aria-label="Arrastra o selecciona un archivo de evidencia">
+                <div class="dropzone-content" id="dropzonePrompt">
+                  <div class="dropzone-icon-wrapper">
+                    <i data-lucide="upload-cloud" class="dropzone-main-icon"></i>
+                  </div>
+                  <div class="dropzone-text">
+                    <p class="dropzone-title"><strong>Arrastra y suelta tu archivo aquí</strong> o <span class="dropzone-browse">explora tus archivos</span></p>
+                    <p class="dropzone-subtitle">Archivos ZIP con código, capturas PNG/JPG o documentos PDF (Máx. 10 MB)</p>
+                  </div>
+                  <div class="dropzone-badges">
+                    <span class="badge-pill">.PDF</span>
+                    <span class="badge-pill">.ZIP</span>
+                    <span class="badge-pill">.PNG</span>
+                    <span class="badge-pill">.JPG</span>
+                  </div>
+                </div>
               </div>
-              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:5px; display:block;">Admite archivos ZIP con código, capturas PNG/JPG o documentación PDF (máx. 10 MB).</small>
+              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:6px; display:block;">Admite capturas PNG/JPG, documentación PDF y archivos comprimidos ZIP (máx. 10 MB).</small>
             </div>
 
             <div style="border-top:1px solid var(--corp-border); padding-top:20px; display:flex; gap:12px; justify-content:flex-end;">
