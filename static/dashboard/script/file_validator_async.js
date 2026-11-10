@@ -107,6 +107,127 @@
         };
     }
 
+    /**
+     * Sube un archivo directamente a Cloudflare R2 usando una presigned URL.
+     * @param {Object} params
+     * @param {File} params.file
+     * @param {string} [params.presignedEndpoint]
+     * @param {string} [params.csrfToken]
+     * @param {string} [params.prefijo]
+     * @param {Function} [params.onProgress] - callback(porcentaje, loaded, total)
+     * @param {AbortSignal} [params.signal]
+     * @returns {Promise<Object>}
+     */
+    function subirArchivoR2Async(params) {
+        const {
+            file,
+            presignedEndpoint = '/usuarios/api/storage/presigned-upload/',
+            csrfToken = '',
+            prefijo = 'avances/evidencias',
+            onProgress = null,
+            signal = null,
+        } = params;
+
+        return new Promise(async (resolve, reject) => {
+            if (!file) {
+                return reject(new Error('No se proporcionó ningún archivo para subir a R2.'));
+            }
+
+            try {
+                // 1. Solicitar URL prefirmada al backend Django
+                const token = csrfToken || (document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+                const respPrefirmada = await fetch(presignedEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        nombre_archivo: file.name,
+                        content_type: file.type || 'application/octet-stream',
+                        prefijo: prefijo,
+                    }),
+                    signal,
+                });
+
+                if (respPrefirmada.status === 503) {
+                    // R2 no está configurado en este entorno -> degradación transparente a multipart
+                    const data = await respPrefirmada.json().catch(() => ({}));
+                    return resolve({
+                        r2_disponible: false,
+                        fallback: true,
+                        mensaje: data.mensaje || 'Cloudflare R2 no configurado, usando almacenamiento local.',
+                    });
+                }
+
+                if (!respPrefirmada.ok) {
+                    const errData = await respPrefirmada.json().catch(() => ({}));
+                    throw new Error(errData.error || `Error ${respPrefirmada.status} al solicitar URL prefirmada de R2.`);
+                }
+
+                const dataPresigned = await respPrefirmada.json();
+                if (!dataPresigned.r2_disponible || !dataPresigned.upload?.url) {
+                    return resolve({
+                        r2_disponible: false,
+                        fallback: true,
+                    });
+                }
+
+                const uploadInfo = dataPresigned.upload;
+
+                // 2. Realizar PUT directo a Cloudflare R2 con seguimiento mediante XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', uploadInfo.url, true);
+
+                if (uploadInfo.content_type) {
+                    xhr.setRequestHeader('Content-Type', uploadInfo.content_type);
+                }
+
+                if (signal) {
+                    signal.addEventListener('abort', () => xhr.abort());
+                }
+
+                xhr.upload.onprogress = (evt) => {
+                    if (evt.lengthComputable && typeof onProgress === 'function') {
+                        const percent = Math.min(100, Math.round((evt.loaded / evt.total) * 100));
+                        onProgress(percent, evt.loaded, evt.total);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        if (typeof onProgress === 'function') {
+                            onProgress(100, file.size, file.size);
+                        }
+                        const cleanUrl = uploadInfo.url.split('?')[0];
+                        resolve({
+                            r2_disponible: true,
+                            success: true,
+                            url: cleanUrl,
+                            file_key: uploadInfo.file_key,
+                            content_type: uploadInfo.content_type,
+                        });
+                    } else {
+                        reject(new Error(`Error al subir a Cloudflare R2 (HTTP ${xhr.status}): ${xhr.statusText || 'Fallo de subida'}`));
+                    }
+                };
+
+                xhr.onerror = () => {
+                    reject(new Error('Error de red al conectar con Cloudflare R2.'));
+                };
+
+                xhr.onabort = () => {
+                    reject(new Error('Subida cancelada por el usuario.'));
+                };
+
+                xhr.send(file);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    }
+
     function inicializarValidacionArchivos() {
         document.querySelectorAll('input[type="file"]').forEach(input => {
             if (input.dataset.validatorBound === 'true') return;
@@ -173,6 +294,7 @@
     window.JobDevsFileValidator = {
         validarYLeerArchivo,
         leerArchivoAsync,
+        subirArchivoR2Async,
         inicializar: inicializarValidacionArchivos,
     };
 })();
