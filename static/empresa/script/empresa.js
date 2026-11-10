@@ -319,6 +319,7 @@
               window.lucide.createIcons();
             }
           } else {
+            if (buscadorWrapper) buscadorWrapper.hidden = true;
             contentEl.innerHTML = '<div class="activity-empty" style="padding:40px 20px;"><i data-lucide="user-x"></i><p>No se encontraron candidatos postulados para este proyecto.</p></div>';
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
               window.lucide.createIcons();
@@ -326,6 +327,7 @@
           }
         })
         .catch(function () {
+          if (buscadorWrapper) buscadorWrapper.hidden = true;
           contentEl.innerHTML = '<div class="activity-empty" style="padding:40px 20px;"><i data-lucide="alert-triangle" style="color:var(--corp-danger);"></i><p>No se pudo cargar la vista previa in-situ.</p></div>';
           if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
@@ -340,6 +342,11 @@
       drawer.classList.remove('is-open');
       document.body.style.overflow = '';
     }
+
+    const buscadorWrapper = document.getElementById('drawerCandidatosBuscador');
+    if (buscadorWrapper) buscadorWrapper.hidden = true;
+    const buscadorInput = document.getElementById('drawerCandidatoBusqueda');
+    if (buscadorInput) buscadorInput.value = '';
   };
 
   // --- 2.5b Modal In-Situ de Contrato Digital (firma electrónica sin recargar) ---
