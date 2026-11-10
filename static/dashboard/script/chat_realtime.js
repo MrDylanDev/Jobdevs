@@ -39,7 +39,92 @@
       console.log('[ChatRealtime] Inicializando gestor en tiempo real');
       this.setupImageAndMutationObservers();
       this.hydrateExistingMessages();
+      this.setupFormSubmit();
+      this.connectWebSocket();
       this.scrollToBottom(true, false);
+    }
+
+    /**
+     * Intercepta el envío del formulario para renderizado optimista
+     * y entrega reactiva mediante WebSocket.
+     */
+    setupFormSubmit() {
+      if (!this.chatForm || !this.inputField) return;
+
+      this.chatForm.addEventListener('submit', (e) => {
+        const texto = this.inputField.value.trim();
+        if (!texto) return;
+
+        // Si el WebSocket está conectado, gestionamos el envío en tiempo real con UI optimista
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+          e.preventDefault();
+
+          const clientMsgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 7);
+          const bubble = this.renderOptimisticMessage(texto, clientMsgId);
+          this.pendingMessages.set(clientMsgId, bubble);
+
+          try {
+            this.socket.send(JSON.stringify({
+              contenido: texto,
+              client_msg_id: clientMsgId
+            }));
+          } catch (err) {
+            console.error('[ChatRealtime] Error enviando mensaje por socket:', err);
+          }
+
+          this.inputField.value = '';
+          this.inputField.focus();
+        }
+        // Si no está disponible el socket, permite el fallback HTTP normal del formulario
+      });
+    }
+
+    /**
+     * Renderiza una burbuja con indicador sutil de 'Enviando...' de inmediato en el chat.
+     */
+    renderOptimisticMessage(texto, clientMsgId) {
+      if (!this.container) return null;
+
+      // Remover placeholder de vacío si existe
+      const placeholder = this.container.querySelector('div[style*="text-align:center"]');
+      if (placeholder) placeholder.remove();
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble message-sent message-pending';
+      bubble.dataset.clientMsgId = clientMsgId;
+
+      const contentNode = document.createElement('div');
+      contentNode.className = 'message-content-text';
+      contentNode.textContent = texto;
+      bubble.appendChild(contentNode);
+
+      // Inyectar previews visuales (GitHub / Archivos / Imágenes)
+      this.enhanceMessageWithPreviews(bubble);
+
+      // Meta fila con hora y estado Enviando...
+      const metaRow = document.createElement('div');
+      metaRow.className = 'message-meta-row';
+
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+
+      metaRow.innerHTML = `
+        <span class="message-time">${timeStr}</span>
+        <span class="message-status">
+          <span class="status-spinner"></span>
+          <span class="status-text-pending">Enviando...</span>
+        </span>
+      `;
+
+      bubble.appendChild(metaRow);
+      this.container.appendChild(bubble);
+
+      // Scroll suave hacia el mensaje enviado
+      this.scrollToBottom(true, true);
+
+      return bubble;
     }
 
     /**
