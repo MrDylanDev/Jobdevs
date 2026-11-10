@@ -109,9 +109,15 @@
       </form>
 
       <!-- Lista de Postulaciones -->
-      <div style="display:flex; flex-direction:column; gap:16px;">
+      <div id="listaCandidatos" style="display:flex; flex-direction:column; gap:16px;">
         {% for post in postulaciones %}
-          <div class="card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+          <div class="card candidate-card"
+               data-candidato
+               data-nombre="{{ post.desarrollador.nombre }}"
+               data-ficha="{{ post.desarrollador.ficha|default:'' }}"
+               data-habilidades="{{ post.habilidades|default:'' }}"
+               data-verificado-sena="{% if post.desarrollador.es_verificado_sena %}1{% else %}0{% endif %}"
+               style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
               <div style="flex: 1;">
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                       <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" title="Ver perfil público de {{ post.desarrollador.nombre }}" style="flex-shrink: 0;">
