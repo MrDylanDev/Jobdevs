@@ -102,6 +102,19 @@
     if (estado.termino) {
       estado.termino.textContent = estado.buscador.value.trim();
     }
+
+    if (estado.limpiar) {
+      estado.limpiar.hidden = !consulta;
+    }
+  }
+
+  /**
+   * Vacia el buscador, restaura la lista y devuelve el foco al input.
+   */
+  function limpiarBusqueda(estado) {
+    estado.buscador.value = '';
+    aplicarFiltro(estado);
+    estado.buscador.focus();
   }
 
   /**
@@ -129,6 +142,7 @@
     estado.contador = panel.querySelector('[data-candidato-contador]');
     estado.vacio = panel.querySelector('[data-candidato-vacio]');
     estado.termino = panel.querySelector('[data-candidato-termino]');
+    estado.limpiar = panel.querySelector('[data-candidato-limpiar]');
 
     if (!estado.inicializado) {
       estado.inicializado = true;
@@ -136,6 +150,17 @@
         aplicarFiltro(estado);
       }, ESPERA_DEBOUNCE_MS);
       estado.buscador.addEventListener('input', estado.aplicarFiltroDebounced);
+      estado.buscador.addEventListener('keydown', function (evento) {
+        if (evento.key === 'Escape' && estado.buscador.value) {
+          evento.preventDefault();
+          limpiarBusqueda(estado);
+        }
+      });
+      if (estado.limpiar) {
+        estado.limpiar.addEventListener('click', function () {
+          limpiarBusqueda(estado);
+        });
+      }
     }
 
     aplicarFiltro(estado);
