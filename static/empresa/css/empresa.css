@@ -3941,3 +3941,12 @@ body {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ============================================================
+   Resaltado de candidatos con ficha SENA verificada
+   ============================================================ */
+.candidate-card.candidato-verificado,
+.drawer-candidate-card.candidato-verificado {
+  border-left: 4px solid var(--corp-success);
+  background-image: linear-gradient(90deg, var(--corp-success-light), transparent 55%);
+}
