@@ -228,9 +228,275 @@
         });
     }
 
+    /**
+     * Inicializa un componente interactivo Drag & Drop para subida de archivos con R2 y previsualización.
+     * @param {HTMLElement|string} dropzoneTarget
+     * @param {Object} options
+     */
+    function inicializarDropzone(dropzoneTarget, options = {}) {
+        const dropzone = typeof dropzoneTarget === 'string'
+            ? document.querySelector(dropzoneTarget)
+            : dropzoneTarget;
+
+        if (!dropzone || dropzone.dataset.dropzoneBound === 'true') return null;
+        dropzone.dataset.dropzoneBound = 'true';
+
+        const fileInput = options.fileInput || dropzone.querySelector('input[type="file"]') || document.getElementById('archivoAdjuntoInput');
+        const previewCard = options.previewCard || document.getElementById('archivoPreviewCard');
+        const progressBarContainer = options.progressBarContainer || document.getElementById('dropzoneProgressBarContainer');
+        const progressBar = options.progressBar || document.getElementById('dropzoneProgressBar');
+        const progressPercent = options.progressPercent || document.getElementById('dropzoneProgressPercent');
+        const progressLabel = options.progressLabel || document.getElementById('dropzoneProgressLabel');
+        const nombreLabel = options.nombreLabel || document.getElementById('archivoNombreLabel');
+        const tamanoLabel = options.tamanoLabel || document.getElementById('archivoTamanoLabel');
+        const estadoUploadLabel = options.estadoUploadLabel || document.getElementById('archivoEstadoUpload');
+        const quitarBtn = options.quitarBtn || document.getElementById('quitarArchivoBtn');
+        const previewImg = options.previewImg || document.getElementById('previewThumbnailImg');
+        const previewIcon = options.previewIcon || document.getElementById('previewTypeIcon');
+        const r2KeyInput = options.r2KeyInput || document.getElementById('r2FileKeyInput');
+        const urlInput = options.urlInput || document.getElementById('archivoUrlInput');
+
+        const maxMb = options.maxMb || parseFloat(fileInput?.dataset?.maxMb || '10') || 10;
+        const allowedExts = options.allowedExts || ['pdf', 'zip', 'png', 'jpg', 'jpeg'];
+        const autoUploadR2 = options.autoUploadR2 !== false;
+        const presignedEndpoint = options.presignedEndpoint || '/usuarios/api/storage/presigned-upload/';
+        const prefijo = options.prefijo || 'avances/evidencias';
+
+        let abortController = null;
+
+        function resaltar() {
+            dropzone.classList.add('dragover');
+        }
+
+        function desresaltar() {
+            dropzone.classList.remove('dragover');
+        }
+
+        // Prevención de eventos por defecto del navegador en drag & drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, resaltar, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, desresaltar, false);
+        });
+
+        // Clic en la zona abre el selector nativo
+        dropzone.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            if (fileInput) fileInput.click();
+        });
+
+        // Accesibilidad por teclado (Enter o Espacio)
+        dropzone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (fileInput) fileInput.click();
+            }
+        });
+
+        // Evento Drop
+        dropzone.addEventListener('drop', async (e) => {
+            const dt = e.dataTransfer;
+            const files = dt?.files;
+            if (files && files.length > 0) {
+                try {
+                    if (fileInput) fileInput.files = files;
+                } catch (err) {
+                    // Fallback
+                }
+                await procesarArchivo(files[0]);
+            }
+        });
+
+        // Cambio en el input de archivo
+        if (fileInput) {
+            fileInput.addEventListener('change', async () => {
+                const file = fileInput.files && fileInput.files[0];
+                if (file) {
+                    await procesarArchivo(file);
+                }
+            });
+        }
+
+        // Botón remover
+        if (quitarBtn) {
+            quitarBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                limpiar();
+            });
+        }
+
+        function limpiar() {
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+            }
+            if (fileInput) fileInput.value = '';
+            if (r2KeyInput) r2KeyInput.value = '';
+            if (previewCard) previewCard.style.display = 'none';
+            if (progressBarContainer) progressBarContainer.style.display = 'none';
+            if (progressBar) progressBar.style.width = '0%';
+            if (previewImg) {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+            }
+            if (previewIcon) previewIcon.style.display = 'inline-block';
+            dropzone.classList.remove('has-file');
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        async function procesarArchivo(file) {
+            if (!file) return;
+
+            if (abortController) {
+                abortController.abort();
+            }
+            abortController = new AbortController();
+
+            try {
+                // 1. Prevalidación en cliente (tamaño, extensión y magic bytes)
+                const info = await validarYLeerArchivo(file, {
+                    maxMb,
+                    allowedExts,
+                    readDataUrl: true,
+                });
+
+                // 2. Mostrar datos en tarjeta de preview
+                if (nombreLabel) nombreLabel.textContent = info.nombre;
+                if (tamanoLabel) tamanoLabel.textContent = info.sizeFormatted;
+
+                if (info.dataUrl && previewImg) {
+                    previewImg.src = info.dataUrl;
+                    previewImg.style.display = 'block';
+                    if (previewIcon) previewIcon.style.display = 'none';
+                } else {
+                    if (previewImg) previewImg.style.display = 'none';
+                    if (previewIcon) {
+                        previewIcon.style.display = 'inline-block';
+                        const iconName = info.extension === 'pdf' ? 'file-text'
+                            : info.extension === 'zip' ? 'archive'
+                            : 'file';
+                        previewIcon.setAttribute('data-lucide', iconName);
+                    }
+                }
+
+                if (estadoUploadLabel) {
+                    estadoUploadLabel.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:12px; height:12px;"></i> Preparando...';
+                }
+                if (previewCard) previewCard.style.display = 'flex';
+                dropzone.classList.add('has-file');
+
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+
+                // 3. Subida directa a Cloudflare R2 con barra de progreso visual
+                if (autoUploadR2) {
+                    if (progressBarContainer) progressBarContainer.style.display = 'block';
+                    if (progressBar) progressBar.style.width = '0%';
+                    if (progressPercent) progressPercent.textContent = '0%';
+                    if (progressLabel) progressLabel.textContent = 'Subiendo a Cloudflare R2...';
+
+                    try {
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                        const r2Result = await subirArchivoR2Async({
+                            file,
+                            presignedEndpoint,
+                            csrfToken,
+                            prefijo,
+                            signal: abortController.signal,
+                            onProgress: (percent) => {
+                                if (progressBar) progressBar.style.width = `${percent}%`;
+                                if (progressPercent) progressPercent.textContent = `${percent}%`;
+                                if (estadoUploadLabel) {
+                                    estadoUploadLabel.innerHTML = `<i data-lucide="upload" style="width:12px; height:12px;"></i> Subiendo ${percent}%`;
+                                }
+                            },
+                        });
+
+                        if (r2Result.r2_disponible && r2Result.success) {
+                            if (r2KeyInput) r2KeyInput.value = r2Result.file_key || '';
+                            if (urlInput && !urlInput.value.trim() && r2Result.url) {
+                                urlInput.value = r2Result.url;
+                            }
+                            if (progressBar) progressBar.style.width = '100%';
+                            if (progressPercent) progressPercent.textContent = '100%';
+                            if (progressLabel) progressLabel.textContent = '✓ Subido a Cloudflare R2 con éxito';
+                            if (estadoUploadLabel) {
+                                estadoUploadLabel.innerHTML = '<i data-lucide="check-circle-2" style="width:12px; height:12px; color:#059669;"></i> R2 OK';
+                            }
+                        } else if (r2Result.fallback) {
+                            if (progressBar) progressBar.style.width = '100%';
+                            if (progressPercent) progressPercent.textContent = '100%';
+                            if (progressLabel) progressLabel.textContent = 'Archivo validado (listo para envío estándar)';
+                            if (estadoUploadLabel) {
+                                estadoUploadLabel.innerHTML = '<i data-lucide="check-circle-2" style="width:12px; height:12px; color:#059669;"></i> Validado';
+                            }
+                        }
+                    } catch (r2Err) {
+                        console.warn('Subida a R2 no completada, manteniendo archivo para envío estándar:', r2Err.message);
+                        if (progressLabel) progressLabel.textContent = 'Listo para envío tradicional';
+                        if (progressBar) progressBar.style.width = '100%';
+                        if (progressPercent) progressPercent.textContent = '100%';
+                        if (estadoUploadLabel) {
+                            estadoUploadLabel.innerHTML = '<i data-lucide="check-circle-2" style="width:12px; height:12px; color:#059669;"></i> Validado';
+                        }
+                    }
+                } else {
+                    if (estadoUploadLabel) {
+                        estadoUploadLabel.innerHTML = '<i data-lucide="check-circle-2" style="width:12px; height:12px; color:#059669;"></i> Listo';
+                    }
+                }
+
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+
+                if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+                    window.JobDevsSSE.mostrarToast({
+                        tipo: 'aprobacion',
+                        mensaje: `Archivo '${info.nombre}' (${info.sizeFormatted}) validado correctamente.`,
+                    });
+                }
+            } catch (err) {
+                limpiar();
+                console.warn('JobDevs Dropzone Error:', err.message);
+                if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+                    window.JobDevsSSE.mostrarToast({
+                        tipo: 'alerta',
+                        mensaje: err.message,
+                    });
+                } else {
+                    alert(err.message);
+                }
+            }
+        }
+
+        return {
+            dropzone,
+            limpiar,
+            procesarArchivo,
+        };
+    }
+
     function inicializarValidacionArchivos() {
+        // Inicializar zonas dropzone si existen
+        document.querySelectorAll('[data-dropzone], #dropzoneEvidencias').forEach(dz => {
+            inicializarDropzone(dz);
+        });
+
         document.querySelectorAll('input[type="file"]').forEach(input => {
-            if (input.dataset.validatorBound === 'true') return;
+            if (input.dataset.validatorBound === 'true' || input.closest('[data-dropzone], #dropzoneEvidencias')) return;
             input.dataset.validatorBound = 'true';
 
             const maxMb = parseFloat(input.dataset.maxMb || '5') || 5;
@@ -294,7 +560,9 @@
     window.JobDevsFileValidator = {
         validarYLeerArchivo,
         leerArchivoAsync,
+        validarMagicBytes,
         subirArchivoR2Async,
+        inicializarDropzone,
         inicializar: inicializarValidacionArchivos,
     };
 })();
