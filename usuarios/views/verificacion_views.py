@@ -519,10 +519,13 @@ def api_generar_url_subida_prefirmada(request):
     if content_type not in content_types_permitidos:
         return JsonResponse({'error': 'Tipo MIME no admitido.'}, status=400)
 
+    prefijo_custom = str(data.get('prefijo') or '').strip('/')
+    prefijo = prefijo_custom if prefijo_custom else f"soportes/{request.user.rol}"
+
     resultado = generar_url_subida_prefirmada(
         nombre_archivo=nombre_archivo,
         content_type=content_type,
-        prefijo=f"soportes/{request.user.rol}",
+        prefijo=prefijo,
     )
 
     if not resultado:
