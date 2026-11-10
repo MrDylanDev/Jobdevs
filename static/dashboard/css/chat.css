@@ -357,4 +357,101 @@
   opacity: 0.9;
 }
 
+/* ==========================================================================
+   [FEAT][CHAT-01] Previews para Archivos Compartidos e Imágenes Asíncronas
+   ========================================================================== */
+
+.chat-preview-card.file-card {
+  padding: 8px 12px;
+}
+
+.file-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.message-sent .file-card-icon {
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+}
+
+.message-received .file-card-icon {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+}
+
+.file-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-card-name {
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-card-meta {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.chat-preview-image-wrap {
+  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 320px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  position: relative;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-preview-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.chat-preview-image:hover {
+  transform: scale(1.02);
+}
+
+/* Animación sutil de inserción de mensaje */
+@keyframes chatMessageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  animation: chatMessageFadeIn 0.22s ease-out;
+}
+
+
 
