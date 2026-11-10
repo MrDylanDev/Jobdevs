@@ -4043,3 +4043,22 @@ body {
 .candidate-card.is-oculto {
   display: none !important;
 }
+
+/* ============================================================
+   Ajustes del buscador y tarjetas clonadas en el drawer
+   ============================================================ */
+.drawer-candidatos-buscador {
+  padding: 16px 24px 0;
+  background: var(--corp-bg);
+}
+
+.drawer-candidate-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.candidatos-buscador-input::-webkit-search-cancel-button,
+.candidatos-buscador-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
