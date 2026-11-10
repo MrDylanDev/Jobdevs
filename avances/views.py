@@ -149,6 +149,16 @@ def registrar_avance(request, proyecto_id):
             archivo_url = (request.POST.get('archivo_url') or '').strip()
             archivo_adjunto = request.FILES.get('archivo_adjunto')
             entregable_id = (request.POST.get('entregable_id') or '').strip()
+            r2_file_key = (request.POST.get('r2_file_key') or '').strip()
+
+            if r2_file_key and not archivo_url:
+                try:
+                    from usuarios.services_storage import generar_url_descarga_prefirmada
+                    descarga_url = generar_url_descarga_prefirmada(r2_file_key)
+                    if descarga_url:
+                        archivo_url = descarga_url
+                except Exception:
+                    pass
 
             form_data = {
                 'entregable_id': entregable_id,
