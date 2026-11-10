@@ -352,6 +352,7 @@ def admin_toggle_usuario(request, usuario_id):
     if user.estado == 'activo':
         user.estado = 'inactivo'
         user.is_active = False
+        user.bloqueado_por_intentos = False
         invalidar_sesiones_activas_usuario(user.id)
     else:
         user.estado = 'activo'
