@@ -111,7 +111,7 @@
       <!-- Lista de Postulaciones -->
       <div id="listaCandidatos" style="display:flex; flex-direction:column; gap:16px;">
         {% for post in postulaciones %}
-          <div class="card candidate-card"
+          <div class="card candidate-card{% if post.desarrollador.es_verificado_sena %} candidato-verificado{% endif %}"
                data-candidato
                data-nombre="{{ post.desarrollador.nombre }}"
                data-ficha="{{ post.desarrollador.ficha|default:'' }}"
