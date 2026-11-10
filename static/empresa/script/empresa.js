@@ -239,6 +239,13 @@
 
     window._ultimoUrlCandidatos = url;
 
+    const buscadorWrapper = document.getElementById('drawerCandidatosBuscador');
+    if (buscadorWrapper) {
+      buscadorWrapper.hidden = true;
+      const buscadorInput = document.getElementById('drawerCandidatoBusqueda');
+      if (buscadorInput) buscadorInput.value = '';
+    }
+
     const drawer = document.getElementById('drawerCandidatos');
     const titleEl = document.getElementById('drawerProjectTitle');
     const contentEl = document.getElementById('drawerContent');
@@ -302,6 +309,11 @@
               link.setAttribute('target', '_blank');
               link.setAttribute('rel', 'noopener');
             });
+
+            if (buscadorWrapper) buscadorWrapper.hidden = false;
+            if (typeof window.inicializarFiltroCandidatos === 'function') {
+              window.inicializarFiltroCandidatos({ scope: contentEl });
+            }
 
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
               window.lucide.createIcons();
