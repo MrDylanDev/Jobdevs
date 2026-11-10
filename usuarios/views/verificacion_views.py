@@ -502,13 +502,21 @@ def api_generar_url_subida_prefirmada(request):
         return JsonResponse({'error': 'nombre_archivo es requerido.'}, status=400)
 
     ext = nombre_archivo.rsplit('.', 1)[-1].lower() if '.' in nombre_archivo else ''
-    if ext not in ('pdf', 'png', 'jpg', 'jpeg'):
+    if ext not in ('pdf', 'png', 'jpg', 'jpeg', 'zip'):
         return JsonResponse(
-            {'error': 'Extensión de archivo no permitida. Solo se admiten PDF, PNG y JPG.'},
+            {'error': 'Extensión de archivo no permitida. Solo se admiten PDF, PNG, JPG y ZIP.'},
             status=400,
         )
 
-    if content_type not in ('application/pdf', 'image/png', 'image/jpeg'):
+    content_types_permitidos = (
+        'application/pdf',
+        'image/png',
+        'image/jpeg',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/octet-stream',
+    )
+    if content_type not in content_types_permitidos:
         return JsonResponse({'error': 'Tipo MIME no admitido.'}, status=400)
 
     resultado = generar_url_subida_prefirmada(
