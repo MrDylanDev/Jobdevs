@@ -125,3 +125,14 @@ class TestNotificacionesSSE:
                 content = f.read()
             assert 'notificaciones_sse.js' in content, f"Template {tpl} debe cargar notificaciones_sse.js"
 
+    def test_notificaciones_sse_script_protegido_contra_xss(self):
+        """SCRUM-462: static/dashboard/script/notificaciones_sse.js no debe interpolar
+        data.mensaje, data.tipo ni data.fecha directamente en innerHTML."""
+        with open('static/dashboard/script/notificaciones_sse.js', 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        assert '${data.mensaje' not in content, "data.mensaje no debe interpolarse en innerHTML (XSS)"
+        assert '${data.tipo' not in content, "data.tipo no debe interpolarse en innerHTML (XSS)"
+        assert 'textContent' in content, "Se debe usar textContent para renderizar mensajes de forma segura"
+
+

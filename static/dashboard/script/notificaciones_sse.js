@@ -106,18 +106,32 @@
                 <i data-lucide="${iconClass}"></i>
             </div>
             <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; color: #ffffff; margin-bottom: 2px; text-transform: capitalize;">
-                    ${data.tipo || 'Notificación'}
-                </div>
-                <div style="color: #cbd5e1; word-break: break-word;">
-                    ${data.mensaje || ''}
-                </div>
-                ${data.fecha ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${data.fecha}</div>` : ''}
+                <div class="toast-tipo" style="font-weight: 600; color: #ffffff; margin-bottom: 2px; text-transform: capitalize;"></div>
+                <div class="toast-mensaje" style="color: #cbd5e1; word-break: break-word;"></div>
+                <div class="toast-fecha" style="font-size: 11px; color: #94a3b8; margin-top: 4px; display: none;"></div>
             </div>
             <button type="button" aria-label="Cerrar notificación" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0 4px; font-size: 14px;">
                 <i data-lucide="x"></i>
             </button>
         `;
+
+        const tipoEl = toast.querySelector('.toast-tipo');
+        if (tipoEl) {
+            tipoEl.textContent = data.tipo || 'Notificación';
+        }
+
+        const mensajeEl = toast.querySelector('.toast-mensaje');
+        if (mensajeEl) {
+            mensajeEl.textContent = data.mensaje || '';
+        }
+
+        if (data.fecha) {
+            const fechaEl = toast.querySelector('.toast-fecha');
+            if (fechaEl) {
+                fechaEl.textContent = data.fecha;
+                fechaEl.style.display = 'block';
+            }
+        }
 
         const closeBtn = toast.querySelector('button');
         const cerrar = (e) => {
