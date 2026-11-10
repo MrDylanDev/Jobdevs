@@ -492,6 +492,22 @@ class TestVerPostulacionesEmpresaFiltros:
         )
         assert res.status_code == 404
 
+    def test_tarjetas_exponen_datos_para_filtrado_en_cliente(self, auth_client, escenario):
+        url = reverse('ver_postulaciones_empresa', args=[escenario.id])
+        html = auth_client.get(url).content.decode()
+
+        assert 'id="listaCandidatos"' in html
+        assert 'data-candidato' in html
+        assert 'data-nombre="ANA"' in html
+        assert 'data-ficha="2558104"' in html
+        assert 'data-habilidades="Python, Django, SQL"' in html
+        assert 'class="card candidate-card' in html
+
+        assert 'data-candidato-panel' in html
+        assert 'id="pageCandidatoBusqueda"' in html
+        assert 'id="pageCandidatoSinResultados"' in html
+        assert 'empresa/script/candidatos_filtro.js' in html
+
 
 class TestIniciarNegociacion:
     """SCRUM-149: la empresa inicia negociación y se crea el contrato digital borrador."""
