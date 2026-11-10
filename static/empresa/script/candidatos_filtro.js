@@ -65,6 +65,21 @@
   }
 
   /**
+   * Oculta las tarjetas que no coinciden con todos los terminos escritos.
+   */
+  function aplicarFiltro(estado) {
+    const consulta = normalizar(estado.buscador.value);
+    const tokens = consulta.split(/\s+/).filter(Boolean);
+
+    estado.tarjetas.forEach(function (tarjeta) {
+      const coincide = tokens.every(function (token) {
+        return tarjeta.texto.indexOf(token) !== -1;
+      });
+      tarjeta.nodo.classList.toggle('is-oculto', !coincide);
+    });
+  }
+
+  /**
    * Inicializa (o refresca) el filtro de candidatos dentro de `scope`.
    * Es idempotente: llamarlo de nuevo solo vuelve a recolectar tarjetas.
    */
@@ -86,6 +101,27 @@
     estado.panel = panel;
     estado.buscador = buscador;
     estado.tarjetas = recolectarTarjetas(scope);
+
+    if (!estado.inicializado) {
+      estado.inicializado = true;
+      estado.aplicarFiltroDebounced = crearDebounce(function () {
+        aplicarFiltro(estado);
+      }, ESPERA_DEBOUNCE_MS);
+      estado.buscador.addEventListener('input', estado.aplicarFiltroDebounced);
+    }
+
+    aplicarFiltro(estado);
     return estado;
+  };
+
+  /**
+   * Reaplica el filtro sobre el estado ya inicializado de un scope.
+   */
+  window.refrescarFiltroCandidatos = function (scope) {
+    const estado = estados.get(scope || document);
+    if (!estado) return false;
+    estado.tarjetas = recolectarTarjetas(estado.scope);
+    aplicarFiltro(estado);
+    return true;
   };
 })();
