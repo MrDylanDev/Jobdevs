@@ -249,3 +249,112 @@
   opacity: 0.85;
 }
 
+/* ==========================================================================
+   [FEAT][CHAT-01] Previews Visuales tipo Card para Repositorios GitHub
+   ========================================================================== */
+
+.chat-preview-card {
+  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  font-size: 12px;
+  line-height: 1.4;
+  display: block;
+  text-decoration: none;
+}
+
+.message-sent .chat-preview-card {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.message-received .chat-preview-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.chat-preview-card:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+.message-sent .chat-preview-card:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.message-received .chat-preview-card:hover {
+  border-color: var(--accent);
+}
+
+.chat-preview-card.github-card {
+  padding: 10px 12px;
+}
+
+.github-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.github-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+.github-card-tag svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.github-card-badge {
+  font-size: 9.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-weight: 600;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.github-card-repo {
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-all;
+}
+
+.github-card-meta {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.75;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.github-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: inherit;
+  opacity: 0.9;
+}
+
+
