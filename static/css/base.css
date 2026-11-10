@@ -1,0 +1,23 @@
+/*
+ * Reset base mínimo de JobDevs.
+ *
+ * Sustituye las únicas reglas del preflight de Tailwind que afectaban al
+ * render tras retirar la dependencia (verificado con diferencial de estilos
+ * computados): los recursos embebidos se mostraban como bloque y los campos
+ * de formulario heredaban el color del texto. No se replica el reset completo
+ * porque Bootstrap Reboot ya cubre el resto.
+ */
+svg,
+img,
+video,
+canvas {
+    display: block;
+    vertical-align: middle;
+}
+
+input,
+button,
+select,
+textarea {
+    color: inherit;
+}

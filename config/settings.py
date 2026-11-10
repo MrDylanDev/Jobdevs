@@ -27,8 +27,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'tailwind',
-    'theme',
     'usuarios',
     'proyectos',
     'postulaciones',
@@ -56,8 +54,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Django Tailwind: app que contiene los estilos (ver theme/static_src/src/styles.css)
-TAILWIND_APP_NAME = 'theme'
 
 # Recarga automática del navegador solo en desarrollo si está instalado
 if DEBUG:
