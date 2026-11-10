@@ -249,6 +249,63 @@
   opacity: 0.85;
 }
 
+/* Estado de mensaje fallido (error de red o corte de socket) */
+.message-failed {
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  opacity: 0.95;
+}
+
+.message-failed .message-status {
+  color: #ef4444 !important;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.status-failed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #f87171;
+}
+
+.chat-btn-action {
+  background: transparent;
+  border: none;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.chat-btn-retry {
+  color: #38bdf8;
+}
+
+.chat-btn-retry:hover {
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+  text-decoration: none;
+}
+
+.chat-btn-recover {
+  color: #fbbf24;
+}
+
+.chat-btn-recover:hover {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fde047;
+  text-decoration: none;
+}
+
 /* ==========================================================================
    [FEAT][CHAT-01] Previews Visuales tipo Card para Repositorios GitHub
    ========================================================================== */

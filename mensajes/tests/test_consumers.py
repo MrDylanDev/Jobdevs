@@ -77,17 +77,22 @@ class TestChatConsumers:
         assert connected_dev
 
         # Empresa envía mensaje grupal
-        await comm_empresa.send_json_to({"contenido": "Hola equipo, bienvenidos al proyecto!"})
+        await comm_empresa.send_json_to({
+            "contenido": "Hola equipo, bienvenidos al proyecto!",
+            "client_msg_id": "grupal-client-123",
+        })
 
-        # Ambos reciben el broadcast
+        # Ambos reciben el broadcast con el client_msg_id reflejado
         resp_empresa = await comm_empresa.receive_json_from()
         assert resp_empresa["type"] == "mensaje"
         assert resp_empresa["mensaje"]["contenido"] == "Hola equipo, bienvenidos al proyecto!"
         assert resp_empresa["mensaje"]["remitente_id"] == empresa.id
+        assert resp_empresa["mensaje"]["client_msg_id"] == "grupal-client-123"
 
         resp_dev = await comm_dev.receive_json_from()
         assert resp_dev["type"] == "mensaje"
         assert resp_dev["mensaje"]["contenido"] == "Hola equipo, bienvenidos al proyecto!"
+        assert resp_dev["mensaje"]["client_msg_id"] == "grupal-client-123"
 
         # Verificar persistencia en base de datos
         mensaje_db = await Mensaje.objects.filter(proyecto=proyecto, receptor__isnull=True).afirst()
@@ -139,7 +144,10 @@ class TestChatConsumers:
         assert connected_emp
 
         # Dev envía mensaje a empresa
-        await comm_dev.send_json_to({"contenido": "Mensaje directo privado para la empresa."})
+        await comm_dev.send_json_to({
+            "contenido": "Mensaje directo privado para la empresa.",
+            "client_msg_id": "directo-client-456",
+        })
 
         resp_emp = await comm_emp.receive_json_from()
         assert resp_emp["type"] == "mensaje"
@@ -147,6 +155,7 @@ class TestChatConsumers:
         assert resp_emp["mensaje"]["remitente_id"] == dev.id
         assert resp_emp["mensaje"]["receptor_id"] == empresa.id
         assert resp_emp["mensaje"]["proyecto_id"] == proyecto.id
+        assert resp_emp["mensaje"]["client_msg_id"] == "directo-client-456"
         assert resp_emp["mensaje"]["fecha"]
 
         # El receptor está conectado: el mensaje se marca leído sin polling.
@@ -206,3 +215,23 @@ class TestChatConsumers:
 
         await comm_dev.disconnect()
         await comm_emp.disconnect()
+
+    async def test_chat_grupal_eco_client_msg_id_en_error_validacion(self):
+        empresa = await Usuario.objects.acreate(
+            username="emp_err_eco", email="emp_err_eco@chat.com", rol="empresa"
+        )
+        proyecto = await Proyecto.objects.acreate(
+            empresa=empresa, titulo="Proyecto Error Eco", estado="en_desarrollo"
+        )
+        comm = WebsocketCommunicator(application, f"/ws/chat/grupal/{proyecto.id}/")
+        comm.scope["user"] = empresa
+        connected, _ = await comm.connect()
+        assert connected
+
+        # Mensaje vacío debe devolver error con el client_msg_id reflejado
+        await comm.send_json_to({"contenido": "   ", "client_msg_id": "fail-eco-999"})
+        resp = await comm.receive_json_from()
+        assert resp.get("error") == "El mensaje no puede estar vacío."
+        assert resp.get("client_msg_id") == "fail-eco-999"
+
+        await comm.disconnect()

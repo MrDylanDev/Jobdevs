@@ -60,20 +60,32 @@ class ChatGrupalConsumer(AsyncJsonWebsocketConsumer):
             )
 
     async def receive_json(self, content):
-        """Recibe mensaje del cliente: {"contenido": "..."}"""
+        """Recibe mensaje del cliente: {"contenido": "...", "client_msg_id": "..."}"""
         texto = content.get("contenido", "").strip()
+        client_msg_id = content.get("client_msg_id")
         if not texto:
-            await self.send_json({"error": "El mensaje no puede estar vacío."})
+            resp = {"error": "El mensaje no puede estar vacío."}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
 
         try:
             mensaje_data = await self._guardar_mensaje(texto)
+            if client_msg_id:
+                mensaje_data["client_msg_id"] = client_msg_id
         except (PermissionDenied, ValidationError) as exc:
             msg = exc.messages[0] if hasattr(exc, "messages") else str(exc)
-            await self.send_json({"error": msg})
+            resp = {"error": msg}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
         except Exception as exc:
-            await self.send_json({"error": "Error al procesar el mensaje."})
+            resp = {"error": "Error al procesar el mensaje."}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
 
         # Broadcast al grupo
@@ -169,20 +181,32 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
             )
 
     async def receive_json(self, content):
-        """Recibe mensaje del cliente: {"contenido": "..."}"""
+        """Recibe mensaje del cliente: {"contenido": "...", "client_msg_id": "..."}"""
         texto = content.get("contenido", "").strip()
+        client_msg_id = content.get("client_msg_id")
         if not texto:
-            await self.send_json({"error": "El mensaje no puede estar vacío."})
+            resp = {"error": "El mensaje no puede estar vacío."}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
 
         try:
             mensaje_data = await self._guardar_mensaje(texto)
+            if client_msg_id:
+                mensaje_data["client_msg_id"] = client_msg_id
         except (PermissionDenied, ValidationError) as exc:
             msg = exc.messages[0] if hasattr(exc, "messages") else str(exc)
-            await self.send_json({"error": msg})
+            resp = {"error": msg}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
         except Exception as exc:
-            await self.send_json({"error": "Error al procesar el mensaje."})
+            resp = {"error": "Error al procesar el mensaje."}
+            if client_msg_id:
+                resp["client_msg_id"] = client_msg_id
+            await self.send_json(resp)
             return
 
         await self.channel_layer.group_send(

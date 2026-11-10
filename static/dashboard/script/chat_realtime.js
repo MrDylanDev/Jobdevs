@@ -76,6 +76,9 @@
             this.handleIncomingMessage(data.mensaje);
           } else if (data.error) {
             console.warn('[ChatRealtime] Error desde el servidor:', data.error);
+            if (data.client_msg_id && this.pendingMessages.has(data.client_msg_id)) {
+              this.markMessageFailed(data.client_msg_id, data.error);
+            }
           }
         } catch (err) {
           console.error('[ChatRealtime] Error deserializando mensaje recibido:', err);
@@ -84,6 +87,7 @@
 
       this.socket.onclose = (event) => {
         console.warn(`[ChatRealtime] WebSocket cerrado (código: ${event.code})`);
+        this.markAllPendingMessagesFailed('Conexión cerrada');
         if (event.code === 4401 || event.code === 4403) return;
 
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
@@ -95,6 +99,7 @@
 
       this.socket.onerror = (err) => {
         console.error('[ChatRealtime] Excepción en WebSocket:', err);
+        this.markAllPendingMessagesFailed('Error en WebSocket');
       };
     }
 
@@ -108,16 +113,25 @@
         // Buscar burbuja optimista pendiente correspondiente
         let matchedBubble = null;
 
+        // 1. Reconciliación primaria y exacta mediante client_msg_id
         if (msg.client_msg_id && this.pendingMessages.has(msg.client_msg_id)) {
-          matchedBubble = this.pendingMessages.get(msg.client_msg_id);
+          const entry = this.pendingMessages.get(msg.client_msg_id);
+          if (entry && entry.timer) clearTimeout(entry.timer);
+          matchedBubble = entry.bubble || entry;
           this.pendingMessages.delete(msg.client_msg_id);
-        } else {
-          // Fallback: buscar la primera burbuja pendiente con igual contenido
+        } else if (!msg.client_msg_id) {
+          // Fallback solo si el backend no devolvió client_msg_id: buscar la primera burbuja pendiente con igual contenido
           const pendingBubbles = this.container.querySelectorAll('.message-bubble.message-pending');
           for (let b of pendingBubbles) {
             const txt = b.querySelector('.message-content-text');
             if (txt && txt.textContent.trim() === (msg.contenido || '').trim()) {
               matchedBubble = b;
+              const pendingId = b.dataset.clientMsgId;
+              if (pendingId && this.pendingMessages.has(pendingId)) {
+                const entry = this.pendingMessages.get(pendingId);
+                if (entry && entry.timer) clearTimeout(entry.timer);
+                this.pendingMessages.delete(pendingId);
+              }
               break;
             }
           }
@@ -134,12 +148,140 @@
     }
 
     /**
+     * Marca un mensaje pendiente como fallido tras timeout o error de socket,
+     * permitiendo reintentar el envío o recuperar el texto al input.
+     */
+    markMessageFailed(clientMsgId, reason) {
+      const entry = this.pendingMessages.get(clientMsgId);
+      if (!entry) return;
+
+      if (entry.timer) {
+        clearTimeout(entry.timer);
+        entry.timer = null;
+      }
+
+      const bubble = entry.bubble || entry;
+      if (!bubble) return;
+
+      bubble.classList.remove('message-pending');
+      bubble.classList.add('message-failed');
+
+      const statusNode = bubble.querySelector('.message-status');
+      if (statusNode) {
+        statusNode.innerHTML = `
+          <span class="status-failed-badge" title="${this.escapeHtml(reason || 'Error al enviar')}">
+            <span>&#9888;</span> Falló el envío
+          </span>
+          <button type="button" class="chat-btn-action chat-btn-retry" title="Reintentar envío">&#8635; Reintentar</button>
+          <button type="button" class="chat-btn-action chat-btn-recover" title="Recuperar texto en el campo">&#8617; Recuperar</button>
+        `;
+
+        const retryBtn = statusNode.querySelector('.chat-btn-retry');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.retrySendMessage(clientMsgId);
+          });
+        }
+
+        const recoverBtn = statusNode.querySelector('.chat-btn-recover');
+        if (recoverBtn) {
+          recoverBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.recoverMessageText(clientMsgId);
+          });
+        }
+      }
+    }
+
+    /**
+     * Reintenta el envío de un mensaje previamente fallido vía WebSocket.
+     */
+    retrySendMessage(clientMsgId) {
+      const entry = this.pendingMessages.get(clientMsgId);
+      if (!entry) return;
+
+      const bubble = entry.bubble || entry;
+      const texto = entry.texto;
+
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        bubble.classList.remove('message-failed');
+        bubble.classList.add('message-pending');
+
+        const statusNode = bubble.querySelector('.message-status');
+        if (statusNode) {
+          statusNode.innerHTML = `
+            <span class="status-spinner"></span>
+            <span class="status-text-pending">Reintentando...</span>
+          `;
+        }
+
+        if (entry.timer) clearTimeout(entry.timer);
+        entry.timer = setTimeout(() => {
+          this.markMessageFailed(clientMsgId, 'Tiempo de espera agotado al reintentar');
+        }, 12000);
+
+        try {
+          this.socket.send(JSON.stringify({
+            contenido: texto,
+            client_msg_id: clientMsgId
+          }));
+        } catch (err) {
+          console.error('[ChatRealtime] Error en reintento de envío:', err);
+          this.markMessageFailed(clientMsgId, 'Error en reintento');
+        }
+      } else {
+        console.warn('[ChatRealtime] Socket cerrado al reintentar; reconectando...');
+        this.connectWebSocket();
+        const badge = bubble.querySelector('.status-failed-badge');
+        if (badge) {
+          badge.textContent = 'Reconectando... Vuelve a pulsar Reintentar';
+        }
+      }
+    }
+
+    /**
+     * Recupera el texto de un mensaje fallido hacia el textarea/input y elimina la burbuja fallida.
+     */
+    recoverMessageText(clientMsgId) {
+      const entry = this.pendingMessages.get(clientMsgId);
+      if (!entry) return;
+
+      const bubble = entry.bubble || entry;
+      const texto = entry.texto;
+
+      if (entry.timer) clearTimeout(entry.timer);
+      this.pendingMessages.delete(clientMsgId);
+
+      if (this.inputField) {
+        this.inputField.value = texto;
+        this.inputField.focus();
+      }
+
+      if (bubble && bubble.parentNode) {
+        bubble.remove();
+      }
+    }
+
+    /**
+     * Marca todos los mensajes en cola como fallidos (e.g. desconexión abrupta).
+     */
+    markAllPendingMessagesFailed(reason) {
+      for (const [id] of this.pendingMessages.entries()) {
+        this.markMessageFailed(id, reason);
+      }
+    }
+
+    /**
      * Actualiza una burbuja pendiente a estado 'Entregado' con doble check visual.
      */
     markMessageDelivered(bubble, msg) {
       if (!bubble) return;
 
       bubble.classList.remove('message-pending');
+      bubble.classList.remove('message-failed');
       bubble.classList.add('message-delivered');
 
       if (msg && msg.fecha_envio) {
@@ -252,7 +394,17 @@
 
           const clientMsgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 7);
           const bubble = this.renderOptimisticMessage(texto, clientMsgId);
-          this.pendingMessages.set(clientMsgId, bubble);
+          
+          const timeoutId = setTimeout(() => {
+            this.markMessageFailed(clientMsgId, 'Tiempo de espera agotado');
+          }, 12000);
+
+          this.pendingMessages.set(clientMsgId, {
+            bubble: bubble,
+            texto: texto,
+            clientMsgId: clientMsgId,
+            timer: timeoutId
+          });
 
           try {
             this.socket.send(JSON.stringify({
@@ -261,6 +413,7 @@
             }));
           } catch (err) {
             console.error('[ChatRealtime] Error enviando mensaje por socket:', err);
+            this.markMessageFailed(clientMsgId, 'Error al enviar por socket');
           }
 
           this.inputField.value = '';
