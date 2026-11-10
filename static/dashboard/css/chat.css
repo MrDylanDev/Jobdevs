@@ -176,3 +176,76 @@
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* ==========================================================================
+   [FEAT][CHAT-01] Estados de Entrega e Indicadores Visuales de Mensajes
+   ========================================================================== */
+
+.message-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 5px;
+  font-size: 10.5px;
+}
+
+.message-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+  transition: all 0.22s ease-in-out;
+}
+
+.message-pending {
+  opacity: 0.88;
+}
+
+.message-pending .message-status {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-spinner {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: chatSpin 0.75s linear infinite;
+}
+
+@keyframes chatSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.status-text-pending {
+  font-style: italic;
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+.message-delivered .message-status {
+  color: #38bdf8;
+}
+
+.status-check-delivered {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  font-size: 11px;
+  margin-left: 2px;
+  user-select: none;
+}
+
+.status-text-delivered {
+  font-size: 10px;
+  margin-left: 3px;
+  opacity: 0.85;
+}
+
