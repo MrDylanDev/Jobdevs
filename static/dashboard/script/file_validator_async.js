@@ -67,7 +67,7 @@
             throw new Error('No se seleccionó ningún archivo.');
         }
 
-        const maxMb = options.maxMb || 5;
+        const maxMb = options.maxMb || 10;
         const maxBytes = maxMb * 1024 * 1024;
 
         if (file.size > maxBytes) {
@@ -77,7 +77,7 @@
 
         const nombre = file.name || '';
         const extension = nombre.includes('.') ? nombre.split('.').pop().toLowerCase() : '';
-        const allowedExts = options.allowedExts || [];
+        const allowedExts = options.allowedExts || ['pdf', 'zip', 'png', 'jpg', 'jpeg'];
 
         if (allowedExts.length > 0 && !allowedExts.includes(extension)) {
             throw new Error(`Formato .${extension} no permitido. Formatos válidos: ${allowedExts.join(', ')}.`);
