@@ -516,6 +516,64 @@ class TestRestablecerView:
         assert not user.bloqueado_por_intentos
         assert user.intentos_fallidos == 0
 
+    def test_restablecer_tras_suspension_administrativa_con_bloqueo_previo_por_intentos_no_reactiva(self, client, admin_client, user_with_token):
+        """SCRUM-463: Un usuario bloqueado por intentos y luego suspendido por admin vía API
+        NO debe autoreactivarse al restablecer contraseña."""
+        import json
+        user, token = user_with_token
+        user.intentos_fallidos = 5
+        user.bloqueado_por_intentos = True
+        user.estado = 'suspendido'
+        user.is_active = False
+        user.save()
+
+        # El admin lo suspende por bulk toggle
+        admin_client.post(
+            reverse('api_bulk_toggle'),
+            data=json.dumps({'ids': [user.id], 'action': 'suspend'}),
+            content_type='application/json'
+        )
+
+        user.refresh_from_db()
+        assert not user.bloqueado_por_intentos, "La suspensión administrativa debe limpiar bloqueado_por_intentos"
+
+        # El usuario solicita restablecer contraseña
+        response = client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'NewSecurePass123!', 'password_confirm': 'NewSecurePass123!'}
+        )
+        assert response.status_code == 302
+        user.refresh_from_db()
+        assert user.check_password('NewSecurePass123!')
+        assert user.estado == 'suspendido'
+        assert not user.is_active
+
+    def test_restablecer_tras_editar_usuario_a_suspendido_no_reactiva(self, client, admin_client, user_with_token):
+        """SCRUM-463: Si un usuario tenía bloqueado_por_intentos=True y el admin edita su estado a 'suspendido' o 'inactivo',
+        bloqueado_por_intentos debe limpiarse para no permitir bypass en reset."""
+        import json
+        user, token = user_with_token
+        user.bloqueado_por_intentos = True
+        user.save(update_fields=['bloqueado_por_intentos'])
+
+        admin_client.put(
+            reverse('api_actualizar_usuario', args=[user.id]),
+            data=json.dumps({'estado': 'suspendido'}),
+            content_type='application/json'
+        )
+
+        user.refresh_from_db()
+        assert not user.bloqueado_por_intentos, "Editar estado a suspendido debe limpiar bloqueado_por_intentos"
+
+        client.post(
+            reverse('restablecer', args=[token]),
+            {'password': 'NewSecurePass123!', 'password_confirm': 'NewSecurePass123!'}
+        )
+        user.refresh_from_db()
+        assert user.estado == 'suspendido'
+        assert not user.is_active
+
+
 
 class TestApiSesion:
     """Comprobación ligera usada por el cliente del chat."""
