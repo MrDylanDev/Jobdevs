@@ -70,13 +70,38 @@
   function aplicarFiltro(estado) {
     const consulta = normalizar(estado.buscador.value);
     const tokens = consulta.split(/\s+/).filter(Boolean);
+    let visibles = 0;
 
     estado.tarjetas.forEach(function (tarjeta) {
       const coincide = tokens.every(function (token) {
         return tarjeta.texto.indexOf(token) !== -1;
       });
       tarjeta.nodo.classList.toggle('is-oculto', !coincide);
+      if (coincide) visibles += 1;
     });
+
+    actualizarResumen(estado, consulta, visibles);
+  }
+
+  /**
+   * Actualiza el contador de resultados y el mensaje de lista vacia.
+   */
+  function actualizarResumen(estado, consulta, visibles) {
+    const total = estado.tarjetas.length;
+
+    if (estado.contador) {
+      estado.contador.textContent = consulta
+        ? 'Mostrando ' + visibles + ' de ' + total + ' candidatos'
+        : total + (total === 1 ? ' candidato' : ' candidatos');
+    }
+
+    if (estado.vacio) {
+      estado.vacio.hidden = !(consulta && visibles === 0);
+    }
+
+    if (estado.termino) {
+      estado.termino.textContent = estado.buscador.value.trim();
+    }
   }
 
   /**
@@ -101,6 +126,9 @@
     estado.panel = panel;
     estado.buscador = buscador;
     estado.tarjetas = recolectarTarjetas(scope);
+    estado.contador = panel.querySelector('[data-candidato-contador]');
+    estado.vacio = panel.querySelector('[data-candidato-vacio]');
+    estado.termino = panel.querySelector('[data-candidato-termino]');
 
     if (!estado.inicializado) {
       estado.inicializado = true;
