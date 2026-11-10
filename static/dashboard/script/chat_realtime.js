@@ -45,9 +45,200 @@
     }
 
     /**
-     * Intercepta el envío del formulario para renderizado optimista
-     * y entrega reactiva mediante WebSocket.
+     * Establece la conexión WebSocket con Django Channels y gestiona eventos.
      */
+    connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      let wsPath = '';
+
+      if (this.esGrupal && this.proyectoId) {
+        wsPath = `/ws/chat/grupal/${this.proyectoId}/`;
+      } else if (this.receptorId) {
+        wsPath = `/ws/chat/${this.receptorId}/`;
+        if (this.proyectoId) {
+          wsPath += `?proyecto_id=${this.proyectoId}`;
+        }
+      }
+
+      if (!wsPath) return;
+
+      this.socket = new WebSocket(protocol + window.location.host + wsPath);
+
+      this.socket.onopen = () => {
+        console.log('[ChatRealtime] WebSocket conectado exitosamente');
+        this.reconnectAttempts = 0;
+      };
+
+      this.socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'mensaje' && data.mensaje) {
+            this.handleIncomingMessage(data.mensaje);
+          } else if (data.error) {
+            console.warn('[ChatRealtime] Error desde el servidor:', data.error);
+          }
+        } catch (err) {
+          console.error('[ChatRealtime] Error deserializando mensaje recibido:', err);
+        }
+      };
+
+      this.socket.onclose = (event) => {
+        console.warn(`[ChatRealtime] WebSocket cerrado (código: ${event.code})`);
+        if (event.code === 4401 || event.code === 4403) return;
+
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          const delay = Math.min(30000, this.baseReconnectDelay * Math.pow(1.5, this.reconnectAttempts));
+          this.reconnectAttempts++;
+          setTimeout(() => this.connectWebSocket(), delay);
+        }
+      };
+
+      this.socket.onerror = (err) => {
+        console.error('[ChatRealtime] Excepción en WebSocket:', err);
+      };
+    }
+
+    /**
+     * Procesa un mensaje emitido por el WebSocket en tiempo real.
+     */
+    handleIncomingMessage(msg) {
+      const isMine = msg.remitente_id === this.currentUserId;
+
+      if (isMine) {
+        // Buscar burbuja optimista pendiente correspondiente
+        let matchedBubble = null;
+
+        if (msg.client_msg_id && this.pendingMessages.has(msg.client_msg_id)) {
+          matchedBubble = this.pendingMessages.get(msg.client_msg_id);
+          this.pendingMessages.delete(msg.client_msg_id);
+        } else {
+          // Fallback: buscar la primera burbuja pendiente con igual contenido
+          const pendingBubbles = this.container.querySelectorAll('.message-bubble.message-pending');
+          for (let b of pendingBubbles) {
+            const txt = b.querySelector('.message-content-text');
+            if (txt && txt.textContent.trim() === (msg.contenido || '').trim()) {
+              matchedBubble = b;
+              break;
+            }
+          }
+        }
+
+        if (matchedBubble) {
+          this.markMessageDelivered(matchedBubble, msg);
+          return;
+        }
+      }
+
+      // Si no es un mensaje optimista propio, creamos la burbuja recibida
+      this.renderReceivedMessage(msg, isMine);
+    }
+
+    /**
+     * Actualiza una burbuja pendiente a estado 'Entregado' con doble check visual.
+     */
+    markMessageDelivered(bubble, msg) {
+      if (!bubble) return;
+
+      bubble.classList.remove('message-pending');
+      bubble.classList.add('message-delivered');
+
+      if (msg && msg.fecha_envio) {
+        const timeNode = bubble.querySelector('.message-time');
+        if (timeNode) timeNode.textContent = msg.fecha_envio;
+      }
+
+      const statusNode = bubble.querySelector('.message-status');
+      if (statusNode) {
+        statusNode.innerHTML = `
+          <span class="status-check-delivered" title="Entregado">&#10003;&#10003;</span>
+          <span class="status-text-delivered">Entregado</span>
+        `;
+      }
+    }
+
+    /**
+     * Renderiza un mensaje nuevo recibido desde el socket.
+     */
+    renderReceivedMessage(msg, isMine) {
+      if (!this.container) return;
+
+      const placeholder = this.container.querySelector('div[style*="text-align:center"]');
+      if (placeholder) placeholder.remove();
+
+      const bubble = document.createElement('div');
+      bubble.className = `message-bubble ${isMine ? 'message-sent' : 'message-received'}`;
+
+      if (msg.es_grupal && !isMine) {
+        const sender = document.createElement('div');
+        sender.className = 'message-sender-name';
+        const rolLabel = msg.remitente_rol === 'empresa' ? 'Empresa' : 'Dev';
+        sender.textContent = `${msg.remitente_nombre || 'Usuario'} (${rolLabel})`;
+        bubble.appendChild(sender);
+      }
+
+      const contentNode = document.createElement('div');
+      contentNode.className = 'message-content-text';
+      contentNode.textContent = msg.contenido || '';
+      bubble.appendChild(contentNode);
+
+      // Inyectar previews para el mensaje entrante
+      this.enhanceMessageWithPreviews(bubble);
+
+      // Meta fila
+      const metaRow = document.createElement('div');
+      metaRow.className = 'message-meta-row';
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'message-time';
+      timeSpan.textContent = msg.fecha_envio || '';
+      metaRow.appendChild(timeSpan);
+
+      if (isMine) {
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'message-status';
+        statusSpan.innerHTML = `
+          <span class="status-check-delivered" title="Entregado">&#10003;&#10003;</span>
+          <span class="status-text-delivered">Entregado</span>
+        `;
+        metaRow.appendChild(statusSpan);
+      }
+
+      bubble.appendChild(metaRow);
+      this.container.appendChild(bubble);
+
+      // Auto-scroll suave inteligente hacia el nuevo mensaje
+      this.scrollToBottom(isMine, true);
+    }
+
+    /**
+     * Normaliza los metadatos de mensajes preexistentes renderizados en la carga inicial.
+     */
+    normalizeMessageMeta(bubble) {
+      if (!bubble) return;
+      const existingTime = bubble.querySelector('.message-time');
+      if (!existingTime) return;
+
+      // Si ya está agrupado en meta-row, omitir
+      if (bubble.querySelector('.message-meta-row')) return;
+
+      const metaRow = document.createElement('div');
+      metaRow.className = 'message-meta-row';
+
+      const isSent = bubble.classList.contains('message-sent');
+      existingTime.parentNode.insertBefore(metaRow, existingTime);
+      metaRow.appendChild(existingTime);
+
+      if (isSent) {
+        bubble.classList.add('message-delivered');
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'message-status';
+        statusSpan.innerHTML = `
+          <span class="status-check-delivered" title="Entregado">&#10003;&#10003;</span>
+          <span class="status-text-delivered">Entregado</span>
+        `;
+        metaRow.appendChild(statusSpan);
+      }
+    }
     setupFormSubmit() {
       if (!this.chatForm || !this.inputField) return;
 
