@@ -216,6 +216,17 @@
                     <span class="badge-pill">.JPG</span>
                   </div>
                 </div>
+
+                <!-- Barra de progreso visual durante la subida -->
+                <div id="dropzoneProgressBarContainer" style="display:none; width:100%; margin-top:14px; text-align:left;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:6px;">
+                    <span id="dropzoneProgressLabel" style="font-weight:600; color:var(--corp-brand);">Subiendo archivo a Cloudflare R2...</span>
+                    <span id="dropzoneProgressPercent" style="font-weight:700; color:var(--corp-brand);">0%</span>
+                  </div>
+                  <div style="width:100%; height:8px; background:rgba(0,0,0,0.06); border-radius:999px; overflow:hidden;">
+                    <div id="dropzoneProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--corp-brand), #10b981); border-radius:999px; transition:width 0.2s ease;"></div>
+                  </div>
+                </div>
               </div>
               <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:6px; display:block;">Admite capturas PNG/JPG, documentación PDF y archivos comprimidos ZIP (máx. 10 MB).</small>
             </div>
