@@ -277,12 +277,15 @@
           });
 
           if (candidateCards.length > 0) {
-            let outHtml = '<div class="drawer-candidates-list">';
+            const lista = document.createElement('div');
+            lista.className = 'drawer-candidates-list';
             candidateCards.forEach(function (c) {
-              outHtml += '<div class="drawer-candidate-card">' + c.innerHTML + '</div>';
+              const tarjeta = c.cloneNode(true);
+              tarjeta.classList.remove('card');
+              tarjeta.classList.add('drawer-candidate-card');
+              lista.appendChild(tarjeta);
             });
-            outHtml += '</div>';
-            contentEl.innerHTML = outHtml;
+            contentEl.replaceChildren(lista);
 
             // Los enlaces "Ver Contrato" se abren en el modal in-situ; el resto en nueva pestaña
             contentEl.querySelectorAll('a').forEach(function (link) {
