@@ -91,15 +91,23 @@
       <div class="chat-main">
         <div class="chat-messages" id="chat-container">
           {% for msg in mensajes_chat %}
-            <div class="message-bubble {% if msg.remitente == request.user %}message-sent{% else %}message-received{% endif %}">
+            <div class="message-bubble {% if msg.remitente == request.user %}message-sent message-delivered{% else %}message-received{% endif %}">
               {% if es_grupal and msg.remitente != request.user %}
                 <div class="message-sender-name">
                   {{ msg.remitente.nombre|default:msg.remitente.username }}
                   ({% if msg.remitente.rol == 'empresa' %}Empresa{% else %}Dev{% endif %})
                 </div>
               {% endif %}
-              {{ msg.contenido }}
-              <div class="message-time">{{ msg.fecha_envio|date:"H:i" }}</div>
+              <div class="message-content-text">{{ msg.contenido }}</div>
+              <div class="message-meta-row">
+                <span class="message-time">{{ msg.fecha_envio|date:"H:i" }}</span>
+                {% if msg.remitente == request.user %}
+                  <span class="message-status">
+                    <span class="status-check-delivered" title="Entregado">&#10003;&#10003;</span>
+                    <span class="status-text-delivered">Entregado</span>
+                  </span>
+                {% endif %}
+              </div>
             </div>
           {% empty %}
             <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
@@ -135,7 +143,7 @@
   </div><!-- fin main-wrapper -->
 </div><!-- fin app-layout -->
 
-<script src="{% static 'dashboard/script/chat.js' %}"></script>
+<script src="{% static 'dashboard/script/chat_realtime.js' %}"></script>
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script>
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
