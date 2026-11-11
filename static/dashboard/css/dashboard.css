@@ -744,3 +744,220 @@ ul { list-style: none; }
   .main-content { padding: 16px; }
   .grid-2col, .grid-3col { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   Toasts unificados (UX-02)
+   Sistema compartido por SSE y WebSocket en los tres roles.
+   ============================================================ */
+.jobdevs-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(380px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.jobdevs-toast {
+  --jd-toast-accent: var(--info, #3b82f6);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid var(--jd-toast-accent);
+  border-radius: 12px;
+  background: #111827;
+  color: #f8fafc;
+  box-shadow: 0 18px 40px -12px rgba(2, 6, 23, 0.6), 0 4px 12px rgba(2, 6, 23, 0.28);
+  font-size: 13px;
+  line-height: 1.45;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translate3d(120%, 0, 0);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease;
+}
+
+.jobdevs-toast.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.jobdevs-toast.is-leaving {
+  opacity: 0;
+  transform: translate3d(120%, 0, 0);
+}
+
+.jobdevs-toast:focus-visible {
+  outline: 2px solid var(--jd-toast-accent);
+  outline-offset: 2px;
+}
+
+.jobdevs-toast--success {
+  --jd-toast-accent: var(--corp-success, var(--success, #22c55e));
+}
+.jobdevs-toast--info {
+  --jd-toast-accent: var(--corp-info, var(--info, #3b82f6));
+}
+.jobdevs-toast--warning {
+  --jd-toast-accent: var(--corp-warning, var(--warning, #f59e0b));
+}
+.jobdevs-toast--error {
+  --jd-toast-accent: var(--corp-danger, var(--danger, #ef4444));
+}
+
+.jobdevs-toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-top: 1px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--jd-toast-accent);
+  font-size: 17px;
+}
+
+.jobdevs-toast__icon svg,
+.jobdevs-toast__icon i {
+  width: 18px;
+  height: 18px;
+}
+
+.jobdevs-toast__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.jobdevs-toast__title {
+  margin: 0 0 2px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.jobdevs-toast__message {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #cbd5e1;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.jobdevs-toast__meta {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.jobdevs-toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  margin: -2px -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.jobdevs-toast__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.jobdevs-toast__close:focus-visible {
+  outline: 2px solid var(--jd-toast-accent);
+  outline-offset: 2px;
+}
+
+.jobdevs-toast__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--jd-toast-accent);
+  opacity: 0.85;
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.jobdevs-toast.is-visible .jobdevs-toast__progress {
+  animation: jobdevs-toast-progress var(--jd-toast-duration, 5000ms) linear forwards;
+}
+
+.jobdevs-toast.is-paused .jobdevs-toast__progress {
+  animation-play-state: paused;
+}
+
+@keyframes jobdevs-toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Tema claro de los dashboards de desarrollador y empresa */
+[data-theme="light"] .jobdevs-toast {
+  border-color: rgba(15, 23, 42, 0.1);
+  border-left-color: var(--jd-toast-accent);
+  background: #ffffff;
+  color: #111318;
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .jobdevs-toast__icon {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .jobdevs-toast__title { color: #111318; }
+[data-theme="light"] .jobdevs-toast__message { color: #4b5563; }
+[data-theme="light"] .jobdevs-toast__meta { color: #6b7280; }
+[data-theme="light"] .jobdevs-toast__close { color: #6b7280; }
+[data-theme="light"] .jobdevs-toast__close:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #111318;
+}
+
+@media (max-width: 640px) {
+  .jobdevs-toast-container {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+  .jobdevs-toast {
+    padding: 12px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jobdevs-toast {
+    transition: none;
+  }
+  .jobdevs-toast.is-visible .jobdevs-toast__progress {
+    animation: none;
+    display: none;
+  }
+}

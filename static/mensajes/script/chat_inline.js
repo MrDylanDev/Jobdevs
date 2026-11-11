@@ -391,8 +391,37 @@
         contenido: msg.contenido,
         hora: msg.fecha_envio || msg.hora || '',
         fecha: msg.fecha || fechaDeHoy(),
+        remitente_nombre: msg.remitente_nombre || '',
         es_propio: msg.remitente_id === yoId,
       };
+    }
+
+    function notificarMensajeEntrante(msg) {
+      if (!msg || msg.es_propio) return;
+
+      var api = window.JobDevsToast;
+      if (!api || typeof api.mostrar !== 'function') {
+        if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+          api = { mostrar: window.JobDevsSSE.mostrarToast };
+        } else {
+          return;
+        }
+      }
+
+      api.mostrar({
+        tipo: 'mensaje',
+        titulo: msg.remitente_nombre || 'Nuevo mensaje',
+        mensaje: msg.contenido,
+        duracion: 5000,
+        onClick: function () {
+          if (root.scrollIntoView) {
+            root.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (input && input.focus) {
+            input.focus({ preventScroll: true });
+          }
+        },
+      });
     }
 
     function processIncoming(msg) {
@@ -401,7 +430,11 @@
       appendMessage(normalizado);
       scrollToBottom(false);
       updatePreview(active, normalizado.contenido, normalizado.hora);
-      if (normalizado.es_propio) pendingText = '';
+      if (normalizado.es_propio) {
+        pendingText = '';
+      } else {
+        notificarMensajeEntrante(normalizado);
+      }
     }
 
     function handleIncoming(msg) {

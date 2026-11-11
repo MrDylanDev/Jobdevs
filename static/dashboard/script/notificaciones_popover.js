@@ -63,9 +63,9 @@
         });
     }
 
-    function mostrarToast(mensaje) {
+    function mostrarToast(mensaje, tipo) {
         if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
-            window.JobDevsSSE.mostrarToast({ tipo: 'aprobacion', mensaje: mensaje });
+            window.JobDevsSSE.mostrarToast({ tipo: tipo || 'success', mensaje: mensaje });
         }
     }
 
@@ -124,7 +124,7 @@
             onSuccess(data);
         } catch (error) {
             console.error('JobDevs notificaciones: error al actualizar', error);
-            mostrarToast('No se pudieron actualizar las notificaciones.');
+            mostrarToast('No se pudieron actualizar las notificaciones.', 'error');
         } finally {
             btn.disabled = false;
             btn.textContent = textoOriginal;
@@ -226,7 +226,7 @@
                 btnVerTodas.textContent = 'Ver menos';
             } catch (error) {
                 console.error('JobDevs notificaciones: error al cargar el historial', error);
-                mostrarToast('No se pudieron cargar las notificaciones.');
+                mostrarToast('No se pudieron cargar las notificaciones.', 'error');
                 btnVerTodas.textContent = textoOriginal;
             } finally {
                 btnVerTodas.disabled = false;
