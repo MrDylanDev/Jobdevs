@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from django.conf import settings
 from .models import Notificacion
 from django.contrib import messages
@@ -27,7 +27,7 @@ async def _obtener_estado_notificaciones(user_id, ultimo_id=0):
                 n['fecha'] = n['fecha'].strftime('%d/%m/%Y %H:%M')
         return count, nuevas
 
-    return await sync_to_async(_query)()
+    return await database_sync_to_async(_query)()
 
 
 async def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
@@ -37,11 +37,17 @@ async def notificaciones_event_generator(user, interval=2.0, max_iterations=None
     'sync' si el conteo disminuye (leídas en otra pestaña), y heartbeats ': ping'.
     """
     user_id = user.id
-    count, _ = await _obtener_estado_notificaciones(user_id, ultimo_id=0)
+    try:
+        count, _ = await _obtener_estado_notificaciones(user_id, ultimo_id=0)
+    except Exception:
+        return
 
     def _get_max_id():
         return Notificacion.objects.filter(usuario_id=user_id).order_by('-id').values_list('id', flat=True).first() or 0
-    ultimo_id = await sync_to_async(_get_max_id)()
+    try:
+        ultimo_id = await database_sync_to_async(_get_max_id)()
+    except Exception:
+        return
     ultimo_count = count
 
     # Evento inicial con conteo no leído
@@ -60,7 +66,10 @@ async def notificaciones_event_generator(user, interval=2.0, max_iterations=None
         except asyncio.CancelledError:
             break
 
-        count, nuevas = await _obtener_estado_notificaciones(user_id, ultimo_id)
+        try:
+            count, nuevas = await _obtener_estado_notificaciones(user_id, ultimo_id)
+        except Exception:
+            break
         if nuevas:
             for notif in nuevas:
                 ultimo_id = max(ultimo_id, notif['id'])
