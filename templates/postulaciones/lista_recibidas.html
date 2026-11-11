@@ -7,7 +7,7 @@
   <title>JobDevs | Candidatos Postulados</title>
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261109_v1">
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 </head>
 <body>
@@ -108,10 +108,20 @@
         </div>
       </form>
 
+      {% if postulaciones %}
+        {% include 'postulaciones/_buscador_candidatos.html' with prefijo='page' %}
+      {% endif %}
+
       <!-- Lista de Postulaciones -->
-      <div style="display:flex; flex-direction:column; gap:16px;">
+      <div id="listaCandidatos" style="display:flex; flex-direction:column; gap:16px;">
         {% for post in postulaciones %}
-          <div class="card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+          <div class="card candidate-card{% if post.desarrollador.es_verificado_sena %} candidato-verificado{% endif %}"
+               data-candidato
+               data-nombre="{{ post.desarrollador.nombre }}"
+               data-ficha="{{ post.desarrollador.ficha|default:'' }}"
+               data-habilidades="{{ post.habilidades|default:'' }}"
+               data-verificado-sena="{% if post.desarrollador.es_verificado_sena %}1{% else %}0{% endif %}"
+               style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
               <div style="flex: 1;">
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                       <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" title="Ver perfil público de {{ post.desarrollador.nombre }}" style="flex-shrink: 0;">
@@ -232,10 +242,16 @@
   </div>
 </div>
 
+<script src="{% static 'empresa/script/candidatos_filtro.js' %}?v=20261109_v1"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
+    }
+    if (typeof window.inicializarFiltroCandidatos === 'function') {
+      window.inicializarFiltroCandidatos({
+        scope: document.getElementById('listaCandidatos') || document
+      });
     }
   });
 </script>

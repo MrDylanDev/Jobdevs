@@ -492,6 +492,45 @@ class TestVerPostulacionesEmpresaFiltros:
         )
         assert res.status_code == 404
 
+    def test_tarjetas_exponen_datos_para_filtrado_en_cliente(self, auth_client, escenario):
+        url = reverse('ver_postulaciones_empresa', args=[escenario.id])
+        html = auth_client.get(url).content.decode()
+
+        assert 'id="listaCandidatos"' in html
+        assert 'data-candidato' in html
+        assert 'data-nombre="ANA"' in html
+        assert 'data-ficha="2558104"' in html
+        assert 'data-habilidades="Python, Django, SQL"' in html
+        assert 'class="card candidate-card' in html
+
+        assert 'data-candidato-panel' in html
+        assert 'id="pageCandidatoBusqueda"' in html
+        assert 'id="pageCandidatoSinResultados"' in html
+        assert 'empresa/script/candidatos_filtro.js' in html
+
+    def test_tarjeta_verificada_sena_se_resalta(self, auth_client, escenario):
+        from usuarios.models import PerfilDesarrollador
+
+        perfil = PerfilDesarrollador.objects.get(usuario__username='ana')
+        perfil.estado_verificacion = 'verificado'
+        perfil.save(update_fields=['estado_verificacion'])
+
+        url = reverse('ver_postulaciones_empresa', args=[escenario.id])
+        html = auth_client.get(url).content.decode()
+
+        assert 'candidato-verificado' in html
+        assert 'data-verificado-sena="1"' in html
+        assert html.count('candidato-verificado') == 1
+        assert html.count('data-verificado-sena="0"') == 2
+
+    def test_buscador_incluye_mensaje_sin_resultados(self, auth_client, escenario):
+        url = reverse('ver_postulaciones_empresa', args=[escenario.id])
+        html = auth_client.get(url).content.decode()
+
+        assert 'data-candidato-contador' in html
+        assert 'data-candidato-vacio' in html
+        assert 'No encontramos candidatos que coincidan con' in html
+
 
 class TestIniciarNegociacion:
     """SCRUM-149: la empresa inicia negociación y se crea el contrato digital borrador."""

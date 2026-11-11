@@ -8,6 +8,95 @@
   <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <style>
+    .dropzone-area {
+      border: 2px dashed var(--corp-border, #cbd5e1);
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      position: relative;
+      user-select: none;
+    }
+    .dropzone-area:hover, .dropzone-area:focus-visible {
+      border-color: var(--corp-brand, #2563eb);
+      background: #f0f7ff;
+    }
+    .dropzone-area.dragover {
+      border-color: var(--corp-brand, #2563eb);
+      background: #e0f2fe;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+      transform: scale(1.008);
+    }
+    .dropzone-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .dropzone-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e0e7ff;
+      color: var(--corp-brand, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      transition: transform 0.2s ease;
+    }
+    .dropzone-area:hover .dropzone-icon-wrapper,
+    .dropzone-area.dragover .dropzone-icon-wrapper {
+      transform: translateY(-2px);
+    }
+    .dropzone-main-icon {
+      width: 24px;
+      height: 24px;
+    }
+    .dropzone-title {
+      margin: 0;
+      font-size: 13.5px;
+      color: #1e293b;
+    }
+    .dropzone-browse {
+      color: var(--corp-brand, #2563eb);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .dropzone-subtitle {
+      margin: 0;
+      font-size: 11.5px;
+      color: var(--corp-slate-500, #64748b);
+    }
+    .dropzone-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 2px 7px;
+      background: #e2e8f0;
+      color: #475569;
+      border-radius: 999px;
+    }
+    .spin {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .btn-quitar-archivo:hover {
+      background: #fecaca !important;
+    }
+  </style>
 </head>
 <body>
 <div class="app-layout">
@@ -102,18 +191,69 @@
 
             <div class="form-group-corp" id="grupoArchivo" style="margin-bottom:0;">
               <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
-                <i data-lucide="paperclip" style="width:14px; height:14px; color:var(--corp-brand);"></i>
-                <span>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
+                <i data-lucide="cloud-upload" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                <span>Archivo de Evidencia (Cloudflare R2) <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
               </label>
-              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" class="form-input-corp">
-              <div id="archivoPreviewBadge" style="display:none; margin-top:10px; padding:10px 14px; background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:8px; font-size:12.5px; color:#007c34; align-items:center; justify-content:space-between;">
-                <span style="display:flex; align-items:center; gap:8px;">
-                  <i data-lucide="check-circle-2" style="width:15px; height:15px; color:var(--corp-brand);"></i>
-                  <strong id="archivoNombreLabel"></strong> (<span id="archivoTamanoLabel"></span>)
-                </span>
-                <button type="button" id="quitarArchivoBtn" style="background:none; border:none; color:#e11d48; cursor:pointer; font-size:12px; font-weight:700;">Quitar</button>
+
+              <!-- Inputs técnicos para archivo local y clave de Cloudflare R2 -->
+              <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" style="display:none;">
+              <input type="hidden" id="r2FileKeyInput" name="r2_file_key" value="">
+
+              <!-- Zona Drag & Drop interactiva -->
+              <div id="dropzoneEvidencias" class="dropzone-area" tabindex="0" role="button" aria-label="Arrastra o selecciona un archivo de evidencia">
+                <div class="dropzone-content" id="dropzonePrompt">
+                  <div class="dropzone-icon-wrapper">
+                    <i data-lucide="upload-cloud" class="dropzone-main-icon"></i>
+                  </div>
+                  <div class="dropzone-text">
+                    <p class="dropzone-title"><strong>Arrastra y suelta tu archivo aquí</strong> o <span class="dropzone-browse">explora tus archivos</span></p>
+                    <p class="dropzone-subtitle">Archivos ZIP con código, capturas PNG/JPG o documentos PDF (Máx. 10 MB)</p>
+                  </div>
+                  <div class="dropzone-badges">
+                    <span class="badge-pill">.PDF</span>
+                    <span class="badge-pill">.ZIP</span>
+                    <span class="badge-pill">.PNG</span>
+                    <span class="badge-pill">.JPG</span>
+                  </div>
+                </div>
+
+                <!-- Barra de progreso visual durante la subida -->
+                <div id="dropzoneProgressBarContainer" style="display:none; width:100%; margin-top:14px; text-align:left;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:6px;">
+                    <span id="dropzoneProgressLabel" style="font-weight:600; color:var(--corp-brand);">Subiendo archivo a Cloudflare R2...</span>
+                    <span id="dropzoneProgressPercent" style="font-weight:700; color:var(--corp-brand);">0%</span>
+                  </div>
+                  <div style="width:100%; height:8px; background:rgba(0,0,0,0.06); border-radius:999px; overflow:hidden;">
+                    <div id="dropzoneProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--corp-brand), #10b981); border-radius:999px; transition:width 0.2s ease;"></div>
+                  </div>
+                </div>
               </div>
-              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:5px; display:block;">Admite archivos ZIP con código, capturas PNG/JPG o documentación PDF (máx. 10 MB).</small>
+
+              <!-- Preview con nombre del archivo, tamaño y botón para remover -->
+              <div id="archivoPreviewCard" style="display:none; margin-top:12px; padding:12px 16px; background:#f8fafc; border:1px solid var(--corp-border); border-radius:10px; align-items:center; justify-content:space-between; gap:12px;">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                  <div id="previewThumbnailContainer" style="width:40px; height:40px; border-radius:8px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                    <img id="previewThumbnailImg" src="" alt="Vista previa" style="display:none; width:100%; height:100%; object-fit:cover;">
+                    <i id="previewTypeIcon" data-lucide="file" style="width:20px; height:20px; color:var(--corp-brand);"></i>
+                  </div>
+                  <div style="min-width:0; flex:1;">
+                    <div id="archivoNombreLabel" style="font-weight:600; font-size:13px; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+                    <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--corp-slate-500); margin-top:2px;">
+                      <span id="archivoTamanoLabel"></span>
+                      <span style="display:inline-block; width:3px; height:3px; border-radius:50%; background:#94a3b8;"></span>
+                      <span id="archivoEstadoUpload" style="color:#059669; font-weight:600; display:flex; align-items:center; gap:4px;">
+                        <i data-lucide="check-circle-2" style="width:12px; height:12px;"></i> Listo
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" id="quitarArchivoBtn" class="btn-quitar-archivo" title="Remover archivo" style="background:#fee2e2; border:none; border-radius:6px; color:#dc2626; padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; flex-shrink:0; transition:all 0.15s ease;">
+                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                  <span>Remover</span>
+                </button>
+              </div>
+
+              <small style="color:var(--corp-slate-500); font-size:11.5px; margin-top:6px; display:block;">Admite capturas PNG/JPG, documentación PDF y archivos comprimidos ZIP (máx. 10 MB).</small>
             </div>
 
             <div style="border-top:1px solid var(--corp-border); padding-top:20px; display:flex; gap:12px; justify-content:flex-end;">

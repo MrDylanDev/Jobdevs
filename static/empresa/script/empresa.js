@@ -239,6 +239,13 @@
 
     window._ultimoUrlCandidatos = url;
 
+    const buscadorWrapper = document.getElementById('drawerCandidatosBuscador');
+    if (buscadorWrapper) {
+      buscadorWrapper.hidden = true;
+      const buscadorInput = document.getElementById('drawerCandidatoBusqueda');
+      if (buscadorInput) buscadorInput.value = '';
+    }
+
     const drawer = document.getElementById('drawerCandidatos');
     const titleEl = document.getElementById('drawerProjectTitle');
     const contentEl = document.getElementById('drawerContent');
@@ -277,12 +284,15 @@
           });
 
           if (candidateCards.length > 0) {
-            let outHtml = '<div class="drawer-candidates-list">';
+            const lista = document.createElement('div');
+            lista.className = 'drawer-candidates-list';
             candidateCards.forEach(function (c) {
-              outHtml += '<div class="drawer-candidate-card">' + c.innerHTML + '</div>';
+              const tarjeta = c.cloneNode(true);
+              tarjeta.classList.remove('card');
+              tarjeta.classList.add('drawer-candidate-card');
+              lista.appendChild(tarjeta);
             });
-            outHtml += '</div>';
-            contentEl.innerHTML = outHtml;
+            contentEl.replaceChildren(lista);
 
             // Los enlaces "Ver Contrato" se abren en el modal in-situ; el resto en nueva pestaña
             contentEl.querySelectorAll('a').forEach(function (link) {
@@ -300,10 +310,16 @@
               link.setAttribute('rel', 'noopener');
             });
 
+            if (buscadorWrapper) buscadorWrapper.hidden = false;
+            if (typeof window.inicializarFiltroCandidatos === 'function') {
+              window.inicializarFiltroCandidatos({ scope: contentEl });
+            }
+
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
               window.lucide.createIcons();
             }
           } else {
+            if (buscadorWrapper) buscadorWrapper.hidden = true;
             contentEl.innerHTML = '<div class="activity-empty" style="padding:40px 20px;"><i data-lucide="user-x"></i><p>No se encontraron candidatos postulados para este proyecto.</p></div>';
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
               window.lucide.createIcons();
@@ -311,6 +327,7 @@
           }
         })
         .catch(function () {
+          if (buscadorWrapper) buscadorWrapper.hidden = true;
           contentEl.innerHTML = '<div class="activity-empty" style="padding:40px 20px;"><i data-lucide="alert-triangle" style="color:var(--corp-danger);"></i><p>No se pudo cargar la vista previa in-situ.</p></div>';
           if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
@@ -325,6 +342,11 @@
       drawer.classList.remove('is-open');
       document.body.style.overflow = '';
     }
+
+    const buscadorWrapper = document.getElementById('drawerCandidatosBuscador');
+    if (buscadorWrapper) buscadorWrapper.hidden = true;
+    const buscadorInput = document.getElementById('drawerCandidatoBusqueda');
+    if (buscadorInput) buscadorInput.value = '';
   };
 
   // --- 2.5b Modal In-Situ de Contrato Digital (firma electrónica sin recargar) ---
