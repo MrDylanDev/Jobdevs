@@ -1,47 +1,52 @@
-import asyncio
 import json
+import time
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import StreamingHttpResponse, HttpResponse, JsonResponse
-from asgiref.sync import sync_to_async
 from django.conf import settings
 from .models import Notificacion
 from django.contrib import messages
 
 
-async def _obtener_estado_notificaciones(user_id, ultimo_id=0):
-    """Consulta de forma asíncrona el conteo de no leídas y notificaciones nuevas."""
-    def _query():
-        qs = Notificacion.objects.filter(usuario_id=user_id, leida=False)
-        count = qs.count()
-        nuevas = list(
-            qs.filter(id__gt=ultimo_id)
-            .order_by('id')
-            .values('id', 'tipo', 'mensaje', 'fecha')[:10]
-        )
-        for n in nuevas:
-            if n.get('fecha'):
-                n['fecha'] = n['fecha'].strftime('%d/%m/%Y %H:%M')
-        return count, nuevas
-
-    return await sync_to_async(_query)()
+def _obtener_estado_notificaciones(user_id, ultimo_id=0):
+    """Consulta el conteo de no leídas y las notificaciones nuevas."""
+    qs = Notificacion.objects.filter(usuario_id=user_id, leida=False)
+    count = qs.count()
+    nuevas = list(
+        qs.filter(id__gt=ultimo_id)
+        .order_by('id')
+        .values('id', 'tipo', 'mensaje', 'fecha')[:10]
+    )
+    for n in nuevas:
+        if n.get('fecha'):
+            n['fecha'] = n['fecha'].strftime('%d/%m/%Y %H:%M')
+    return count, nuevas
 
 
-async def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
+def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
     """
-    Generador asíncrono para Server-Sent Events (SSE).
+    Generador síncrono para Server-Sent Events (SSE).
     Emite 'init' inicial con unread_count, 'notificacion' ante nuevas notificaciones,
     'sync' si el conteo disminuye (leídas en otra pestaña), y heartbeats ': ping'.
+
+    Debe ser síncrono: StreamingHttpResponse solo sirve iteradores asíncronos de
+    forma no bufferizada bajo ASGI. Bajo WSGI (runserver, LiveServerTestCase de los
+    tests E2E y gunicorn síncrono) Django no puede iterar un async generator, lo
+    bufferiza por completo y, al ser un stream infinito, deja el hilo colgado.
     """
     user_id = user.id
-    count, _ = await _obtener_estado_notificaciones(user_id, ultimo_id=0)
+    count, _ = _obtener_estado_notificaciones(user_id, ultimo_id=0)
 
-    def _get_max_id():
-        return Notificacion.objects.filter(usuario_id=user_id).order_by('-id').values_list('id', flat=True).first() or 0
-    ultimo_id = await sync_to_async(_get_max_id)()
+    ultimo_id = (
+        Notificacion.objects.filter(usuario_id=user_id)
+        .order_by('-id')
+        .values_list('id', flat=True)
+        .first()
+        or 0
+    )
     ultimo_count = count
 
     # Evento inicial con conteo no leído
@@ -55,12 +60,9 @@ async def notificaciones_event_generator(user, interval=2.0, max_iterations=None
             break
         iterations += 1
 
-        try:
-            await asyncio.sleep(interval)
-        except asyncio.CancelledError:
-            break
+        time.sleep(interval)
 
-        count, nuevas = await _obtener_estado_notificaciones(user_id, ultimo_id)
+        count, nuevas = _obtener_estado_notificaciones(user_id, ultimo_id)
         if nuevas:
             for notif in nuevas:
                 ultimo_id = max(ultimo_id, notif['id'])

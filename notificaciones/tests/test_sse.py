@@ -36,7 +36,7 @@ class TestNotificacionesSSE:
         def mock_generator(user, interval=2.0, max_iterations=None):
             generator_args['interval'] = interval
             generator_args['max_iterations'] = max_iterations
-            async def _empty():
+            def _empty():
                 yield "event: init\ndata: {}\n\n"
             return _empty()
 
@@ -49,57 +49,51 @@ class TestNotificacionesSSE:
             assert generator_args['interval'] == 2.0
             assert generator_args['max_iterations'] is None
 
-    @pytest.mark.asyncio
-    async def test_generador_emite_init_y_notificacion(self):
+    def test_generador_emite_init_y_notificacion(self):
         """El generador emite evento init inicial y evento notificacion al detectar nuevas."""
-        from asgiref.sync import sync_to_async
-        user = await sync_to_async(User.objects.create_user)(
+        user = User.objects.create_user(
             username='sse_user', email='sse@test.jobdevs', password='Password123!', rol='desarrollador'
         )
-        await sync_to_async(Notificacion.objects.create)(
+        Notificacion.objects.create(
             usuario=user, mensaje='Notif previa', tipo='alerta'
         )
 
         gen = notificaciones_event_generator(user, interval=0.05, max_iterations=2)
         # Primer evento: init
-        ev1 = await anext(gen)
+        ev1 = next(gen)
         assert ev1.startswith("event: init\n")
         assert '"unread_count": 1' in ev1
 
         # Crear nueva notificación mientras corre el generador
-        await sync_to_async(Notificacion.objects.create)(
+        Notificacion.objects.create(
             usuario=user, mensaje='Nueva notif SSE', tipo='postulacion'
         )
 
         # Segundo evento: notificacion
-        ev2 = await anext(gen)
+        ev2 = next(gen)
         assert ev2.startswith("event: notificacion\n")
         assert "Nueva notif SSE" in ev2
         assert '"unread_count": 2' in ev2
 
-    @pytest.mark.asyncio
-    async def test_generador_emite_sync_al_marcar_leidas(self):
+    def test_generador_emite_sync_al_marcar_leidas(self):
         """El generador emite evento sync cuando el conteo no leído cambia sin nuevas notificaciones."""
-        from asgiref.sync import sync_to_async
-        user = await sync_to_async(User.objects.create_user)(
+        user = User.objects.create_user(
             username='sse_user_sync', email='ssesync@test.jobdevs', password='Password123!', rol='empresa'
         )
-        notif = await sync_to_async(Notificacion.objects.create)(
+        notif = Notificacion.objects.create(
             usuario=user, mensaje='Para leer', tipo='mensaje'
         )
 
         gen = notificaciones_event_generator(user, interval=0.05, max_iterations=2)
-        ev1 = await anext(gen)
+        ev1 = next(gen)
         assert '"unread_count": 1' in ev1
 
         # Marcar como leída
-        def _marcar():
-            notif.leida = True
-            notif.save(update_fields=['leida'])
-        await sync_to_async(_marcar)()
+        notif.leida = True
+        notif.save(update_fields=['leida'])
 
         # Siguiente evento: sync
-        ev2 = await anext(gen)
+        ev2 = next(gen)
         assert ev2.startswith("event: sync\n")
         assert '"unread_count": 0' in ev2
 
