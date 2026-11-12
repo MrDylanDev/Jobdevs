@@ -40,7 +40,8 @@
 
     function actualizarBadges(count) {
         const parsedCount = parseInt(count, 10) || 0;
-        const badges = document.querySelectorAll('.notif-badge, .nav-badge');
+        // Solo notificaciones: .nav-badge es genérico (mensajes, postulaciones...).
+        const badges = document.querySelectorAll('.notif-badge, [data-notif-badge]');
 
         if (parsedCount > 0) {
             badges.forEach(badge => {

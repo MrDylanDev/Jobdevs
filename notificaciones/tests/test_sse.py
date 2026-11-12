@@ -1,8 +1,13 @@
 import pytest
+from django.test import AsyncRequestFactory
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from notificaciones.models import Notificacion
-from notificaciones.views import notificaciones_event_generator
+from notificaciones.views import (
+    notificaciones_event_generator,
+    notificaciones_event_generator_async,
+    notificaciones_stream,
+)
 
 User = get_user_model()
 
@@ -25,6 +30,9 @@ class TestNotificacionesSSE:
         assert 'text/event-stream' in response['Content-Type']
         assert 'no-cache' in response['Cache-Control']
         assert response['X-Accel-Buffering'] == 'no'
+        # El cliente de tests usa WSGI: el driver debe ser el síncrono.
+        assert response.streaming is True
+        assert response.is_async is False
 
     def test_sse_endpoint_ignora_params_en_produccion(self, auth_client, desarrollador_user, monkeypatch):
         """SCRUM-447: En producción no se permite forzar interval bajo ni max_iterations vía query params."""
@@ -119,3 +127,35 @@ class TestNotificacionesSSE:
                 content = f.read()
             assert 'notificaciones_sse.js' in content, f"Template {tpl} debe cargar notificaciones_sse.js"
 
+
+@pytest.mark.asyncio
+async def test_generador_async_emite_init(desarrollador_user):
+    """El driver ASGI emite el evento inicial sin bloquear el stream."""
+    generador = notificaciones_event_generator_async(
+        desarrollador_user, interval=0.05, max_iterations=1
+    )
+
+    evento = await anext(generador)
+    assert evento.startswith("event: init\n")
+    assert '"tipo": "init"' in evento
+
+    await generador.aclose()
+
+
+def test_sse_bajo_asgi_usa_iterador_asincrono(desarrollador_user):
+    """
+    Bajo ASGI (producción: Gunicorn + UvicornWorker) la respuesta debe
+    exponer un iterador async; un iterador síncrono infinito se consumiría
+    completo con sync_to_async(list) y nunca enviaría el primer evento.
+
+    Se construye la ASGIRequest directamente para no depender del cliente
+    async (SQLite bloquea la BD compartida entre hilos al autenticar).
+    """
+    request = AsyncRequestFactory().get(reverse('notificaciones_stream'))
+    request.user = desarrollador_user
+
+    response = notificaciones_stream(request)
+
+    assert response.status_code == 200
+    assert response.streaming is True
+    assert response.is_async is True

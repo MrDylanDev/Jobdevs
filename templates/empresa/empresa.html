@@ -48,7 +48,7 @@
         <i data-lucide="layout-dashboard"></i>
         <span>{% trans "Dashboard" %}</span>
         {% if notificaciones_pendientes_count > 0 %}
-          <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
+          <span class="nav-badge" data-notif-badge>{{ notificaciones_pendientes_count }}</span>
         {% endif %}
       </button>
       <button class="nav-item" onclick="switchTab('centro-chat', this)" title="{% trans "Mensajes" %}">

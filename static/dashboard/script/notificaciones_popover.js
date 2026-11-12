@@ -11,6 +11,19 @@
     if (!popover || !toggle) return;
 
     const body = popover.querySelector('[data-notif-body]');
+    const btnMarcarTodas = popover.querySelector('[data-notif-mark-all]');
+    const btnLimpiar = popover.querySelector('[data-notif-clear]');
+    const btnVerTodas = popover.querySelector('[data-notif-ver-todas]');
+
+    // Estado canónico de la lista. El DOM se renderiza a partir de aquí, así
+    // que "Ver menos" no restaura HTML viejo ni pierde eventos SSE.
+    let recientes = leerNotificacionesIniciales();
+    let historial = null;
+    let expandido = false;
+    let peticionHistorial = null;
+    // Se incrementa con cada mutación (marcar/limpiar) para descartar
+    // respuestas de historial que lleguen tarde.
+    let versionEstado = 0;
 
     function getCsrfToken() {
         const input = popover.querySelector('[name=csrfmiddlewaretoken]');
@@ -29,13 +42,60 @@
         toggle.setAttribute('aria-expanded', String(abierto));
     }
 
+    function refrescarIconos() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    }
+
+    function crearIcono(nombre) {
+        const icon = document.createElement('i');
+        icon.setAttribute('data-lucide', nombre);
+        return icon;
+    }
+
+    function leerNotificacionesIniciales() {
+        if (!body) return [];
+        return Array.from(body.querySelectorAll('.notif-popover-item')).map(function (item) {
+            const mensajeEl = item.querySelector('.notif-popover-text > span');
+            const fechaEl = item.querySelector('.notif-popover-text > small');
+            return {
+                id: item.getAttribute('data-notif-id') || '',
+                mensaje: mensajeEl ? mensajeEl.textContent : '',
+                fecha: fechaEl ? fechaEl.textContent : '',
+                leida: !item.classList.contains('is-unread'),
+                tipo: '',
+            };
+        });
+    }
+
+    function mismoId(a, b) {
+        return String(a) === String(b);
+    }
+
+    function hayNoLeidas() {
+        return recientes.some(function (n) { return !n.leida; })
+            || (historial || []).some(function (n) { return !n.leida; });
+    }
+
+    function hayNotificaciones() {
+        return recientes.length > 0 || (historial || []).length > 0;
+    }
+
+    function mostrarControles() {
+        if (btnMarcarTodas) btnMarcarTodas.hidden = !hayNoLeidas();
+        if (btnLimpiar) btnLimpiar.hidden = !hayNotificaciones();
+    }
+
     function actualizarBadges(count) {
         if (window.JobDevsSSE && typeof window.JobDevsSSE.actualizarBadges === 'function') {
             window.JobDevsSSE.actualizarBadges(count);
             return;
         }
         const total = parseInt(count, 10) || 0;
-        document.querySelectorAll('.notif-badge, .nav-badge').forEach(function (badge) {
+        // Solo el badge de notificaciones: .nav-badge es genérico y lo usan
+        // mensajes, postulaciones, contratos, etc.
+        document.querySelectorAll('.notif-badge, [data-notif-badge]').forEach(function (badge) {
             badge.textContent = String(total);
             badge.style.setProperty('display', total > 0 ? 'inline-flex' : 'none', 'important');
         });
@@ -53,14 +113,14 @@
             const empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.style.padding = '20px';
-            const icon = document.createElement('i');
-            icon.className = 'fa fa-inbox';
+            const icon = crearIcono('inbox');
             const text = document.createElement('p');
             text.textContent = 'Sin notificaciones';
             empty.appendChild(icon);
             empty.appendChild(text);
             list.appendChild(empty);
         });
+        refrescarIconos();
     }
 
     function mostrarToast(mensaje) {
@@ -73,8 +133,7 @@
         const empty = document.createElement('div');
         empty.className = 'notif-popover-empty';
         empty.setAttribute('data-notif-empty', '');
-        const icon = document.createElement('i');
-        icon.className = 'fa fa-bell-slash';
+        const icon = crearIcono('bell-off');
         const text = document.createElement('span');
         text.textContent = 'No hay notificaciones';
         empty.appendChild(icon);
@@ -87,8 +146,7 @@
         item.className = 'notif-popover-item' + (notificacion.leida ? '' : ' is-unread');
         item.setAttribute('data-notif-id', notificacion.id || '');
 
-        const icon = document.createElement('i');
-        icon.className = 'fa fa-circle-dot';
+        const icon = crearIcono('circle');
 
         const wrapper = document.createElement('div');
         wrapper.className = 'notif-popover-text';
@@ -102,6 +160,125 @@
         item.appendChild(icon);
         item.appendChild(wrapper);
         return item;
+    }
+
+    function renderLista(lista) {
+        if (!body) return;
+        body.innerHTML = '';
+        if (!lista.length) {
+            body.appendChild(estadoVacio());
+        } else {
+            lista.forEach(function (notificacion) {
+                body.appendChild(crearItem(notificacion));
+            });
+        }
+        refrescarIconos();
+    }
+
+    function cancelarPeticionHistorial() {
+        if (peticionHistorial) {
+            peticionHistorial.abort();
+            peticionHistorial = null;
+        }
+    }
+
+    function fusionarHistorial(items) {
+        const porId = new Map();
+        const idsServidor = [];
+
+        (items || []).forEach(function (notificacion) {
+            const id = String(notificacion.id);
+            idsServidor.push(id);
+            porId.set(id, Object.assign({}, notificacion));
+        });
+
+        // El estado local es más reciente para los ids ya conocidos (por
+        // ejemplo, si se marcaron leídas mientras la petición estaba en vuelo).
+        recientes.forEach(function (notificacion) {
+            const id = String(notificacion.id);
+            if (porId.has(id)) {
+                const base = porId.get(id);
+                base.leida = notificacion.leida;
+                if (!base.mensaje) base.mensaje = notificacion.mensaje;
+                if (!base.fecha) base.fecha = notificacion.fecha;
+            } else {
+                porId.set(id, Object.assign({}, notificacion));
+            }
+        });
+
+        const extras = recientes.filter(function (notificacion) {
+            return !idsServidor.includes(String(notificacion.id));
+        });
+
+        return extras.concat(Array.from(porId.values()));
+    }
+
+    async function cargarHistorial(opciones) {
+        if (!btnVerTodas) return;
+        const silencioso = Boolean(opciones && opciones.silencioso);
+        const url = btnVerTodas.getAttribute('data-url');
+        if (!url) return;
+
+        cancelarPeticionHistorial();
+        const controlador = new AbortController();
+        peticionHistorial = controlador;
+        const version = versionEstado;
+        const textoOriginal = btnVerTodas.textContent;
+
+        btnVerTodas.disabled = true;
+        if (!silencioso) btnVerTodas.textContent = 'Cargando...';
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                signal: controlador.signal,
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+
+            const data = await response.json();
+            // Si hubo "Limpiar"/"Marcar leídas" mientras cargaba, esta
+            // respuesta ya no representa el estado actual.
+            if (controlador.signal.aborted || version !== versionEstado) return;
+
+            historial = fusionarHistorial(data.notificaciones || []);
+            expandido = true;
+            renderLista(historial);
+            btnVerTodas.hidden = false;
+            btnVerTodas.textContent = 'Ver menos';
+            mostrarControles();
+
+            if (typeof data.unread_count === 'number') {
+                actualizarBadges(data.unread_count);
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('JobDevs notificaciones: error al cargar el historial', error);
+            mostrarToast('No se pudieron cargar las notificaciones.');
+            btnVerTodas.textContent = expandido ? 'Ver menos' : textoOriginal;
+        } finally {
+            if (peticionHistorial === controlador) {
+                peticionHistorial = null;
+                btnVerTodas.disabled = false;
+            } else if (!peticionHistorial) {
+                // La petición fue cancelada y no hay otra en curso.
+                btnVerTodas.disabled = false;
+            }
+        }
+    }
+
+    function colapsarHistorial() {
+        expandido = false;
+        historial = null;
+        cancelarPeticionHistorial();
+        renderLista(recientes);
+        if (btnVerTodas) {
+            btnVerTodas.textContent = 'Ver todas';
+            btnVerTodas.hidden = recientes.length === 0;
+        }
+        mostrarControles();
     }
 
     async function ejecutarAccion(btn, onSuccess) {
@@ -146,41 +323,46 @@
         if (event.key === 'Escape' && estaAbierto()) setAbierto(false);
     });
 
-    const btnMarcarTodas = popover.querySelector('[data-notif-mark-all]');
     if (btnMarcarTodas) {
         btnMarcarTodas.addEventListener('click', function () {
             ejecutarAccion(btnMarcarTodas, function (data) {
-                popover.querySelectorAll('.notif-popover-item.is-unread').forEach(function (item) {
-                    item.classList.remove('is-unread');
-                });
-                actualizarBadges(0);
+                // Invalida cualquier historial en vuelo antes de mutar estado.
+                versionEstado += 1;
+                cancelarPeticionHistorial();
                 ocultarFormulariosMarcarLeidas();
-                btnMarcarTodas.hidden = true;
+
+                recientes.forEach(function (notificacion) { notificacion.leida = true; });
+                if (historial) {
+                    historial.forEach(function (notificacion) { notificacion.leida = true; });
+                }
+                renderLista(expandido && historial ? historial : recientes);
+                actualizarBadges(0);
+                mostrarControles();
+
+                // Si el historial estaba abierto, recargarlo para reflejar
+                // también las notificaciones que no estaban en pantalla.
+                if (expandido) cargarHistorial({ silencioso: true });
+
                 mostrarToast(data.mensaje || 'Notificaciones marcadas como leídas.');
             });
         });
     }
 
-    const btnVerTodas = popover.querySelector('[data-notif-ver-todas]');
-    let htmlInicial = null;
-    let expandido = false;
-
-    const btnLimpiar = popover.querySelector('[data-notif-clear]');
     if (btnLimpiar) {
         btnLimpiar.addEventListener('click', function () {
             ejecutarAccion(btnLimpiar, function (data) {
-                if (body) {
-                    body.innerHTML = '';
-                    body.appendChild(estadoVacio());
-                }
-                htmlInicial = '';
+                versionEstado += 1;
+                cancelarPeticionHistorial();
+
+                recientes = [];
+                historial = null;
                 expandido = false;
+                renderLista([]);
                 if (btnVerTodas) btnVerTodas.hidden = true;
                 actualizarBadges(0);
                 ocultarFormulariosMarcarLeidas();
                 vaciarTarjetasNotificaciones();
-                btnLimpiar.hidden = true;
-                if (btnMarcarTodas) btnMarcarTodas.hidden = true;
+                mostrarControles();
                 mostrarToast(data.mensaje || 'Notificaciones eliminadas.');
             });
         });
@@ -188,62 +370,46 @@
 
     // "Ver todas" carga el historial completo dentro del popover, sin navegar.
     if (btnVerTodas) {
-        btnVerTodas.addEventListener('click', async function () {
+        btnVerTodas.addEventListener('click', function () {
             if (expandido) {
-                if (body) body.innerHTML = htmlInicial || '';
-                expandido = false;
-                btnVerTodas.textContent = 'Ver todas';
+                colapsarHistorial();
                 return;
             }
-
-            if (htmlInicial === null && body) htmlInicial = body.innerHTML;
-
-            const textoOriginal = btnVerTodas.textContent;
-            btnVerTodas.disabled = true;
-            btnVerTodas.textContent = 'Cargando...';
-            try {
-                const response = await fetch(btnVerTodas.getAttribute('data-url'), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                });
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                const data = await response.json();
-                const notificaciones = data.notificaciones || [];
-
-                if (body) {
-                    body.innerHTML = '';
-                    if (notificaciones.length) {
-                        notificaciones.forEach(function (notificacion) {
-                            body.appendChild(crearItem(notificacion));
-                        });
-                    } else {
-                        body.appendChild(estadoVacio());
-                    }
-                }
-                expandido = true;
-                btnVerTodas.textContent = 'Ver menos';
-            } catch (error) {
-                console.error('JobDevs notificaciones: error al cargar el historial', error);
-                mostrarToast('No se pudieron cargar las notificaciones.');
-                btnVerTodas.textContent = textoOriginal;
-            } finally {
-                btnVerTodas.disabled = false;
-            }
+            cargarHistorial();
         });
     }
 
-    // Las notificaciones que llegan por SSE se insertan en el popover abierto.
+    // Las notificaciones que llegan por SSE se insertan en el estado y en la
+    // vista activa; también reactivan los controles si estaban ocultos.
     document.addEventListener('jobdevs:notificacion', function (event) {
         const data = event.detail || {};
         if (!body || !data.mensaje) return;
 
-        const empty = body.querySelector('[data-notif-empty]');
-        if (empty) empty.remove();
+        const notificacion = {
+            id: data.id != null ? String(data.id) : '',
+            mensaje: data.mensaje,
+            fecha: data.fecha || 'Ahora',
+            leida: false,
+            tipo: data.tipo || '',
+        };
 
-        body.prepend(crearItem({ ...data, leida: false }));
+        if (notificacion.id && recientes.some(function (n) { return mismoId(n.id, notificacion.id); })) {
+            return;
+        }
+
+        recientes.unshift(notificacion);
+        if (historial && (!notificacion.id || !historial.some(function (n) {
+            return mismoId(n.id, notificacion.id);
+        }))) {
+            historial.unshift(notificacion);
+        }
+
+        renderLista(expandido && historial ? historial : recientes);
+        if (btnVerTodas) btnVerTodas.hidden = false;
+        mostrarControles();
     });
+
+    mostrarControles();
 
     window.JobDevsNotificaciones = {
         abrir: function () { setAbierto(true); },

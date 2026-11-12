@@ -1,14 +1,29 @@
+import asyncio
 import json
 import time
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.http import StreamingHttpResponse, HttpResponse, JsonResponse
+
+from asgiref.sync import sync_to_async
 from django.conf import settings
-from .models import Notificacion
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.handlers.asgi import ASGIRequest
+from django.core.paginator import Paginator
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+
+from .models import Notificacion
+
+
+def _formatear_fecha(fecha):
+    """Formatea una fecha en la zona horaria del proyecto (America/Bogota)."""
+    if not fecha:
+        return ''
+    if timezone.is_aware(fecha):
+        fecha = timezone.localtime(fecha)
+    return fecha.strftime('%d/%m/%Y %H:%M')
 
 
 def _obtener_estado_notificaciones(user_id, ultimo_id=0):
@@ -21,25 +36,13 @@ def _obtener_estado_notificaciones(user_id, ultimo_id=0):
         .values('id', 'tipo', 'mensaje', 'fecha')[:10]
     )
     for n in nuevas:
-        if n.get('fecha'):
-            n['fecha'] = n['fecha'].strftime('%d/%m/%Y %H:%M')
+        n['fecha'] = _formatear_fecha(n.get('fecha'))
     return count, nuevas
 
 
-def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
-    """
-    Generador síncrono para Server-Sent Events (SSE).
-    Emite 'init' inicial con unread_count, 'notificacion' ante nuevas notificaciones,
-    'sync' si el conteo disminuye (leídas en otra pestaña), y heartbeats ': ping'.
-
-    Debe ser síncrono: StreamingHttpResponse solo sirve iteradores asíncronos de
-    forma no bufferizada bajo ASGI. Bajo WSGI (runserver, LiveServerTestCase de los
-    tests E2E y gunicorn síncrono) Django no puede iterar un async generator, lo
-    bufferiza por completo y, al ser un stream infinito, deja el hilo colgado.
-    """
-    user_id = user.id
+def _estado_inicial_sse(user_id):
+    """Estado de partida del stream: no leídas y último id conocido."""
     count, _ = _obtener_estado_notificaciones(user_id, ultimo_id=0)
-
     ultimo_id = (
         Notificacion.objects.filter(usuario_id=user_id)
         .order_by('-id')
@@ -47,6 +50,52 @@ def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
         .first()
         or 0
     )
+    return count, ultimo_id
+
+
+def _paso_sse(user_id, ultimo_id, ultimo_count, heartbeat_cycles):
+    """
+    Ejecuta una iteración de sondeo del stream y devuelve los eventos a emitir.
+
+    Es síncrona y accede al ORM en el hilo del request (WSGI) o mediante
+    sync_to_async (ASGI). No duerme: el driver decide cómo esperar.
+    """
+    count, nuevas = _obtener_estado_notificaciones(user_id, ultimo_id)
+    eventos = []
+
+    if nuevas:
+        for notif in nuevas:
+            ultimo_id = max(ultimo_id, notif['id'])
+            payload = json.dumps({
+                'id': notif['id'],
+                'tipo': notif['tipo'],
+                'mensaje': notif['mensaje'],
+                'fecha': notif['fecha'],
+                'unread_count': count,
+            })
+            eventos.append(f"event: notificacion\ndata: {payload}\n\n")
+        ultimo_count = count
+        heartbeat_cycles = 0
+    elif count != ultimo_count:
+        ultimo_count = count
+        payload = json.dumps({'tipo': 'sync', 'unread_count': count})
+        eventos.append(f"event: sync\ndata: {payload}\n\n")
+    else:
+        heartbeat_cycles += 1
+        if heartbeat_cycles >= 5:
+            heartbeat_cycles = 0
+            eventos.append(": ping\n\n")
+
+    return eventos, ultimo_id, ultimo_count, heartbeat_cycles
+
+
+def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
+    """
+    Generador síncrono de SSE para WSGI (runserver, LiveServerTestCase y
+    gunicorn síncrono). Emite 'init', 'notificacion', 'sync' y heartbeats.
+    """
+    user_id = user.id
+    count, ultimo_id = _estado_inicial_sse(user_id)
     ultimo_count = count
 
     # Evento inicial con conteo no leído
@@ -61,29 +110,42 @@ def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
         iterations += 1
 
         time.sleep(interval)
+        eventos, ultimo_id, ultimo_count, heartbeat_cycles = _paso_sse(
+            user_id, ultimo_id, ultimo_count, heartbeat_cycles
+        )
+        for evento in eventos:
+            yield evento
 
-        count, nuevas = _obtener_estado_notificaciones(user_id, ultimo_id)
-        if nuevas:
-            for notif in nuevas:
-                ultimo_id = max(ultimo_id, notif['id'])
-                payload = json.dumps({
-                    'id': notif['id'],
-                    'tipo': notif['tipo'],
-                    'mensaje': notif['mensaje'],
-                    'fecha': notif['fecha'],
-                    'unread_count': count,
-                })
-                yield f"event: notificacion\ndata: {payload}\n\n"
-            ultimo_count = count
-        elif count != ultimo_count:
-            ultimo_count = count
-            payload = json.dumps({'tipo': 'sync', 'unread_count': count})
-            yield f"event: sync\ndata: {payload}\n\n"
-        else:
-            heartbeat_cycles += 1
-            if heartbeat_cycles >= 5:
-                heartbeat_cycles = 0
-                yield ": ping\n\n"
+
+async def notificaciones_event_generator_async(user, interval=2.0, max_iterations=None):
+    """
+    Generador asíncrono de SSE para ASGI (Gunicorn + UvicornWorker en producción).
+
+    Bajo ASGI, Django consume por completo los iteradores síncronos con
+    sync_to_async(list); como este stream es infinito, eso bloquearía la respuesta.
+    Por eso el driver es async, usa asyncio.sleep y ejecuta las consultas ORM
+    mediante sync_to_async (thread_sensitive=True, mismo hilo que el request).
+    """
+    user_id = user.id
+    count, ultimo_id = await sync_to_async(_estado_inicial_sse)(user_id)
+    ultimo_count = count
+
+    yield f"event: init\ndata: {json.dumps({'tipo': 'init', 'unread_count': count})}\n\n"
+
+    iterations = 0
+    heartbeat_cycles = 0
+
+    while True:
+        if max_iterations is not None and iterations >= max_iterations:
+            break
+        iterations += 1
+
+        await asyncio.sleep(interval)
+        eventos, ultimo_id, ultimo_count, heartbeat_cycles = await sync_to_async(_paso_sse)(
+            user_id, ultimo_id, ultimo_count, heartbeat_cycles
+        )
+        for evento in eventos:
+            yield evento
 
 
 def notificaciones_stream(request):
@@ -109,10 +171,18 @@ def notificaciones_stream(request):
         interval = 2.0
         max_iter = None
 
-    response = StreamingHttpResponse(
-        notificaciones_event_generator(request.user, interval=interval, max_iterations=max_iter),
-        content_type='text/event-stream'
-    )
+    # WSGI y ASGI necesitan drivers distintos: bajo ASGI un iterador síncrono
+    # infinito se consume entero (sync_to_async(list)) y el stream nunca responde.
+    if isinstance(request, ASGIRequest):
+        generador = notificaciones_event_generator_async(
+            request.user, interval=interval, max_iterations=max_iter
+        )
+    else:
+        generador = notificaciones_event_generator(
+            request.user, interval=interval, max_iterations=max_iter
+        )
+
+    response = StreamingHttpResponse(generador, content_type='text/event-stream')
     response['Cache-Control'] = 'no-cache, no-transform'
     response['X-Accel-Buffering'] = 'no'
     return response
@@ -203,7 +273,7 @@ def api_lista_notificaciones(request):
                 'tipo': notificacion.tipo,
                 'tipo_display': notificacion.get_tipo_display(),
                 'mensaje': notificacion.mensaje,
-                'fecha': notificacion.fecha.strftime('%d/%m/%Y %H:%M'),
+                'fecha': _formatear_fecha(notificacion.fecha),
                 'leida': notificacion.leida,
             }
             for notificacion in notificaciones
