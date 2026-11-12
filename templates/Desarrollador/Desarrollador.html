@@ -40,9 +40,7 @@
       <button class="nav-item active" onclick="verSeccion('inicio', this)">
         <i data-lucide="layout-dashboard"></i>
         <span>Inicio</span>
-        {% if notificaciones_pendientes_count > 0 %}
-          <span class="nav-badge" data-notif-badge>{{ notificaciones_pendientes_count }}</span>
-        {% endif %}
+        <span class="nav-badge" data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}>{{ notificaciones_pendientes_count }}</span>
       </button>
       <button class="nav-item" onclick="verSeccion('centro-chat', this)">
         <i data-lucide="message-square"></i>
