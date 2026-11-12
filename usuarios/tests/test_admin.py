@@ -115,6 +115,17 @@ class TestAdminToggleUsuario:
         empresa_user.refresh_from_db()
         assert not empresa_user.is_active
 
+    def test_admin_toggle_usuario_limpia_bloqueado_por_intentos(self, admin_client, empresa_user):
+        """SCRUM-463: Al desactivar un usuario con admin_toggle_usuario se debe limpiar bloqueado_por_intentos."""
+        empresa_user.bloqueado_por_intentos = True
+        empresa_user.save(update_fields=['bloqueado_por_intentos'])
+
+        admin_client.post(reverse('admin_toggle_usuario', args=[empresa_user.id]))
+        empresa_user.refresh_from_db()
+        assert not empresa_user.is_active
+        assert empresa_user.estado == 'inactivo'
+        assert not empresa_user.bloqueado_por_intentos
+
     def test_non_admin_cannot_toggle(self, auth_client, desarrollador_user):
         """Non-admin cannot toggle users."""
         response = auth_client.post(
