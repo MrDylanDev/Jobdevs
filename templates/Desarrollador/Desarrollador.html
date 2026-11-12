@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=3">
 </head>
 <body data-seccion-inicial="{{ seccion_activa }}">
 
@@ -39,9 +40,7 @@
       <button class="nav-item active" onclick="verSeccion('inicio', this)">
         <i data-lucide="layout-dashboard"></i>
         <span>Inicio</span>
-        {% if notificaciones_pendientes_count > 0 %}
-          <span class="nav-badge">{{ notificaciones_pendientes_count }}</span>
-        {% endif %}
+        <span class="nav-badge" data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}>{{ notificaciones_pendientes_count }}</span>
       </button>
       <button class="nav-item" onclick="verSeccion('centro-chat', this)">
         <i data-lucide="message-square"></i>
@@ -123,12 +122,47 @@
         <span>/ JobDevs Platform</span>
         <span class="top-sys-pill"><span class="top-sys-dot"></span> DEV // ONLINE</span>
       </div>
-      <button class="notif-btn" title="Notificaciones">
-        <i data-lucide="bell"></i>
-        {% if notificaciones_pendientes_count > 0 %}
-          <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
-        {% endif %}
-      </button>
+      <div class="notif-wrapper">
+        <button type="button" class="notif-btn" title="Notificaciones" aria-label="Notificaciones"
+                aria-haspopup="true" aria-expanded="false" aria-controls="notifPopover" data-notif-toggle>
+          <i data-lucide="bell"></i>
+          {% if notificaciones_pendientes_count > 0 %}
+            <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
+          {% endif %}
+        </button>
+        <div id="notifPopover" class="notif-popover" role="dialog" aria-label="Notificaciones" aria-hidden="true">
+          {% csrf_token %}
+          <div class="notif-popover-header">
+            <span class="notif-popover-title">Notificaciones</span>
+            <div class="notif-popover-actions">
+              <button type="button" class="notif-action-btn" data-notif-mark-all
+                      data-url="{% url 'notificaciones_marcar_todas_leidas' %}"
+                      title="Marcar todas como leídas"{% if not notificaciones_pendientes_count %} hidden{% endif %}>Marcar leídas</button>
+              <button type="button" class="notif-action-btn danger" data-notif-clear
+                      data-url="{% url 'notificaciones_limpiar' %}"
+                      title="Borrar todas las notificaciones"{% if not notificaciones %} hidden{% endif %}>Limpiar</button>
+            </div>
+          </div>
+          <div class="notif-popover-body" data-notif-body>
+            {% for notif in notificaciones %}
+              <div class="notif-popover-item{% if not notif.leida %} is-unread{% endif %}" data-notif-id="{{ notif.id }}">
+                <i data-lucide="circle"></i>
+                <div class="notif-popover-text">
+                  <span>{{ notif.mensaje }}</span>
+                  <small>{{ notif.fecha|date:"d/m/Y H:i" }}</small>
+                </div>
+              </div>
+            {% empty %}
+              <div class="notif-popover-empty" data-notif-empty>
+                <i data-lucide="bell-off"></i>
+                <span>No hay notificaciones</span>
+              </div>
+            {% endfor %}
+          </div>
+          <button type="button" class="notif-popover-footer" data-notif-ver-todas
+                  data-url="{% url 'notificaciones_api_lista' %}">Ver todas</button>
+        </div>
+      </div>
       <div class="user-chip">
         <div class="user-avatar">
           {% if perfil.foto_perfil %}
@@ -1285,6 +1319,7 @@
 <script src="{% static 'mensajes/script/chat_inline.js' %}?v=4"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
+<script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
 <script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}"></script>
 <script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
