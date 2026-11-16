@@ -19,15 +19,18 @@
       const rol = rolSelect.value;
       const sectorCont = document.getElementById('container_empresa_sector');
       const ciudadCont = document.getElementById('container_empresa_ciudad');
+      const academicoCont = document.getElementById('container_desarrollador_academico');
       if (rol === 'empresa') {
         typeDocContainer.style.display = 'block';
         if (sectorCont) sectorCont.style.display = 'block';
         if (ciudadCont) ciudadCont.style.display = 'block';
+        if (academicoCont) academicoCont.style.display = 'none';
         labelCedula.innerText = texto('docNit', 'NIT O NÚMERO DE IDENTIFICACIÓN');
       } else {
         typeDocContainer.style.display = 'none';
         if (sectorCont) sectorCont.style.display = 'none';
         if (ciudadCont) ciudadCont.style.display = 'none';
+        if (academicoCont) academicoCont.style.display = 'grid';
         if (typeDocSelect) typeDocSelect.value = 'cedula';
         labelCedula.innerText = texto('docNumero', 'NÚMERO DE IDENTIFICACIÓN');
       }
