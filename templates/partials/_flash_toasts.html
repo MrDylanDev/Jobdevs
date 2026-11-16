@@ -1,13 +1,35 @@
 {% if messages %}
   <div id="jdFlashToastStack" style="position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; max-width:380px;">
     {% for message in messages %}
-      <div class="jd-flash-toast {% if message.tags and 'error' in message.tags or message.tags and 'danger' in message.tags %}is-error{% endif %}"
-           role="status"
-           style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--corp-surface, var(--card-bg, #16181c)); color:var(--corp-slate-900, var(--text-primary, #fafafa)); border:1px solid var(--corp-border, var(--border, #2c3038)); border-left:3px solid {% if message.tags and 'error' in message.tags or message.tags and 'danger' in message.tags %}var(--corp-danger, var(--danger, #ef4444)){% else %}var(--corp-brand, var(--accent, #00713f)){% endif %}; border-radius:6px; box-shadow:0 8px 24px rgba(0,0,0,0.18); font-size:13px; font-weight:600; transition:opacity 250ms ease, transform 250ms ease;">
-        <i data-lucide="{% if message.tags and 'error' in message.tags or message.tags and 'danger' in message.tags %}alert-circle{% else %}check-circle-2{% endif %}"
-           style="width:16px; height:16px; flex-shrink:0; color:{% if message.tags and 'error' in message.tags or message.tags and 'danger' in message.tags %}var(--corp-danger, var(--danger, #ef4444)){% else %}var(--corp-brand, var(--accent, #00713f)){% endif %};"></i>
-        <span>{{ message }}</span>
-      </div>
+      {% if message.tags and 'error' in message.tags or message.tags and 'danger' in message.tags %}
+        <div class="jd-flash-toast is-error"
+             role="alert"
+             style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--corp-surface, var(--card-bg, #16181c)); color:var(--corp-slate-900, var(--text-primary, #fafafa)); border:1px solid var(--corp-border, var(--border, #2c3038)); border-left:3px solid var(--corp-danger, var(--danger, #ef4444)); border-radius:6px; box-shadow:0 8px 24px rgba(0,0,0,0.18); font-size:13px; font-weight:600; transition:opacity 250ms ease, transform 250ms ease;">
+          <i data-lucide="alert-circle" style="width:16px; height:16px; flex-shrink:0; color:var(--corp-danger, var(--danger, #ef4444));"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% elif message.tags and 'warning' in message.tags %}
+        <div class="jd-flash-toast is-warning"
+             role="status"
+             style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--corp-surface, var(--card-bg, #16181c)); color:var(--corp-slate-900, var(--text-primary, #fafafa)); border:1px solid var(--corp-border, var(--border, #2c3038)); border-left:3px solid var(--corp-warning, #d97706); border-radius:6px; box-shadow:0 8px 24px rgba(0,0,0,0.18); font-size:13px; font-weight:600; transition:opacity 250ms ease, transform 250ms ease;">
+          <i data-lucide="alert-triangle" style="width:16px; height:16px; flex-shrink:0; color:var(--corp-warning, #d97706);"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% elif message.tags and 'info' in message.tags %}
+        <div class="jd-flash-toast is-info"
+             role="status"
+             style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--corp-surface, var(--card-bg, #16181c)); color:var(--corp-slate-900, var(--text-primary, #fafafa)); border:1px solid var(--corp-border, var(--border, #2c3038)); border-left:3px solid var(--corp-info, #0284c7); border-radius:6px; box-shadow:0 8px 24px rgba(0,0,0,0.18); font-size:13px; font-weight:600; transition:opacity 250ms ease, transform 250ms ease;">
+          <i data-lucide="info" style="width:16px; height:16px; flex-shrink:0; color:var(--corp-info, #0284c7);"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% else %}
+        <div class="jd-flash-toast"
+             role="status"
+             style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--corp-surface, var(--card-bg, #16181c)); color:var(--corp-slate-900, var(--text-primary, #fafafa)); border:1px solid var(--corp-border, var(--border, #2c3038)); border-left:3px solid var(--corp-brand, var(--accent, #00713f)); border-radius:6px; box-shadow:0 8px 24px rgba(0,0,0,0.18); font-size:13px; font-weight:600; transition:opacity 250ms ease, transform 250ms ease;">
+          <i data-lucide="check-circle-2" style="width:16px; height:16px; flex-shrink:0; color:var(--corp-brand, var(--accent, #00713f));"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
   <script>

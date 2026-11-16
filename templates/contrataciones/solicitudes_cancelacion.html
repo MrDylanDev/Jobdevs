@@ -13,9 +13,15 @@
   {% if rol == 'empresa' or rol == 'desarrollador' %}
     <h2 class="h4 mt-4">Proponer terminación de mutuo acuerdo</h2>
     {% for contrato in contratos %}
-      <section class="card mb-3" aria-label="Contrato de {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}">
-        <div class="card-body">
-          <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</h3>
+      {% if rol == 'desarrollador' %}
+        <section class="card mb-3" aria-label="Contrato con {{ contrato.empresa.nombre|default:contrato.empresa.username }}">
+          <div class="card-body">
+            <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.empresa.nombre|default:contrato.empresa.username }}</h3>
+      {% else %}
+        <section class="card mb-3" aria-label="Contrato con {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}">
+          <div class="card-body">
+            <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</h3>
+      {% endif %}
           <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
             {% csrf_token %}
             <label class="form-label" for="causal-{{ contrato.id }}">Motivo de terminación</label>

@@ -176,7 +176,7 @@
         {% else %}
           <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">Cancelar</a>
         {% endif %}
-        <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;" {% if not confirma_intento_previo or not confirma_gravedad or not acepta_sanciones %}disabled{% endif %}>
+        <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
           <i data-lucide="gavel"></i>
           <span>Iniciar Mediación Formal</span>
         </button>
@@ -200,7 +200,7 @@
     const checks = document.querySelectorAll('#confirma_intento_previo, #confirma_gravedad, #acepta_sanciones');
     function syncSubmit() {
       if (!submitBtn || checks.length === 0) return;
-      const ready = Array.prototype.every.call(checks, function (cb) { return cb.checked; });
+      const ready = Array.prototype.every.call(checks, function (cb) { return cb.disabled || cb.checked; });
       submitBtn.disabled = !ready;
       submitBtn.style.opacity = ready ? '1' : '0.42';
       submitBtn.style.cursor = ready ? 'pointer' : 'not-allowed';
@@ -213,6 +213,7 @@
       gravedad.required = !esFuerzaMayor;
       gravedad.disabled = esFuerzaMayor;
       gravedad.closest('label').style.display = esFuerzaMayor ? 'none' : '';
+      syncSubmit();
     }
     categoria.addEventListener('change', actualizarCausal);
     actualizarCausal();

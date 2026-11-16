@@ -80,7 +80,10 @@
           <span class="meta-sep">·</span>
           <span class="meta-item"><i data-lucide="user"></i> {% trans "Contacto:" %} {{ empresa.nombre|default:empresa.username }}</span>
           <span class="meta-sep">·</span>
-          <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {{ promedio_reputacion|unlocalize }} / 5.0 ({{ total_resenas }})</span>
+          <span class="meta-item" style="color:var(--corp-gold); font-weight:600;">
+            <i data-lucide="star"></i>
+            {% if total_resenas > 0 %}{{ promedio_reputacion|unlocalize }} / 5.0 ({{ total_resenas }}){% else %}{% trans "Nueva" %}{% endif %}
+          </span>
         </div>
       </div>
     </div>
@@ -176,7 +179,7 @@
                 <div class="stat-label">{% trans "Proyectos Finalizados" %}</div>
               </div>
               <div class="analytics-stat-box">
-                <div class="stat-number" style="color:var(--corp-gold);">{{ promedio_reputacion|unlocalize }} ★</div>
+                <div class="stat-number" style="color:var(--corp-gold);">{% if total_resenas > 0 %}{{ promedio_reputacion|unlocalize }} ★{% else %}{% trans "Nueva" %}{% endif %}</div>
                 <div class="stat-label">{% trans "Calificación de Talento" %}</div>
               </div>
             </div>

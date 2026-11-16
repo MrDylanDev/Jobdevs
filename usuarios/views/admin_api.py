@@ -2,7 +2,7 @@ import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.core.cache import cache
 from django.core.paginator import Paginator
@@ -213,15 +213,16 @@ def api_eliminar_usuario(request, usuario_id):
         return JsonResponse({'error': 'No puedes eliminarte a ti mismo.'}, status=400)
 
     era_administrador = user.rol == 'administrador'
-    LogAuditoria.objects.create(
-        usuario=request.user,
-        accion=f'Eliminó el usuario {user.username}',
-        tabla_afectada='usuarios',
-        registro_id=user.id,
-        valor_anterior=f'email={user.email}; rol={user.rol}; estado={user.estado}',
-        valor_nuevo='eliminado',
-    )
-    user.delete()
+    with transaction.atomic():
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=f'Eliminó el usuario {user.username}',
+            tabla_afectada='usuarios',
+            registro_id=user.id,
+            valor_anterior=f'email={user.email}; rol={user.rol}; estado={user.estado}',
+            valor_nuevo='eliminado',
+        )
+        user.delete()
     if era_administrador:
         invalidar_cache_administradores()
     return JsonResponse({'status': 'deleted'})

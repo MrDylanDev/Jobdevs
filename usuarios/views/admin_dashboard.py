@@ -451,6 +451,10 @@ def admin_reactivar_proyecto(request, proyecto_id):
             messages.warning(request, "Solo se puede crear una continuación desde un proyecto finalizado.")
             return redirect('ver_avances', proyecto_id=proyecto.id)
 
+        if proyecto.proyectos_sucesores.exists():
+            messages.info(request, "Este proyecto ya tiene una continuación publicada.")
+            return redirect('ver_avances', proyecto_id=proyecto.id)
+
         sucesor = Proyecto.objects.create(
             empresa=proyecto.empresa,
             titulo=f'Continuación de {proyecto.titulo}'[:200],

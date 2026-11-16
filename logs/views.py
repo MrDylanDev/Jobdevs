@@ -46,8 +46,11 @@ def historial_actividad(request):
     if accion:
         logs = logs.filter(accion__icontains=accion)
 
-    desde = parse_date(desde_texto) if desde_texto else None
-    hasta = parse_date(hasta_texto) if hasta_texto else None
+    try:
+        desde = parse_date(desde_texto) if desde_texto else None
+        hasta = parse_date(hasta_texto) if hasta_texto else None
+    except ValueError:
+        return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
     if (desde_texto and desde is None) or (hasta_texto and hasta is None):
         return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
     if desde:
@@ -55,9 +58,10 @@ def historial_actividad(request):
     if hasta:
         logs = logs.filter(fecha_hora__date__lte=hasta)
 
+    total = logs.count()
     resultados = list(logs[:200])
     return JsonResponse({
-        'total': len(resultados),
+        'total': total,
         'resultados': [
             {
                 'id': log.id,

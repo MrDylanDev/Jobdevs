@@ -115,7 +115,8 @@ def solicitudes_cancelacion(request):
 def resolver_solicitud_cancelacion(request, solicitud_id):
     decision = request.POST.get('decision')
     if decision not in ('aprobar', 'rechazar'):
-        raise ValidationError('Selecciona una decisión válida.')
+        messages.error(request, 'Selecciona una decisión válida.')
+        return redirect(_destino_cancelaciones(request.user))
     try:
         services.resolver_solicitud_cancelacion(
             solicitud_id, request.user, aprobar=(decision == 'aprobar'),
@@ -345,9 +346,9 @@ def ver_contrato_digital(request, contrato_id):
         c_dict = _serializar_contrato_digital(contrato, rol_contrato)
         c_dict['clausulas'] = clausulas_list
         c_dict['estado_label'] = contrato.get_estado_display()
-        c_dict['fecha_creacion'] = contrato.fecha_creacion.strftime('%d/%m/%Y %H:%M') if contrato.fecha_creacion else ''
-        c_dict['fecha_firma_empresa'] = contrato.fecha_firma_empresa.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_empresa else None
-        c_dict['fecha_firma_desarrollador'] = contrato.fecha_firma_desarrollador.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_desarrollador else None
+        c_dict['fecha_creacion'] = timezone.localtime(contrato.fecha_creacion).strftime('%d/%m/%Y %H:%M') if contrato.fecha_creacion else ''
+        c_dict['fecha_firma_empresa'] = timezone.localtime(contrato.fecha_firma_empresa).strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_empresa else None
+        c_dict['fecha_firma_desarrollador'] = timezone.localtime(contrato.fecha_firma_desarrollador).strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_desarrollador else None
         return JsonResponse({
             'ok': True,
             'status': 'ok',

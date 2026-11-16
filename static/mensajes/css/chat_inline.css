@@ -466,15 +466,15 @@
 .jd-msg-out {
   align-self: flex-end;
   background: var(--accent);
-  color: #ffffff;
+  color: #001b0d;
   border: 1px solid rgba(0, 230, 118, 0.3);
   border-bottom-right-radius: 4px;
 }
 
 .jd-msg-out code,
 .jd-msg-out pre {
-  background: rgba(0, 0, 0, 0.25);
-  color: #e6faf0;
+  background: rgba(0, 0, 0, 0.14);
+  color: #001b0d;
 }
 
 .jd-msg-time {
@@ -487,7 +487,7 @@
 }
 
 .jd-msg-out .jd-msg-time {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(0, 27, 13, 0.78);
 }
 
 .jd-msg-day {
