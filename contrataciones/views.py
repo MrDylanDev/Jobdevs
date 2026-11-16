@@ -523,7 +523,7 @@ def firmar_contrato_digital(request, contrato_id):
                 return _respuesta_firma_error(
                     request, contrato, "Ya firmaste este contrato.", nivel='warning')
 
-            if contrato.hash_documento and contrato.perfil_profesional is not None:
+            if contrato.hash_documento:
                 if contrato.hash_documento != contrato.calcular_hash_documento():
                     return _respuesta_firma_error(
                         request, contrato, "El contenido firmado fue alterado; no se puede continuar.",

@@ -211,7 +211,7 @@
             <i data-lucide="wallet" style="width:13px; height:13px;"></i>
             <span>{% trans "Presupuesto Total Acordado" %}</span>
           </div>
-          <div class="financial-card-escrow-amount" data-raw="{{ presupuesto_total_comprometido|floatformat:"0" }}">${{ presupuesto_total_comprometido|floatformat:"0g" }} COP</div>
+          <div class="financial-card-escrow-amount" data-raw="{{ presupuesto_total_comprometido|floatformat:"0" }}">${{ presupuesto_total_comprometido|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</div>
           <p class="financial-card-escrow-sub">
             {% trans "Compromiso contractual formalizado con el talento en proyectos activos." %}
           </p>
@@ -220,12 +220,22 @@
         <div class="financial-card-metrics">
           <div class="financial-card-metric-row">
             <span class="financial-card-metric-label">{% trans "Hitos Cumplidos (A liquidar al talento)" %}</span>
-            <span class="financial-card-metric-value is-released" data-raw="{{ fondos_liberados|floatformat:"0" }}">${{ fondos_liberados|floatformat:"0g" }} COP</span>
+            <span class="financial-card-metric-value is-released" data-raw="{{ fondos_liberados|floatformat:"0" }}">${{ fondos_liberados|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</span>
           </div>
           <div class="financial-card-metric-row">
             <span class="financial-card-metric-label">{% trans "Pendiente de Ejecución (En desarrollo)" %}</span>
-            <span class="financial-card-metric-value" data-raw="{{ fondos_en_custodia|floatformat:"0" }}">${{ fondos_en_custodia|floatformat:"0g" }} COP</span>
+            <span class="financial-card-metric-value" data-raw="{{ fondos_en_custodia|floatformat:"0" }}">${{ fondos_en_custodia|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</span>
           </div>
+          {% if resumen_monedas_secundarias %}
+            <div class="financial-card-metric-row">
+              <span class="financial-card-metric-label">{% trans "Otras monedas (separado)" %}</span>
+              <span class="financial-card-metric-value">
+                {% for sec in resumen_monedas_secundarias %}
+                  ${{ sec.comprometido|floatformat:"0g" }} {{ sec.moneda }}{% if not forloop.last %} · {% endif %}
+                {% endfor %}
+              </span>
+            </div>
+          {% endif %}
         </div>
 
         <div class="financial-card-progress-wrap">

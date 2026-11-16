@@ -411,26 +411,51 @@ def dashboard_empresa(request):
             for row in hitos_rows
         }
 
-    presupuesto_total_comprometido = Decimal(0)
-    fondos_liberados = Decimal(0)
+    totales_por_moneda = {}
     for c in contratos_formalizados:
+        moneda_c = (getattr(c, 'moneda', None) or 'COP').upper()
         monto_c = Decimal(str(c.monto)) if c.monto is not None else Decimal(0)
-        presupuesto_total_comprometido += monto_c
+        bucket = totales_por_moneda.setdefault(
+            moneda_c, {'comprometido': Decimal(0), 'devengado': Decimal(0)}
+        )
+        bucket['comprometido'] += monto_c
         proyecto_c = c.postulacion.proyecto
         if proyecto_c.estado == 'finalizado':
-            fondos_liberados += monto_c
+            bucket['devengado'] += monto_c
         else:
             hitos_comp, hitos_tot = hitos_por_proyecto.get(proyecto_c.id, (0, 0))
             if hitos_tot > 0:
-                fondos_liberados += Decimal(
+                bucket['devengado'] += Decimal(
                     round(monto_c * (Decimal(hitos_comp) / Decimal(hitos_tot)))
                 )
 
+    if 'COP' in totales_por_moneda:
+        moneda_principal = 'COP'
+    elif totales_por_moneda:
+        moneda_principal = next(iter(totales_por_moneda))
+    else:
+        moneda_principal = 'COP'
+
+    principal = totales_por_moneda.get(
+        moneda_principal, {'comprometido': Decimal(0), 'devengado': Decimal(0)}
+    )
+    presupuesto_total_comprometido = principal['comprometido']
+    fondos_liberados = principal['devengado']
     fondos_en_custodia = max(Decimal(0), presupuesto_total_comprometido - fondos_liberados)
     porcentaje_fondos_liberados = (
         round((fondos_liberados / presupuesto_total_comprometido) * 100)
         if presupuesto_total_comprometido > 0 else 0
     )
+    resumen_monedas_secundarias = [
+        {
+            'moneda': mon,
+            'comprometido': datos['comprometido'],
+            'devengado': datos['devengado'],
+            'por_devengar': max(Decimal(0), datos['comprometido'] - datos['devengado']),
+        }
+        for mon, datos in totales_por_moneda.items()
+        if mon != moneda_principal and datos['comprometido'] > 0
+    ]
 
     historial_v = Proyecto.objects.filter(
         empresa=request.user, 
@@ -725,6 +750,8 @@ def dashboard_empresa(request):
         'fondos_liberados': fondos_liberados,
         'fondos_en_custodia': fondos_en_custodia,
         'porcentaje_fondos_liberados': porcentaje_fondos_liberados,
+        'moneda_principal': moneda_principal,
+        'resumen_monedas_secundarias': resumen_monedas_secundarias,
         'historial': historial_v,
         'historial_inactivos': historial_inactivos,
         'historial_inactivos_count': historial_inactivos_count,
