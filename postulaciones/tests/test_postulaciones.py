@@ -210,8 +210,31 @@ class TestPostularse:
 class TestAceptarPostulacion:
     """Tests for aceptar_postulacion view."""
 
-    def test_empresa_acepta_postulacion(self, auth_client, empresa_user, desarrollador_user):
-        """Empresa can accept a pending postulacion."""
+    def test_ruta_heredada_no_contrata_sin_firmas(self, auth_client, empresa_user, desarrollador_user):
+        from contrataciones.models import Contratacion, ContratoDigital
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Firma requerida', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        postulacion = Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, estado='pendiente',
+        )
+
+        response = auth_client.post(reverse('aceptar_postulacion', args=[postulacion.id]))
+
+        assert response.status_code == 302
+        postulacion.refresh_from_db()
+        proyecto.refresh_from_db()
+        assert postulacion.estado == 'en_negociacion'
+        assert proyecto.estado == 'publicado'
+        assert not Contratacion.objects.filter(proyecto=proyecto).exists()
+        contrato = ContratoDigital.objects.get(postulacion=postulacion)
+        assert not contrato.firmado_empresa
+        assert not contrato.firmado_desarrollador
+
+    def test_empresa_inicia_negociacion_por_url_antigua(self, auth_client, empresa_user, desarrollador_user):
+        """La URL antigua reserva cupo pero no contrata sin firmas."""
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='PA', descripcion='DA',
             tipo_solucion='sitio_web', estado='publicado',
@@ -225,15 +248,12 @@ class TestAceptarPostulacion:
         )
         assert response.status_code == 302
         postulacion.refresh_from_db()
-        assert postulacion.estado == 'aceptada'
-
-        # Verificar preservación exacta de estado_anterior en HistorialEstadoProyecto
-        from proyectos.models import HistorialEstadoProyecto
-        historial = HistorialEstadoProyecto.objects.filter(proyecto=proyecto).first()
-        assert historial is not None
-        assert historial.estado_anterior == 'publicado'
-        assert historial.estado_nuevo == 'en_desarrollo'
-        assert historial.cambiado_por == empresa_user
+        assert postulacion.estado == 'en_negociacion'
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+        from contrataciones.models import Contratacion, ContratoDigital
+        assert ContratoDigital.objects.filter(postulacion=postulacion).exists()
+        assert not Contratacion.objects.filter(proyecto=proyecto).exists()
 
     def test_dev_no_puede_aceptar(self, dev_client, empresa_user, desarrollador_user):
         """Dev cannot accept postulaciones."""
@@ -278,19 +298,19 @@ class TestAceptarPostulacion:
             proyecto=proyecto, desarrollador=dev2, estado='pendiente',
         )
 
-        # 1. Aceptar la primera postulación (ocupa la única vacante disponible)
+        # 1. Iniciar negociación con la primera postulación (reserva la vacante)
         res1 = auth_client.post(reverse('aceptar_postulacion', args=[post1.id]))
         assert res1.status_code == 302
         post1.refresh_from_db()
-        assert post1.estado == 'aceptada'
-        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        assert post1.estado == 'en_negociacion'
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 0
 
-        # 2. Intentar aceptar la segunda postulación debe ser rechazado
+        # 2. Intentar reservar la misma vacante debe ser rechazado
         res2 = auth_client.post(reverse('aceptar_postulacion', args=[post2.id]), follow=True)
         assert res2.status_code == 200
         post2.refresh_from_db()
         assert post2.estado == 'pendiente'
-        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 1
+        assert Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() == 0
         messages = list(res2.context['messages'])
         assert any('vacantes' in str(m).lower() for m in messages)
 
@@ -457,6 +477,31 @@ class TestVerPostulacionesEmpresaFiltros:
         assert res.status_code == 200
         assert self._nombres(res) == ['ANA']
 
+    def test_filtrar_por_estado_funnel(self, auth_client, escenario):
+        # Mover un candidato a 'en_negociacion'
+        p_beto = Postulacion.objects.get(proyecto=escenario, desarrollador__username='beto')
+        p_beto.estado = 'en_negociacion'
+        p_beto.save()
+
+        # Consulta general: muestra pendientes y en negociación, y conteos de embudo
+        res = auth_client.get(reverse('ver_postulaciones_empresa', args=[escenario.id]))
+        assert res.status_code == 200
+        assert res.context['conteos_funnel']['total'] == 3
+        assert res.context['conteos_funnel']['pendientes'] == 2
+        assert res.context['conteos_funnel']['en_negociacion'] == 1
+        content = res.content.decode()
+        assert 'funnel-tabs-grid' in content
+        assert 'candidatos-split-layout' in content
+
+        # Filtrar por 'en_negociacion'
+        res_neg = auth_client.get(
+            reverse('ver_postulaciones_empresa', args=[escenario.id]),
+            {'estado': 'en_negociacion'},
+        )
+        assert res_neg.status_code == 200
+        assert self._nombres(res_neg) == ['BETO']
+        assert res_neg.context['filtros']['estado'] == 'en_negociacion'
+
     def test_filtrar_por_habilidades(self, auth_client, escenario):
         url = reverse('ver_postulaciones_empresa', args=[escenario.id])
         res = auth_client.get(url, {'habilidad': 'react'})
@@ -531,9 +576,47 @@ class TestIniciarNegociacion:
             tabla_afectada='postulaciones', registro_id=post.id,
             accion__contains='negociación').exists()
 
+    def test_usa_plazo_configurado_y_lo_congela_en_la_negociacion(
+            self, auth_client, escenario, admin_user, desarrollador_user):
+        from notificaciones.models import Notificacion
+        from postulaciones import services
+
+        proyecto, post = escenario
+        services.actualizar_plazo_negociacion_dias(15, admin_user)
+        antes = timezone.now()
+
+        auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
+
+        post.refresh_from_db()
+        limite_congelado = post.fecha_limite_negociacion
+        assert 14.99 <= (limite_congelado - antes).total_seconds() / 86400 <= 15.01
+        aviso = Notificacion.objects.get(
+            usuario=desarrollador_user, proyecto=proyecto, tipo='postulacion'
+        )
+        assert '15 días' in aviso.mensaje
+
+        services.actualizar_plazo_negociacion_dias(2, admin_user)
+        post.refresh_from_db()
+        assert post.fecha_limite_negociacion == limite_congelado
+
     def test_requiere_post(self, auth_client, escenario):
         _, post = escenario
         assert auth_client.get(reverse('iniciar_negociacion', args=[post.id])).status_code == 405
+
+    def test_notifica_a_la_empresa_que_el_contrato_espera_su_firma(
+            self, auth_client, escenario, empresa_user):
+        """El aviso dejó de ocupar el dashboard: ahora vive en la campana."""
+        from notificaciones.models import Notificacion
+
+        proyecto, post = escenario
+        auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
+
+        aviso = Notificacion.objects.get(
+            usuario=empresa_user, proyecto=proyecto, tipo='alerta',
+        )
+        assert 'firma' in aviso.mensaje.lower()
+        assert proyecto.titulo in aviso.mensaje
+        assert aviso.leida is False
 
     def test_dev_no_puede_iniciar_negociacion(self, dev_client, escenario):
         _, post = escenario
@@ -585,7 +668,7 @@ class TestIniciarNegociacion:
 
         html = auth_client.get(url).content.decode()
         assert reverse('iniciar_negociacion', args=[post.id]) in html
-        assert reverse('aceptar_postulacion', args=[post.id]) in html
+        assert reverse('aceptar_postulacion', args=[post.id]) not in html
         assert reverse('rechazar_postulacion', args=[post.id]) in html
 
         auth_client.post(reverse('iniciar_negociacion', args=[post.id]))
@@ -593,7 +676,7 @@ class TestIniciarNegociacion:
         html = auth_client.get(url).content.decode()
         assert 'En Negociación' in html
         assert reverse('ver_contrato_digital', args=[contrato.id]) in html
-        assert reverse('sala_chat', args=[desarrollador_user.id, proyecto.id]) in html
+        assert 'Continuar en el Chat' not in html
         assert reverse('iniciar_negociacion', args=[post.id]) not in html
 
     def test_vista_rechazar_postulacion_exito(self, auth_client, escenario):
@@ -636,6 +719,21 @@ class TestIniciarNegociacion:
 
 class TestPostularseAjax:
     """El modal del dashboard envía la postulación por fetch y espera JSON."""
+
+    def test_cuenta_suspendida_no_puede_postularse(self, dev_client, desarrollador_user, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Oferta protegida', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        desarrollador_user.estado = 'suspendido'
+        desarrollador_user.save(update_fields=['estado'])
+
+        respuesta = self._post_ajax(dev_client, proyecto)
+        assert respuesta.status_code == 302
+        assert respuesta.url == reverse('login')
+        assert not Postulacion.objects.filter(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+        ).exists()
 
     def _post_ajax(self, client, proyecto, **extra):
         data = {'carta': 'Me interesa este proyecto.', 'experiencia': 'Django', 'link': '', 'origen': 'dashboard'}

@@ -24,7 +24,7 @@
 {% if request %}
   <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 {% endif %}
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
@@ -46,7 +46,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="{% asset 'publico/css/index.css' %}">
 </head>
 <body>
@@ -86,15 +86,11 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
       <span class="lang-switch-code">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
     </a>
-    <!-- Switch de dos posiciones: las dos opciones están a la vista y el estado
-         lo dice aria-pressed. Sin texto de estado, que se leía como una etiqueta
-         pasiva y no como un control. -->
+    <!-- Switch de tema unificado con el panel de Empresa (morph sol/luna). -->
     <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="{% trans "Tema claro" %}" title="{% trans "Cambiar entre tema oscuro y claro" %}">
-      <span class="theme-toggle-icon theme-toggle-icon--dark">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-      </span>
-      <span class="theme-toggle-icon theme-toggle-icon--light">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      <span class="theme-toggle-morph" aria-hidden="true">
+        <span class="sun-rays"></span>
+        <span class="main-circle"></span>
       </span>
     </button>
     <button type="button" data-abrir-login class="nav-cta border-right">{% trans "[ INGRESAR ]" %}</button>
@@ -125,6 +121,15 @@
     </div>
     <div class="reel-frame">
       <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="{% trans "System architecture review" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-8.jpg' %}" alt="{% trans "Software engineering team" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-9.jpg' %}" alt="{% trans "Young SENA developers collaborating" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-10.jpg' %}" alt="{% trans "Tech leaders and companies" %}" loading="lazy" decoding="async">
     </div>
   </div>
 
@@ -189,7 +194,7 @@
 <section id="que-es" class="section-tech what-section" aria-labelledby="tituloQueEs">
   <div class="what-grid-bg" aria-hidden="true"></div>
   <div class="section-inner what-head reveal">
-    <span class="section-marker"><span>{% trans "// WHAT_IS_JOBDEVS" %}</span></span>
+    <span class="section-marker"><span>{% trans "LA PLATAFORMA" %}</span></span>
     <h2 class="sh-title" id="tituloQueEs">{% trans "¿Qué es" %} <span style="color:var(--accent);">JobDevs</span>?</h2>
     <p class="desc-mono">{% trans "La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios." %}</p>
   </div>
@@ -262,7 +267,7 @@
             <span class="wf-step-tag">{% trans "Desarrollo" %}</span>
           </div>
           <h3 class="wf-step-title">{% trans "Hitos con Evidencias" %}</h3>
-          <p class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye evidencia técnica auditable en Cloudflare R2." %}</p>
+          <p class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye archivos, enlaces y evidencia verificable en la nube." %}</p>
           <div class="wf-step-details">
             <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Revisión obligatoria: aprobar o solicitar corrección." %}</div>
             <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Almacenamiento seguro de código y documentación." %}</div>
@@ -276,7 +281,7 @@
             <span class="wf-step-tag">{% trans "Cierre" %}</span>
           </div>
           <h3 class="wf-step-title">{% trans "Cierre y Calificación Mutua" %}</h3>
-          <p class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal del contrato con hash SHA-256 y valoración bilateral de reputación." %}</p>
+          <p class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal del contrato con sello digital verificable y calificación mutua entre empresa y desarrollador." %}</p>
           <div class="wf-step-details">
             <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Sello inmutable del contrato para validez legal." %}</div>
             <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Reputación pública acumulable para el portafolio." %}</div>
@@ -411,10 +416,10 @@
   <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
   <div class="roles-bg-stage">
     <div class="role-bg-frame active" id="bgRoleEmpresa">
-      <img src="{% static 'IMG/nueva_imagen2.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/empresa_rol.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy">
     </div>
     <div class="role-bg-frame" id="bgRoleDev">
-      <img src="{% static 'IMG/nueva_imagen.jpg' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/aprendiz_rol.webp' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy">
     </div>
     <div class="roles-bg-overlay"></div>
   </div>
@@ -458,8 +463,8 @@
             <ul class="role-stage-features">
               <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Publicación ágil:" %}</strong> {% trans "define stack técnico, vacantes y fechas estimadas sin costos de registro." %}</span></li>
               <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Selección directa:" %}</strong> {% trans "recibe cartas de presentación y perfiles con ficha SENA oficial." %}</span></li>
-              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Control por hitos:" %}</strong> {% trans "aprueba avances con evidencia técnica documentada antes de liberar pagos." %}</span></li>
-              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Seguridad jurídica:" %}</strong> {% trans "contratos digitales con hash criptográfico SHA-256 y mediación formal." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Control por hitos:" %}</strong> {% trans "aprueba avances con evidencia técnica documentada para dar conformidad a cada entrega." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Seguridad jurídica:" %}</strong> {% trans "contratos digitales con sello de verificación único, historial inalterable y mediación formal." %}</span></li>
             </ul>
           </div>
         </div>
@@ -474,7 +479,7 @@
             <ul class="role-stage-features">
               <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Validación oficial:" %}</strong> {% trans "verificación de identidad académica contra el padrón oficial del SENA." %}</span></li>
               <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Postulación directa:" %}</strong> {% trans "carta de presentación técnica y límite responsable de 3 vacantes simultáneas." %}</span></li>
-              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Experiencia en producción:" %}</strong> {% trans "entrega de código y avances por hitos con evidencias auditadas en R2." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Experiencia en producción:" %}</strong> {% trans "entrega de código y avances por hitos con evidencias respaldadas en la nube." %}</span></li>
               <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Reputación verificable:" %}</strong> {% trans "calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones." %}</span></li>
             </ul>
           </div>
@@ -492,6 +497,10 @@
     <span class="section-marker"><span>{% trans "CASOS DE ÉXITO" %}</span></span>
     <h2 class="sh-title" id="tituloTestimonios">{% trans "Resultados" %} <span style="color:var(--accent);">{% trans "comprobables" %}</span> {% trans "en producción." %}</h2>
     <p class="desc-mono">{% trans "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs." %}</p>
+    <div class="carousel-btns story-head-actions">
+      <button type="button" class="carousel-btn" id="storyPrev" aria-label="{% trans "Caso anterior" %}">{% trans "&larr;" %}</button>
+      <button type="button" class="carousel-btn" id="storyNext" aria-label="{% trans "Siguiente caso" %}">{% trans "&rarr;" %}</button>
+    </div>
   </div>
 
   <div style="position: relative; overflow: hidden;">
@@ -499,14 +508,14 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="{% trans "FINTECH" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-1-geoespacial.webp' %}" class="story-img" alt="{% trans "Software geoespacial para control de ganado" %}" loading="lazy">
           <div class="story-img-tag">{% trans "CASO / 01" %}</div>
-          <div class="story-img-badge">{% trans "-80% TIEMPO" %}</div>
+          <div class="story-img-badge">{% trans "TRAZABILIDAD" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "FINTECH COLOMBIA" %}</div>
-          <div class="story-role">{% trans "Backend & Pagos · 6 meses" %}</div>
-          <p class="story-quote">"El equipo del SENA entregó una API de pagos más robusta que la de nuestro proveedor anterior. En 6 meses ya estábamos en producción."</p>
+          <div class="story-name">{% trans "AGROGEO COLOMBIA" %}</div>
+          <div class="story-role">{% trans "Geoespacial & Ganadería · 6 meses" %}</div>
+          <p class="story-quote">{% trans "\"Desarrollaron un software geoespacial para el control y trazabilidad de ganado por lotes. Hoy monitoreamos todo el hato en tiempo real.\"" %}</p>
           <div class="story-stats">
             <div><div class="story-stat-val">100%</div><div class="story-stat-label">{% trans "A tiempo" %}</div></div>
             <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
@@ -517,16 +526,16 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="{% trans "ECOMMERCE" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-2-devq.webp' %}" class="story-img" alt="{% trans "Automatización de procesos DevQ" %}" loading="lazy">
           <div class="story-img-tag">{% trans "CASO / 02" %}</div>
-          <div class="story-img-badge">{% trans "+34% CONVERSIÓN" %}</div>
+          <div class="story-img-badge">{% trans "AUTOMATIZACIÓN" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "ECOMMERCE NACIONAL" %}</div>
-          <div class="story-role">{% trans "Frontend & Checkout · 4 meses" %}</div>
-          <p class="story-quote">"Rediseñamos todo el checkout con un equipo de 2 devs del SENA. La tasa de conversión subió 34% en el primer trimestre."</p>
+          <div class="story-name">{% trans "DEVQ SISTEMAS" %}</div>
+          <div class="story-role">{% trans "Automatización & Backend · 4 meses" %}</div>
+          <p class="story-quote">{% trans "\"Nos ayudó a automatizar procesos operativos repetitivos e integrar reportes internos. Redujimos tiempos manuales desde la primera entrega.\"" %}</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">+34%</div><div class="story-stat-label">{% trans "Conversión" %}</div></div>
+            <div><div class="story-stat-val">-65%</div><div class="story-stat-label">{% trans "Carga manual" %}</div></div>
             <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
             <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
@@ -535,16 +544,16 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/ia.png' %}" class="story-img" alt="{% trans "AGROTECH" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-3-clima.webp' %}" class="story-img" alt="{% trans "Monitorización de sismos Medellín" %}" loading="lazy">
           <div class="story-img-tag">{% trans "CASO / 03" %}</div>
-          <div class="story-img-badge">{% trans "-60% COSTOS" %}</div>
+          <div class="story-img-badge">{% trans "TIEMPO REAL" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "AGROTECH STARTUP" %}</div>
-          <div class="story-role">{% trans "Full Stack & IoT · 8 meses" %}</div>
-          <p class="story-quote">"Necesitábamos un dashboard IoT para monitoreo de cultivos. El equipo SENA armó una solución mejor que la que cotizamos afuera."</p>
+          <div class="story-name">{% trans "ALCALDÍA DE MEDELLÍN" %}</div>
+          <div class="story-role">{% trans "Monitorización Sísmica · 8 meses" %}</div>
+          <p class="story-quote">{% trans "\"Implementaron el software de monitorización de sismos para la Alcaldía de Medellín, con alertas tempranas y tableros geográficos en vivo.\"" %}</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">-60%</div><div class="story-stat-label">{% trans "Costo vs ext" %}</div></div>
+            <div><div class="story-stat-val">24/7</div><div class="story-stat-label">{% trans "Monitoreo" %}</div></div>
             <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
             <div><div class="story-stat-val">8</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
@@ -553,17 +562,35 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/Personalizado.png' %}" class="story-img" alt="{% trans "LOGISTICA" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-4-gym.webp' %}" class="story-img" alt="{% trans "Sitio web para gimnasio" %}" loading="lazy">
           <div class="story-img-tag">{% trans "CASO / 04" %}</div>
-          <div class="story-img-badge">{% trans "-93% DEPLOY" %}</div>
+          <div class="story-img-badge">{% trans "+CAPTACIÓN" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "LOGÍSTICA EXPRESS" %}</div>
-          <div class="story-role">{% trans "Cloud & DevOps · 5 meses" %}</div>
-          <p class="story-quote">"Migraron nuestra infraestructura a AWS con CI/CD completo. El tiempo de deploy pasó de 2 horas a 8 minutos."</p>
+          <div class="story-name">{% trans "ZONA FIT GYM" %}</div>
+          <div class="story-role">{% trans "Web & Publicidad · 3 meses" %}</div>
+          <p class="story-quote">{% trans "\"Crearon la página web de nuestro gimnasio con planes y agenda en línea. Nos ayudó a publicitarnos mejor y atraer nuevos clientes cada semana.\"" %}</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">-93%</div><div class="story-stat-label">{% trans "Tiempo deploy" %}</div></div>
+            <div><div class="story-stat-val">+45%</div><div class="story-stat-label">{% trans "Consultas" %}</div></div>
             <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-5-zapatos.webp' %}" class="story-img" alt="{% trans "Software empresarial venta de zapatos" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 05" %}</div>
+          <div class="story-img-badge">{% trans "+INGRESOS" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "CALZADO URBANO" %}</div>
+          <div class="story-role">{% trans "Software Empresarial · 5 meses" %}</div>
+          <p class="story-quote">{% trans "\"Desarrollaron nuestro software empresarial para la venta de zapatos, control de tallas e inventario. Ordenó las sucursales y aumentó los ingresos.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">+38%</div><div class="story-stat-label">{% trans "Ingresos" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
             <div><div class="story-stat-val">5</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
@@ -571,50 +598,22 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/website.png' %}" class="story-img" alt="{% trans "EDTECH" %}" loading="lazy">
-          <div class="story-img-tag">{% trans "CASO / 05" %}</div>
-          <div class="story-img-badge">{% trans "50K+ USUARIOS" %}</div>
+          <img src="{% static 'IMG/casos/caso-6-banco.webp' %}" class="story-img" alt="{% trans "Aplicación móvil bancaria" %}" loading="lazy">
+          <div class="story-img-tag">{% trans "CASO / 06" %}</div>
+          <div class="story-img-badge">{% trans "MOBILE BANKING" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "EDTECH PLATFORM" %}</div>
-          <div class="story-role">{% trans "Mobile & API · 7 meses" %}</div>
-          <p class="story-quote">"El equipo desarrolló nuestra app de quizzes interactivos con +50k usuarios. Estabilidad y performance impecables desde el día 1."</p>
+          <div class="story-name">{% trans "BANCO ALIADO" %}</div>
+          <div class="story-role">{% trans "Aplicación Móvil · 7 meses" %}</div>
+          <p class="story-quote">{% trans "\"Construyeron la aplicación móvil del banco para consultas, transferencias y validación segura, entregando cada hito con pruebas verificadas.\"" %}</p>
           <div class="story-stats">
-            <div><div class="story-stat-val">50k+</div><div class="story-stat-label">{% trans "Usuarios" %}</div></div>
-            <div><div class="story-stat-val">5</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">99.9%</div><div class="story-stat-label">{% trans "Estabilidad" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
             <div><div class="story-stat-val">7</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
           </div>
         </div>
       </article>
 
-      <article class="story-card">
-        <div class="story-img-box">
-          <img src="{% static 'IMG/automatizacion.png' %}" class="story-img" alt="{% trans "INSURTECH" %}" loading="lazy">
-          <div class="story-img-tag">{% trans "CASO / 06" %}</div>
-          <div class="story-img-badge">{% trans "2M REG/DÍA" %}</div>
-        </div>
-        <div class="story-body">
-          <div class="story-name">{% trans "INSURTECH CORP" %}</div>
-          <div class="story-role">{% trans "Data Engineering · 6 meses" %}</div>
-          <p class="story-quote">"Implementaron nuestro pipeline de datos con Python y Airflow. Procesamos 2M de registros diarios sin incidencias."</p>
-          <div class="story-stats">
-            <div><div class="story-stat-val">2M</div><div class="story-stat-label">{% trans "Registros/día" %}</div></div>
-            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
-            <div><div class="story-stat-val">6</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
-          </div>
-        </div>
-      </article>
-
-    </div>
-
-    <div class="carousel-wrapper">
-      <div class="carousel-controls">
-        <div class="carousel-dots" id="storyDots"></div>
-        <div class="carousel-btns">
-          <button class="carousel-btn" id="storyPrev">{% trans "&larr;" %}</button>
-          <button class="carousel-btn" id="storyNext">{% trans "&rarr;" %}</button>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -625,7 +624,7 @@
   <div class="cta-hero-overlay" aria-hidden="true"></div>
 
   <div class="section-inner cta-hero-content reveal">
-    <span class="section-marker"><span>{% trans "// MODULE_06: BEGIN_PROTOCOL" %}</span></span>
+    <span class="section-marker"><span>{% trans "COMENZAR AHORA" %}</span></span>
     <h2 class="sh-title" id="tituloComenzar">{% trans "Inicia tu" %} <span class="cta-accent">{% trans "proyecto" %}</span>.<br><span class="text-stroke">{% trans "Sin" %}</span> {% trans "vueltas." %}</h2>
     <a href="{% url 'registro' %}" class="cta-hero-btn">{% trans "[ CREAR CUENTA ]" %}</a>
   </div>
@@ -633,6 +632,7 @@
 
 <!-- ==================== FOOTER ==================== -->
 <footer class="foot-tech">
+  <div class="foot-grid-bg" aria-hidden="true"></div>
   <div class="foot-grid">
     <div class="foot-col">
       <div class="foot-brand"><div class="brand-square"></div> JobDevs</div>
@@ -704,22 +704,6 @@
   </div>
 </footer>
 
-<!-- ==================== STICKY CTA ==================== -->
-<div class="sticky-cta" id="stickyCta">
-  <div class="sticky-bar">
-    <div class="hero-strip-side">
-      <span class="rec-dot"></span>
-      <div>
-        <div class="sticky-text">{% trans "JobDevs · Ecosistema SENA" %}</div>
-        <div class="sticky-sub">{% trans "Conectando empresas y talento verificado" %}</div>
-      </div>
-    </div>
-    <a href="{% url 'registro' %}" class="btn-tech pulse-btn" style="white-space:nowrap;">
-      <span>{% trans "CREAR CUENTA" %}</span>
-    </a>
-  </div>
-</div>
-
 <!-- ==================== LOGIN MODAL ==================== -->
 <div class="modal fade theme-dev" id="loginModal" role="dialog" aria-modal="true" aria-label="{% trans "AUTENTICACIÓN" %}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -731,7 +715,7 @@
       <div class="modal-body">
 
         <div id="loginForm">
-          <form method="POST" action="{% url 'login' %}">
+          <form id="loginFormElement" method="POST" action="{% url 'login' %}">
             {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
             {% csrf_token %}
 
@@ -806,7 +790,105 @@
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
+<style>
+  .login-spinner-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 12, 14, 0.55);
+    backdrop-filter: blur(3px);
+  }
+  .login-spinner-box {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 20px;
+  }
+  .login-spinner-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .login-spinner-box .spinner {
+    position: relative;
+    width: 9px;
+    height: 9px;
+    margin: 14px 0;
+  }
+  .login-spinner-box .spinner div {
+    position: absolute;
+    width: 50%;
+    height: 150%;
+    background: #ffffff;
+    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+    animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
+  }
+  .login-spinner-box .spinner div:nth-child(1) { --delay: 0.1; --rotation: 36; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(2) { --delay: 0.2; --rotation: 72; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(3) { --delay: 0.3; --rotation: 108; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(4) { --delay: 0.4; --rotation: 144; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(5) { --delay: 0.5; --rotation: 180; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(6) { --delay: 0.6; --rotation: 216; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(7) { --delay: 0.7; --rotation: 252; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(8) { --delay: 0.8; --rotation: 288; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(9) { --delay: 0.9; --rotation: 324; --translation: 150; }
+  .login-spinner-box .spinner div:nth-child(10) { --delay: 1; --rotation: 360; --translation: 150; }
+  @keyframes spinner-fzua35 {
+    0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
+      transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+    }
+    50% {
+      transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
+    }
+  }
+</style>
 
+<div id="loginSpinnerOverlay" class="login-spinner-overlay" aria-hidden="true">
+  <div class="login-spinner-box">
+    <div class="spinner" aria-hidden="true">
+      <div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <span class="login-spinner-label">{% trans "Ingresando..." %}</span>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var lf = document.getElementById('loginFormElement');
+    var overlay = document.getElementById('loginSpinnerOverlay');
+    var loginModal = document.getElementById('loginModal');
+    if (!lf) return;
+    lf.addEventListener('submit', function (e) {
+      if (lf.dataset.submitting === '1') return;
+      e.preventDefault();
+      lf.dataset.submitting = '1';
+      if (loginModal) {
+        loginModal.classList.remove('show');
+        loginModal.setAttribute('aria-hidden', 'true');
+      }
+      if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.setAttribute('aria-hidden', 'false');
+      }
+      setTimeout(function () {
+        lf.submit();
+      }, 260);
+    });
+    window.addEventListener('pageshow', function () {
+      lf.dataset.submitting = '0';
+      if (overlay) {
+        overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+    });
+  })();
+</script>
 
 </body>
 </html>

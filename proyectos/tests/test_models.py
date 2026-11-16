@@ -9,6 +9,27 @@ User = get_user_model()
 class TestProyectoModel:
     """Tests for the Proyecto model."""
 
+    def test_publicado_sin_cupos_no_acepta_postulaciones(self, db):
+        from contrataciones.models import Contratacion
+
+        empresa = User.objects.create_user(
+            username='emp_sin_cupo', email='emp_sin_cupo@test.jobdevs',
+            rol='empresa', estado='activo', password='TestPass123!',
+        )
+        dev = User.objects.create_user(
+            username='dev_sin_cupo', email='dev_sin_cupo@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa, titulo='Cupo lleno', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        assert proyecto.acepta_postulaciones
+        Contratacion.objects.create(
+            proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+        )
+        assert not proyecto.acepta_postulaciones
+
     def test_crear_proyecto(self, db):
         """Proyecto can be created with minimum fields."""
         empresa = User.objects.create_user(
@@ -59,6 +80,41 @@ class TestProyectoModel:
         historial = HistorialEstadoProyecto.objects.filter(proyecto=proyecto)
         assert historial.count() == 1
         assert historial.first().estado_nuevo == 'en_desarrollo'
+        from logs.models import LogAuditoria
+        assert LogAuditoria.objects.filter(
+            usuario=empresa,
+            tabla_afectada='proyectos',
+            registro_id=proyecto.id,
+            valor_anterior='publicado',
+            valor_nuevo='en_desarrollo',
+        ).exists()
+
+    def test_historial_estado_registrado_no_puede_modificarse_ni_eliminarse(self, db):
+        """RF-N29: una transición ya registrada es inmutable por la API de modelo."""
+        empresa = User.objects.create_user(
+            username='p_historial', email='p_historial@test.jobdevs',
+            nombre='Historial', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        proyecto = Proyecto.objects.create(
+            empresa=empresa, titulo='Historial inmutable', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        historial = HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='publicado',
+            estado_nuevo='en_desarrollo',
+            cambiado_por=empresa,
+        )
+        historial.estado_nuevo = 'finalizado'
+
+        with pytest.raises(ValidationError):
+            historial.save()
+        with pytest.raises(ValidationError):
+            historial.delete()
+
+        historial.refresh_from_db()
+        assert historial.estado_nuevo == 'en_desarrollo'
 
     def test_estados_disponibles(self, db):
         """Proyecto can transition through estados."""

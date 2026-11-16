@@ -1,19 +1,22 @@
 {% load static i18n idioma %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE|default:'es' }}" data-theme="dark">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | {% trans "Panel Corporativo" %}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
-  <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=2">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261107_v3">
-  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261107_v1">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261115_v11">
+  <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=20261115_v11">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261116_v88">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261115_v10">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261115_v10">
   <script>
     (function() {
-      var tema = 'dark';
+      var tema = 'light';
       try {
         var guardado = localStorage.getItem('jobdevs-theme');
         if (guardado === 'light' || guardado === 'dark') {
@@ -26,17 +29,15 @@
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">{% trans "Saltar al contenido principal" %}</a>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 <div class="app-layout">
 
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
-      <div>
-        <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">{% trans "Empresa" %}</div>
-      </div>
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
+      <div class="sidebar-brand-sub">{% trans "Empresa" %}</div>
       <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="{% trans "Colapsar menú (solo iconos)" %}" aria-label="{% trans "Colapsar menú lateral" %}">
         <i data-lucide="panel-left-close"></i>
       </button>
@@ -74,6 +75,13 @@
         <span>{% trans "En Desarrollo" %}</span>
       </button>
       <button class="nav-item" onclick="switchTab('contratos', this)" title="{% trans "Contratos" %}"><i data-lucide="file-signature"></i><span>{% trans "Contratos" %}</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
+      <button class="nav-item" onclick="switchTab('cancelaciones', this)" title="{% trans "Solicitudes de cancelación" %}">
+        <i data-lucide="file-x"></i>
+        <span>{% trans "Cancelaciones" %}</span>
+        {% if cancelaciones_pendientes_count > 0 %}
+          <span class="nav-badge">{{ cancelaciones_pendientes_count }}</span>
+        {% endif %}
+      </button>
       <button class="nav-item" onclick="switchTab('historial', this)" title="{% trans "Historial" %}">
         <i data-lucide="history"></i>
         <span>{% trans "Historial" %}</span>
@@ -85,22 +93,6 @@
           <span class="nav-badge">{{ disputas_activas_count }}</span>
         {% endif %}
       </button>
-    </div>
-
-    <div class="sidebar-group">
-      <div class="sidebar-group-label">{% trans "Cuenta" %}</div>
-      <button class="nav-item" onclick="switchTab('perfil', this)" title="{% trans "Perfil Empresa" %}">
-        <i data-lucide="building-2"></i>
-        <span>{% trans "Perfil Empresa" %}</span>
-      </button>
-    </div>
-
-    <hr class="sidebar-sep" style="margin-top:auto;">
-    <div style="padding:12px;">
-      <a class="nav-item danger" href="{% url 'logout' %}" title="{% trans "Cerrar Sesión" %}">
-        <i data-lucide="log-out"></i>
-        <span>{% trans "Cerrar Sesión" %}</span>
-      </a>
     </div>
   </aside>
 
@@ -115,33 +107,11 @@
         <i data-lucide="menu"></i>
       </button>
 
-      <div class="top-header-title">
-        <span>{% trans "Panel Corporativo" %}</span>
-        <span class="header-sep">/</span>
-        <span class="header-tenant">{{ perfil.nombre_empresa|default:request.user.username }}</span>
-      </div>
-
       <div class="header-actions">
-        <!-- Conmutador de Tema Claro / Oscuro (Idéntico a la Landing) -->
-        <button type="button" class="theme-toggle" id="empresaThemeToggle" onclick="toggleEmpresaTheme()" aria-pressed="false" aria-label="{% trans "Cambiar entre tema oscuro y claro" %}" title="{% trans "Cambiar entre tema oscuro y claro" %}">
-          <span class="theme-toggle-icon theme-toggle-icon--dark" title="{% trans "Tema oscuro" %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-          </span>
-          <span class="theme-toggle-icon theme-toggle-icon--light" title="{% trans "Tema claro" %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          </span>
-        </button>
-
-        <!-- Conmutador de Idioma ES / EN (Solamente Empresa) -->
-        <a class="lang-switch" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" aria-label="{% if IDIOMA == 'en' %}Cambiar a Español{% else %}Switch to English{% endif %}" title="{% if IDIOMA == 'en' %}Cambiar a Español{% else %}Switch to English{% endif %}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-          <span class="lang-switch-code">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
-        </a>
-
         <!-- Notificaciones Popover -->
         <div class="notif-wrapper">
-          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="{% trans "Notificaciones" %}" aria-label="{% trans "Notificaciones" %}">
-            <i data-lucide="bell"></i>
+          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="{% trans "Notificaciones" %}" aria-label="{% trans "Notificaciones" %}" aria-expanded="false" aria-controls="notifPopover">
+            <svg viewBox="0 0 448 512" class="bell" aria-hidden="true"><path d="M224 0c-17.7 0-32 14.3-32 32V49.9C119.5 61.4 64 124.2 64 200v33.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V200c0-75.8-55.5-138.6-128-150.1V32c0-17.7-14.3-32-32-32zm0 96h8c57.4 0 104 46.6 104 104v33.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V200c0-57.4 46.6-104 104-104h8zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z"></path></svg>
             {% if notificaciones_pendientes_count > 0 %}
               <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
             {% endif %}
@@ -152,7 +122,7 @@
               {% if notificaciones %}
                 <form action="{% url 'notificaciones_limpiar' %}" method="POST" style="margin:0;" onsubmit="limpiarNotificacionesAjax(event, this)">
                   {% csrf_token %}
-                  <button type="submit" class="btn-corp-action danger-subtle" style="font-size:11px; padding:3px 8px;" title="{% trans "Borrar todas las notificaciones para que no se acumulen" %}">
+                  <button type="submit" class="btn-corp-action danger-subtle" style="font-size:12px; padding:3px 8px;" title="{% trans "Borrar todas las notificaciones para que no se acumulen" %}">
                     <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
                     <span>{% trans "Limpiar" %}</span>
                   </button>
@@ -175,286 +145,83 @@
           </div>
         </div>
 
-        {% with badge=perfil.badge_info %}
-        <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" data-testid="badge-verificacion-header" title="{% trans "Verificación NIT / Identidad" %}">
-          <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
-          <span>{% trans badge.label %}</span>
-        </a>
-        {% endwith %}
+        <div class="user-dropdown-wrapper">
+          <button type="button" class="user-chip-corp" id="userMenuBtn" onclick="toggleUserMenu(event)" aria-haspopup="true" aria-expanded="false" title="{% trans "Menú de cuenta" %}">
+            <div class="user-avatar">
+              {% if perfil.logo %}
+                <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
+              {% else %}
+                {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <div class="user-chip-info">
+              <div class="user-chip-name">{{ request.user.nombre|default:request.user.username }}</div>
+              <div class="user-chip-role">{% trans "Empresa" %}</div>
+            </div>
+            <i data-lucide="chevron-down" class="user-chip-chevron"></i>
+          </button>
 
-        <div class="user-chip-corp" onclick="switchTab('perfil')" style="cursor:pointer;" title="{% trans "Ver perfil de la empresa" %}">
-          <div class="user-avatar">
-            {% if perfil.logo %}
-              <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
-            {% else %}
-              {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
-            {% endif %}
-          </div>
-          <div class="user-chip-info">
-            <div class="user-chip-name">{{ request.user.nombre|default:request.user.username }}</div>
-            <div class="user-chip-role">{% trans "Empresa" %}</div>
+          <div class="user-dropdown-menu" id="userDropdownMenu" style="display:none;" role="menu" aria-labelledby="userMenuBtn">
+            <div class="user-dropdown-header">
+              <div class="user-dropdown-avatar">
+                {% if perfil.logo %}
+                  <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
+                {% else %}
+                  {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+              <div class="user-dropdown-meta">
+                <div class="user-dropdown-name">{{ request.user.nombre|default:request.user.username }}</div>
+                <div class="user-dropdown-email">{{ request.user.email }}</div>
+                <span class="user-dropdown-tag">{% trans "Empresa" %}</span>
+              </div>
+            </div>
+
+            <div class="user-dropdown-body">
+              <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); switchTab('perfil');">
+                <i data-lucide="building-2"></i>
+                <span>{% trans "Perfil de Empresa" %}</span>
+              </button>
+              <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); abrirModalVerificacion(event);">
+                <i data-lucide="shield-check"></i>
+                <span>{% trans "Verificación NIT / Legal" %}</span>
+              </button>
+              <div class="user-dropdown-divider" role="separator"></div>
+              <button type="button" class="user-dropdown-item" id="empresaThemeToggle" role="menuitem" onclick="toggleEmpresaTheme()" aria-pressed="false">
+                <span class="theme-toggle-morph" aria-hidden="true">
+                  <span class="sun-rays"></span>
+                  <span class="main-circle"></span>
+                </span>
+                <span id="empresaThemeLabel">{% trans "Tema claro" %}</span>
+              </button>
+              <a class="user-dropdown-item lang-toggle-item" id="empresaLangToggle" role="menuitem" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" onclick="switchEmpresaIdioma(event, this);">
+                <i data-lucide="globe" class="lang-globe-icon"></i>
+                <span style="flex:1;">{% if IDIOMA == 'en' %}{% trans "Cambiar a Español" %}{% else %}{% trans "Switch to English" %}{% endif %}</span>
+                <span class="lang-code-badge">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
+              </a>
+              <div class="user-dropdown-divider" role="separator"></div>
+              <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" onclick="cerrarSesionConSpinner(event, this);">
+                <i data-lucide="log-out"></i>
+                <span>{% trans "Cerrar Sesión" %}</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Content -->
-    <main class="main-content">
+    <main class="main-content" id="main-content" tabindex="-1">
 
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}">
-            <i data-lucide="{% if message.tags == 'error' or message.tags == 'danger' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <!-- Inicio / Dashboard -->
-      <section id="inicio" class="seccion-v activa">
-        <div class="page-header">
-          <div>
-            <div class="page-title">{% trans "Panel de Control" %}</div>
-            <div class="page-subtitle">{% trans "Vista ejecutiva de proyectos, talento y métricas operativas" %}</div>
-          </div>
-        </div>
-
-        <div class="kpi-grid-corp">
-          <div class="kpi-card-corp kpi-projects">
-            <div class="kpi-card-header">
-              <span class="kpi-card-label">{% trans "Proyectos Totales" %}</span>
-              <div class="kpi-card-icon"><i data-lucide="folder-archive"></i></div>
-            </div>
-            <div class="kpi-card-value">{{ total_proyectos }}</div>
-            <div class="kpi-card-footer">
-              <span class="kpi-tag tag-neutral">{% trans "Histórico" %}</span>
-              <span>{% trans "Convocatorias publicadas" %}</span>
-            </div>
-          </div>
-
-          <div class="kpi-card-corp kpi-active">
-            <div class="kpi-card-header">
-              <span class="kpi-card-label">{% trans "En Desarrollo" %}</span>
-              <div class="kpi-card-icon"><i data-lucide="laptop"></i></div>
-            </div>
-            <div class="kpi-card-value">{{ proyectos_activos }}</div>
-            <div class="kpi-card-footer">
-              <span class="kpi-tag tag-brand">{% trans "En marcha" %}</span>
-              <span>{% trans "Equipos trabajando" %}</span>
-            </div>
-          </div>
-
-          <div class="kpi-card-corp kpi-candidates">
-            <div class="kpi-card-header">
-              <span class="kpi-card-label">{% trans "Candidatos" %}</span>
-              <div class="kpi-card-icon"><i data-lucide="user-check"></i></div>
-            </div>
-            <div class="kpi-card-value">{{ total_postulaciones }}</div>
-            <div class="kpi-card-footer">
-              {% if total_postulaciones > 0 %}
-                <span class="kpi-tag tag-warning">{% trans "Requiere acción" %}</span>
-              {% else %}
-                <span class="kpi-tag tag-neutral">{% trans "Al día" %}</span>
-              {% endif %}
-              <span>{% trans "Pendientes de revisión" %}</span>
-            </div>
-          </div>
-        </div>
-
-        {% if onboarding_completados < 4 %}
-        <!-- Onboarding: Guía de Inicio Rápido (solo con pasos pendientes) -->
-        <div class="onboarding-card-corp">
-          <div class="onboarding-header-corp">
-            <div>
-              <div class="onboarding-title">{% trans "Guía de Inicio Rápido" %}</div>
-              <div class="onboarding-sub">
-                {% blocktrans with done=onboarding_completados total=pasos_onboarding|length pct=onboarding_porcentaje %}{{ done }} de {{ total }} pasos completados · {{ pct }}% de avance{% endblocktrans %}
-              </div>
-            </div>
-            <span class="onboarding-step-icon"><i data-lucide="rocket"></i></span>
-          </div>
-          <div class="onboarding-progress-track">
-            <div class="onboarding-progress-fill" style="width: {{ onboarding_porcentaje }}%;"></div>
-          </div>
-          <div class="onboarding-steps-grid">
-            {% for paso in pasos_onboarding %}
-              <div class="onboarding-step {% if paso.completado %}is-done{% else %}is-pending{% endif %}">
-                <span class="onboarding-step-icon">
-                  <i data-lucide="{% if paso.completado %}check-circle-2{% elif paso.en_revision %}clock{% else %}circle{% endif %}"></i>
-                </span>
-                <div class="onboarding-step-body">
-                  <div class="onboarding-step-title">{{ paso.titulo }}</div>
-                  <div class="onboarding-step-desc">{% if paso.en_revision %}{% trans "En revisión por el equipo JobDevs." %}{% else %}{{ paso.descripcion }}{% endif %}</div>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Módulo de Reputación y Desempeño Corporativo en Dashboard -->
-        <div style="margin-top:28px;">
-          <div class="page-header" style="margin-bottom:18px;">
-            <div>
-              <div class="page-title" style="font-size:18px;">{% trans "Reputación & Desempeño Corporativo" %}</div>
-              <div class="page-subtitle">{% trans "Evaluaciones y retroalimentación verificada de los desarrolladores contratados" %}</div>
-            </div>
-          </div>
-
-          <div class="reputation-layout-corp">
-            <!-- Tarjeta de Desglose y Calificación -->
-            <div class="reputation-summary-card">
-              <div class="rep-score-box">
-                <div class="rep-summary-label">{% trans "Calificación Global" %}</div>
-                <div class="rep-score-value">{{ promedio_empresa }}</div>
-                <div class="rep-stars-row">
-                  {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
-                  {% if promedio_empresa >= 2 %}★{% else %}☆{% endif %}
-                  {% if promedio_empresa >= 3 %}★{% else %}☆{% endif %}
-                  {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
-                  {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
-                </div>
-                <div class="rep-summary-sub">
-                  {% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Promedio de {{ total }} valoración sobre 5.0{% plural %}Promedio de {{ total }} valoraciones sobre 5.0{% endblocktrans %}
-                </div>
-              </div>
-
-              <!-- Histograma de distribución de estrellas -->
-              <div class="rep-histogram">
-                <div class="rep-histo-row">
-                  <span class="rep-histo-label">5 ★</span>
-                  <div class="rep-histo-track">
-                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.5 }}%;"></div>
-                  </div>
-                  <span class="rep-histo-count">{{ conteo_estrellas.5 }}</span>
-                </div>
-                <div class="rep-histo-row">
-                  <span class="rep-histo-label">4 ★</span>
-                  <div class="rep-histo-track">
-                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.4 }}%;"></div>
-                  </div>
-                  <span class="rep-histo-count">{{ conteo_estrellas.4 }}</span>
-                </div>
-                <div class="rep-histo-row">
-                  <span class="rep-histo-label">3 ★</span>
-                  <div class="rep-histo-track">
-                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.3 }}%;"></div>
-                  </div>
-                  <span class="rep-histo-count">{{ conteo_estrellas.3 }}</span>
-                </div>
-                <div class="rep-histo-row">
-                  <span class="rep-histo-label">2 ★</span>
-                  <div class="rep-histo-track">
-                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.2 }}%;"></div>
-                  </div>
-                  <span class="rep-histo-count">{{ conteo_estrellas.2 }}</span>
-                </div>
-                <div class="rep-histo-row">
-                  <span class="rep-histo-label">1 ★</span>
-                  <div class="rep-histo-track">
-                    <div class="rep-histo-fill" style="width: {{ porcentaje_estrellas.1 }}%;"></div>
-                  </div>
-                  <span class="rep-histo-count">{{ conteo_estrellas.1 }}</span>
-                </div>
-              </div>
-
-              <!-- Indicadores de Cumplimiento -->
-              <div class="rep-trust-list">
-                <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="handshake" style="color:var(--corp-brand);"></i> {% trans "Pago & Contratación" %}</span>
-                  <span class="rep-trust-val" style="color:var(--corp-success);">100% {% trans "Cumplido" %}</span>
-                </div>
-                <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="list-checks" style="color:var(--corp-brand);"></i> {% trans "Claridad de Hitos" %}</span>
-                  <span class="rep-trust-val">{% trans "Alta" %}</span>
-                </div>
-                <div class="rep-trust-item">
-                  <span class="rep-trust-name"><i data-lucide="shield-check" style="color:var(--corp-brand);"></i> {% trans "Estado de Empresa" %}</span>
-                  <span class="rep-trust-val">{% if perfil.get_estado_verificacion_display %}{% trans perfil.get_estado_verificacion_display %}{% else %}{% trans "Registrada" %}{% endif %}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Feed de Reseñas de Desarrolladores (Top 3 Recientes) -->
-            <div class="reviews-list-corp">
-              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                <span style="font-size:12.5px; font-weight:700; color:var(--corp-slate-800);">{% trans "Opiniones Recientes" %}</span>
-                <span style="font-size:11.5px; color:var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Últimas 3 de {{ total }} valoración{% plural %}Últimas 3 de {{ total }} valoraciones{% endblocktrans %}</span>
-              </div>
-              {% for valoracion in valoraciones_recibidas|slice:":3" %}
-                <div class="review-card-corp">
-                  <div class="review-card-header">
-                    <div class="review-author-wrap">
-                      <div class="review-avatar-circle">
-                        {% if valoracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                          <img src="{{ valoracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ valoracion.desarrollador.username }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
-                        {% else %}
-                          {{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username|slice:":1"|upper }}
-                        {% endif %}
-                      </div>
-                      <div>
-                        <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
-                        <span class="badge-verified-hire">
-                          <i data-lucide="check-circle-2"></i> {% trans "Contratación Verificada" %}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="review-stars">
-                      <span class="review-stars-score">{{ valoracion.puntuacion }}.0</span>
-                      <span>{% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}</span>
-                    </div>
-                  </div>
-
-                  <div class="review-project">
-                    <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
-                    <span>{% trans "Proyecto:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></span>
-                  </div>
-
-                  <div class="review-comment-box">
-                    "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "El desarrollador calificó con puntaje positivo sin comentario adicional." %}{% endif %}"
-                  </div>
-
-                  {% if valoracion.fecha %}
-                    <div class="review-date">
-                      <i data-lucide="calendar-check-2" style="margin-right:4px;"></i> {{ valoracion.fecha|date:"d M, Y" }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% empty %}
-                <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
-                  <i data-lucide="star"></i>
-                  <p>{% trans "Tu empresa aún no ha recibido valoraciones de desarrolladores." %}</p>
-                  <span style="font-size:12.5px; color:var(--corp-slate-400); margin-top:4px;">{% trans "Las calificaciones se habilitan automáticamente al culminar exitosamente un proyecto." %}</span>
-                </div>
-              {% endfor %}
-
-              {% if total_valoraciones > 3 %}
-                <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:11px 16px; margin-top:4px;">
-                  <i data-lucide="message-square"></i>
-                  <span>{% blocktrans with total=total_valoraciones %}Ver todas las valoraciones ({{ total }}) →{% endblocktrans %}</span>
-                </button>
-              {% elif total_valoraciones > 0 %}
-                <button type="button" class="btn-corp-action secondary" onclick="abrirModalTodasValoraciones()" style="width:100%; justify-content:center; padding:9px 14px; margin-top:4px; font-size:12px;">
-                  <i data-lucide="folder-open"></i>
-                  <span>{% trans "Abrir expediente de reputación completo" %}</span>
-                </button>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </section>
+      <!-- Inicio / Dashboard (Command Center) -->
+      {% include "empresa/partials/_tab_inicio.html" %}
 
       <!-- Chat -->
       <section id="centro-chat" class="seccion-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">{% trans "Centro de Mensajería" %}</div>
-            <div class="page-subtitle">{% trans "Comunicaciones directas con tu equipo técnico y soporte institucional" %}</div>
-          </div>
-        </div>
-
-        <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
+        <div class="jd-chat is-context-collapsed" data-chat-root data-send-url="{% url 'api_enviar' %}"
              data-url-general="{% url 'api_conversacion' 987654321 %}"
              data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
           <aside class="jd-chat-list">
@@ -505,6 +272,7 @@
                 {% endif %}
               {% endfor %}
             </div>
+            <div class="jd-chat-resizer" id="chatListResizer" role="separator" aria-orientation="vertical" aria-label="{% trans "Redimensionar lista de conversaciones" %}"></div>
           </aside>
 
           <section class="jd-chat-panel">
@@ -521,7 +289,12 @@
                 </button>
                 <span class="jd-chat-avatar" data-chat-avatar>?</span>
                 <div class="jd-chat-head-info">
-                  <div class="jd-chat-head-name" data-chat-name>—</div>
+                  <div class="jd-chat-head-name-row">
+                    <div class="jd-chat-head-name" data-chat-name>—</div>
+                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" onclick="toggleChatContextSidebar()" title="{% trans "Mostrar contexto del proyecto" %}" aria-label="{% trans "Alternar panel de contexto del proyecto" %}">
+                      <i data-lucide="panel-right-open"></i>
+                    </button>
+                  </div>
                   <div class="jd-chat-head-sub" data-chat-sub>—</div>
                 </div>
               </header>
@@ -544,6 +317,28 @@
               </div>
             </div>
           </section>
+
+          <!-- 3. Columna Contextual del Proyecto -->
+          <aside class="jd-chat-context" data-chat-context style="display:none;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:8px;">
+              <i data-lucide="layers" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i>
+              {% trans "Contexto del Proyecto" %}
+            </div>
+            <div class="jd-context-card">
+              <div class="jd-context-title" data-context-project-title>—</div>
+              <span class="jd-context-badge" data-context-project-badge>{% trans "En Desarrollo" %}</span>
+              <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px; display:flex; flex-direction:column; gap:8px;">
+                <a href="{% url 'dashboard_empresa' %}#desarrollo" class="jd-context-btn">
+                  <i data-lucide="flag"></i>
+                  <span>{% trans "Ver Hitos del Proyecto" %}</span>
+                </a>
+                <a href="{% url 'dashboard_empresa' %}#contratos" class="jd-context-btn secondary">
+                  <i data-lucide="file-signature"></i>
+                  <span>{% trans "Ver Contratos Digitales" %}</span>
+                </a>
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -551,8 +346,7 @@
       <section id="ofertas" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</div>
-            <div class="page-subtitle">{% trans "Publicaciones activas buscando desarrolladores y postulaciones en revisión" %}</div>
+            <h1 class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</h1>
           </div>
           <button class="btn-corp-primary" onclick="abrirModal()">
             <i data-lucide="plus"></i>
@@ -560,25 +354,31 @@
           </button>
         </div>
 
-        <!-- Barra de métricas y búsqueda rápida de ofertas -->
+        <!-- Barra de búsqueda, filtros y resumen -->
         <div class="offers-toolbar-corp">
-          <div class="offers-search-wrap">
-            <i data-lucide="search" style="color:var(--corp-slate-400);"></i>
-            <input type="text" class="form-input-corp" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)" style="border:none; padding:6px 0; background:transparent;">
+          <div class="offers-toolbar-controls">
+            <div class="offers-search-wrap">
+              <i data-lucide="search"></i>
+              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)">
+            </div>
+            <div class="offers-filter-bar" role="group" aria-label="{% trans "Filtrar por modalidad" %}">
+              <button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">{% trans "Todas" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">{% trans "Remoto" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">{% trans "Presencial" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">{% trans "Híbrido" %}</button>
+            </div>
           </div>
-          <div class="offers-filter-bar"><button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">{% trans "Todas" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">{% trans "Remoto" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">{% trans "Presencial" %}</button><button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">{% trans "Híbrido" %}</button></div>
           <div class="offers-stats-wrap">
-            <span class="offers-stat-pill">
-              <i data-lucide="megaphone" style="color:var(--corp-brand);"></i>
-              {% blocktrans with total=mis_ofertas|length count counter=mis_ofertas|length %}<strong>{{ total }}</strong> oferta activa{% plural %}<strong>{{ total }}</strong> ofertas activas{% endblocktrans %}
+            <span class="offers-stat-item">
+              {% blocktrans with total=mis_ofertas|length count counter=mis_ofertas|length %}<strong>{{ total }}</strong> activa{% plural %}<strong>{{ total }}</strong> activas{% endblocktrans %}
             </span>
-            <span class="offers-stat-pill">
-              <i data-lucide="user-plus" style="color:var(--corp-warning);"></i>
-              {% blocktrans with total=total_vacantes_ofertas|default:0 count counter=total_vacantes_ofertas|default:0 %}<strong>{{ total }}</strong> vacante abierta{% plural %}<strong>{{ total }}</strong> vacantes abiertas{% endblocktrans %}
+            <span class="offers-stat-dot" aria-hidden="true">·</span>
+            <span class="offers-stat-item">
+              {% blocktrans with total=total_vacantes_ofertas|default:0 count counter=total_vacantes_ofertas|default:0 %}<strong>{{ total }}</strong> vacante{% plural %}<strong>{{ total }}</strong> vacantes{% endblocktrans %}
             </span>
-            <span class="offers-stat-pill">
-              <i data-lucide="clock" style="color:var(--corp-info);"></i>
-              {% blocktrans with total=total_postulaciones count counter=total_postulaciones %}<strong>{{ total }}</strong> postulante pendiente{% plural %}<strong>{{ total }}</strong> postulantes pendientes{% endblocktrans %}
+            <span class="offers-stat-dot" aria-hidden="true">·</span>
+            <span class="offers-stat-item">
+              {% blocktrans with total=total_postulaciones count counter=total_postulaciones %}<strong>{{ total }}</strong> postulante{% plural %}<strong>{{ total }}</strong> postulantes{% endblocktrans %}
             </span>
           </div>
         </div>
@@ -595,58 +395,82 @@
                   {% if proyecto.cierra_pronto %}
                     <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> {% trans "Cierra pronto" %}</span>
                   {% endif %}
-                  {% if proyecto.modalidad %}
-                    <span class="offer-badge-vacancies" style="background:var(--corp-slate-100); color:var(--corp-slate-700);">
-                      <i data-lucide="map-pin"></i> {{ proyecto.get_modalidad_display|default:proyecto.modalidad|title }}
-                    </span>
-                  {% endif %}
-                  {% if proyecto.num_candidatos > 0 %}
-                    <span class="offer-badge-vacancies" style="background:var(--corp-brand-light); color:var(--corp-brand); font-weight:700;">
-                      <i data-lucide="clock"></i> {% blocktrans with total=proyecto.num_candidatos count counter=proyecto.num_candidatos %}{{ total }} postulante{% plural %}{{ total }} postulantes{% endblocktrans %}
-                    </span>
-                  {% endif %}
                 </div>
 
                 <div class="offer-title">{{ proyecto.titulo }}</div>
 
                 <div class="offer-meta">
-                  <span><i data-lucide="calendar" style="margin-right:4px;"></i>{% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Reciente" %}{% endif %}</span>
-                  <span>·</span>
-                  <span><i data-lucide="users" style="margin-right:4px;"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
+                  {% if proyecto.modalidad %}
+                    <span><i data-lucide="map-pin"></i> {{ proyecto.get_modalidad_display|default:proyecto.modalidad|title }}</span>
+                    <span>·</span>
+                  {% endif %}
+                  <span><i data-lucide="calendar"></i> {% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Reciente" %}{% endif %}</span>
                   {% if proyecto.fecha_limite %}
                     <span>·</span>
-                    <span><i data-lucide="clock" style="margin-right:4px;"></i>{% trans "Cierra:" %} {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
+                    <span><i data-lucide="clock"></i> {% trans "Cierra:" %} {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
                   {% endif %}
                 </div>
               </div>
 
-              <div class="offer-actions">
-                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
-                   class="btn-corp-action primary"
-                   style="flex:1; justify-content:center;"
-                   onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
-                   title="{% trans "Revisar candidatos de esta convocatoria sin salir del panel" %}">
-                  <i data-lucide="users"></i>
-                  <span>{% trans "Ver Candidatos" %} {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
-                </a>
-                <a href="{% url 'editar_proyecto' proyecto.id %}"
-                   class="btn-corp-action secondary"
-                   style="justify-content:center;"
-                   onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
-                   title="{% trans "Editar especificaciones de la oferta sin salir del panel" %}">
-                  <i data-lucide="square-pen"></i>
-                  <span>{% trans "Editar" %}</span>
-                </a>
-                <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
-                  {% csrf_token %}
-                  <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}">
-                    <i data-lucide="ban"></i>
-                  </button>
-                </form>
+              <!-- Mini Embudo de la Convocatoria -->
+              <div class="offer-mini-funnel-corp">
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num" style="{% if proyecto.num_pendientes > 0 %}color:var(--corp-warning);{% endif %}">{{ proyecto.num_pendientes|default:0 }}</div>
+                  <div class="offer-funnel-label">{% trans "Por Evaluar" %}</div>
+                </div>
+                <div class="offer-funnel-sep"></div>
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num" style="{% if proyecto.num_negociaciones > 0 %}color:var(--corp-info);{% endif %}">{{ proyecto.num_negociaciones|default:0 }}</div>
+                  <div class="offer-funnel-label">{% trans "Negociando" %}</div>
+                </div>
+                <div class="offer-funnel-sep"></div>
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num">{{ proyecto.vacantes|default:1 }}</div>
+                  <div class="offer-funnel-label">{% trans "Vacantes" %}</div>
+                </div>
               </div>
+
+              <div class="offer-footer-corp">
+                <div class="offer-actions">
+                  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+                     class="btn-corp-action primary"
+                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     title="{% trans "Revisar candidatos de esta convocatoria en el embudo" %}">
+                    <i data-lucide="users"></i>
+                    <span>{% trans "Ver Candidatos" %} {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
+                  </a>
+                  {% if not proyecto.num_contratos_activos %}
+                  <a href="{% url 'editar_proyecto' proyecto.id %}"
+                     class="btn-corp-action secondary"
+                     {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
+                     onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                     {% endif %}
+                     title="{% if proyecto.num_contratos or proyecto.num_negociaciones %}{% trans 'Editar título y prioridad' %}{% else %}{% trans 'Editar especificaciones de la oferta sin salir del panel' %}{% endif %}">
+                    <i data-lucide="square-pen"></i>
+                    <span>{% trans "Editar" %}</span>
+                  </a>
+                  {% endif %}
+                  {% if not proyecto.num_contratos %}
+                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}" aria-label="{% trans "Retirar publicación" %}">
+                      <i data-lucide="ban"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              {% if proyecto.puede_reabrir %}
+              <form method="post" action="{% url 'reabrir_postulaciones' proyecto.id %}" class="offer-reopen-strip" aria-label="{% trans 'Ampliar cierre de postulaciones' %}">
+                {% csrf_token %}
+                <label for="reabrir-{{ proyecto.id }}" class="offer-reopen-label">{% trans "Nuevo cierre:" %}</label>
+                <input id="reabrir-{{ proyecto.id }}" name="fecha_limite" type="date" min="{{ fecha_minima_reapertura }}" required class="offer-reopen-input" aria-label="{% trans 'Nueva fecha de cierre de postulaciones' %}">
+                <button type="submit" class="btn-corp-action secondary">{% trans "Reabrir" %}</button>
+              </form>
+              {% endif %}
             </div>
           {% empty %}
-            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border);">
               <i data-lucide="megaphone"></i>
               <p>{% trans "No tienes ofertas publicadas actualmente." %}</p>
               <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:14px;">
@@ -662,8 +486,7 @@
       <section id="desarrollo" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">{% trans "Proyectos en Marcha" %}</div>
-            <div class="page-subtitle">{% trans "Control de entregas, avance de hitos y coordinación de equipos" %}</div>
+            <h1 class="page-title">{% trans "Proyectos en Marcha" %}</h1>
           </div>
         </div>
         <div class="dev-list-corp">
@@ -687,7 +510,7 @@
                 </div>
                 <div class="dev-badge-deadline">
                   <i data-lucide="calendar-check-2"></i>
-                  <span>{% if proyecto.fecha_fin %}{{ proyecto.fecha_fin|date:"d M, Y" }}{% else %}{% trans "Sin fecha límite" %}{% endif %}</span>
+                  <span>{% if proyecto.fecha_fin %}{% trans "Cumplimiento:" %} {{ proyecto.fecha_fin|date:"d M, Y" }}{% else %}{% trans "Sin fecha de cumplimiento" %}{% endif %}{% if proyecto.cumplimiento_vencido %} — {% trans "Cumplimiento vencido" %}{% endif %}</span>
                 </div>
               </div>
 
@@ -704,6 +527,99 @@
                 </div>
               {% endif %}
 
+              {% if proyecto.avance_pendiente %}
+              <!-- ALERTA DE ENTREGA PENDIENTE DE REVISIÓN -->
+              <div class="deliverable-alert-corp" data-testid="alerta-avance-pendiente-empresa">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                      <i data-lucide="package-check" style="color:var(--corp-warning); width:18px; height:18px;"></i>
+                      <span>{% blocktrans with dev=proyecto.avance_pendiente.desarrollador_nombre hito=proyecto.avance_pendiente.entregable_titulo %}<strong>{{ dev }}</strong> subió la entrega del «{{ hito }}»{% endblocktrans %}</span>
+                    </div>
+                    <p style="font-size:13px; color:var(--corp-slate-700); margin:6px 0 0 0; line-height:1.4;">
+                      {{ proyecto.avance_pendiente.descripcion }}
+                    </p>
+                    {% if proyecto.avance_pendiente.archivo_adjunto or proyecto.avance_pendiente.archivo_url %}
+                      <div style="display:flex; gap:10px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                        {% if proyecto.avance_pendiente.archivo_adjunto %}
+                          <a href="{{ proyecto.avance_pendiente.archivo_adjunto }}" target="_blank" download class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 8px;">
+                            <i data-lucide="download"></i>
+                            <span>{% trans "Descargar Archivo Adjunto" %}</span>
+                          </a>
+                        {% endif %}
+                        {% if proyecto.avance_pendiente.archivo_url %}
+                          <a href="{{ proyecto.avance_pendiente.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 8px;">
+                            <i data-lucide="external-link"></i>
+                            <span>{% trans "Ver Enlace Externo" %}</span>
+                          </a>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <button type="button" class="btn-corp-action primary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})" style="flex-shrink:0;">
+                    <i data-lucide="clipboard-check"></i>
+                    <span>{% trans "Revisar y Calificar" %}</span>
+                  </button>
+                </div>
+
+                <!-- Formulario in-situ desplegable para aprobar o rechazar -->
+                <div id="form-revision-{{ proyecto.avance_pendiente.id }}" class="deliverable-review-form" style="display:none;">
+                  <form method="post" action="{% url 'revisar_avance' proyecto.avance_pendiente.id %}" onsubmit="return validarRechazoAvance(this, event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#desarrollo">
+                    <div style="font-size:12px; font-weight:700; color:var(--corp-slate-800); margin-bottom:6px; text-transform:uppercase;">
+                      {% trans "Dictamen de la Empresa" %}
+                    </div>
+                    <textarea name="comentario" class="form-input-corp" rows="2" aria-label="{% trans "Comentario o feedback para el desarrollador" %}" placeholder="{% trans "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..." %}" style="font-size:12.5px; margin-bottom:10px;"></textarea>
+                    <div style="display:flex; justify-content:flex-end; gap:8px;">
+                      <button type="button" class="btn-corp-action secondary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})">
+                        {% trans "Cancelar" %}
+                      </button>
+                      <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm">
+                        <i data-lucide="x"></i>
+                        <span>{% trans "Solicitar Ajustes" %}</span>
+                      </button>
+                      <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm">
+                        <i data-lucide="check"></i>
+                        <span>{% trans "Aprobar y Liberar Hito" %}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if proyecto.lista_hitos %}
+              <!-- MINI-ROADMAP DE HITOS -->
+              <div class="roadmap-box-corp">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-500); display:flex; justify-content:space-between; align-items:center;">
+                  <span><i data-lucide="map" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i>{% trans "Roadmap de Hitos del Proyecto" %}</span>
+                  <span>{% blocktrans with total=proyecto.hitos_totales count counter=proyecto.hitos_totales %}{{ total }} hito{% plural %}{{ total }} hitos{% endblocktrans %}</span>
+                </div>
+                <div class="roadmap-steps-grid">
+                  {% for hito in proyecto.lista_hitos %}
+                    <div class="roadmap-step-card {% if hito.estado == 'completado' %}is-done{% elif hito.estado == 'en_revision' %}is-review{% else %}is-pending{% endif %}">
+                      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                        {% if hito.estado == 'completado' %}
+                          <span style="color:var(--corp-brand); font-weight:700;">{% trans "Completado" %}</span>
+                          <i data-lucide="check-circle-2" style="width:12px; height:12px; color:var(--corp-brand);"></i>
+                        {% elif hito.estado == 'en_revision' %}
+                          <span style="color:var(--corp-warning); font-weight:700;">{% trans "En Revisión" %}</span>
+                          <i data-lucide="clock" style="width:12px; height:12px; color:var(--corp-warning);"></i>
+                        {% else %}
+                          <span style="color:var(--corp-slate-500);">{% trans "Pendiente" %}</span>
+                          <i data-lucide="circle" style="width:12px; height:12px; color:var(--corp-slate-400);"></i>
+                        {% endif %}
+                      </div>
+                      <div style="font-size:13px; font-weight:600; color:var(--corp-slate-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ hito.titulo }}">
+                        {{ hito.titulo }}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
               <div class="dev-card-actions">
                 {% if proyecto.vacantes_disponibles > 0 %}
                   <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}"
@@ -713,40 +629,63 @@
                     <i data-lucide="user-plus"></i>
                     <span>{% trans "Ver Candidatos" %} ({{ proyecto.vacantes_disponibles }})</span>
                   </a>
+                  <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                    <i data-lucide="list-checks"></i>
+                    <span>{% trans "Gestionar Hitos" %}</span>
+                  </a>
+                {% else %}
+                  <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action primary">
+                    <i data-lucide="list-checks"></i>
+                    <span>{% trans "Gestionar Hitos" %}</span>
+                  </a>
                 {% endif %}
 
-                <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
-                  <i data-lucide="list-checks"></i>
-                  <span>{% trans "Gestionar Hitos" %}</span>
-                </a>
-
                 {% if proyecto.hitos_completados == proyecto.hitos_totales and proyecto.hitos_totales > 0 %}
-                  <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}" class="btn-corp-action success">
+                  <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}"
+                     class="btn-corp-action success"
+                     onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
                     <i data-lucide="check-check"></i>
                     <span>{% trans "Finalizar Proyecto" %}</span>
                   </a>
-                {% else %}
-                  <button disabled class="btn-corp-action disabled" title="{% trans "Requiere completar todos los hitos" %}">
-                    <i data-lucide="check-check"></i>
-                    <span>{% trans "Finalizar" %}</span>
-                  </button>
                 {% endif %}
 
                 {% if proyecto.num_desarrolladores >= 2 %}
-                  <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
-                    <i data-lucide="users"></i>
-                    <span>{% trans "Grupos" %}</span>
-                  </a>
                   <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn-corp-action secondary">
                     <i data-lucide="messages-square"></i>
                     <span>{% trans "Chat Grupal" %}</span>
                   </a>
                 {% endif %}
 
-                <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" class="btn-corp-action danger-subtle" style="margin-left:auto;" title="{% trans "Iniciar mediación por conflicto formal" %}">
-                  <i data-lucide="gavel"></i>
-                  <span>{% trans "Reportar Disputa" %}</span>
-                </a>
+                <details class="dev-more-actions">
+                  <summary class="btn-corp-action secondary">
+                    <i data-lucide="more-horizontal"></i>
+                    <span>{% trans "Más acciones" %}</span>
+                  </summary>
+                  <div class="dev-more-menu" role="menu">
+                    {% if proyecto.permite_edicion_basica %}
+                      <a href="{% url 'editar_proyecto' proyecto.proyecto_id %}" class="dev-more-item" role="menuitem" title="{% trans 'Editar título y prioridad' %}">
+                        <i data-lucide="square-pen"></i><span>{% trans "Editar datos básicos" %}</span>
+                      </a>
+                    {% endif %}
+                    {% if proyecto.num_desarrolladores >= 2 %}
+                      <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="dev-more-item" role="menuitem">
+                        <i data-lucide="users"></i><span>{% trans "Grupos" %}</span>
+                      </a>
+                    {% endif %}
+                    {% if proyecto.hitos_completados != proyecto.hitos_totales or proyecto.hitos_totales == 0 %}
+                      <span class="dev-more-item is-disabled" aria-disabled="true" title="{% trans 'Requiere completar todos los hitos' %}">
+                        <i data-lucide="check-check"></i><span>{% trans "Finalizar" %}</span>
+                      </span>
+                    {% endif %}
+                    <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}"
+                       class="dev-more-item is-danger"
+                       role="menuitem"
+                       onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                       title="{% trans 'Iniciar mediación por conflicto formal' %}">
+                      <i data-lucide="gavel"></i><span>{% trans "Reportar Disputa" %}</span>
+                    </a>
+                  </div>
+                </details>
               </div>
             </div>
           {% empty %}
@@ -762,182 +701,339 @@
       <section id="contratos" class="seccion-v" data-contrato-endpoint="{% url 'ver_contrato_digital' 0 %}">
         <div class="page-header">
           <div>
-            <div class="page-title">{% trans "Contratos Digitales & Acuerdos" %}</div>
-            <div class="page-subtitle">{% trans "Acuerdos con validez jurídica y firma electrónica: revisa, firma y audita sin salir del panel" %}</div>
-          </div>
-          <div class="contracts-header-meta">
-            <span class="offers-stat-pill">
-              <i data-lucide="file-signature" style="color:var(--corp-brand);"></i>
-              {% blocktrans with total=mis_contratos_digitales|length count counter=mis_contratos_digitales|length %}<strong>{{ total }}</strong> contrato digital{% plural %}<strong>{{ total }}</strong> contratos digitales{% endblocktrans %}
-            </span>
-            {% if contratos_pendientes_firma_count > 0 %}
-              <span class="offers-stat-pill is-warning">
-                <i data-lucide="pen-tool" style="color:var(--corp-warning);"></i>
-                {% blocktrans with total=contratos_pendientes_firma_count count counter=contratos_pendientes_firma_count %}<strong>{{ total }}</strong> pendiente de tu firma{% plural %}<strong>{{ total }}</strong> pendientes de tu firma{% endblocktrans %}
-              </span>
-            {% endif %}
+            <h1 class="page-title">{% trans "Contratos Digitales & Acuerdos" %}</h1>
           </div>
         </div>
 
-        <div class="table-shell-corp">
-          <table class="data-table-corp">
-            <thead>
-              <tr>
-                <th>{% trans "Expediente / ID" %}</th>
-                <th>{% trans "Proyecto" %}</th>
-                <th>{% trans "Desarrollador" %}</th>
-                <th>{% trans "Términos" %}</th>
-                <th>{% trans "Estado de Firmas (Empresa / Dev)" %}</th>
-                <th>{% trans "Estado del Contrato" %}</th>
-                <th>{% trans "Sello Hash" %}</th>
-                <th style="text-align:right;">{% trans "Acciones" %}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for contrato in mis_contratos_digitales %}
-                <tr data-contrato-row="{{ contrato.id }}">
-                  <td>
-                    <span class="hash-pill">CD-{{ contrato.id|stringformat:"04d" }}</span>
-                    <div class="contrato-row-sub">{% trans "Creado" %} {{ contrato.fecha_creacion|date:"d M, Y" }}</div>
-                  </td>
-                  <td>
-                    <div class="contrato-row-title">{{ contrato.postulacion.proyecto.titulo }}</div>
-                    <div class="contrato-row-sub">{% if contrato.postulacion.proyecto.get_tipo_solucion_display %}{{ contrato.postulacion.proyecto.get_tipo_solucion_display }}{% else %}{% trans "Proyecto de software" %}{% endif %}</div>
-                  </td>
-                  <td>
-                    <div class="contrato-row-title">{{ contrato.postulacion.desarrollador.nombre|default:contrato.postulacion.desarrollador.username }}</div>
-                    <div class="contrato-row-sub">{{ contrato.postulacion.desarrollador.email|truncatechars:28 }}</div>
-                  </td>
-                  <td>
-                    <div class="contrato-monto">{{ contrato.monto_formateado }}</div>
-                    <div class="contrato-row-sub">{{ contrato.get_forma_pago_display }}</div>
-                    <div class="contrato-row-sub" style="color:var(--corp-brand); font-weight:600;">
-                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {% if contrato.get_medio_pago_display %}{{ contrato.get_medio_pago_display }}{% else %}{% trans "Transferencia bancaria" %}{% endif %}
+        <div class="contracts-grid-corp">
+          {% for contrato in mis_contratos_digitales %}
+            <article class="contract-card-corp" data-contrato-row="{{ contrato.id }}">
+              <div>
+                <div style="margin: 0 0 12px 0;">
+                  <div class="contrato-row-title" style="font-size:16px; font-weight:700; color:var(--corp-slate-900); line-height:1.35; margin-bottom:4px;">
+                    {{ contrato.postulacion.proyecto.titulo }}
+                  </div>
+                  <div style="font-size:12.5px; color:var(--corp-slate-600); display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="user" style="width:13px; height:13px; color:var(--corp-brand);"></i>
+                    <span><strong>{{ contrato.postulacion.desarrollador.nombre|default:contrato.postulacion.desarrollador.username }}</strong></span>
+                    <span>·</span>
+                    <span style="color:var(--corp-slate-500);">{{ contrato.postulacion.desarrollador.email|truncatechars:28 }}</span>
+                  </div>
+                </div>
+
+                <!-- Monto y Términos Económicos -->
+                <div class="contract-terms-box-corp">
+                  <div>
+                    <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-500);">{% trans "Retribución Acordada" %}</div>
+                    <div class="contrato-monto" style="font-size:18px; font-weight:800; color:var(--corp-brand); letter-spacing:-0.02em;">{{ contrato.monto_formateado }}</div>
+                  </div>
+                  <div style="text-align:right; font-size:12px; color:var(--corp-slate-600);">
+                    <div style="font-weight:700; color:var(--corp-slate-800);">{{ contrato.get_forma_pago_display }}</div>
+                    <div style="color:var(--corp-brand); font-weight:600; margin-top:2px;">
+                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {% if contrato.medio_pago %}{{ contrato.get_medio_pago_display }}{% else %}{% trans "Transferencia bancaria" %}{% endif %}
                     </div>
-                  </td>
-                  <td>
-                    <div class="contrato-firmas-cell">
-                      <span class="signature-badge-corp {% if contrato.firmado_empresa %}is-signed{% else %}is-pending{% endif %}" data-role="firma-empresa">
-                        <i data-lucide="{% if contrato.firmado_empresa %}check-circle-2{% else %}clock{% endif %}"></i>
-                        <span>{% trans "Empresa:" %} {% if contrato.firmado_empresa %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
-                      </span>
-                      <span class="signature-badge-corp {% if contrato.firmado_desarrollador %}is-signed{% else %}is-pending{% endif %}" data-role="firma-dev">
-                        <i data-lucide="{% if contrato.firmado_desarrollador %}check-circle-2{% else %}clock{% endif %}"></i>
-                        <span>{% trans "Dev:" %} {% if contrato.firmado_desarrollador %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="contract-estado-badge estado-{{ contrato.estado }}" data-role="estado-contrato">{{ contrato.get_estado_display }}</span>
-                  </td>
-                  <td>
-                    <span class="hash-pill" data-role="hash-contrato" title="{% if contrato.hash_contrato %}{% trans "SHA-256 del contrato firmado" %}{% else %}{% trans "El sello se genera con la primera firma electrónica" %}{% endif %}">
-                      {% if contrato.hash_contrato %}{{ contrato.hash_contrato|slice:":12" }}…{% else %}{% trans "Sin sello" %}{% endif %}
-                    </span>
-                  </td>
-                  <td style="text-align:right;">
-                    <div class="contrato-acciones-cell">
-                      <a href="{% url 'ver_contrato_digital' contrato.id %}"
-                         class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
-                         onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
-                         title="{% trans "Revisar y firmar el contrato sin salir del panel" %}">
-                        <i data-lucide="file-signature"></i>
-                        <span>{% trans "Ver / Firmar Contrato" %}</span>
-                      </a>
-                      <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
-                         class="btn-corp-action secondary"
-                         title="{% trans "Chatear con el desarrollador" %}">
-                        <i data-lucide="message-square"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="8">
-                    <div class="activity-empty" style="padding:48px 20px;">
-                      <i data-lucide="file-signature"></i>
-                      <p style="font-weight:600;">{% trans "Aún no tienes contratos digitales" %}</p>
-                      <p style="font-size:12.5px; color:var(--corp-slate-500);">{% trans "Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica." %}</p>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <!-- Estado Dual de Firmas (Empresa / Dev) -->
+                <div class="contract-signatures-grid">
+                  <div class="contract-sig-chip signature-badge-corp {% if contrato.firmado_empresa %}is-signed{% else %}is-pending{% endif %}" data-role="firma-empresa">
+                    <i data-lucide="{% if contrato.firmado_empresa %}check-circle-2{% else %}clock{% endif %}"></i>
+                    <span>{% trans "Empresa:" %} {% if contrato.firmado_empresa %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
+                  </div>
+                  <div class="contract-sig-chip signature-badge-corp {% if contrato.firmado_desarrollador %}is-signed{% else %}is-pending{% endif %}" data-role="firma-dev">
+                    <i data-lucide="{% if contrato.firmado_desarrollador %}check-circle-2{% else %}clock{% endif %}"></i>
+                    <span>{% trans "Dev:" %} {% if contrato.firmado_desarrollador %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
+                  </div>
+                </div>
+
+                <!-- Acciones -->
+                <div style="display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--corp-border-subtle);">
+                  <a href="{% url 'ver_contrato_digital' contrato.id %}"
+                     class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
+                     style="flex:1; justify-content:center;"
+                     onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
+                     title="{% trans "Revisar y firmar el contrato sin salir del panel" %}">
+                    <i data-lucide="file-signature"></i>
+                    <span>{% if contrato.firmado_empresa %}{% trans "Ver Documento Legal" %}{% else %}{% trans "Firmar Contrato Digital" %}{% endif %}</span>
+                  </a>
+                  <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
+                     class="btn-corp-action secondary"
+                     style="padding:8px 12px;"
+                     onclick="abrirChatEnCentro(event, '{{ contrato.postulacion.desarrollador_id }}', '{{ contrato.postulacion.proyecto.id }}'); return false;"
+                     title="{% trans "Chatear con el desarrollador" %}" aria-label="{% trans "Chatear con el desarrollador" %}">
+                    <i data-lucide="message-square"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+          {% empty %}
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg); padding:48px 20px;">
+              <i data-lucide="file-signature"></i>
+              <p style="font-weight:700; color:var(--corp-slate-900);">{% trans "Aún no tienes contratos digitales" %}</p>
+              <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">{% trans "Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica." %}</p>
+            </div>
+          {% endfor %}
         </div>
+      </section>
+
+      <!-- Cancelaciones de contrato (acuerdo mutuo) -->
+      <section id="cancelaciones" class="seccion-v">
+        {% include 'empresa/partials/_tab_cancelaciones.html' %}
       </section>
 
       <!-- Disputas -->
       <section id="disputas" class="seccion-v">
-        {% include 'disputas/_seccion_disputas.html' with ocultar_historial=True %}
+        {% include 'disputas/_seccion_disputas.html' %}
       </section>
 
       <!-- Historial -->
       <section id="historial" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">{% trans "Historial Completo & Auditoría" %}</div>
-            <div class="page-subtitle">{% trans "Registro histórico consolidado de proyectos convocados y expedientes de disputas cerradas" %}</div>
+            <h1 class="page-title">{% trans "Historial de Proyectos" %}</h1>
           </div>
         </div>
 
-        <!-- Sub-navegación organizada de Historial -->
-        <div class="history-subnav">
-          <button type="button" class="history-tab-btn active" id="btn-historial-proyectos" onclick="switchHistorialSubTab('proyectos', this)">
-            <i data-lucide="layers"></i>
-            <span>{% trans "Proyectos (Historial Completo)" %}</span>
-            <span class="subnav-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
-          </button>
-          <button type="button" class="history-tab-btn" id="btn-historial-disputas" onclick="switchHistorialSubTab('disputas', this)">
-            <i data-lucide="scale"></i>
-            <span>{% trans "Disputas (Historial Completo)" %}</span>
-            <span class="subnav-counter">{{ disputas_resueltas|length }}</span>
-          </button>
+        <!-- 3 Métricas de Balance Contable y Auditoría -->
+        <div class="ledger-metrics-grid">
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Capital Total Ejecutado" %}</span>
+              <span class="kpi-tag tag-brand">COP</span>
+            </div>
+            <div class="ledger-metric-val">${{ capital_ejecutado|floatformat:"0" }}</div>
+            <div class="ledger-metric-sub">{% trans "Fondos liberados contra hitos verificados" %}</div>
+          </div>
+
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Tasa de Cumplimiento" %}</span>
+              <span class="kpi-tag tag-brand">{{ tasa_cumplimiento_hitos }}%</span>
+            </div>
+            <div class="ledger-metric-val">{{ hitos_completados_total }} / {{ hitos_totales_total }}</div>
+            <div class="ledger-metric-sub">{% trans "Hitos aprobados estrictamente en cronograma" %}</div>
+          </div>
+
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Talento Vinculado" %}</span>
+              <span class="kpi-tag tag-neutral">{% blocktrans count counter=total_devs_historicos %}{{ counter }} dev{% plural %}{{ counter }} devs{% endblocktrans %}</span>
+            </div>
+            <div class="ledger-metric-val">{{ tasa_recontratacion }}%</div>
+            <div class="ledger-metric-sub">{% trans "Índice de recontratación de talento SENA" %}</div>
+          </div>
         </div>
 
-        <!-- Sub-pestaña 1: Historial de Proyectos -->
-        <div id="pane-historial-proyectos" class="history-tab-pane active">
+        <!-- Layout Analítico de 2 Columnas (Gráfica de Líneas 68% / Distribución y Puntualidad 32%) -->
+        <div class="ledger-analytics-split">
+          <!-- 1. Gráfica de Serie Temporal (Curva Dinámica Analítica) -->
+          <div class="ledger-chart-box mb-0-corp">
+            <div class="ledger-chart-header">
+              <div>
+                <div class="ledger-chart-title">
+                  <i data-lucide="trending-up" style="width:16px; height:16px; vertical-align:middle; color:var(--corp-brand); margin-right:6px;"></i>
+                  <span id="ledgerChartTitle">{% trans "Presupuesto Contratado (COP)" %}</span>
+                </div>
+                <div id="ledgerChartSub" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                  {% trans "Contratos digitales creados en los últimos 6 meses" %}
+                </div>
+              </div>
+              <div id="ledgerChartTotal" class="ledger-chart-total">
+                {% trans "Total:" %} ${{ capital_ejecutado|floatformat:"0" }} COP
+              </div>
+            </div>
+
+            <div class="ledger-chart-controls">
+              <div class="ledger-filter-pills" role="tablist" aria-label="{% trans 'Métricas del historial' %}">
+                <button type="button" class="ledger-filter-pill active" data-metric="contratado" onclick="seleccionarMetricaLedger('contratado', this)">
+                  {% trans "Presupuesto Contratado" %}
+                </button>
+                <button type="button" class="ledger-filter-pill" data-metric="liquidado" onclick="seleccionarMetricaLedger('liquidado', this)">
+                  {% trans "Hitos Aprobados (COP)" %}
+                </button>
+                <button type="button" class="ledger-filter-pill" data-metric="hitos_qty" onclick="seleccionarMetricaLedger('hitos_qty', this)">
+                  {% trans "Volumen de Hitos" %}
+                </button>
+              </div>
+              <div class="time-selector-corp" role="group" aria-label="{% trans 'Período temporal' %}">
+                <button type="button" class="time-tab-corp active" data-period="6m" onclick="seleccionarPeriodoLedger('6m', this)">
+                  {% trans "6 Meses" %}
+                </button>
+                <button type="button" class="time-tab-corp" data-period="12m" onclick="seleccionarPeriodoLedger('12m', this)">
+                  {% trans "12 Meses" %}
+                </button>
+              </div>
+            </div>
+
+            <div class="ledger-svg-wrap" style="position:relative;">
+              <!-- Tooltip Flotante Reactivo para la Curva de Líneas -->
+              <div id="ledgerLineTooltip" class="chart-floating-tooltip" style="display:none;">
+                <div class="tooltip-mes" style="font-size:12px; color:var(--corp-slate-400); text-transform:uppercase; font-weight:700;"></div>
+                <div class="tooltip-monto" style="font-size:15px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono', monospace; margin:2px 0;"></div>
+                <div class="tooltip-sub" style="font-size:12px; color:var(--corp-brand-neon); font-weight:600;">{% trans "Presupuesto contratado" %}</div>
+              </div>
+
+              <svg id="ledgerChartSvg" viewBox="0 0 760 180" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;">
+                <defs>
+                  <linearGradient id="ledgerLineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="var(--corp-brand)" stop-opacity="0.22"></stop>
+                    <stop offset="100%" stop-color="var(--corp-brand)" stop-opacity="0.0"></stop>
+                  </linearGradient>
+                </defs>
+
+                <line x1="30" y1="20" x2="740" y2="20" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="65" x2="740" y2="65" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="110" x2="740" y2="110" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="150" x2="740" y2="150" stroke="var(--corp-border)"></line>
+
+                <path id="ledgerAreaPath" d="M 50,150 L 720,150 L 720,150 L 50,150 Z" fill="url(#ledgerLineGrad)"></path>
+                <path id="ledgerLinePath" d="M 50,150 L 720,150" fill="none" stroke="var(--corp-brand)" stroke-width="2.5" stroke-linecap="round"></path>
+
+                <g id="ledgerChartPoints"></g>
+                <g id="ledgerChartLabels"></g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Columna Lateral: Distribución Lineal + Puntualidad Sobria (Sin donas ni medidores redondos) -->
+          <div class="ledger-side-metrics">
+            <!-- 1. Distribución Lineal de Inversión (Estilo Barra Continua GitHub) -->
+            <div class="distribution-card-corp">
+              <div>
+                <div style="font-size:13.5px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                  <i data-lucide="layers" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                  {% trans "Inversión por Área" %}
+                </div>
+                <div style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                  {% trans "Distribución de capital ejecutado" %}
+                </div>
+              </div>
+
+              <!-- Barra horizontal segmentada interactiva con tooltip flotante al pasar el mouse -->
+              <div class="distribution-bar-track" aria-label="{% trans "Distribución de inversión por área" %}">
+                {% for item in breakdown_stack %}
+                  <div class="distribution-segment"
+                       style="width:{{ item.porcentaje }}%; background:{{ item.color }};"
+                       tabindex="0"
+                       role="progressbar"
+                       aria-valuenow="{{ item.porcentaje }}"
+                       aria-valuemin="0"
+                       aria-valuemax="100">
+                    <div class="segment-hover-card">
+                      <div class="hover-card-title">{{ item.label }}</div>
+                      <div class="hover-card-amount">${{ item.total|floatformat:"0" }} COP</div>
+                      <div class="hover-card-sub">{{ item.porcentaje }}% {% trans "del capital asignado" %}</div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Lista de filas limpias -->
+              <ul class="distribution-list-corp">
+                {% for item in breakdown_stack %}
+                  <li class="distribution-item-row">
+                    <span class="distribution-label-wrap">
+                      <span class="distribution-dot" style="background:{{ item.color }};"></span>
+                      <span>{{ item.label }}</span>
+                    </span>
+                    <span class="distribution-val-wrap">
+                      <strong style="color:var(--corp-slate-900);">${{ item.total|floatformat:"0" }}</strong>
+                      <span style="color:var(--corp-slate-500); font-size:12px;">({{ item.porcentaje }}%)</span>
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+
+              <!-- 2. Puntualidad en Cronogramas (integrado en la misma tarjeta) -->
+              <div style="border-top:1px solid var(--corp-border); padding-top:16px; margin-top:4px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <div style="font-size:13.5px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="calendar-check-2" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                    {% trans "Puntualidad en Entregas" %}
+                  </div>
+                  <div style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                    {% trans "Cumplimiento sobre plazos acordados" %}
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                    <span style="font-size:24px; font-weight:800; color:var(--corp-brand); font-variant-numeric:tabular-nums;">
+                      {{ tasa_cumplimiento_hitos }}%
+                    </span>
+                    <span class="text-corp-meta">
+                      {% blocktrans with done=hitos_completados_total total=hitos_totales_total %}{{ done }} de {{ total }} hitos a tiempo{% endblocktrans %}
+                    </span>
+                  </div>
+                  <!-- Barra de progreso lineal con tooltip flotante interactivo -->
+                  <div class="punctuality-bar-track" style="position:relative; height:8px; background:var(--corp-border); border-radius:999px; overflow:visible; cursor:pointer;" tabindex="0">
+                    <div style="height:100%; width:{{ tasa_cumplimiento_hitos }}%; background:var(--corp-brand); border-radius:999px;"></div>
+                    <div class="segment-hover-card" style="bottom:calc(100% + 10px);">
+                      <div class="hover-card-title">{% trans "Cumplimiento en Cronograma" %}</div>
+                      <div class="hover-card-amount">{{ tasa_cumplimiento_hitos }}% {% trans "a tiempo" %}</div>
+                      <div class="hover-card-sub">{% blocktrans with done=hitos_completados_total total=hitos_totales_total %}{{ done }} de {{ total }} hitos aprobados en plazo{% endblocktrans %}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de herramientas y listado unificados de Historial -->
+        {% with total_proyectos_historial=historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa %}
+        <div class="history-unified-card">
+          <div class="history-toolbar-corp">
+          <h2 class="history-section-heading">{% trans "Proyectos Archivados" %}</h2>
+
           <!-- SCRUM-228: filtros por estado del historial -->
-          <div class="segmented-filters-corp">
+          <div class="segmented-filters-corp" aria-label="{% trans 'Filtros por estado del historial' %}">
             <a href="?section=historial"
                class="segmented-pill {% if not historial_estado_actual %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'todos', this); return false;">
               <span>{% trans "Todos" %}</span>
-              <span class="pill-counter">{{ historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa }}</span>
+              <span class="pill-counter{% if total_proyectos_historial == 0 %} is-zero{% endif %}">{{ total_proyectos_historial }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=finalizado"
                class="segmented-pill {% if historial_estado_actual == 'finalizado' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'finalizado', this); return false;">
               <span>{% trans "Finalizados" %}</span>
-              <span class="pill-counter">{{ historial_por_estado.finalizado }}</span>
+              <span class="pill-counter{% if historial_por_estado.finalizado == 0 %} is-zero{% endif %}">{{ historial_por_estado.finalizado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=rechazado"
                class="segmented-pill {% if historial_estado_actual == 'rechazado' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'rechazado', this); return false;">
               <span>{% trans "Rechazados" %}</span>
-              <span class="pill-counter">{{ historial_por_estado.rechazado }}</span>
+              <span class="pill-counter{% if historial_por_estado.rechazado == 0 %} is-zero{% endif %}">{{ historial_por_estado.rechazado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=inactivo"
                class="segmented-pill {% if historial_estado_actual == 'inactivo' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'inactivo', this); return false;">
               <span>{% trans "Inactivos" %}</span>
-              <span class="pill-counter">{{ historial_por_estado.inactivo }}</span>
+              <span class="pill-counter{% if historial_por_estado.inactivo == 0 %} is-zero{% endif %}">{{ historial_por_estado.inactivo }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=en_disputa"
                class="segmented-pill {% if historial_estado_actual == 'en_disputa' %}is-active{% endif %}"
                onclick="filtrarHistorialEnTiempoReal(event, 'en_disputa', this); return false;">
               <span>{% trans "En disputa" %}</span>
-              <span class="pill-counter">{{ historial_por_estado.en_disputa }}</span>
+              <span class="pill-counter{% if historial_por_estado.en_disputa == 0 %} is-zero{% endif %}">{{ historial_por_estado.en_disputa }}</span>
             </a>
           </div>
+        </div>
+        {% endwith %}
+
+        <!-- Sub-pestaña 1: Historial de Proyectos -->
+        <div id="pane-historial-proyectos" class="history-tab-pane active">
 
           <div class="history-grid-corp" data-testid="historial-inactivos">
             {% for proyecto in historial_inactivos %}
               <div class="history-card-corp" data-testid="card-historial-{{ proyecto.estado }}" data-historial-estado="{{ proyecto.estado }}">
                 <div>
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;">
-                    <span class="history-status-badge {{ proyecto.estado }}" style="margin-bottom:0;">
+                    <span class="history-status-badge {{ proyecto.estado }} mb-0-corp">
                       {% if proyecto.estado == 'finalizado' %}
                         <i data-lucide="check"></i>
                       {% elif proyecto.estado == 'rechazado' %}
@@ -949,14 +1045,14 @@
                       {% endif %}
                       <span>{{ proyecto.get_estado_display }}</span>
                     </span>
-                    <span style="font-size:11.5px; color:var(--corp-slate-400);">
+                    <span style="font-size:12px; color:var(--corp-slate-400);">
                       <i data-lucide="calendar" style="margin-right:3px;"></i>{% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Histórico" %}{% endif %}
                     </span>
                   </div>
 
                   <div class="history-card-title">{{ proyecto.titulo }}</div>
 
-                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                     {% if proyecto.get_tipo_solucion_display or proyecto.categoria %}
                       <span class="offer-badge-category">
                         <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% elif proyecto.get_tipo_solucion_display %}{{ proyecto.get_tipo_solucion_display }}{% else %}{% trans "Proyecto de software" %}{% endif %}
@@ -973,6 +1069,27 @@
                       </span>
                     {% endif %}
                   </div>
+
+                  {% if proyecto.contrataciones.all %}
+                    {% with c_first=proyecto.contrataciones.first %}
+                    <div class="history-ledger-talent" style="margin-bottom:12px;">
+                      <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="historial-avatar-corp">
+                          {{ c_first.desarrollador.nombre|default:c_first.desarrollador.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                          <div style="font-size:12.5px; font-weight:700; color:var(--corp-slate-900);">{{ c_first.desarrollador.nombre|default:c_first.desarrollador.username }}</div>
+                          <div class="text-corp-meta">
+                            {% if c_first.desarrollador.perfil_desarrollador.programa_formacion %}{{ c_first.desarrollador.perfil_desarrollador.programa_formacion }}{% else %}{% trans "Desarrollador SENA" %}{% endif %}
+                          </div>
+                        </div>
+                      </div>
+                      <div style="font-size:12px; font-weight:700; color:var(--corp-gold);">
+                        ★ {{ c_first.desarrollador.perfil_desarrollador.calificacion_promedio|default:"5.0" }}
+                      </div>
+                    </div>
+                    {% endwith %}
+                  {% endif %}
                 </div>
 
                 <div class="history-actions-col">
@@ -980,6 +1097,21 @@
                     <i data-lucide="eye"></i>
                     <span>{% trans "Ver Avances y Detalles" %}</span>
                   </a>
+                  {% if proyecto.tiene_pendientes_calificar %}
+                    <a href="{% url 'finalizar_proyecto' proyecto.id %}"
+                       class="btn-corp-primary"
+                       style="justify-content:center; padding:8px 12px; font-size:12px;"
+                       onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
+                      <i data-lucide="star"></i>
+                      <span>{% trans "Calificar Equipo" %}</span>
+                    </a>
+                  {% endif %}
+                  {% if proyecto.estado == 'finalizado' %}
+                    <button type="button" class="btn-corp-primary" onclick="abrirModal()" style="justify-content:center; padding:8px 12px; font-size:12px;">
+                      <i data-lucide="sparkles"></i>
+                      <span>{% trans "Volver a Contratar" %}</span>
+                    </button>
+                  {% endif %}
                   {% if proyecto.num_desarrolladores >= 2 %}
                     <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
                       <i data-lucide="users"></i>
@@ -989,7 +1121,10 @@
                   {% if proyecto.contrataciones.all %}
                     <div class="history-collaborators-grid">
                       {% for contratacion in proyecto.contrataciones.all %}
-                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}" class="btn-history-dev" title="{% blocktrans with user=contratacion.desarrollador.username %}Chatear con {{ user }}{% endblocktrans %}">
+                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}"
+                           onclick="abrirChatEnCentro(event, '{{ contratacion.desarrollador.id }}', '{{ proyecto.id }}'); return false;"
+                           class="btn-history-dev"
+                           title="{% blocktrans with user=contratacion.desarrollador.username %}Chatear con {{ user }}{% endblocktrans %}">
                           <i data-lucide="message-square"></i>
                           <span>{{ contratacion.desarrollador.username }}</span>
                         </a>
@@ -999,72 +1134,25 @@
                 </div>
               </div>
             {% empty %}
-              <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
-                <i data-lucide="history"></i>
-                <p>{% trans "No hay proyectos en este estado del historial." %}</p>
+              <div class="history-empty-state-corp">
+                <div class="history-empty-icon">
+                  <i data-lucide="archive"></i>
+                </div>
+                <h2 class="history-empty-title">{% trans "No hay proyectos archivados en este momento" %}</h2>
+                <p class="history-empty-desc">
+                  {% trans "Los proyectos finalizados, rechazados, inactivos o resueltos tras una disputa se archivarán automáticamente aquí para su consulta y auditoría." %}
+                </p>
               </div>
             {% endfor %}
-            <div id="historialSinResultados" class="activity-empty" style="display:none; grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
-              <i data-lucide="history"></i>
-              <p>{% trans "No hay proyectos en este estado del historial." %}</p>
+            <div id="historialSinResultados" class="history-empty-state-corp" style="display:none;">
+              <div class="history-empty-icon">
+                <i data-lucide="history"></i>
+              </div>
+              <h2 class="history-empty-title">{% trans "No hay proyectos en este estado del historial." %}</h2>
+              <p class="history-empty-desc">{% trans "Prueba seleccionando otro filtro de estado para consultar tus proyectos archivados." %}</p>
             </div>
           </div>
         </div>
-
-        <!-- Sub-pestaña 2: Historial de Disputas & Expedientes Cerrados -->
-        <div id="pane-historial-disputas" class="history-tab-pane">
-          <div class="disputas-card" style="box-shadow:none; border: 1px solid var(--corp-border);">
-            <div class="disputas-card-header">
-              <div class="disputas-card-title">
-                <i data-lucide="archive" style="color:var(--corp-slate-500);"></i>
-                <span>{% trans "Historial de Disputas y Expedientes Cerrados" %}</span>
-              </div>
-              <span class="disp-badge-id">{% blocktrans with count=disputas_resueltas|length count counter=disputas_resueltas|length %}{{ count }} expediente{% plural %}{{ count }} expedientes{% endblocktrans %}</span>
-            </div>
-            <div style="overflow-x:auto;">
-              <table class="data-table-corp data-table">
-                <thead>
-                  <tr>
-                    <th>{% trans "Expediente" %}</th>
-                    <th>{% trans "Proyecto" %}</th>
-                    <th>{% trans "Resolución" %}</th>
-                    <th>{% trans "Dictamen / Notas" %}</th>
-                    <th>{% trans "Fecha Resolución" %}</th>
-                    <th style="text-align:right;">{% trans "Acción" %}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for d in disputas_resueltas %}
-                  <tr>
-                    <td><span class="disp-badge-id">#{{ d.pk }}</span></td>
-                    <td><strong>{{ d.proyecto.titulo }}</strong></td>
-                    <td>
-                      <span class="disp-status-badge {% if d.estado == 'resuelta' %}resuelta{% else %}cancelada{% endif %}">
-                        {% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}
-                      </span>
-                    </td>
-                    <td style="color:var(--corp-slate-600); font-size:12.5px;">{% if d.notas_resolucion %}{{ d.notas_resolucion|truncatechars:70 }}{% else %}{% trans "Sin notas adicionales." %}{% endif %}</td>
-                    <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
-                    <td style="text-align:right;">
-                      <a href="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
-                        <i data-lucide="eye"></i> {% trans "Ver Expediente" %}
-                      </a>
-                    </td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                    <td colspan="6">
-                      <div class="activity-empty">
-                        <i data-lucide="archive"></i>
-                        <p>{% trans "Aún no hay disputas registradas en el historial." %}</p>
-                      </div>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1072,8 +1160,7 @@
       <section id="perfil" class="seccion-v">
         <div class="page-header">
           <div>
-            <div class="page-title">{% trans "Perfil Corporativo" %}</div>
-            <div class="page-subtitle">{% trans "Presencia institucional, información tributaria y reputación en JobDevs" %}</div>
+            <h1 class="page-title">{% trans "Perfil Corporativo" %}</h1>
           </div>
         </div>
 
@@ -1103,12 +1190,6 @@
 
             <div class="linkedin-company-name">
               <span>{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</span>
-              {% with badge=perfil.badge_info %}
-              <span class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}" title="{% trans "Insignia oficial" %}">
-                <i data-lucide="{% if perfil.estado_verificacion == 'verificada' %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
-                <span>{% trans badge.label %}</span>
-              </span>
-              {% endwith %}
             </div>
 
             <div class="linkedin-headline">
@@ -1153,18 +1234,18 @@
               <!-- Acerca de (About) -->
               <div class="linkedin-content-card">
                 <div class="linkedin-card-title">
-                  <i data-lucide="align-left" style="color:var(--corp-brand);"></i>
+                  <i data-lucide="align-left" class="text-corp-brand"></i>
                   <span>{% trans "Acerca de la Empresa" %}</span>
                 </div>
                 <p class="linkedin-about-text">
-                  {% if perfil.descripcion %}{{ perfil.descripcion }}{% else %}{% trans "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera hasta un 60% más de confianza y atrae a los mejores desarrolladores de la plataforma." %}{% endif %}
+                  {% if perfil.descripcion %}{{ perfil.descripcion }}{% else %}{% trans "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera mayor confianza y atrae a los mejores desarrolladores de la plataforma." %}{% endif %}
                 </p>
               </div>
 
               <!-- Información General / Overview -->
               <div class="linkedin-content-card">
                 <div class="linkedin-card-title">
-                  <i data-lucide="info" style="color:var(--corp-brand);"></i>
+                  <i data-lucide="info" class="text-corp-brand"></i>
                   <span>{% trans "Información Corporativa & Contacto" %}</span>
                 </div>
                 <div class="linkedin-info-grid">
@@ -1198,11 +1279,11 @@
               <!-- Stack Tech / Especialidades -->
               <div class="linkedin-content-card">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                  <div class="linkedin-card-title" style="margin-bottom:0;">
-                    <i data-lucide="cpu" style="color:var(--corp-brand);"></i>
+                  <div class="linkedin-card-title mb-0-corp">
+                    <i data-lucide="cpu" class="text-corp-brand"></i>
                     <span>{% trans "Especialidades y Stack Tecnológico de Interés" %}</span>
                   </div>
-                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:11.5px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
+                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:12px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
                     <i data-lucide="pencil"></i> {% trans "Editar" %}
                   </button>
                 </div>
@@ -1210,20 +1291,20 @@
                 {% if perfil.lista_stack_interes %}
                   <div class="tech-stack-wrap">
                     {% for tech in perfil.lista_stack_interes %}
-                      <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand); font-size:10px;"></i> {{ tech }}</span>
+                      <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand); font-size:12px;"></i> {{ tech }}</span>
                     {% endfor %}
                   </div>
                 {% else %}
                   <div class="tech-stack-wrap">
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Python</span>
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Django</span>
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> JavaScript</span>
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> React</span>
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> PostgreSQL</span>
-                    <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand);"></i> Docker</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Python</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Django</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> JavaScript</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> React</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> PostgreSQL</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Docker</span>
                   </div>
-                  <div style="font-size:11.5px; color:var(--corp-slate-400); margin-top:8px;">
-                    <i data-lucide="info" style="margin-right:4px;"></i> {% trans 'Mostrando stack sugerido por defecto. Podés personalizar tus tecnologías desde "Editar página".' %}
+                  <div style="font-size:12px; color:var(--corp-slate-400); margin-top:8px;">
+                    <i data-lucide="info" class="mr-1-corp"></i> {% trans 'Mostrando stack sugerido por defecto. Puedes personalizar tus tecnologías desde "Editar página".' %}
                   </div>
                 {% endif %}
               </div>
@@ -1231,9 +1312,9 @@
 
             <!-- Métricas de Presencia / Sidebar del Perfil -->
             <div>
-              <div class="linkedin-content-card" style="margin-bottom:0;">
+              <div class="linkedin-content-card mb-0-corp">
                 <div class="linkedin-card-title">
-                  <i data-lucide="bar-chart-2" style="color:var(--corp-brand);"></i>
+                  <i data-lucide="bar-chart-2" class="text-corp-brand"></i>
                   <span>{% trans "Métricas en JobDevs" %}</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:12px;">
@@ -1263,8 +1344,8 @@
         <div id="pane-jobs" class="linkedin-tab-pane">
           <div class="linkedin-content-card">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
-              <div class="linkedin-card-title" style="margin-bottom:0;">
-                <i data-lucide="briefcase" style="color:var(--corp-brand);"></i>
+              <div class="linkedin-card-title mb-0-corp">
+                <i data-lucide="briefcase" class="text-corp-brand"></i>
                 <span>{% trans "Convocatorias Abiertas para Desarrolladores" %}</span>
               </div>
               <button class="btn-corp-primary btn-sm" onclick="abrirModal()">
@@ -1278,11 +1359,11 @@
                   <div>
                     <div class="linkedin-job-title">{{ proyecto.titulo }}</div>
                     <div class="linkedin-job-meta">
-                      <span><i data-lucide="layers" style="margin-right:4px;"></i>{{ proyecto.get_tipo_solucion_display }}</span>
+                      <span><i data-lucide="layers" class="mr-1-corp"></i>{{ proyecto.get_tipo_solucion_display }}</span>
                       <span>·</span>
-                      <span><i data-lucide="users" style="margin-right:4px;"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
+                      <span><i data-lucide="users" class="mr-1-corp"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
                       <span>·</span>
-                      <span><i data-lucide="calendar" style="margin-right:4px;"></i>{{ proyecto.fecha_publicacion|date:"d M, Y" }}</span>
+                      <span><i data-lucide="calendar" class="mr-1-corp"></i>{{ proyecto.fecha_publicacion|date:"d M, Y" }}</span>
                     </div>
                   </div>
                   <div style="display:flex; gap:8px;">
@@ -1292,13 +1373,17 @@
                       <i data-lucide="users"></i>
                       <span>{% trans "Ver Candidatos" %}</span>
                     </a>
+                    {% if not proyecto.num_contratos_activos %}
                     <a href="{% url 'editar_proyecto' proyecto.id %}"
                        class="btn-corp-action secondary"
-                       onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}'); return false;"
+                       {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
+                       onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                       {% endif %}
                        title="{% trans "Editar especificaciones" %}">
                       <i data-lucide="square-pen"></i>
                       <span>{% trans "Editar" %}</span>
                     </a>
+                    {% endif %}
                   </div>
                 </div>
               {% empty %}
@@ -1348,7 +1433,7 @@
                   </div>
                 </div>
               {% empty %}
-                <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+                <div class="activity-empty">
                   <i data-lucide="star"></i>
                   <p>{% trans "Aún no se han recibido valoraciones de desarrolladores para esta empresa." %}</p>
                 </div>
@@ -1362,11 +1447,59 @@
   </div><!-- fin main-wrapper -->
 </div><!-- fin app-layout -->
 
+<!-- Modal de Bienvenida para Cuentas Nuevas (Primera vez - Obligatorio con opción de no volver a mostrar) -->
+<div id="modalBienvenidaEmpresa" class="modal-overlay" style="display:none; backdrop-filter:blur(4px); background:rgba(0,0,0,0.75);" role="dialog" aria-modal="true" aria-labelledby="bienvenidaModalTitulo">
+  <div class="modal-box-corp" onclick="event.stopPropagation()" style="max-width:540px; text-align:center; padding:32px 28px; box-shadow:var(--corp-shadow-pop); border:1px solid var(--corp-border);">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--corp-brand-light); color:var(--corp-brand); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
+      <i data-lucide="sparkles" style="width:32px; height:32px;"></i>
+    </div>
+    <h2 id="bienvenidaModalTitulo" style="font-size:24px; font-weight:800; color:var(--corp-slate-900); margin:0 0 8px 0;">
+      {% trans "¡Te damos la bienvenida a JobDevs!" %}
+    </h2>
+    <p style="font-size:13.5px; color:var(--corp-slate-600); line-height:1.5; margin:0 0 24px 0;">
+      {% trans "Conecta con talento calificado SENA, formaliza acuerdos con contrato digital y paga de forma segura por hitos cumplidos." %}
+    </p>
+
+    <div style="background:var(--corp-surface-alt); border:1px solid var(--corp-border-subtle); border-radius:var(--corp-radius); padding:16px 18px; margin-bottom:20px; text-align:left; display:flex; flex-direction:column; gap:12px;">
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">1</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Completa los datos de tu empresa y solicita tu verificación oficial DIAN / RUT." %}</span>
+      </div>
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">2</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Publica tu primera convocatoria sin costo en minutos." %}</span>
+      </div>
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">3</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Evalúa candidatos en el embudo y contrata talento con respaldo contractual." %}</span>
+      </div>
+    </div>
+
+    <!-- Opción de No volver a mostrar -->
+    <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <input type="checkbox" id="chkNoVolverAMostrarBienvenida" style="width:16px; height:16px; accent-color:var(--corp-brand); cursor:pointer;">
+      <label for="chkNoVolverAMostrarBienvenida" style="font-size:12.5px; color:var(--corp-slate-600); cursor:pointer; user-select:none;">
+        {% trans "No volver a mostrar este mensaje de bienvenida" %}
+      </label>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalBienvenida()">
+        {% trans "Explorar Panel" %}
+      </button>
+      <button type="button" class="btn-corp-primary" onclick="empezarConvocatoriaDesdeBienvenida()">
+        <i data-lucide="plus-circle"></i>
+        <span>{% trans "Publicar Convocatoria" %}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal nuevo proyecto -->
-<div id="modalProyecto" class="modal-overlay">
+<div id="modalProyecto" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalProyectoTitulo">
   <div class="modal-box-corp">
     <div class="modal-header-corp">
-      <h2 class="modal-title-corp">{% trans "Nueva Convocatoria de Proyecto" %}</h2>
+      <h2 class="modal-title-corp" id="modalProyectoTitulo">{% trans "Nueva Convocatoria de Proyecto" %}</h2>
       <button onclick="cerrarModal()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
@@ -1374,17 +1507,17 @@
     <form method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Título del Proyecto" %}</label>
-        <input type="text" name="titulo" class="form-input-corp" placeholder="{% trans "Ej: Plataforma SaaS de Gestión de Inventario" %}" required>
+        <label class="form-label-corp" for="crear_titulo">{% trans "Título del Proyecto" %}</label>
+        <input type="text" id="crear_titulo" name="titulo" class="form-input-corp" placeholder="{% trans "Ej: Plataforma SaaS de Gestión de Inventario" %}" required>
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Descripción y Alcance" %}</label>
-        <textarea name="descripcion" class="form-input-corp" placeholder="{% trans "Describe los requerimientos y entregables esperados..." %}" required style="min-height:90px; resize:vertical;"></textarea>
+        <label class="form-label-corp" for="crear_descripcion">{% trans "Descripción y Alcance" %}</label>
+        <textarea id="crear_descripcion" name="descripcion" class="form-input-corp" placeholder="{% trans "Describe los requerimientos y entregables esperados..." %}" required style="min-height:90px; resize:vertical;"></textarea>
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-grid-2-corp">
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Tipo de Solución" %}</label>
-          <select name="tipo_solucion" class="form-input-corp">
+          <label class="form-label-corp" for="crear_tipo_solucion">{% trans "Tipo de Solución" %}</label>
+          <select id="crear_tipo_solucion" name="tipo_solucion" class="form-input-corp">
             {% for c in categorias_solucion %}
             <option value="{{ c.slug }}">{{ c.nombre }}</option>
             {% empty %}
@@ -1395,15 +1528,15 @@
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Prioridad" %}</label>
-          <select name="prioridad" class="form-input-corp">
+          <label class="form-label-corp" for="crear_prioridad">{% trans "Prioridad" %}</label>
+          <select id="crear_prioridad" name="prioridad" class="form-input-corp">
             <option value="alta">{% trans "Alta" %}</option>
             <option value="media" selected>{% trans "Media" %}</option>
             <option value="baja">{% trans "Baja" %}</option>
           </select>
         </div>
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-grid-2-corp">
         <div class="form-group-corp">
           <label class="form-label-corp" for="modalidad_select_crear">{% trans "Modalidad de Trabajo" %}</label>
           <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
@@ -1413,59 +1546,65 @@
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Vacantes" %}</label>
-          <input type="number" name="vacantes" class="form-input-corp" value="1" min="1" max="10">
+          <label class="form-label-corp" for="crear_vacantes">{% trans "Vacantes" %}</label>
+          <input type="number" id="crear_vacantes" name="vacantes" class="form-input-corp" value="1" min="1" max="10">
         </div>
       </div>
       <div class="form-group-corp" id="ciudad_group_crear" style="display:none;">
         <label class="form-label-corp" for="ciudad_input_crear">{% trans "Ciudad o Sede del Proyecto" %}</label>
         <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
       </div>
-      <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Fecha Límite de Entrega" %}</label>
-        <div class="corp-datepicker" id="datepicker-crear">
-          <div class="datepicker-input-wrap">
-            <i data-lucide="calendar" class="datepicker-icon"></i>
-            <input type="text"
-                   class="form-input-corp datepicker-display"
-                   id="crear_fecha_limite_display"
-                   placeholder="{% trans "Seleccionar fecha límite..." %}"
-                   readonly
-                   onclick="toggleCorpDatepicker('datepicker-crear')">
-            <input type="hidden"
-                   name="fecha_limite"
-                   id="crear_fecha_limite"
-                   required>
-            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="{% trans "Abrir calendario" %}">
-              <i data-lucide="calendar-days"></i>
-            </button>
-          </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_fecha_limite_display">{% trans "Cierre de postulaciones" %}</label>
+          <div class="corp-datepicker" id="datepicker-crear">
+            <div class="datepicker-input-wrap">
+              <i data-lucide="calendar" class="datepicker-icon"></i>
+              <input type="text"
+                     class="form-input-corp datepicker-display"
+                     id="crear_fecha_limite_display"
+                     placeholder="{% trans "Seleccionar fecha límite..." %}"
+                     readonly
+                     onclick="toggleCorpDatepicker('datepicker-crear')">
+              <input type="hidden"
+                     name="fecha_limite"
+                     id="crear_fecha_limite"
+                     required>
+              <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="{% trans "Abrir calendario" %}">
+                <i data-lucide="calendar-days"></i>
+              </button>
+            </div>
 
-          <div class="datepicker-popover" id="datepicker-crear-popover">
-            <div class="datepicker-presets">
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">{% trans "+2 Semanas" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">{% trans "+1 Mes" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">{% trans "+2 Meses" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">{% trans "+3 Meses" %}</button>
-            </div>
-            <div class="datepicker-header">
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="{% trans "Mes anterior" %}">
-                <i data-lucide="chevron-left"></i>
-              </button>
-              <div class="datepicker-month-year" id="datepicker-crear-monthyear">{% trans "Mes Año" %}</div>
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="{% trans "Mes siguiente" %}">
-                <i data-lucide="chevron-right"></i>
-              </button>
-            </div>
-            <div class="datepicker-weekdays">
-              <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
-            </div>
-            <div class="datepicker-days" id="datepicker-crear-days"></div>
-            <div class="datepicker-footer">
-              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">{% trans "Cerrar" %}</button>
-              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">{% trans "Hoy" %}</button>
+            <div class="datepicker-popover" id="datepicker-crear-popover">
+              <div class="datepicker-presets">
+                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">{% trans "+2 Semanas" %}</button>
+                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">{% trans "+1 Mes" %}</button>
+                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">{% trans "+2 Meses" %}</button>
+                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">{% trans "+3 Meses" %}</button>
+              </div>
+              <div class="datepicker-header">
+                <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="{% trans "Mes anterior" %}">
+                  <i data-lucide="chevron-left"></i>
+                </button>
+                <div class="datepicker-month-year" id="datepicker-crear-monthyear">{% trans "Mes Año" %}</div>
+                <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="{% trans "Mes siguiente" %}">
+                  <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
+              <div class="datepicker-weekdays">
+                <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
+              </div>
+              <div class="datepicker-days" id="datepicker-crear-days"></div>
+              <div class="datepicker-footer">
+                <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">{% trans "Cerrar" %}</button>
+                <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">{% trans "Hoy" %}</button>
+              </div>
             </div>
           </div>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_fecha_cumplimiento">{% trans "Fecha de cumplimiento" %}</label>
+          <input type="date" name="fecha_cumplimiento" id="crear_fecha_cumplimiento" class="form-input-corp" required>
         </div>
       </div>
       <div class="modal-footer-corp">
@@ -1479,12 +1618,12 @@
 </div>
 
 <!-- Modal Editar Perfil In-Situ (LinkedIn Style) -->
-<div id="modalEditarPerfil" class="modal-overlay">
+<div id="modalEditarPerfil" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalEditarPerfilTitulo">
   <div class="modal-box-corp" style="max-width: 580px;">
     <div class="modal-header-corp">
       <div>
-        <h2 class="modal-title-corp" style="margin-bottom:2px;">{% trans "Editar Página de Empresa" %}</h2>
-        <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Actualiza la presencia institucional y de contacto" %}</span>
+        <h2 class="modal-title-corp" id="modalEditarPerfilTitulo" style="margin-bottom:2px;">{% trans "Editar Página de Empresa" %}</h2>
+        <span class="text-corp-meta">{% trans "Actualiza la presencia institucional y de contacto" %}</span>
       </div>
       <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
@@ -1503,43 +1642,43 @@
           {% endif %}
         </div>
         <div style="flex:1;">
-          <label class="form-label-corp" style="margin-bottom:3px;">{% trans "Logo de la Empresa" %}</label>
-          <input type="file" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
-          <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)." %}</div>
+          <label class="form-label-corp" for="perfil_logo" style="margin-bottom:3px;">{% trans "Logo de la Empresa" %}</label>
+          <input type="file" id="perfil_logo" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
+          <div style="font-size:12px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)." %}</div>
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-grid-2-corp">
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Nombre Comercial" %}</label>
-          <input type="text" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="{% trans "Ej: TechCorp SAS" %}" required>
+          <label class="form-label-corp" for="perfil_nombre_empresa">{% trans "Nombre Comercial" %}</label>
+          <input type="text" id="perfil_nombre_empresa" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="{% trans "Ej: TechCorp SAS" %}" required>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Sector o Industria" %}</label>
-          <input type="text" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="{% trans "Ej: Software y Cloud" %}">
-        </div>
-      </div>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-        <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Ciudad Sede" %}</label>
-          <input type="text" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="{% trans "Ej: Bogotá, D.C." %}">
-        </div>
-        <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Teléfono de Contacto" %}</label>
-          <input type="text" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="{% trans "Ej: +57 300 123 4567" %}">
+          <label class="form-label-corp" for="perfil_sector">{% trans "Sector o Industria" %}</label>
+          <input type="text" id="perfil_sector" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="{% trans "Ej: Software y Cloud" %}">
         </div>
       </div>
 
-      <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Especialidades y Stack de Interés (Opcional)" %}</label>
-        <input type="text" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="{% trans "Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST" %}">
-        <div style="font-size:11px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Indica las tecnologías o áreas clave separadas por comas. No es obligatorio." %}</div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_ciudad">{% trans "Ciudad Sede" %}</label>
+          <input type="text" id="perfil_ciudad" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="{% trans "Ej: Bogotá, D.C." %}">
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_telefono">{% trans "Teléfono de Contacto" %}</label>
+          <input type="text" id="perfil_telefono" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="{% trans "Ej: +57 300 123 4567" %}">
+        </div>
       </div>
 
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans 'Descripción Corporativa ("Acerca de")' %}</label>
-        <textarea name="descripcion" class="form-input-corp" rows="4" placeholder="{% trans "Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." %}" style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
+        <label class="form-label-corp" for="perfil_stack_interes">{% trans "Especialidades y Stack de Interés (Opcional)" %}</label>
+        <input type="text" id="perfil_stack_interes" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="{% trans "Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST" %}">
+        <div style="font-size:12px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Indica las tecnologías o áreas clave separadas por comas. No es obligatorio." %}</div>
+      </div>
+
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="perfil_descripcion">{% trans 'Descripción Corporativa ("Acerca de")' %}</label>
+        <textarea id="perfil_descripcion" name="descripcion" class="form-input-corp" rows="4" placeholder="{% trans "Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." %}" style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
       </div>
 
       <div class="modal-footer-corp">
@@ -1578,12 +1717,12 @@
 </div>
 
 <!-- Modal Editar Proyecto In-Situ (Mis Ofertas) -->
-<div id="modalEditarProyecto" class="modal-overlay">
+<div id="modalEditarProyecto" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalEditarProyectoTitulo">
   <div class="modal-box-corp">
     <div class="modal-header-corp">
       <div>
-        <h2 class="modal-title-corp">{% trans "Editar Oferta de Proyecto" %}</h2>
-        <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Modifica las especificaciones de tu convocatoria" %}</span>
+        <h2 class="modal-title-corp" id="modalEditarProyectoTitulo">{% trans "Editar Oferta de Proyecto" %}</h2>
+        <span class="text-corp-meta">{% trans "Modifica las especificaciones de tu convocatoria" %}</span>
       </div>
       <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
@@ -1592,16 +1731,16 @@
     <form id="formEditarProyecto" method="post" action="" style="display:flex; flex-direction:column; gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Título del Proyecto" %}</label>
+        <label class="form-label-corp" for="edit_titulo">{% trans "Título del Proyecto" %}</label>
         <input type="text" id="edit_titulo" name="titulo" class="form-input-corp" required>
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Descripción y Alcance" %}</label>
+        <label class="form-label-corp" for="edit_descripcion">{% trans "Descripción y Alcance" %}</label>
         <textarea id="edit_descripcion" name="descripcion" class="form-input-corp" rows="4" required style="min-height:90px; resize:vertical;"></textarea>
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-grid-2-corp">
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Tipo de Solución" %}</label>
+          <label class="form-label-corp" for="edit_tipo_solucion">{% trans "Tipo de Solución" %}</label>
           <select id="edit_tipo_solucion" name="tipo_solucion" class="form-input-corp">
             {% for c in categorias_solucion %}
             <option value="{{ c.slug }}">{{ c.nombre }}</option>
@@ -1613,7 +1752,7 @@
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Prioridad" %}</label>
+          <label class="form-label-corp" for="edit_prioridad">{% trans "Prioridad" %}</label>
           <select id="edit_prioridad" name="prioridad" class="form-input-corp">
             <option value="alta">{% trans "Alta" %}</option>
             <option value="media">{% trans "Media" %}</option>
@@ -1621,7 +1760,7 @@
           </select>
         </div>
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div class="form-grid-2-corp">
         <div class="form-group-corp">
           <label class="form-label-corp" for="edit_modalidad">{% trans "Modalidad de Trabajo" %}</label>
           <select id="edit_modalidad" name="modalidad" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'edit_ciudad_group')">
@@ -1631,7 +1770,7 @@
           </select>
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp">{% trans "Vacantes" %}</label>
+          <label class="form-label-corp" for="edit_vacantes">{% trans "Vacantes" %}</label>
           <input type="number" id="edit_vacantes" name="vacantes" class="form-input-corp" min="1" max="10" required>
         </div>
       </div>
@@ -1640,7 +1779,7 @@
         <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
       </div>
       <div class="form-group-corp">
-        <label class="form-label-corp">{% trans "Fecha Límite de Entrega" %}</label>
+        <label class="form-label-corp" for="edit_fecha_limite_display">{% trans "Cierre de postulaciones" %}</label>
         <div class="corp-datepicker" id="datepicker-editar">
           <div class="datepicker-input-wrap">
             <i data-lucide="calendar" class="datepicker-icon"></i>
@@ -1685,6 +1824,10 @@
           </div>
         </div>
       </div>
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="edit_fecha_cumplimiento">{% trans "Fecha de cumplimiento (opcional)" %}</label>
+        <input type="date" name="fecha_cumplimiento" id="edit_fecha_cumplimiento" class="form-input-corp">
+      </div>
       <div class="modal-footer-corp">
         <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
@@ -1697,17 +1840,17 @@
 </div>
 
 <!-- Toast flotante corporativo -->
-<div id="corpToast" class="corp-toast">
+<div id="corpToast" class="corp-toast" role="status" aria-live="polite" data-msg-rechazo="{% trans "Debes escribir un comentario explicando los ajustes solicitados." %}">
   <i data-lucide="check-circle-2" style="color:var(--corp-success);"></i>
   <span>{% trans "Enlace del perfil público copiado al portapapeles" %}</span>
 </div>
 
 <!-- Drawer / Slide-Over de Candidatos In-Situ -->
-<div id="drawerCandidatos" class="drawer-overlay">
+<div id="drawerCandidatos" class="drawer-overlay" role="dialog" aria-modal="true" aria-labelledby="drawerProjectTitle">
   <div class="drawer-panel">
     <div class="drawer-header">
       <div>
-        <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--corp-brand);">
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--corp-brand);">
           <i data-lucide="users"></i> {% trans "Panel de Selección & Candidatos" %}
         </div>
         <h2 id="drawerProjectTitle" class="drawer-title">{% trans "Candidatos Postulados" %}</h2>
@@ -1727,12 +1870,28 @@
 </div>
 
 <!-- Modal de Confirmación Bonito para Retirar Oferta -->
-<div id="modalConfirmarRetiro" class="modal-overlay">
+<!-- Modal Calificar Equipo (100% in-situ sin salir del panel) -->
+<div id="modalCalificarEquipo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalCalificarTitulo" onclick="if (event.target === this) cerrarModalCalificar()">
+  <div class="modal-box-corp" style="max-width: 520px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalCalificarTitulo">{% trans "Calificar al Desarrollador" %}</h2>
+        <div id="modalCalificarSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
+      </div>
+      <button type="button" onclick="cerrarModalCalificar()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modalCalificarBody"></div>
+  </div>
+</div>
+
+<div id="modalConfirmarRetiro" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalConfirmarRetiroTitulo">
   <div class="modal-confirm-box">
     <div class="modal-confirm-icon">
       <i data-lucide="alert-triangle"></i>
     </div>
-    <h3 class="modal-confirm-title">{% trans "¿Deseas retirar esta convocatoria?" %}</h3>
+    <h2 class="modal-confirm-title" id="modalConfirmarRetiroTitulo">{% trans "¿Deseas retirar esta convocatoria?" %}</h2>
     <p class="modal-confirm-desc">
       {% trans "La oferta" %} <strong id="nombreOfertaRetirar">{% trans "este proyecto" %}</strong> {% trans "dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos." %}
     </p>
@@ -1748,12 +1907,28 @@
   </div>
 </div>
 
+<!-- Modal Reportar Disputa In-Situ -->
+<div id="modalReportarDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalDisputaTitulo" onclick="if (event.target === this) cerrarModalDisputa()">
+  <div class="modal-box-corp" style="max-width: 640px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalDisputaTitulo">{% trans "Reportar Disputa Formal" %}</h2>
+        <div id="modalDisputaSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
+      </div>
+      <button type="button" onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modalDisputaBody"></div>
+  </div>
+</div>
+
 <!-- Modal Todas las Valoraciones y Reseñas -->
-<div id="modalTodasValoraciones" class="modal-overlay">
+<div id="modalTodasValoraciones" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTodasValoracionesTitulo">
   <div class="modal-box-corp" style="max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
     <div class="modal-header-corp" style="padding: 20px 24px; margin-bottom: 0;">
       <div>
-        <h2 class="modal-title-corp" style="margin-bottom: 3px;">{% trans "Expediente de Reputación y Valoraciones" %}</h2>
+        <h2 class="modal-title-corp" id="modalTodasValoracionesTitulo" style="margin-bottom: 3px;">{% trans "Expediente de Reputación y Valoraciones" %}</h2>
         <span style="font-size: 12px; color: var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Registro completo de {{ total }} evaluación recibida de desarrolladores contratados{% plural %}Registro completo de {{ total }} evaluaciones recibidas de desarrolladores contratados{% endblocktrans %}</span>
       </div>
       <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
@@ -1766,9 +1941,10 @@
       <div style="flex: 1; min-width: 220px; position: relative;">
         <input type="text"
                class="form-input-corp"
+               aria-label="{% trans "Buscar reseñas por desarrollador o proyecto" %}"
                placeholder="{% trans "Buscar por desarrollador o proyecto..." %}"
                onkeyup="filtrarResenasModal(this)"
-               style="padding-left: 32px; background: #ffffff;">
+               style="padding-left: 32px;">
         <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
       </div>
 
@@ -1819,7 +1995,7 @@
 
           {% if valoracion.fecha %}
             <div class="review-date">
-              <i data-lucide="calendar-check-2" style="margin-right:4px;"></i> {{ valoracion.fecha|date:"d M, Y H:i" }}
+              <i data-lucide="calendar-check-2" class="mr-1-corp"></i> {{ valoracion.fecha|date:"d M, Y H:i" }}
             </div>
           {% endif %}
         </div>
@@ -1843,16 +2019,16 @@
 </div>
 
 <!-- Modal In-Situ de Verificación de Identidad Empresarial -->
-<div id="modalVerificacionEmpresa" class="modal-overlay">
+<div id="modalVerificacionEmpresa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalVerificacionEmpresaTitulo">
   <div class="modal-box-corp" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
     <div class="modal-header-corp">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:36px; height:36px; border-radius:10px; background:#e6faf0; color:#007c34; display:flex; align-items:center; justify-content:center;">
+        <div class="verif-modal-icon">
           <i data-lucide="shield-check" style="width:20px; height:20px;"></i>
         </div>
         <div>
-          <h2 class="modal-title-corp" style="margin-bottom:2px;">{% trans "Verificación de Identidad Empresarial" %}</h2>
-          <span style="font-size:12px; color:var(--corp-slate-500);">{% trans "Validación oficial de persona jurídica o natural con personería comercial" %}</span>
+          <h2 class="modal-title-corp" id="modalVerificacionEmpresaTitulo" style="margin-bottom:2px;">{% trans "Verificación de Identidad Empresarial" %}</h2>
+          <span class="text-corp-meta">{% trans "Validación oficial de persona jurídica o natural con personería comercial" %}</span>
         </div>
       </div>
       <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
@@ -1862,33 +2038,41 @@
 
     <!-- Estado Actual de Verificación -->
     {% if perfil.estado_verificacion == 'verificada' %}
-      <div style="background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
-        <i data-lucide="check-circle-2" style="color:#007c34; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
-        <div>
-          <strong style="display:block; font-size:15px; color:#007c34; margin-bottom:4px;">{% trans "¡Empresa Verificada con Éxito!" %}</strong>
-          <p style="margin:0 0 6px 0; font-size:13.5px; color:#064e3b;">{% trans "Tu empresa" %} <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> {% trans "cuenta con la insignia de confianza oficial." %}</p>
-          <span style="font-size:12px; color:#047857; font-weight:600;">{% trans "Documento acreditado:" %} {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
+      <div class="verif-card is-verificada">
+        <div class="verif-card-row">
+          <div class="verif-icon-circle is-verificada">
+            <i data-lucide="check" style="width:22px; height:22px;"></i>
+          </div>
+          <div>
+            <strong class="verif-card-title" style="display:block;">{% trans "¡Empresa Verificada con Éxito!" %}</strong>
+            <p class="verif-card-copy">{% trans "Tu empresa" %} <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> {% trans "cuenta con la insignia de confianza oficial." %}</p>
+            <span class="verif-card-meta">{% trans "Documento acreditado:" %} {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
+          </div>
         </div>
       </div>
     {% elif perfil.estado_verificacion == 'en_revision' %}
-      <div style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:18px 20px; margin-bottom:20px; display:flex; gap:14px; align-items:flex-start;">
-        <i data-lucide="clock" style="color:#a16207; width:24px; height:24px; flex-shrink:0; margin-top:2px;"></i>
-        <div>
-          <strong style="display:block; font-size:15px; color:#854d0e; margin-bottom:4px;">{% trans "Solicitud en Proceso de Revisión" %}</strong>
-          <p style="margin:0 0 8px 0; font-size:13.5px; color:#713f12;">{% trans "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen." %}</p>
-          <div style="font-size:12px; color:#854d0e;">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
-          {% if perfil.documento_soporte %}
-            <div style="margin-top:8px;">
-              <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:11.5px; padding:3px 10px;">
-                <i data-lucide="file-text"></i> {% trans "Ver documento enviado" %}
-              </a>
-            </div>
-          {% endif %}
+      <div class="verif-card is-en_revision">
+        <div class="verif-card-row">
+          <div class="verif-icon-circle is-en_revision">
+            <i data-lucide="clock" style="width:22px; height:22px;"></i>
+          </div>
+          <div>
+            <strong class="verif-card-title" style="display:block;">{% trans "Solicitud en Proceso de Revisión" %}</strong>
+            <p class="verif-card-copy">{% trans "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen." %}</p>
+            <div class="verif-card-meta">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
+            {% if perfil.documento_soporte %}
+              <div style="margin-top:8px;">
+                <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 10px;">
+                  <i data-lucide="file-text"></i> {% trans "Ver documento enviado" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
     {% else %}
       {% if perfil.estado_verificacion == 'rechazada' %}
-        <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:16px 18px; margin-bottom:20px; color:#9f1239; font-size:13px;">
+        <div class="verif-card is-rechazada">
           <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
             <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> {% trans "Tu solicitud anterior fue rechazada" %}
           </strong>
@@ -1896,7 +2080,7 @@
           <div style="margin-top:4px;">{% trans "Por favor corrige la información y vuelve a adjuntar el documento de soporte." %}</div>
         </div>
       {% else %}
-        <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:12px; padding:16px 18px; margin-bottom:20px; font-size:13px; color:var(--corp-slate-600); display:flex; gap:10px; align-items:center;">
+        <div class="verif-card is-info">
           <i data-lucide="info" style="color:var(--corp-brand); width:18px; height:18px; flex-shrink:0;"></i>
           <span>{% trans "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa." %}</span>
         </div>
@@ -1907,7 +2091,7 @@
         <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#perfil">
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
-          <div class="form-group-corp" style="margin-bottom:0;">
+          <div class="form-group-corp mb-0-corp">
             <label class="form-label-corp" for="modal_tipo_persona">{% trans "Tipo de persona" %}</label>
             <select id="modal_tipo_persona" name="tipo_persona" class="form-input-corp" required>
               {% for value, label in tipos_persona %}
@@ -1915,7 +2099,7 @@
               {% endfor %}
             </select>
           </div>
-          <div class="form-group-corp" style="margin-bottom:0;">
+          <div class="form-group-corp mb-0-corp">
             <label class="form-label-corp" for="modal_tipo_documento">{% trans "Tipo de documento" %}</label>
             <select id="modal_tipo_documento" name="tipo_documento" class="form-input-corp" required>
               {% for value, label in tipos_documento %}
@@ -1926,13 +2110,13 @@
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
-          <div class="form-group-corp" style="margin-bottom:0;">
+          <div class="form-group-corp mb-0-corp">
             <label class="form-label-corp" for="modal_numero_documento">{% trans "Número de documento (sin DV)" %}</label>
             <input type="text" id="modal_numero_documento" name="numero_documento" class="form-input-corp"
                    value="{{ perfil.numero_documento|default:'' }}" placeholder="{% trans "Ej: 900123456" %}" required>
-            <span style="font-size:11px; color:var(--corp-slate-400); margin-top:3px; display:block;">{% trans "El dígito de verificación se calcula automáticamente." %}</span>
+            <span style="font-size:12px; color:var(--corp-slate-400); margin-top:3px; display:block;">{% trans "El dígito de verificación se calcula automáticamente." %}</span>
           </div>
-          <div class="form-group-corp" style="margin-bottom:0;">
+          <div class="form-group-corp mb-0-corp">
             <label class="form-label-corp" for="modal_razon_social">{% trans "Razón social oficial" %}</label>
             <input type="text" id="modal_razon_social" name="razon_social" class="form-input-corp"
                    value="{{ perfil.razon_social|default:perfil.nombre_empresa }}" placeholder="{% trans "Ej: Tech Solutions S.A.S." %}" required>
@@ -1943,7 +2127,7 @@
           <label class="form-label-corp" for="modal_documento_soporte">{% trans "Documento de soporte (Cámara de Comercio o RUT, PDF)" %}</label>
           <input type="file" id="modal_documento_soporte" name="documento_soporte" accept="application/pdf,.pdf" class="form-input-corp" required>
           {% if perfil.documento_soporte %}
-            <span style="font-size:11.5px; color:var(--corp-brand); margin-top:4px; display:block;">
+            <span style="font-size:12px; color:var(--corp-brand); margin-top:4px; display:block;">
               <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> {% trans "Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo." %}
             </span>
           {% endif %}
@@ -1961,6 +2145,398 @@
   </div>
 </div>
 <script>
+function cerrarModalBienvenida() {
+  var chk = document.getElementById('chkNoVolverAMostrarBienvenida');
+  if (chk && chk.checked) {
+    try { localStorage.setItem('jobdevs_bienvenida_no_mostrar', '1'); } catch(e){}
+  }
+  var modal = document.getElementById('modalBienvenidaEmpresa');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function empezarConvocatoriaDesdeBienvenida() {
+  cerrarModalBienvenida();
+  abrirModal();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  {% if es_cuenta_nueva %}
+    try {
+      if (localStorage.getItem('jobdevs_bienvenida_no_mostrar') !== '1') {
+        var modal = document.getElementById('modalBienvenidaEmpresa');
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+        }
+      }
+    } catch(e){}
+  {% endif %}
+});
+function filtrarChatsEnLista(inp) {
+  var q = (inp.value || '').toLowerCase().trim();
+  document.querySelectorAll('.jd-chat-items .jd-chat-item').forEach(function(item) {
+    var text = item.textContent.toLowerCase();
+    item.style.display = text.indexOf(q) !== -1 ? 'flex' : 'none';
+  });
+}
+function switchRoadmapProyecto(proyId, btnEl) {
+  document.querySelectorAll('.roadmap-project-tab').forEach(function(b) {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--corp-slate-600)';
+    b.classList.remove('active');
+  });
+  if (btnEl) {
+    btnEl.style.background = 'var(--corp-surface)';
+    btnEl.style.color = 'var(--corp-brand)';
+    btnEl.classList.add('active');
+  }
+  document.querySelectorAll('.roadmap-project-view').forEach(function(v) {
+    v.style.display = 'none';
+  });
+  var target = document.getElementById('roadmap-view-' + proyId);
+  if (target) {
+    target.style.display = 'block';
+  }
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+var LEDGER_CHART_DATASETS = JSON.parse('{{ chart_datasets_json|default:"{}"|escapejs }}');
+var ledgerEstadoActual = { metrica: 'contratado', periodo: '6m' };
+
+function _getEmpresaI18n() {
+  if (window.__empresaI18nCache) return window.__empresaI18nCache;
+  try {
+    var el = document.getElementById('empresa-i18n');
+    if (el) {
+      window.__empresaI18nCache = JSON.parse(el.textContent || '{}');
+      return window.__empresaI18nCache;
+    }
+  } catch (e) {}
+  return {};
+}
+function _tEmpresa(key, fallback) {
+  var dict = _getEmpresaI18n();
+  return Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : fallback;
+}
+
+function formatearValorLedger(metrica, valor) {
+  var num = Number(valor) || 0;
+  if (metrica === 'hitos_qty') {
+    var ent = Math.round(num);
+    return ent + (ent === 1 ? _tEmpresa('hitoSingular', ' hito') : _tEmpresa('hitosPlural', ' hitos'));
+  }
+  var locale = (document.documentElement.lang || '').trim() || 'es-CO';
+  return '$' + Math.round(num).toLocaleString(locale) + ' COP';
+}
+
+function seleccionarMetricaLedger(metrica, btnEl) {
+  ledgerEstadoActual.metrica = metrica;
+  document.querySelectorAll('.ledger-filter-pill').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  if (btnEl) btnEl.classList.add('active');
+  actualizarGraficaLedger(ledgerEstadoActual.metrica, ledgerEstadoActual.periodo);
+}
+
+function seleccionarPeriodoLedger(periodo, btnEl) {
+  ledgerEstadoActual.periodo = periodo;
+  document.querySelectorAll('.ledger-chart-controls .time-tab-corp').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  if (btnEl) btnEl.classList.add('active');
+  actualizarGraficaLedger(ledgerEstadoActual.metrica, ledgerEstadoActual.periodo);
+}
+
+function actualizarGraficaLedger(metrica, periodo) {
+  var dataset = LEDGER_CHART_DATASETS && LEDGER_CHART_DATASETS[metrica];
+  if (!dataset) return;
+
+  var keyPuntos = periodo === '12m' ? 'puntos_12m' : 'puntos_6m';
+  var keyTotal = periodo === '12m' ? 'total_12m' : 'total_6m';
+  var puntos = dataset[keyPuntos] || [];
+  var totalPeriodo = dataset[keyTotal] || 0;
+
+  var titleEl = document.getElementById('ledgerChartTitle');
+  var subEl = document.getElementById('ledgerChartSub');
+  var totalEl = document.getElementById('ledgerChartTotal');
+  if (titleEl) titleEl.textContent = dataset.label || '';
+
+  var subMap = {
+    contratado: periodo === '12m' ? _tEmpresa('subContratado12m', 'Contratos digitales creados en los últimos 12 meses') : _tEmpresa('subContratado6m', 'Contratos digitales creados en los últimos 6 meses'),
+    liquidado: periodo === '12m' ? _tEmpresa('subLiquidado12m', 'Liquidaciones devengadas por hitos en los últimos 12 meses') : _tEmpresa('subLiquidado6m', 'Liquidaciones devengadas por hitos en los últimos 6 meses'),
+    hitos_qty: periodo === '12m' ? _tEmpresa('subHitos12m', 'Entregables técnicos aprobados en los últimos 12 meses') : _tEmpresa('subHitos6m', 'Entregables técnicos aprobados en los últimos 6 meses')
+  };
+  if (subEl) subEl.textContent = subMap[metrica] || '';
+  if (totalEl) {
+    totalEl.textContent = _tEmpresa('totalPrefijo', 'Total: ') + formatearValorLedger(metrica, totalPeriodo);
+    if (typeof window.animarTextoNumericoCorp === 'function') {
+      window.animarTextoNumericoCorp(totalEl);
+    }
+  }
+
+  var svgPoints = document.getElementById('ledgerChartPoints');
+  var svgLabels = document.getElementById('ledgerChartLabels');
+  var linePathEl = document.getElementById('ledgerLinePath');
+  var areaPathEl = document.getElementById('ledgerAreaPath');
+  if (!svgPoints || !svgLabels || !linePathEl || !areaPathEl || puntos.length === 0) return;
+
+  var xStart = 50;
+  var xEnd = 720;
+  var yTop = 28;
+  var yBottom = 150;
+  var n = puntos.length;
+  var maxVal = Math.max.apply(null, puntos.map(function(p) { return Number(p.valor) || 0; }).concat([0]));
+
+  var coords = puntos.map(function(p, idx) {
+    var x = n === 1 ? (xStart + xEnd) / 2 : xStart + (idx / (n - 1)) * (xEnd - xStart);
+    var val = Number(p.valor) || 0;
+    var y = maxVal > 0 ? yBottom - (val / maxVal) * (yBottom - yTop) : yBottom;
+    return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, mes: p.mes, valor: val };
+  });
+
+  var dLine = 'M ' + coords[0].x + ',' + coords[0].y;
+  for (var i = 1; i < coords.length; i++) {
+    var prev = coords[i - 1];
+    var curr = coords[i];
+    var cx = Math.round(((prev.x + curr.x) / 2) * 10) / 10;
+    dLine += ' C ' + cx + ',' + prev.y + ' ' + cx + ',' + curr.y + ' ' + curr.x + ',' + curr.y;
+  }
+  var last = coords[coords.length - 1];
+  var first = coords[0];
+  var dArea = dLine + ' L ' + last.x + ',' + yBottom + ' L ' + first.x + ',' + yBottom + ' Z';
+
+  linePathEl.setAttribute('d', dLine);
+  areaPathEl.setAttribute('d', dArea);
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion && typeof linePathEl.getTotalLength === 'function' && typeof linePathEl.animate === 'function') {
+    try {
+      var totalLen = linePathEl.getTotalLength();
+      if (totalLen > 0) {
+        linePathEl.style.strokeDasharray = totalLen + ' ' + totalLen;
+        linePathEl.animate(
+          [
+            { strokeDashoffset: totalLen },
+            { strokeDashoffset: 0 }
+          ],
+          { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' }
+        );
+      }
+      areaPathEl.animate(
+        [
+          { opacity: 0, transform: 'translateY(6px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ],
+        { duration: 420, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' }
+      );
+    } catch (err) {}
+  }
+
+  var tooltipSubMap = {
+    contratado: _tEmpresa('tooltipContratado', 'Presupuesto contratado'),
+    liquidado: _tEmpresa('tooltipLiquidado', 'Liquidado por hitos aprobados'),
+    hitos_qty: _tEmpresa('tooltipHitos', 'Hitos técnicos aprobados')
+  };
+  var subTooltip = tooltipSubMap[metrica] || '';
+  var hitWidth = n > 1 ? Math.max(28, Math.floor((xEnd - xStart) / n)) : 60;
+
+  svgPoints.innerHTML = '';
+  svgLabels.innerHTML = '';
+
+  var ns = 'http://www.w3.org/2000/svg';
+  coords.forEach(function(pt, idx) {
+    var isLast = idx === coords.length - 1;
+    var g = document.createElementNS(ns, 'g');
+    g.setAttribute('class', 'chart-point-target');
+    g.setAttribute('tabindex', '0');
+    g.setAttribute('role', 'button');
+    g.setAttribute('aria-label', pt.mes + ': ' + formatearValorLedger(metrica, pt.valor));
+    g.setAttribute('data-mes', pt.mes);
+    g.setAttribute('data-monto', formatearValorLedger(metrica, pt.valor));
+    g.setAttribute('data-sub', subTooltip);
+    g.addEventListener('mouseenter', function(evt) { mostrarTooltipLinea(evt, g); });
+    g.addEventListener('mousemove', function(evt) { moverTooltipLinea(evt); });
+    g.addEventListener('mouseleave', ocultarTooltipLinea);
+    g.addEventListener('focus', function() {
+      var box = g.getBoundingClientRect();
+      mostrarTooltipLinea({ clientX: box.left + box.width / 2, clientY: box.top + 24 }, g);
+    });
+    g.addEventListener('blur', ocultarTooltipLinea);
+
+    var rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', Math.round((pt.x - hitWidth / 2) * 10) / 10);
+    rect.setAttribute('y', '0');
+    rect.setAttribute('width', hitWidth);
+    rect.setAttribute('height', '170');
+    rect.setAttribute('fill', 'transparent');
+    rect.style.cursor = 'pointer';
+
+    var circle = document.createElementNS(ns, 'circle');
+    circle.setAttribute('cx', pt.x);
+    circle.setAttribute('cy', pt.y);
+    circle.setAttribute('r', isLast ? '5.5' : '4');
+    circle.setAttribute('class', 'chart-node-circle');
+    circle.setAttribute('fill', 'var(--corp-brand)');
+    if (isLast) {
+      circle.setAttribute('stroke', 'var(--corp-surface)');
+      circle.setAttribute('stroke-width', '2');
+    }
+
+    g.appendChild(rect);
+    g.appendChild(circle);
+    svgPoints.appendChild(g);
+
+    if (!reduceMotion && typeof circle.animate === 'function') {
+      circle.style.transformOrigin = pt.x + 'px ' + pt.y + 'px';
+      circle.animate(
+        [
+          { opacity: 0, transform: 'scale(0.3)' },
+          { opacity: 1, transform: 'scale(1)' }
+        ],
+        {
+          duration: 300,
+          delay: Math.min(idx * 35, 220),
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          fill: 'backwards'
+        }
+      );
+    }
+
+    var txt = document.createElementNS(ns, 'text');
+    txt.setAttribute('x', pt.x);
+    txt.setAttribute('y', '170');
+    txt.setAttribute('fill', 'var(--corp-slate-500)');
+    txt.setAttribute('font-size', '12');
+    txt.setAttribute('font-weight', '600');
+    txt.setAttribute('text-anchor', 'middle');
+    txt.textContent = pt.mes;
+    svgLabels.appendChild(txt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  actualizarGraficaLedger(ledgerEstadoActual.metrica, ledgerEstadoActual.periodo);
+});
+
+function mostrarTooltipLinea(evt, el) {
+  var tip = document.getElementById('ledgerLineTooltip');
+  if (!tip) return;
+  var mes = el.getAttribute('data-mes') || '';
+  var monto = el.getAttribute('data-monto') || '';
+  var sub = el.getAttribute('data-sub') || '';
+  tip.querySelector('.tooltip-mes').textContent = mes;
+  tip.querySelector('.tooltip-monto').textContent = monto;
+  var subEl = tip.querySelector('.tooltip-sub');
+  if (subEl && sub) subEl.textContent = sub;
+  var wrap = el.closest('.ledger-svg-wrap');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+    tip.style.display = 'block';
+  }
+}
+function moverTooltipLinea(evt) {
+  var tip = document.getElementById('ledgerLineTooltip');
+  if (!tip || tip.style.display === 'none') return;
+  var wrap = tip.closest('.ledger-svg-wrap');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+  }
+}
+function ocultarTooltipLinea() {
+  var tip = document.getElementById('ledgerLineTooltip');
+  if (tip) tip.style.display = 'none';
+}
+function mostrarTooltipHito(evt, el) {
+  var tip = document.getElementById('roadmapHomeTooltip');
+  if (!tip) return;
+  var hito = el.getAttribute('data-hito') || '';
+  var estado = el.getAttribute('data-estado') || '';
+  var color = el.getAttribute('data-color') || 'var(--corp-brand)';
+  tip.querySelector('.tooltip-hito').textContent = hito;
+  var estEl = tip.querySelector('.tooltip-estado');
+  if (estEl) {
+    estEl.textContent = estado;
+    estEl.style.color = color;
+  }
+  var wrap = el.closest('.roadmap-svg-box-corp');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+    tip.style.display = 'block';
+  }
+}
+function moverTooltipHito(evt) {
+  var tip = document.getElementById('roadmapHomeTooltip');
+  if (!tip || tip.style.display === 'none') return;
+  var wrap = tip.closest('.roadmap-svg-box-corp');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+  }
+}
+function ocultarTooltipHito() {
+  var tip = document.getElementById('roadmapHomeTooltip');
+  if (tip) tip.style.display = 'none';
+}
+function mostrarTooltipDona(evt, el) {
+  var tip = document.getElementById('donutHomeTooltip');
+  if (!tip) return;
+  var label = el.getAttribute('data-label') || '';
+  var val = el.getAttribute('data-val') || '';
+  var pct = el.getAttribute('data-pct') || '';
+  var color = el.getAttribute('data-color') || 'var(--corp-brand)';
+  var lblEl = tip.querySelector('.tooltip-label');
+  if (lblEl) lblEl.textContent = label;
+  var valEl = tip.querySelector('.tooltip-val');
+  if (valEl) valEl.textContent = val;
+  var pctEl = tip.querySelector('.tooltip-pct');
+  if (pctEl) {
+    pctEl.textContent = pct;
+    pctEl.style.color = color;
+  }
+  var wrap = el.closest('.donut-chart-wrapper');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+    tip.style.display = 'block';
+  }
+}
+function moverTooltipDona(evt) {
+  var tip = document.getElementById('donutHomeTooltip');
+  if (!tip || tip.style.display === 'none') return;
+  var wrap = tip.closest('.donut-chart-wrapper');
+  if (wrap) {
+    var wrapRect = wrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - wrapRect.left) + 'px';
+    tip.style.top = (evt.clientY - wrapRect.top) + 'px';
+  }
+}
+function ocultarTooltipDona() {
+  var tip = document.getElementById('donutHomeTooltip');
+  if (tip) tip.style.display = 'none';
+}
+function toggleFormularioRevision(avanceId) {
+  var formEl = document.getElementById('form-revision-' + avanceId);
+  if (formEl) {
+    formEl.style.display = (formEl.style.display === 'none' || formEl.style.display === '') ? 'block' : 'none';
+  }
+}
 function toggleCiudadProyecto(selectEl, groupTargetId) {
   var grp = document.getElementById(groupTargetId);
   var inp = grp ? grp.querySelector('input') : null;
@@ -1974,10 +2550,127 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
   }
 }
 </script>
-<script src="{% static 'empresa/script/empresa.js' %}?v=20261107_v4"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261107_v1"></script>
+<script type="application/json" id="empresa-i18n">{
+  "temaClaroActivo": "{% trans "Tema claro activo"|escapejs %}",
+  "temaOscuroActivo": "{% trans "Tema oscuro activo"|escapejs %}",
+  "cambiarTemaOscuro": "{% trans "Cambiar a tema oscuro"|escapejs %}",
+  "cambiarTemaClaro": "{% trans "Cambiar a tema claro"|escapejs %}",
+  "vistaPrevia": "{% trans "Vista previa"|escapejs %}",
+  "candidatosPostulados": "{% trans "Candidatos Postulados"|escapejs %}",
+  "cargandoPostulaciones": "{% trans "Cargando postulaciones y perfiles de candidatos..."|escapejs %}",
+  "errorConsultarCandidatos": "{% trans "Error al consultar candidatos"|escapejs %}",
+  "sinCandidatos": "{% trans "No se encontraron candidatos postulados para este proyecto."|escapejs %}",
+  "errorVistaPrevia": "{% trans "No se pudo cargar la vista previa in-situ."|escapejs %}",
+  "definicionTerminos": "{% trans "Definición de Términos Contractuales (Editable por la Empresa)"|escapejs %}",
+  "faseNegociacion": "{% trans "Fase de Negociación"|escapejs %}",
+  "firmado": "{% trans "Firmado"|escapejs %}",
+  "pendiente": "{% trans "Pendiente"|escapejs %}",
+  "sinSello": "{% trans "Sin sello"|escapejs %}",
+  "cargandoContrato": "{% trans "Cargando expediente contractual..."|escapejs %}",
+  "errorContrato": "{% trans "No se pudo cargar el expediente contractual. Intenta de nuevo."|escapejs %}",
+  "estaConvocatoria": "{% trans "esta convocatoria"|escapejs %}",
+  "limpiando": "{% trans "Limpiando..."|escapejs %}",
+  "sinNotificaciones": "{% trans "No hay notificaciones"|escapejs %}",
+  "notifEliminadas": "{% trans "Notificaciones eliminadas"|escapejs %}",
+  "errorLimpiarNotif": "{% trans "Error al limpiar las notificaciones."|escapejs %}",
+  "expandirSidebar": "{% trans "Expandir menú lateral"|escapejs %}",
+  "colapsarSidebar": "{% trans "Colapsar menú (solo iconos)"|escapejs %}",
+  "guardandoTerminos": "{% trans "Guardando términos..."|escapejs %}",
+  "errorActualizarTerminos": "{% trans "Error al actualizar los términos."|escapejs %}",
+  "terminosActualizados": "{% trans "Términos del contrato actualizados exitosamente"|escapejs %}",
+  "errorConexionTerminos": "{% trans "Error de conexión al guardar los términos del contrato."|escapejs %}",
+  "firmando": "{% trans "Firmando..."|escapejs %}",
+  "errorFirmarContrato": "{% trans "No se pudo firmar el contrato."|escapejs %}",
+  "contratoFirmado": "{% trans "Contrato firmado electrónicamente."|escapejs %}",
+  "errorRedFirmar": "{% trans "Error de red al firmar el contrato. Intenta de nuevo."|escapejs %}",
+  "errorRedFirmarCorto": "{% trans "Error de red al firmar el contrato."|escapejs %}",
+  "procesando": "{% trans "Procesando..."|escapejs %}",
+  "accionProcesada": "{% trans "Acción procesada exitosamente"|escapejs %}",
+  "errorProcesarSolicitud": "{% trans "Error al procesar la solicitud"|escapejs %}",
+  "errorProcesarAccion": "{% trans "Error al procesar la acción."|escapejs %}",
+  "errorProcesarReintentar": "{% trans "Error al procesar la acción. Intenta de nuevo."|escapejs %}",
+  "pendienteFirma": "{% trans "Pendiente de firma"|escapejs %}",
+  "firmadoDigitalmente": "{% trans "Firmado digitalmente"|escapejs %}",
+  "contratoFirmadoAmbasPartes": "{% trans "Contrato firmado por ambas partes. La contratación quedó formalizada."|escapejs %}",
+  "contratoYaFirmo": "{% trans "Ya firmaste este contrato. Queda pendiente la firma de la otra parte."|escapejs %}",
+  "contratoNoDisponible": "{% trans "Este contrato ya no está disponible para firma electrónica."|escapejs %}",
+  "contratoAceptoTerminos": "{% trans "Acepto los términos, las condiciones y el perfil profesional mostrado, y firmo electrónicamente este contrato."|escapejs %}",
+  "firmarElectronicamente": "{% trans "Firmar Electrónicamente"|escapejs %}",
+  "hashPrimeraFirma": "{% trans "Se generará con la primera firma electrónica"|escapejs %}",
+  "sinSelloDefinitivo": "{% trans "Sin sello definitivo"|escapejs %}",
+  "comentariosAdicionales": "{% trans "Comentarios adicionales"|escapejs %}",
+  "perfilPostulacionPrefix": "{% trans "Perfil profesional de la postulación #"|escapejs %}",
+  "datosConservadosFirma": "{% trans "Datos conservados en la primera firma."|escapejs %}",
+  "vistaPreviaFirma": "{% trans "Vista previa: se conservará en la primera firma."|escapejs %}",
+  "etiquetaNombre": "{% trans "Nombre:"|escapejs %}",
+  "etiquetaSena": "{% trans "SENA:"|escapejs %}",
+  "etiquetaPrograma": "{% trans "Programa:"|escapejs %}",
+  "noRegistrado": "{% trans "No registrado"|escapejs %}",
+  "etiquetaFicha": "{% trans "Ficha:"|escapejs %}",
+  "noRegistrada": "{% trans "No registrada"|escapejs %}",
+  "etiquetaHabilidades": "{% trans "Habilidades:"|escapejs %}",
+  "noRegistradas": "{% trans "No registradas"|escapejs %}",
+  "etiquetaPortafolio": "{% trans "Portafolio:"|escapejs %}",
+  "etiquetaMensajePresentacion": "{% trans "Mensaje de presentación:"|escapejs %}",
+  "sinMensaje": "{% trans "Sin mensaje"|escapejs %}",
+  "contratoSinEvidenciaPerfil": "{% trans "Contrato anterior sin evidencia de perfil conservada."|escapejs %}",
+  "montoContrato": "{% trans "Monto del Contrato"|escapejs %}",
+  "ejMontoContrato": "{% trans "Ej: 2500000"|escapejs %}",
+  "monedaLabel": "{% trans "Moneda"|escapejs %}",
+  "formaPagoCronograma": "{% trans "Forma de Pago (Cronograma)"|escapejs %}",
+  "medioPagoLabel": "{% trans "Medio de Pago"|escapejs %}",
+  "comentariosCondicionesLabel": "{% trans "Comentarios adicionales o condiciones de entrega (Opcional)"|escapejs %}",
+  "comentariosCondicionesPlaceholder": "{% trans "Notas sobre desembolsos, cuentas o entregas intermedias..."|escapejs %}",
+  "guardarTerminosContractuales": "{% trans "Guardar Términos Contractuales"|escapejs %}",
+  "terminosSellados": "{% trans "Términos sellados: Este contrato ya cuenta con firmas electrónicas o la negociación concluyó; los términos económicos no pueden alterarse."|escapejs %}",
+  "montoAcordado": "{% trans "Monto acordado"|escapejs %}",
+  "monedaPrefix": "{% trans "Moneda:"|escapejs %}",
+  "formaPagoLabel": "{% trans "Forma de pago"|escapejs %}",
+  "cronogramaLiquidacion": "{% trans "Cronograma de liquidación"|escapejs %}",
+  "medioPagoLowerLabel": "{% trans "Medio de pago"|escapejs %}",
+  "canalAcordado": "{% trans "Canal acordado"|escapejs %}",
+  "expedienteDigitalPrefix": "{% trans "Expediente digital CD-"|escapejs %}",
+  "acuerdoServiciosProfesionales": "{% trans "Acuerdo Digital de Servicios Profesionales"|escapejs %}",
+  "hashDocTooltip": "{% trans "SHA-256 del contenido contractual congelado en la primera firma"|escapejs %}",
+  "hashContratoTooltip": "{% trans "SHA-256 del contrato firmado"|escapejs %}",
+  "empresaContratante": "{% trans "Empresa contratante"|escapejs %}",
+  "desarrolladorContratado": "{% trans "Desarrollador contratado"|escapejs %}",
+  "proyectoLabel": "{% trans "Proyecto"|escapejs %}",
+  "clausulasContractuales": "{% trans "Cláusulas contractuales"|escapejs %}",
+  "firmaEmpresa": "{% trans "Firma de la empresa"|escapejs %}",
+  "firmaDesarrollador": "{% trans "Firma del desarrollador"|escapejs %}",
+  "etiquetaEmpresa": "{% trans "Empresa"|escapejs %}",
+  "etiquetaDev": "{% trans "Dev"|escapejs %}",
+  "hitoSingular": "{% trans " hito"|escapejs %}",
+  "hitosPlural": "{% trans " hitos"|escapejs %}",
+  "subContratado12m": "{% trans "Contratos digitales creados en los últimos 12 meses"|escapejs %}",
+  "subContratado6m": "{% trans "Contratos digitales creados en los últimos 6 meses"|escapejs %}",
+  "subLiquidado12m": "{% trans "Liquidaciones devengadas por hitos en los últimos 12 meses"|escapejs %}",
+  "subLiquidado6m": "{% trans "Liquidaciones devengadas por hitos en los últimos 6 meses"|escapejs %}",
+  "subHitos12m": "{% trans "Entregables técnicos aprobados en los últimos 12 meses"|escapejs %}",
+  "subHitos6m": "{% trans "Entregables técnicos aprobados en los últimos 6 meses"|escapejs %}",
+  "totalPrefijo": "{% trans "Total: "|escapejs %}",
+  "tooltipContratado": "{% trans "Presupuesto contratado"|escapejs %}",
+  "tooltipLiquidado": "{% trans "Liquidado por hitos aprobados"|escapejs %}",
+  "tooltipHitos": "{% trans "Hitos técnicos aprobados"|escapejs %}",
+  "mesesLista": "{% trans "Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre"|escapejs %}",
+  "errorGuardarTerminos": "{% trans "No se pudo guardar los términos."|escapejs %}",
+  "errorProcesarFirma": "{% trans "No se pudo procesar la firma."|escapejs %}"
+}</script>
+<div id="logoutSpinnerOverlay" class="logout-spinner-overlay" aria-hidden="true" style="display:none;">
+  <div class="logout-spinner-box">
+    <div class="spinner" aria-hidden="true">
+      <div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <span class="logout-spinner-label">{% trans "Cerrando sesión..." %}</span>
+  </div>
+</div>
+
+<script src="{% static 'empresa/script/empresa.js' %}?v=20261116_v29"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261115_v6"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261115_v6"></script>
 </body>
 </html>

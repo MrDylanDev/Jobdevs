@@ -30,6 +30,7 @@ from .policies import (
     puede_comunicarse,
     puede_participar_en_chat_grupal,
     puede_ver_mensaje,
+    proyecto_requiere_comunicacion_grupal,
 )
 
 logger = logging.getLogger(__name__)
@@ -70,7 +71,8 @@ def sala_chat_grupal(request, proyecto_id):
         'proyecto': proyecto,
         'mensajes_chat': mensajes_chat,
         'es_grupal': True,
-        'companeros': companeros
+        'companeros': companeros,
+        'requiere_comunicacion_grupal': proyecto_requiere_comunicacion_grupal(proyecto),
     })
 
 @login_required

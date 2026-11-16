@@ -22,6 +22,7 @@ from .dashboard_views import (
 )
 
 from .empresa_dashboard import (
+    api_inicio_actividad_empresa,
     dashboard_empresa,
     detalle_empresa,
 )
@@ -35,11 +36,13 @@ from .admin_dashboard import (
     dashboard_admin,
     admin_toggle_usuario,
     admin_reactivar_proyecto,
+    admin_regularizar_cierre_proyecto,
     admin_crear_ficha_sena,
     admin_toggle_ficha_sena,
     admin_crear_excepcion_ficha_sena,
     admin_revocar_excepcion_ficha_sena,
     admin_depurar_notificaciones,
+    admin_actualizar_configuracion_negociacion,
 )
 
 from .admin_api import (

@@ -71,8 +71,9 @@ def listar_proyectos(request):
     ).annotate(
         disponibles_anotadas=F('vacantes') - F('contratos_activos') - F('negociaciones_abiertas'),
     ).filter(
-        # RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres y plazo vigente.
-        (Q(estado='publicado') | Q(estado='en_desarrollo', disponibles_anotadas__gt=0)),
+        # Excepción de producto: también en desarrollo, pero nunca sin cupo libre.
+        Q(estado__in=('publicado', 'en_desarrollo')),
+        Q(disponibles_anotadas__gt=0),
         (Q(fecha_limite__isnull=True) | Q(fecha_limite__gte=timezone.now().date())),
     )
     
@@ -138,6 +139,8 @@ def listar_proyectos(request):
             item = dict(p)
             if item.get('fecha_publicacion'):
                 item['fecha_publicacion'] = item['fecha_publicacion'].strftime('%d/%m/%Y')
+            item['empresa_url'] = reverse('detalle_empresa', args=[p['empresa_id']])
+            item['postular_url'] = reverse('postularse_a_proyecto', args=[p['id']])
             proyectos_json.append(item)
 
         return JsonResponse({
@@ -195,6 +198,19 @@ def crear_proyecto(request):
                     messages.error(request, "Formato de fecha límite inválido.")
                     return redirect('dashboard_empresa')
 
+            fecha_cumplimiento = (request.POST.get('fecha_cumplimiento') or '').strip()
+            if not fecha_cumplimiento:
+                messages.error(request, "La fecha de cumplimiento es obligatoria.")
+                return redirect('dashboard_empresa')
+            try:
+                fecha_cumplimiento_dt = datetime.strptime(fecha_cumplimiento, '%Y-%m-%d').date()
+                if fecha_cumplimiento_dt < timezone.localdate():
+                    messages.error(request, "La fecha de cumplimiento no puede estar en el pasado.")
+                    return redirect('dashboard_empresa')
+            except ValueError:
+                messages.error(request, "Formato de fecha de cumplimiento inválido.")
+                return redirect('dashboard_empresa')
+
             prioridad = request.POST.get('prioridad', 'media')
             if prioridad not in dict(Proyecto.PRIORIDAD):
                 prioridad = 'media'
@@ -217,6 +233,7 @@ def crear_proyecto(request):
                 ciudad=ciudad,
                 vacantes=vacantes,
                 fecha_limite=fecha_limite,
+                fecha_cumplimiento=fecha_cumplimiento,
                 estado='publicado'
             )
             # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
@@ -247,43 +264,50 @@ def finalizar_proyecto(request, proyecto_id):
 
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
 
-    # Prevalidación de UX: conserva los destinos de redirección específicos
-    # (hitos sin definir -> gestión de hitos; hitos pendientes -> avances).
-    try:
-        services.validar_finalizacion(proyecto)
-    except ValidationError as exc:
-        motivo = ' '.join(exc.messages)
-        messages.error(request, motivo)
-        if 'hitos definidos' in motivo:
-            return redirect('gestionar_hitos', proyecto_id=proyecto.id)
-        if 'hitos sin completar' in motivo:
-            return redirect('ver_avances', proyecto_id=proyecto.id)
-        return redirect('dashboard_empresa')
+    if proyecto.estado == 'finalizado':
+        try:
+            services.validar_plazo_valoracion(proyecto)
+        except ValidationError as exc:
+            messages.error(request, ' '.join(exc.messages))
+            return redirect('dashboard_empresa')
+    else:
+        # Prevalidación de UX para el cierre manual de compatibilidad.
+        try:
+            services.validar_finalizacion(proyecto)
+        except ValidationError as exc:
+            motivo = ' '.join(exc.messages)
+            messages.error(request, motivo)
+            if 'hitos definidos' in motivo:
+                return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+            if 'hitos sin completar' in motivo:
+                return redirect('ver_avances', proyecto_id=proyecto.id)
+            return redirect('dashboard_empresa')
 
-    pendientes = services.desarrolladores_pendientes(proyecto)
-
-    # ── Caso A: ya todos valorados → solo falta confirmar el cierre ──
-    if not pendientes.exists():
+        # Compatibilidad para proyectos antiguos con todos sus hitos aprobados:
+        # se confirma el cierre primero y las valoraciones se recogen después.
         if request.method == 'POST':
             try:
                 services.finalizar_proyecto(proyecto.id, request.user)
                 messages.success(
                     request,
-                    f"¡Excelente! El proyecto '{proyecto.titulo}' ha sido finalizado exitosamente."
+                    f"El proyecto '{proyecto.titulo}' fue finalizado. Ya puedes calificar al equipo.",
                 )
-            except PermissionDenied as exc:
-                messages.error(request, str(exc))
-            except ValidationError as exc:
-                messages.error(request, ' '.join(exc.messages))
-            except Exception as e:
-                messages.error(request, f"Error crítico al finalizar: {str(e)}")
-            return redirect('dashboard_empresa')
+            except (PermissionDenied, ValidationError) as exc:
+                messages.error(request, ' '.join(getattr(exc, 'messages', [str(exc)])))
+            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
         return render(request, 'proyectos/finalizar.html', {
             'proyecto': proyecto,
             'desarrollador': None,
-            'restantes': 0
+            'restantes': 0,
         })
+
+    pendientes = services.desarrolladores_pendientes(proyecto)
+
+    # Proyecto ya cerrado: las valoraciones no gobiernan la transición de estado.
+    if not pendientes.exists():
+        messages.info(request, "Todos los colaboradores ya fueron calificados.")
+        return redirect('dashboard_empresa')
 
     # ── Caso B: quedan colaboradores por calificar ──
     desarrollador = pendientes.first()
@@ -339,6 +363,12 @@ def calificar_empresa(request, proyecto_id):
     
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='finalizado')
     contratacion = get_object_or_404(Contratacion, proyecto=proyecto, desarrollador=request.user)
+
+    try:
+        services.validar_plazo_valoracion(proyecto)
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
+        return redirect('dashboard_desarrollador')
 
     es_ajax = (
         request.headers.get('x-requested-with') == 'XMLHttpRequest'
@@ -610,6 +640,50 @@ def eliminar_hito(request, hito_id):
     return redirect('gestionar_hitos', proyecto_id=proyecto_id)
 
 @login_required
+@require_POST
+def reabrir_postulaciones(request, proyecto_id):
+    """Amplía explícitamente solo el plazo de postulación tras una cancelación."""
+    if request.user.rol != 'empresa':
+        raise PermissionDenied
+
+    with transaction.atomic():
+        proyecto = get_object_or_404(
+            Proyecto.objects.select_for_update(), id=proyecto_id, empresa=request.user,
+        )
+        hoy = timezone.localdate()
+        if not (
+            proyecto.estado == 'publicado'
+            and proyecto.fecha_limite is not None
+            and proyecto.fecha_limite < hoy
+            and Contratacion.objects.filter(proyecto=proyecto, estado='cancelada').exists()
+            and proyecto.vacantes_disponibles > 0
+        ):
+            messages.error(request, "Este proyecto no admite reabrir postulaciones.")
+            return redirect('dashboard_empresa')
+
+        try:
+            nueva_fecha = datetime.strptime(request.POST.get('fecha_limite', ''), '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            messages.error(request, "Indica una fecha válida de cierre de postulaciones.")
+            return redirect('dashboard_empresa')
+        if nueva_fecha <= hoy:
+            messages.error(request, "El nuevo cierre debe ser posterior a hoy.")
+            return redirect('dashboard_empresa')
+
+        anterior = proyecto.fecha_limite
+        proyecto.fecha_limite = nueva_fecha
+        proyecto.save(update_fields=['fecha_limite'])
+        LogAuditoria.objects.create(
+            usuario=request.user, tabla_afectada='proyectos', registro_id=proyecto.pk,
+            accion=f"Amplió cierre de postulaciones de {proyecto.titulo}"[:300],
+            valor_anterior=anterior.isoformat(), valor_nuevo=nueva_fecha.isoformat(),
+        )
+
+    messages.success(request, "Convocatoria reabierta con el nuevo plazo de postulación.")
+    return redirect(f"{reverse('dashboard_empresa')}#ofertas")
+
+
+@login_required
 @require_http_methods(["GET", "POST"])
 def editar_proyecto(request, proyecto_id):
     if request.user.rol != 'empresa':
@@ -618,13 +692,32 @@ def editar_proyecto(request, proyecto_id):
 
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
 
-    if proyecto.estado != 'publicado':
-        messages.error(request, "Solo puedes editar un proyecto en estado publicado.")
+    if proyecto.estado not in ('publicado', 'en_desarrollo', 'en_revision'):
+        messages.error(request, "No puedes editar un proyecto retirado, finalizado o en disputa.")
         return redirect('dashboard_empresa')
 
     if Contratacion.objects.filter(proyecto=proyecto, estado='activa').exists():
         messages.error(request, "No puedes modificar un proyecto con contratos activos. Finalízalo o retíralo primero.")
         return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+
+    permite_edicion_tecnica = (
+        proyecto.estado == 'publicado'
+        and not Contratacion.objects.filter(proyecto=proyecto).exists()
+        and not proyecto.postulaciones.filter(estado='en_negociacion').exists()
+    )
+    if request.method == 'POST' and not permite_edicion_tecnica:
+        titulo = (request.POST.get('titulo') or '').strip()
+        prioridad = request.POST.get('prioridad')
+        if not titulo or len(titulo) > 200 or prioridad not in dict(Proyecto.PRIORIDAD):
+            messages.error(request, "Título o prioridad inválidos.")
+            return redirect('editar_proyecto', proyecto_id=proyecto.id)
+        proyecto.titulo = titulo
+        proyecto.prioridad = prioridad
+        proyecto.save(update_fields=['titulo', 'prioridad'])
+        messages.success(request, "Datos básicos del proyecto actualizados.")
+        if _espera_json(request):
+            return JsonResponse({'status': 'ok', 'message': 'Datos básicos del proyecto actualizados.'})
+        return redirect(f"{reverse('dashboard_empresa')}#desarrollo")
 
     categorias_solucion = CategoriaSolucion.objects.filter(activo=True)
     if proyecto.categoria_id:
@@ -666,6 +759,20 @@ def editar_proyecto(request, proyecto_id):
                 messages.error(request, "Formato de fecha límite inválido.")
                 return redirect('editar_proyecto', proyecto_id=proyecto.id)
 
+        fecha_cumplimiento = (
+            request.POST.get('fecha_cumplimiento') or None
+            if 'fecha_cumplimiento' in request.POST else proyecto.fecha_cumplimiento
+        )
+        if 'fecha_cumplimiento' in request.POST and fecha_cumplimiento:
+            try:
+                fecha_cumplimiento_dt = datetime.strptime(fecha_cumplimiento, '%Y-%m-%d').date()
+                if fecha_cumplimiento_dt < timezone.localdate():
+                    messages.error(request, "La fecha de cumplimiento no puede estar en el pasado.")
+                    return redirect('editar_proyecto', proyecto_id=proyecto.id)
+            except ValueError:
+                messages.error(request, "Formato de fecha de cumplimiento inválido.")
+                return redirect('editar_proyecto', proyecto_id=proyecto.id)
+
         try:
             proyecto.titulo = request.POST.get('titulo')
             proyecto.descripcion = request.POST.get('descripcion')
@@ -687,6 +794,7 @@ def editar_proyecto(request, proyecto_id):
             proyecto.ciudad = ciudad
             proyecto.vacantes = vacantes
             proyecto.fecha_limite = fecha_limite
+            proyecto.fecha_cumplimiento = fecha_cumplimiento
             # Hallazgo 18: full_clean() para capturar validaciones de modelo de forma limpia.
             # tipo_solucion se excluye porque admite slugs dinamicos de CategoriaSolucion
             # (ya validado contra TIPO_SOLUCION por la vista cuando no hay categoria).
@@ -713,6 +821,7 @@ def editar_proyecto(request, proyecto_id):
     return render(request, 'proyectos/editar_proyecto.html', {
         'proyecto': proyecto,
         'categorias_solucion': categorias_solucion,
+        'permite_edicion_tecnica': permite_edicion_tecnica,
     })
 
 @login_required
@@ -721,11 +830,13 @@ def desactivar_proyecto(request, proyecto_id):
     if request.user.rol != 'empresa':
         return redirect('inicio')
     
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
-    
-    # Hallazgo 7: Permitir retirar proyectos en_revision además de publicado y en_desarrollo
-    if proyecto.estado in ('publicado', 'en_desarrollo', 'en_revision'):
-        with transaction.atomic():
+    with transaction.atomic():
+        proyecto = get_object_or_404(
+            Proyecto.objects.select_for_update(), id=proyecto_id, empresa=request.user
+        )
+
+        # El retiro de una oferta no termina contratos: eso requiere el flujo contractual.
+        if proyecto.estado == 'publicado' and not Contratacion.objects.filter(proyecto=proyecto).exists():
             estado_anterior = proyecto.estado
             proyecto.estado = 'inactivo'
             proyecto.save()
@@ -755,27 +866,9 @@ def desactivar_proyecto(request, proyecto_id):
                 # Creación masiva de notificaciones
                 Notificacion.objects.bulk_create(notificaciones_lista)
 
-            # 3. Gestionar contrataciones en bloque
-            contratos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').select_related('desarrollador')
-            
-            if contratos.exists():
-                # Notificaciones masivas para contratados
-                notificaciones_contratos = [
-                    Notificacion(
-                        usuario=c.desarrollador,
-                        tipo='alerta',
-                        mensaje=f"Importante: El proyecto '{proyecto.titulo}' en el que trabajabas ha sido CANCELADO por la empresa."
-                    ) for c in contratos
-                ]
-                
-                # Actualización masiva de contratos
-                contratos.update(estado='cancelada')
-                # Creación masiva de notificaciones
-                Notificacion.objects.bulk_create(notificaciones_contratos)
-
-        messages.info(request, f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados.")
-    else:
-        messages.error(request, "No se puede retirar un proyecto que ya está finalizado o inactivo.")
+            messages.info(request, f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados.")
+        else:
+            messages.error(request, "Solo puedes retirar una oferta publicada sin contratos. Los proyectos en ejecución requieren el flujo de terminación o resolución contractual.")
         
     return redirect('dashboard_empresa')
 

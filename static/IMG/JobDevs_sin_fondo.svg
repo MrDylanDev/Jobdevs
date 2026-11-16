@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="440 245 640 510" role="img" aria-labelledby="title desc">
+  <title id="title">JobDevs - logo sin fondo</title>
+  <desc id="desc">Maletín de líneas gris plata con símbolos de código verde lima, sobre fondo transparente.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e5e5e7"/>
+      <stop offset="0.52" stop-color="#bfc1c5"/>
+      <stop offset="1" stop-color="#92959a"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#92f000"/>
+      <stop offset="1" stop-color="#49d900"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#silver)" stroke-width="33" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M668 355 V324 Q668 288 704 288 H842 Q879 288 879 324 V355"/>
+    <path d="M800 372 H564 Q523 372 523 414 V650 Q523 681 557 681 H676 Q713 681 729 644 L792 414 Q805 372 850 372 H977 Q1021 372 1021 417 V651 Q1021 681 986 681 H754"/>
+  </g>
+  <g fill="none" stroke="url(#green)" stroke-width="34" stroke-linejoin="round" stroke-linecap="square">
+    <path d="M699 461 L609 525 L699 587"/>
+    <path d="M846 461 L935 525 L846 587"/>
+  </g>
+</svg>

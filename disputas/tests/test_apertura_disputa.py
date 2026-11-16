@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from contrataciones.models import Contratacion
@@ -125,6 +126,58 @@ class TestAcceso:
 
 
 class TestApertura:
+    def test_incumplimiento_sin_evidencia_no_congela_el_contrato(self, client, escenario):
+        _login(client, escenario['dev'])
+
+        resp = client.post(
+            _url(escenario['proyecto']),
+            _payload_valido(evidencia_url=''),
+        )
+
+        assert resp.status_code == 400
+        assert not Disputa.objects.exists()
+        escenario['proyecto'].refresh_from_db()
+        escenario['contratacion'].refresh_from_db()
+        assert escenario['proyecto'].estado == 'en_desarrollo'
+        assert escenario['contratacion'].estado == 'activa'
+
+    def test_incumplimiento_acepta_pdf_privado_como_evidencia(self, client, escenario):
+        _login(client, escenario['dev'])
+        evidencia = SimpleUploadedFile(
+            'evidencia.pdf', b'%PDF-1.4\n%%EOF', content_type='application/pdf'
+        )
+
+        resp = client.post(
+            _url(escenario['proyecto']),
+            _payload_valido(evidencia_url='', evidencia_archivo=evidencia),
+        )
+
+        assert resp.status_code == 302
+        disputa = Disputa.objects.get()
+        assert disputa.evidencia_archivo.name.endswith('evidencia.pdf')
+
+    def test_archivo_de_evidencia_solo_es_descargable_por_partes_y_admin(
+            self, client, escenario):
+        _login(client, escenario['dev'])
+        evidencia = SimpleUploadedFile(
+            'privada.pdf', b'%PDF-1.4\n%%EOF', content_type='application/pdf'
+        )
+        client.post(
+            _url(escenario['proyecto']),
+            _payload_valido(evidencia_url='', evidencia_archivo=evidencia),
+        )
+        disputa = Disputa.objects.get()
+        url = reverse('disputas:descargar_evidencia', args=[disputa.id])
+
+        assert client.get(url).status_code == 200
+
+        tercero = _user('tercero_evidencia', 'desarrollador')
+        _login(client, tercero)
+        assert client.get(url).status_code == 403
+
+        _login(client, escenario['admin'])
+        assert client.get(url).status_code == 200
+
     def test_desarrollador_abre_disputa(self, client, escenario):
         _login(client, escenario['dev'])
         resp = client.post(_url(escenario['proyecto']), _payload_valido())

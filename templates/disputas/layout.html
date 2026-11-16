@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}JobDevs | Disputas{% endblock %}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
@@ -14,7 +14,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">{% if user.rol == 'empresa' %}Empresa{% elif user.rol == 'desarrollador' %}Desarrollador{% else %}Administrador{% endif %}</div>
@@ -89,12 +89,7 @@
     </header>
 
     <main class="main-content">
-      {% for message in messages %}
-        <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}" style="border-radius:var(--corp-radius-md); margin-bottom:18px;">
-          <i data-lucide="{% if message.tags == 'error' or message.tags == 'danger' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
+      {% include 'partials/_flash_toasts.html' %}
       {% block content %}{% endblock %}
     </main>
   </div>

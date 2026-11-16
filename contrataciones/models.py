@@ -1,4 +1,5 @@
 import hashlib
+import json
 from decimal import Decimal
 
 from django.db import models
@@ -43,6 +44,46 @@ class Contratacion(models.Model):
     def __str__(self):
         return f"Contrato: {self.proyecto.titulo}"
 
+
+
+class SolicitudCancelacion(models.Model):
+    CAUSALES = [
+        ('acuerdo_mutuo', 'Acuerdo mutuo'),
+        ('incumplimiento', 'Incumplimiento de obligaciones'),
+        ('inactividad', 'Inactividad demostrable'),
+        ('fuerza_mayor', 'Fuerza mayor'),
+    ]
+    ESTADOS = [
+        ('pendiente_acuerdo', 'Pendiente de confirmación de la contraparte'),
+        ('pendiente_revision', 'Pendiente de revisión administrativa'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
+    contratacion = models.ForeignKey(
+        Contratacion, on_delete=models.PROTECT, related_name='solicitudes_cancelacion',
+    )
+    solicitante = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='+')
+    causal = models.CharField(max_length=25, choices=CAUSALES)
+    motivo = models.TextField()
+    evidencia = models.TextField(blank=True)
+    estado = models.CharField(max_length=25, choices=ESTADOS)
+    resuelto_por = models.ForeignKey(
+        Usuario, on_delete=models.PROTECT, null=True, blank=True, related_name='+',
+    )
+    dictamen = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'solicitudes_cancelacion'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['contratacion'],
+                condition=models.Q(estado__in=['pendiente_acuerdo', 'pendiente_revision']),
+                name='uq_cancelacion_pendiente_contrato',
+            ),
+        ]
 
 
 class ContratoDigital(models.Model):
@@ -106,6 +147,10 @@ class ContratoDigital(models.Model):
         null=True,
         help_text="SHA-256 del contenido contractual inmutable congelado en la primera firma.",
     )
+    perfil_profesional = models.JSONField(
+        null=True, blank=True,
+        help_text="Evidencia del perfil y mensaje de postulación fijada en la primera firma.",
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
@@ -114,6 +159,28 @@ class ContratoDigital(models.Model):
 
     def __str__(self):
         return f"Contrato digital #{self.pk} - postulación {self.postulacion_id} ({self.estado})"
+
+    def obtener_perfil_profesional(self):
+        """Vista previa actual o evidencia fijada desde la primera firma."""
+        if self.perfil_profesional is not None:
+            return self.perfil_profesional
+        if self.firmado_empresa or self.firmado_desarrollador:
+            return None  # Contrato legado: no inventar una evidencia anterior.
+        postulacion = self.postulacion
+        desarrollador = postulacion.desarrollador  # type: ignore[attr-defined]
+        perfil = getattr(desarrollador, 'perfil_desarrollador', None)
+        return {
+            'version': 1,
+            'nombre': desarrollador.nombre or desarrollador.username,
+            'condicion_sena': perfil.condicion_sena if perfil else '',
+            'estado_verificacion': perfil.estado_verificacion if perfil else 'sin_verificar',
+            'programa_formacion': (perfil.programa_formacion or '') if perfil else '',
+            'ficha': (perfil.ficha or '') if perfil else '',
+            'habilidades': (perfil.habilidades or '') if perfil else '',
+            'portafolio_url': (perfil.portafolio_url or '') if perfil else '',
+            'postulacion_id': postulacion.pk,  # type: ignore[attr-defined]
+            'mensaje_postulacion': postulacion.mensaje or '',  # type: ignore[attr-defined]
+        }
 
     def calcular_hash(self) -> str:
         """SHA-256 determinista de los datos clave del contrato."""
@@ -131,6 +198,11 @@ class ContratoDigital(models.Model):
             self.fecha_firma_empresa.isoformat() if self.fecha_firma_empresa else '',
             self.fecha_firma_desarrollador.isoformat() if self.fecha_firma_desarrollador else '',
         ]
+        if self.perfil_profesional is not None:
+            partes.append(json.dumps(
+                self.perfil_profesional, ensure_ascii=False, sort_keys=True,
+                separators=(',', ':'),
+            ))
         return hashlib.sha256('|'.join(partes).encode('utf-8')).hexdigest()
 
     def calcular_hash_documento(self) -> str:
@@ -147,6 +219,11 @@ class ContratoDigital(models.Model):
             self.medio_pago or '',
             self.clausulas or '',
         ]
+        if self.perfil_profesional is not None:
+            partes.append(json.dumps(
+                self.perfil_profesional, ensure_ascii=False, sort_keys=True,
+                separators=(',', ':'),
+            ))
         return hashlib.sha256('|'.join(partes).encode('utf-8')).hexdigest()
 
     @property

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Contrato Digital #{{ contrato.id }}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
   <style>
@@ -29,7 +29,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">{% if rol_contrato == 'empresa' %}Empresa{% elif rol_contrato == 'desarrollador' %}Desarrollador{% else %}Administrador{% endif %}</div>
@@ -69,14 +69,7 @@
 
     <main class="main-content">
 
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <div class="page-header">
         <div>
@@ -172,6 +165,27 @@
 
       <!-- Cláusulas -->
       <div class="card" style="margin-bottom: 24px;">
+        <div class="cd-section-title"><i data-lucide="user-check"></i> Perfil profesional de la postulación</div>
+        {% if perfil_profesional %}
+          <p style="font-size:13px; color:var(--text-secondary);">
+            {% if perfil_congelado %}Datos conservados desde la primera firma; los cambios posteriores del perfil no los modifican.{% else %}Vista previa del perfil vigente; estos datos se conservarán al emitir la primera firma.{% endif %}
+          </p>
+          <div class="cd-grid">
+            <div><span class="cd-label">Nombre</span><div class="cd-value">{{ perfil_profesional.nombre }}</div></div>
+            <div><span class="cd-label">Verificación SENA</span><div class="cd-value">{{ perfil_profesional.estado_verificacion }} · {{ perfil_profesional.condicion_sena|default:"No registrada" }}</div></div>
+            <div><span class="cd-label">Programa</span><div class="cd-value">{{ perfil_profesional.programa_formacion|default:"No registrado" }}</div></div>
+            <div><span class="cd-label">Ficha</span><div class="cd-value">{{ perfil_profesional.ficha|default:"No registrada" }}</div></div>
+            <div><span class="cd-label">Habilidades</span><div class="cd-value">{{ perfil_profesional.habilidades|default:"No registradas"|linebreaksbr }}</div></div>
+            {% if perfil_profesional.portafolio_url %}<div><span class="cd-label">Portafolio</span><div class="cd-value">{{ perfil_profesional.portafolio_url }}</div></div>{% endif %}
+          </div>
+          <span class="cd-label">Mensaje de la postulación #{{ perfil_profesional.postulacion_id }}</span>
+          <div class="cd-clausulas">{{ perfil_profesional.mensaje_postulacion|default:"Sin mensaje"|linebreaksbr }}</div>
+        {% else %}
+          <p>Contrato anterior sin evidencia de perfil conservada. No se reconstruye desde el perfil actual.</p>
+        {% endif %}
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
         <div class="cd-section-title"><i data-lucide="scale"></i> Cláusulas</div>
         <div class="cd-clausulas">{{ contrato.clausulas|linebreaksbr }}</div>
       </div>
@@ -239,7 +253,7 @@
             {% csrf_token %}
             <label style="display:flex; gap:10px; align-items:flex-start; font-size:13.5px; margin-bottom:16px;">
               <input type="checkbox" name="acepta_terminos" value="1" required style="margin-top:3px;">
-              <span>He leído y acepto los términos, el monto, la forma de pago y las cláusulas de este contrato digital, y reconozco el aviso legal.</span>
+              <span>He leído y acepto los términos, el monto, la forma de pago, las cláusulas y los datos del perfil profesional mostrados en este contrato digital, y reconozco el aviso legal.</span>
             </label>
             <button type="submit" class="btn btn-success"><i data-lucide="file-signature"></i> Firmar Contrato Digital</button>
           </form>

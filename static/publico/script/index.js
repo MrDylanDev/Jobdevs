@@ -95,20 +95,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ============================
-     STICKY CTA BAR
+     HERO VISIBILITY OBSERVER
      ============================ */
-  const stickyCta = document.getElementById('stickyCta');
   const heroSection = document.getElementById('inicio');
-  const bookingAnchor = document.getElementById('comenzar');
 
-  if (stickyCta && heroSection) {
-    let heroPassed = false;
-    let atBooking = false;
-
-    const stickyObserver = new IntersectionObserver((entries) => {
+  if (heroSection) {
+    const heroObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.target === heroSection) {
-          heroPassed = !entry.isIntersecting;
           heroVisible = entry.isIntersecting;
           if (heroVisible) {
             if (tickZoomId) cancelAnimationFrame(tickZoomId);
@@ -118,17 +112,10 @@ document.addEventListener('DOMContentLoaded', function () {
             tickZoomId = null;
           }
         }
-        if (entry.target === bookingAnchor) atBooking = entry.isIntersecting;
-        updateSticky();
       });
     }, { threshold: 0 });
 
-    stickyObserver.observe(heroSection);
-    if (bookingAnchor) stickyObserver.observe(bookingAnchor);
-
-    function updateSticky() {
-      stickyCta.classList.toggle('visible', heroPassed && !atBooking);
-    }
+    heroObserver.observe(heroSection);
   }
 
   /* ============================
@@ -192,10 +179,11 @@ document.addEventListener('DOMContentLoaded', function () {
       this.isDown = false;
       this.startX = 0; this.startOffset = 0; this.currentX = 0;
       this.velocity = 0; this.lastX = 0; this.lastTime = 0;
-      this.cardWidth = 0; this.maxScroll = 0;
+      this.cardWidth = 0; this.maxScroll = 0; this.maxIndex = 0;
       this.autoAdvance = opts.autoAdvance !== false;
       this.autoInterval = opts.interval || 4500;
       this.autoTimer = null;
+      this.resumeTimer = null;
       this.pauseAuto = false;
       this.init();
     }
@@ -203,8 +191,12 @@ document.addEventListener('DOMContentLoaded', function () {
     init() {
       this.calculateDimensions();
       this.bindEvents();
-      this.buildDots();
       this.startAuto();
+      window.addEventListener('load', () => {
+        this.calculateDimensions();
+        this.clamp();
+        this.applyTransform(0);
+      }, { once: true });
       let resizeTimer = null;
       window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
@@ -225,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const containerWidth = this.track.parentElement.offsetWidth;
       const totalWidth = (this.cards.length * this.cardWidth) - gap + paddingLeft * 2;
       this.maxScroll = Math.max(0, totalWidth - containerWidth);
+      this.maxIndex = this.cardWidth > 0 ? Math.min(this.cards.length - 1, Math.ceil(this.maxScroll / this.cardWidth)) : 0;
     }
 
     bindEvents() {
@@ -245,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const prev = document.getElementById('storyPrev');
       const next = document.getElementById('storyNext');
-      if (prev) prev.addEventListener('click', () => this.goTo(this.currentIndex - 1));
-      if (next) next.addEventListener('click', () => this.goTo(this.currentIndex + 1));
+      if (prev) prev.addEventListener('click', () => this.goTo(this.currentIndex <= 0 ? this.maxIndex : this.currentIndex - 1));
+      if (next) next.addEventListener('click', () => this.goTo(this.currentIndex >= this.maxIndex ? 0 : this.currentIndex + 1));
     }
 
     handleDown(e) {
@@ -280,25 +273,26 @@ document.addEventListener('DOMContentLoaded', function () {
       this.track.classList.remove('dragging');
       let target = this.currentX + this.velocity * 350;
       const snapIndex = Math.round(-target / this.cardWidth);
-      const clampedIndex = Math.max(0, Math.min(this.cards.length - 1, snapIndex));
+      const clampedIndex = Math.max(0, Math.min(this.maxIndex, snapIndex));
       let snappedX = -clampedIndex * this.cardWidth;
       if (snappedX > 0) snappedX = 0;
       if (snappedX < -this.maxScroll) snappedX = -this.maxScroll;
       this.currentX = snappedX; this.currentIndex = clampedIndex;
-      this.applyTransform(600); this.updateDots();
-      setTimeout(() => this.startAuto(), 1800);
+      this.applyTransform(600);
+      this.scheduleAutoResume(1800);
     }
 
     goTo(idx) {
-      this.currentIndex = Math.max(0, Math.min(this.cards.length - 1, idx));
+      this.currentIndex = Math.max(0, Math.min(this.maxIndex, idx));
       let target = -this.currentIndex * this.cardWidth;
       if (target > 0) target = 0;
       if (target < -this.maxScroll) target = -this.maxScroll;
-      this.currentX = target; this.applyTransform(600); this.updateDots();
-      this.stopAuto(); setTimeout(() => this.startAuto(), 2500);
+      this.currentX = target; this.applyTransform(600);
+      this.scheduleAutoResume(2500);
     }
 
     clamp() {
+      if (this.currentIndex > this.maxIndex) this.currentIndex = this.maxIndex;
       if (this.currentX > 0) this.currentX = 0;
       if (this.currentX < -this.maxScroll) this.currentX = -this.maxScroll;
     }
@@ -308,26 +302,24 @@ document.addEventListener('DOMContentLoaded', function () {
       this.track.style.transform = 'translateX(' + this.currentX + 'px)';
     }
 
-    buildDots() {
-      const container = document.getElementById('storyDots');
-      if (!container) return;
-      container.innerHTML = '';
-      this.cards.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.className = 'carousel-dot';
-        if (i === 0) dot.classList.add('active');
-        dot.addEventListener('click', () => this.goTo(i));
-        container.appendChild(dot);
-      });
+    scheduleAutoResume(delay) {
+      this.stopAuto();
+      this.resumeTimer = setTimeout(() => this.startAuto(), delay);
     }
 
-    updateDots() {
-      const dots = document.querySelectorAll('#storyDots .carousel-dot');
-      dots.forEach((dot, i) => dot.classList.toggle('active', i === this.currentIndex));
+    startAuto() {
+      if (!this.autoAdvance) return;
+      this.stopAuto();
+      this.autoTimer = setInterval(() => {
+        if (this.pauseAuto || this.isDown) return;
+        const nextIdx = this.currentIndex >= this.maxIndex ? 0 : this.currentIndex + 1;
+        this.goTo(nextIdx);
+      }, this.autoInterval);
     }
-
-    startAuto() { if (!this.autoAdvance) return; this.stopAuto(); this.autoTimer = setInterval(() => { if (this.pauseAuto || this.isDown) return; this.goTo((this.currentIndex + 1) % this.cards.length); }, this.autoInterval); }
-    stopAuto() { if (this.autoTimer) { clearInterval(this.autoTimer); this.autoTimer = null; } }
+    stopAuto() {
+      if (this.autoTimer) { clearInterval(this.autoTimer); this.autoTimer = null; }
+      if (this.resumeTimer) { clearTimeout(this.resumeTimer); this.resumeTimer = null; }
+    }
   }
 
   new StoriesCarousel(document.getElementById('storyTrack'), { interval: 4500 });
@@ -487,6 +479,12 @@ document.addEventListener('DOMContentLoaded', function () {
     abrirLoginModal();
     if (urlParams.has('recuperar')) {
       showRecovery();
+    }
+    urlParams.delete('login');
+    urlParams.delete('recuperar');
+    if (window.history && window.history.replaceState) {
+      var cleanQs = urlParams.toString();
+      window.history.replaceState(null, '', window.location.pathname + (cleanQs ? '?' + cleanQs : '') + (window.location.hash || ''));
     }
   }
 
@@ -664,6 +662,22 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       animateRing();
     }
+  }
+
+  /* ============================
+     CAMBIO DE IDIOMA (MICRO-INTERACCIÓN)
+     ============================ */
+  var langSwitchBtn = document.querySelector('.lang-switch');
+  if (langSwitchBtn && langSwitchBtn.href) {
+    langSwitchBtn.addEventListener('click', function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      langSwitchBtn.classList.add('is-switching');
+      var targetHref = langSwitchBtn.href + (window.location.hash || '');
+      setTimeout(function () {
+        window.location.href = targetHref;
+      }, 120);
+    });
   }
 
   /* ============================

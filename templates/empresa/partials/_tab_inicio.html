@@ -1,0 +1,567 @@
+{% load i18n %}
+
+<!-- Inicio / Dashboard (Command Center Operativo) -->
+<section id="inicio" class="seccion-v activa">
+  <h1 class="sr-only">{% trans "Panel de Control" %}</h1>
+  <div class="page-header" style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:14px;">
+    <div>
+      <button type="button" class="btn-corp-primary" onclick="abrirModal()">
+        <i data-lucide="plus-circle"></i>
+        <span>{% trans "Publicar Convocatoria" %}</span>
+      </button>
+    </div>
+  </div>
+
+  {% if total_avances_pendientes > 0 or total_postulaciones > 0 or disputas_activas_count > 0 %}
+  <!-- Pop-up Operativo: Acción Inmediata Requerida -->
+  <aside id="inicioActionPopup" class="action-alert-corp" aria-label="{% trans "Atención requerida" %}">
+    <div class="alert-top-row">
+      <div class="alert-left">
+        <span class="alert-badge">{% trans "Atención" %}</span>
+        <div class="alert-msg">
+          {% if total_avances_pendientes > 0 %}
+            {% blocktrans with av=total_avances_pendientes count counter=total_avances_pendientes %}Tienes <strong>{{ av }} entregable técnico pendiente de revisión</strong> esperando aprobación.{% plural %}Tienes <strong>{{ av }} entregables técnicos pendientes de revisión</strong> esperando aprobación.{% endblocktrans %}
+          {% elif total_postulaciones > 0 %}
+            {% blocktrans with post=total_postulaciones count counter=total_postulaciones %}Tienes <strong>{{ post }} postulación pendiente de revisión</strong> esperando evaluación.{% plural %}Tienes <strong>{{ post }} postulaciones pendientes de revisión</strong> esperando evaluación.{% endblocktrans %}
+          {% elif disputas_activas_count > 0 %}
+            {% blocktrans with disp=disputas_activas_count %}Hay <strong>{{ disp }} mediación o disputa activa</strong> que requiere seguimiento.{% endblocktrans %}
+          {% endif %}
+        </div>
+      </div>
+      <button type="button" class="action-alert-close" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();}" aria-label="{% trans 'Cerrar aviso' %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="alert-actions">
+      {% if total_avances_pendientes > 0 %}
+        <a href="#bandeja-entregables-pendientes" class="btn-corp-primary btn-sm" onclick="event.preventDefault(); if (typeof switchTab === 'function') { switchTab('inicio'); } var el = document.getElementById('bandeja-entregables-pendientes'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } var p = document.getElementById('inicioActionPopup'); if (p) { p.remove(); }">
+          <i data-lucide="clipboard-check"></i>
+          <span>{% trans "Revisar Entregables" %}</span>
+        </a>
+      {% endif %}
+      {% if total_postulaciones > 0 %}
+        <button type="button" class="{% if total_avances_pendientes > 0 %}btn-corp-action secondary{% else %}btn-corp-primary{% endif %} btn-sm" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();} switchTab('ofertas')">
+          <i data-lucide="user-check"></i>
+          <span>{% trans "Revisar Candidatos" %}</span>
+        </button>
+      {% elif disputas_activas_count > 0 and total_avances_pendientes == 0 %}
+        <button type="button" class="btn-corp-action secondary btn-sm" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();} switchTab('disputas')">
+          <i data-lucide="shield-alert"></i>
+          <span>{% trans "Ir a Disputas" %}</span>
+        </button>
+      {% endif %}
+    </div>
+  </aside>
+  <script>
+    setTimeout(function () {
+      var p = document.getElementById('inicioActionPopup');
+      if (!p) return;
+      p.style.opacity = '0';
+      p.style.transform = 'translateY(8px)';
+      setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 260);
+    }, 8000);
+  </script>
+  {% endif %}
+
+  <!-- 4 KPIs Operativos -->
+  <div class="kpi-grid-corp kpi-grid-4">
+    <div class="kpi-card-corp kpi-projects clickable-card" role="button" tabindex="0" onclick="switchTab('ofertas')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Ver convocatorias" %}">
+      <div class="kpi-card-header">
+        <span class="kpi-card-label">{% trans "Convocatorias" %}</span>
+        <div class="kpi-card-icon"><i data-lucide="folder-archive"></i></div>
+      </div>
+      <div class="kpi-card-value">{{ total_proyectos }}</div>
+      <div class="kpi-card-footer">
+        {% if total_proyectos > 0 %}
+          <span class="kpi-tag tag-brand">{% trans "Activas" %}</span>
+          <span>{% trans "Búsquedas abiertas" %}</span>
+        {% else %}
+          <span class="kpi-tag tag-neutral">{% trans "Sin ofertas" %}</span>
+          <span>{% trans "Listas para publicar" %}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="kpi-card-corp kpi-candidates clickable-card" role="button" tabindex="0" onclick="switchTab('ofertas')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Evaluar postulaciones" %}">
+      <div class="kpi-card-header">
+        <span class="kpi-card-label">{% trans "Candidatos" %}</span>
+        <div class="kpi-card-icon"><i data-lucide="user-check"></i></div>
+      </div>
+      <div class="kpi-card-value">{{ total_postulaciones }}</div>
+      <div class="kpi-card-footer">
+        {% if total_postulaciones > 0 %}
+          <span class="kpi-tag tag-warning">{% trans "Requiere acción" %}</span>
+          <span>{% trans "Por evaluar" %}</span>
+        {% else %}
+          <span class="kpi-tag tag-neutral">{% trans "Al día" %}</span>
+          <span>{% trans "Todo revisado" %}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="kpi-card-corp kpi-active clickable-card" role="button" tabindex="0" onclick="switchTab('desarrollo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Ver proyectos en desarrollo" %}">
+      <div class="kpi-card-header">
+        <span class="kpi-card-label">{% trans "En Desarrollo" %}</span>
+        <div class="kpi-card-icon"><i data-lucide="laptop"></i></div>
+      </div>
+      <div class="kpi-card-value">{{ proyectos_activos }}</div>
+      <div class="kpi-card-footer">
+        <span class="kpi-tag tag-brand">{% trans "En marcha" %}</span>
+        <span>{% trans "Equipos trabajando" %}</span>
+      </div>
+    </div>
+
+    <div class="kpi-card-corp clickable-card" role="button" tabindex="0" onclick="switchTab('contratos')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Gestionar contratos" %}">
+      <div class="kpi-card-header">
+        <span class="kpi-card-label">{% trans "Contratos / Firmas" %}</span>
+        <div class="kpi-card-icon"><i data-lucide="file-signature"></i></div>
+      </div>
+      <div class="kpi-card-value">{{ contratos_pendientes_firma_count }}</div>
+      <div class="kpi-card-footer">
+        {% if contratos_pendientes_firma_count > 0 %}
+          <span class="kpi-tag tag-warning">{% trans "Por firmar" %}</span>
+          <span>{% trans "Acción requerida" %}</span>
+        {% else %}
+          <span class="kpi-tag tag-neutral">{% trans "Al día" %}</span>
+          <span>{% trans "Contratos vigentes" %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila de Gráficas Operativas (Serie Lineal en Vivo + Distribución por Especialidad) -->
+  <div class="inicio-charts-row">
+    <section class="command-section-card inicio-activity-card" aria-label="{% trans "Actividad Operativa Diaria" %}">
+      <div class="command-section-header">
+        <div class="command-section-title">
+          <i data-lucide="activity" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
+          <span id="inicioChartTitle">{% trans "Entregables enviados" %}</span>
+        </div>
+        <div id="inicioChartTotal" class="ledger-chart-total" style="font-variant-numeric:tabular-nums;">0</div>
+      </div>
+
+      <div class="ledger-chart-controls" style="margin-bottom:14px;">
+        <div class="ledger-filter-pills" role="tablist" aria-label="{% trans "Métricas operativas" %}">
+          <button type="button" class="ledger-filter-pill active" data-metric="avances" onclick="seleccionarMetricaInicio('avances', this)">
+            {% trans "Entregables" %}
+          </button>
+          <button type="button" class="ledger-filter-pill" data-metric="postulaciones" onclick="seleccionarMetricaInicio('postulaciones', this)">
+            {% trans "Postulaciones" %}
+          </button>
+          <button type="button" class="ledger-filter-pill" data-metric="hitos" onclick="seleccionarMetricaInicio('hitos', this)">
+            {% trans "Hitos aprobados" %}
+          </button>
+        </div>
+        <div class="time-selector-corp" role="group" aria-label="{% trans "Ventana de tiempo" %}">
+          <button type="button" class="time-tab-corp active" data-period="14d" onclick="seleccionarPeriodoInicio('14d', this)">
+            {% trans "14 Días" %}
+          </button>
+          <button type="button" class="time-tab-corp" data-period="30d" onclick="seleccionarPeriodoInicio('30d', this)">
+            {% trans "30 Días" %}
+          </button>
+        </div>
+      </div>
+
+      <div class="inicio-line-svg-wrap" style="position:relative;">
+        <div id="inicioLineTooltip" class="chart-floating-tooltip" style="display:none;">
+          <div class="tooltip-mes" style="font-size:12px; color:var(--corp-slate-400); text-transform:uppercase; font-weight:700;"></div>
+          <div class="tooltip-monto" style="font-size:15px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono', monospace; margin:2px 0;"></div>
+          <div class="tooltip-sub" style="font-size:12px; color:var(--corp-brand-neon); font-weight:600;"></div>
+        </div>
+
+        <svg id="inicioLineSvg"
+             viewBox="0 0 680 210"
+             preserveAspectRatio="none"
+             data-feed-url="{% url 'api_inicio_actividad_empresa' %}"
+             style="width:100%; height:210px; display:block; overflow:visible;">
+          <defs>
+            <linearGradient id="inicioLineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--corp-brand)" stop-opacity="0.22"></stop>
+              <stop offset="100%" stop-color="var(--corp-brand)" stop-opacity="0.0"></stop>
+            </linearGradient>
+          </defs>
+          <g id="inicioGridGroup"></g>
+          <g id="inicioYAxisGroup"></g>
+          <path id="inicioAreaPath" fill="url(#inicioLineGrad)" d=""></path>
+          <path id="inicioLinePath" fill="none" stroke="var(--corp-brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d=""></path>
+          <g id="inicioDotsGroup"></g>
+          <g id="inicioXAxisGroup"></g>
+        </svg>
+      </div>
+
+      <script id="inicioActivityData" type="application/json">{{ inicio_activity_json|safe }}</script>
+    </section>
+
+    <!-- Seguimiento Presupuestal y Acuerdos Económicos -->
+    <section class="command-section-card command-financial-card" data-testid="command-financial-card">
+      <div class="command-section-header">
+        <div class="command-section-title financial-card-title">
+          <i data-lucide="receipt" style="width:16px; height:16px; color:var(--corp-brand);"></i>
+          <span>{% trans "Presupuesto de Contratos Vigentes" %}</span>
+        </div>
+        {% if presupuesto_total_comprometido > 0 %}
+        {% else %}
+          <span class="kpi-tag tag-neutral">{% trans "Sin compromisos activos" %}</span>
+        {% endif %}
+      </div>
+
+      {% if presupuesto_total_comprometido > 0 %}
+        <div class="financial-card-escrow-box">
+          <div class="financial-card-escrow-label">
+            <i data-lucide="wallet" style="width:13px; height:13px;"></i>
+            <span>{% trans "Presupuesto Total Acordado" %}</span>
+          </div>
+          <div class="financial-card-escrow-amount" data-raw="{{ presupuesto_total_comprometido|floatformat:"0" }}">${{ presupuesto_total_comprometido|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</div>
+          <p class="financial-card-escrow-sub">
+            {% trans "Compromiso contractual formalizado con el talento en proyectos activos." %}
+          </p>
+        </div>
+
+        <div class="financial-card-metrics">
+          <div class="financial-card-metric-row">
+            <span class="financial-card-metric-label">{% trans "Hitos Cumplidos (A liquidar al talento)" %}</span>
+            <span class="financial-card-metric-value is-released" data-raw="{{ fondos_liberados|floatformat:"0" }}">${{ fondos_liberados|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</span>
+          </div>
+          <div class="financial-card-metric-row">
+            <span class="financial-card-metric-label">{% trans "Pendiente de Ejecución (En desarrollo)" %}</span>
+            <span class="financial-card-metric-value" data-raw="{{ fondos_en_custodia|floatformat:"0" }}">${{ fondos_en_custodia|floatformat:"0g" }} {{ moneda_principal|default:"COP" }}</span>
+          </div>
+          {% if resumen_monedas_secundarias %}
+            <div class="financial-card-metric-row">
+              <span class="financial-card-metric-label">{% trans "Otras monedas (separado)" %}</span>
+              <span class="financial-card-metric-value">
+                {% for sec in resumen_monedas_secundarias %}
+                  ${{ sec.comprometido|floatformat:"0g" }} {{ sec.moneda }}{% if not forloop.last %} · {% endif %}
+                {% endfor %}
+              </span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="financial-card-progress-wrap">
+          <div class="financial-card-progress-meta">
+            <span>{% trans "Avance económico de entregas" %}</span>
+            <span class="financial-card-progress-pct">{{ porcentaje_fondos_liberados }}%</span>
+          </div>
+          <div class="financial-card-progress-track">
+            <div class="financial-card-progress-fill" style="width: {{ porcentaje_fondos_liberados }}%;"></div>
+          </div>
+        </div>
+      {% else %}
+        <div class="financial-card-empty">
+          <div class="financial-card-empty-icon">
+            <i data-lucide="file-signature" style="width:18px; height:18px;"></i>
+          </div>
+          <p class="financial-card-empty-text">
+            {% trans "Aún no tienes contratos formalizados. Con los contratos digitales respaldados con hash SHA-256 en JobDevs, podrás hacer seguimiento al presupuesto pactado y a los montos devengados contra cada hito técnico aprobado." %}
+          </p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Layout Dividido (65% Operativo Principal / 35% Lateral) -->
+  <div class="dashboard-layout-corp">
+    <!-- Columna Principal (65%) -->
+    <div class="dashboard-col-main">
+      <!-- Bandeja de Entregables y Avances Pendientes de Aprobación -->
+      <section id="bandeja-entregables-pendientes" class="command-section-card" data-testid="bandeja-entregables-pendientes">
+        <div class="command-section-header">
+          <div class="command-section-title approval-queue-header-title">
+            <i data-lucide="clipboard-check" style="width:16px; height:16px; color:var(--corp-brand);"></i>
+            <span>{% trans "Entregables Pendientes de Aprobación" %}</span>
+            <span class="kpi-tag {% if total_avances_pendientes > 0 %}tag-warning{% else %}tag-neutral{% endif %}">
+              {{ total_avances_pendientes }}
+            </span>
+          </div>
+          {% if total_avances_pendientes > 0 %}
+            <button type="button" class="command-link-action" onclick="switchTab('desarrollo')">
+              <span>{% trans "Ver proyectos" %} &rarr;</span>
+            </button>
+          {% endif %}
+        </div>
+
+        {% if avances_pendientes_revision %}
+          <div class="approval-queue-list">
+            {% for avance in avances_pendientes_revision %}
+              <article class="approval-queue-item">
+                <div class="approval-queue-top">
+                  <div class="approval-queue-meta">
+                    <div class="approval-queue-project">
+                      <span>{{ avance.proyecto_titulo }}</span>
+                      <span class="approval-queue-sep">&middot;</span>
+                      <span class="approval-queue-hito">{{ avance.entregable_titulo }}</span>
+                    </div>
+                    <div class="approval-queue-author">
+                      <i data-lucide="user" style="width:12px; height:12px;"></i>
+                      <span>{{ avance.desarrollador_nombre }}</span>
+                      <span class="approval-queue-sep">&middot;</span>
+                      <i data-lucide="clock" style="width:12px; height:12px;"></i>
+                      <span>{% blocktrans with t=avance.fecha_hora|timesince %}hace {{ t }}{% endblocktrans %}</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-corp-action primary btn-sm"
+                          onclick="var el = document.getElementById('form-revision-inicio-{{ avance.id }}'); if (el) { el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none'; }">
+                    <i data-lucide="clipboard-check"></i>
+                    <span>{% trans "Calificar" %}</span>
+                  </button>
+                </div>
+
+                {% if avance.descripcion %}
+                  <p class="approval-queue-desc">{{ avance.descripcion }}</p>
+                {% endif %}
+
+                {% if avance.archivo_adjunto or avance.archivo_url %}
+                  <div class="approval-queue-links">
+                    {% if avance.archivo_adjunto %}
+                      <a href="{{ avance.archivo_adjunto }}" target="_blank" download class="btn-corp-action secondary btn-sm">
+                        <i data-lucide="download"></i>
+                        <span>{% trans "Descargar Adjunto" %}</span>
+                      </a>
+                    {% endif %}
+                    {% if avance.archivo_url %}
+                      <a href="{{ avance.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn-corp-action secondary btn-sm">
+                        <i data-lucide="external-link"></i>
+                        <span>{% trans "Ver Enlace Externo" %}</span>
+                      </a>
+                    {% endif %}
+                  </div>
+                {% endif %}
+
+                <div id="form-revision-inicio-{{ avance.id }}" class="deliverable-review-form approval-queue-form" style="display:none;">
+                  <form method="post" action="{% url 'revisar_avance' avance.id %}" onsubmit="return validarRechazoAvance(this, event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#inicio">
+                    <div class="approval-queue-form-label">{% trans "Dictamen de la Empresa" %}</div>
+                    <textarea name="comentario" class="form-input-corp" rows="2" aria-label="{% trans "Comentario o feedback para el desarrollador" %}" placeholder="{% trans "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..." %}"></textarea>
+                    <div class="approval-queue-actions">
+                      <button type="button" class="btn-corp-action secondary btn-sm"
+                              onclick="var el = document.getElementById('form-revision-inicio-{{ avance.id }}'); if (el) el.style.display = 'none';">
+                        {% trans "Cancelar" %}
+                      </button>
+                      <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm">
+                        <i data-lucide="x"></i>
+                        <span>{% trans "Solicitar Ajustes" %}</span>
+                      </button>
+                      <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm">
+                        <i data-lucide="check"></i>
+                        <span>{% trans "Aprobar y Liberar Hito" %}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="activity-empty approval-queue-empty">
+            <i data-lucide="check-circle-2"></i>
+            <p>{% trans "Todos los entregables técnicos están al día." %}</p>
+            <span>{% trans "No hay avances pendientes de aprobación en este momento." %}</span>
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Proyectos en Desarrollo Activo -->
+      <section class="command-section-card">
+        <div class="command-section-header">
+          <div class="command-section-title">
+            <i data-lucide="kanban" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
+            {% trans "Proyectos en Desarrollo Activo" %}
+          </div>
+          <button type="button" class="command-link-action" onclick="switchTab('desarrollo')">
+            <span>{% trans "Ver todos los proyectos" %} &rarr;</span>
+          </button>
+        </div>
+
+        {% for p in en_desarrollo_v|slice:":3" %}
+          <div class="command-project-item">
+            <div class="command-project-top">
+              <div>
+                <div class="command-project-title">{{ p.titulo }}</div>
+                <div class="command-project-devs">
+                  <i data-lucide="users" style="width:12px; height:12px; vertical-align:middle; margin-right:4px;"></i>
+                  {% if p.desarrolladores %}
+                    {% blocktrans with devs=p.desarrolladores %}Equipo: <strong>{{ devs }}</strong>{% endblocktrans %}
+                  {% else %}
+                    <span style="color:var(--corp-slate-500);">{% trans "Equipo en proceso de asignación" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div>
+                {% if p.cumplimiento_vencido %}
+                  <span class="kpi-tag tag-warning">{% trans "Plazo vencido" %}</span>
+                {% elif p.estado == 'en_revision' %}
+                  <span class="kpi-tag tag-warning">{% trans "En revisión" %}</span>
+                {% else %}
+                  <span class="kpi-tag tag-brand">{% trans "En marcha" %}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="command-progress-meta">
+              <span>
+                {% if p.hitos_totales > 0 %}
+                  {% blocktrans with done=p.hitos_completados total=p.hitos_totales %}Hitos: <strong>{{ done }} de {{ total }}</strong> completados{% endblocktrans %}
+                {% else %}
+                  {% trans "Sin hitos definidos" %}
+                {% endif %}
+              </span>
+              <strong>
+                {% if p.hitos_totales > 0 %}
+                  {% widthratio p.hitos_completados p.hitos_totales 100 %}%
+                {% else %}
+                  0%
+                {% endif %}
+              </strong>
+            </div>
+            <div class="command-progress-track">
+              <div class="command-progress-fill" style="width: {% if p.hitos_totales > 0 %}{% widthratio p.hitos_completados p.hitos_totales 100 %}{% else %}0{% endif %}%;"></div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="activity-empty" style="padding:28px 16px;">
+            <i data-lucide="folder-plus"></i>
+            <p>{% trans "No tienes proyectos activos en desarrollo actualmente." %}</p>
+            <span style="font-size:12.5px; color:var(--corp-slate-500); display:block; margin-top:4px;">
+              {% trans "Cuando contrates talento y apruebes la oferta, aparecerán aquí para el seguimiento de entregas." %}
+            </span>
+          </div>
+        {% endfor %}
+      </section>
+    </div>
+
+    <!-- Columna Lateral (35%) -->
+    <aside class="dashboard-col-side">
+
+      <!-- Próxima Entrega Técnica -->
+      <section class="command-section-card" aria-label="{% trans "Próxima Entrega Técnica" %}">
+        <div class="command-section-header">
+          <div class="command-section-title">
+            <i data-lucide="calendar-clock" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
+            <span>{% trans "Próxima Entrega Técnica" %}</span>
+          </div>
+          {% if proxima_entrega_info %}
+            {% if proxima_entrega_info.vencido %}
+              <span class="kpi-tag tag-warning">{% trans "Plazo vencido" %}</span>
+            {% elif proxima_entrega_info.dias_restantes is not None %}
+              <span class="kpi-tag tag-brand">{% blocktrans with d=proxima_entrega_info.dias_restantes %}En {{ d }} días{% endblocktrans %}</span>
+            {% endif %}
+          {% else %}
+            <span class="kpi-tag tag-neutral">{% trans "Sin entregas" %}</span>
+          {% endif %}
+        </div>
+
+        {% if proxima_entrega_info %}
+          <div class="inicio-next-milestone-box">
+            <div class="inicio-next-milestone-title">{{ proxima_entrega_info.hito_activo_titulo }}</div>
+            <div class="inicio-next-milestone-project">{{ proxima_entrega_info.titulo }}</div>
+            <div class="inicio-next-milestone-meta">
+              <span>{% blocktrans with done=proxima_entrega_info.hitos_completados total=proxima_entrega_info.hitos_totales %}Hitos: {{ done }}/{{ total }}{% endblocktrans %}</span>
+              {% if proxima_entrega_info.fecha %}
+                <span>{{ proxima_entrega_info.fecha|date:"d M, Y" }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" class="command-link-action" onclick="switchTab('desarrollo')" style="margin-top:12px;">
+            <span>{% trans "Ir a seguimiento de hitos" %} &rarr;</span>
+          </button>
+        {% else %}
+          <div class="activity-empty">
+            <i data-lucide="calendar-check"></i>
+            <p>{% trans "No hay entregas técnicas programadas por ahora." %}</p>
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Talento SENA Activo -->
+      <section class="command-section-card" aria-label="{% trans "Talento SENA Activo" %}">
+        <div class="command-section-header">
+          <div class="command-section-title">
+            <i data-lucide="users" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
+            <span>{% trans "Talento SENA Activo" %}</span>
+          </div>
+          {% if mensajes_no_leidos > 0 %}
+            <span class="kpi-tag tag-warning">{% blocktrans with m=mensajes_no_leidos %}{{ m }} sin leer{% endblocktrans %}</span>
+          {% endif %}
+        </div>
+
+        {% if colaboradores_activos %}
+          <ul class="inicio-talent-list">
+            {% for colab in colaboradores_activos|slice:":4" %}
+              <li class="inicio-talent-item">
+                <div class="inicio-talent-info">
+                  <div class="inicio-talent-name">{{ colab.desarrollador.nombre|default:colab.desarrollador.username }}</div>
+                  <div class="inicio-talent-project">{{ colab.proyecto.titulo }}</div>
+                </div>
+                <a href="{% url 'sala_chat' colab.desarrollador_id colab.proyecto_id %}"
+                   class="btn-corp-action secondary btn-sm"
+                   onclick="abrirChatEnCentro(event, '{{ colab.desarrollador_id }}', '{{ colab.proyecto_id }}'); return false;">
+                  <i data-lucide="message-square"></i>
+                  <span>{% trans "Chat" %}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="activity-empty">
+            <i data-lucide="user-plus"></i>
+            <p>{% trans "Aún no tienes desarrolladores asignados a proyectos activos." %}</p>
+          </div>
+        {% endif %}
+      </section>
+
+    </aside>
+  </div>
+
+  <!-- Fila Inferior Balanceada (50% / 50%) -->
+  <div class="inicio-bottom-row">
+    <!-- Búsquedas y Convocatorias Abiertas -->
+    <section class="command-section-card">
+      <div class="command-section-header">
+        <div class="command-section-title">
+          <i data-lucide="briefcase" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
+          {% trans "Búsquedas y Convocatorias Abiertas" %}
+        </div>
+        <button type="button" class="command-link-action" onclick="switchTab('ofertas')">
+          <span>{% trans "Administrar convocatorias" %} &rarr;</span>
+        </button>
+      </div>
+
+      {% for oferta in mis_ofertas|slice:":3" %}
+        <div class="command-opening-item">
+          <div>
+            <div style="font-size:14px; font-weight:600; color:var(--corp-slate-900);">{{ oferta.titulo }}</div>
+            <div style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+              {% if oferta.categoria.nombre %}{{ oferta.categoria.nombre }}{% else %}{% trans "Tecnología" %}{% endif %} ·
+              {% if oferta.cierra_pronto %}
+                <span style="color:var(--corp-warning); font-weight:600;">{% trans "Cierra en menos de 48h" %}</span>
+              {% elif oferta.fecha_limite %}
+                {% blocktrans with f=oferta.fecha_limite|date:"d M, Y" %}Cierra el {{ f }}{% endblocktrans %}
+              {% else %}
+                {% trans "Convocatoria abierta" %}
+              {% endif %}
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="kpi-tag {% if oferta.num_candidatos > 0 %}tag-warning{% else %}tag-neutral{% endif %}">
+              {% blocktrans with total=oferta.num_candidatos count counter=oferta.num_candidatos %}{{ total }} candidato{% plural %}{{ total }} candidatos{% endblocktrans %}
+            </span>
+            <button type="button" class="btn-corp-action secondary btn-sm" onclick="switchTab('ofertas')" style="font-size:12px; padding:4px 10px;">
+              {% trans "Evaluar" %}
+            </button>
+          </div>
+        </div>
+      {% empty %}
+        <div class="activity-empty" style="padding:28px 16px;">
+          <i data-lucide="search"></i>
+          <p>{% trans "No tienes convocatorias publicadas en este momento." %}</p>
+          <button type="button" class="btn-corp-primary btn-sm" onclick="abrirModal()" style="margin-top:12px;">
+            <i data-lucide="plus"></i>
+            <span>{% trans "Publicar tu primera convocatoria" %}</span>
+          </button>
+        </div>
+      {% endfor %}
+    </section>
+  </div>
+</section>
