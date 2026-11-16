@@ -79,10 +79,12 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     assert 'Aviso QA cercano' in page.locator('#notifPopover').inner_text()
     page.locator('#notifPopover').screenshot(path=str(salida / 'aviso-48-horas.png'))
     page.locator('button.notif-btn').click()
+    from playwright.sync_api import expect
+
     page.locator('button[onclick="switchTab(\'ofertas\', this)"]').click()
     assert page.locator(f'form[action="{reverse("desactivar_proyecto", args=[con_contrato.id])}"]').count() == 0
     retiro = page.locator(f'form[action="{reverse("desactivar_proyecto", args=[proyecto.id])}"]')
-    assert retiro.is_visible()
+    expect(retiro).to_be_visible()
     assert '48 horas' in page.content()
     page.wait_for_timeout(700)
     page.screenshot(path=str(salida / 'avisos-y-retiro.png'), full_page=True)

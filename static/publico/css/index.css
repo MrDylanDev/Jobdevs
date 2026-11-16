@@ -189,7 +189,7 @@ body {
    --border-mid quedaba en 1.5:1 sobre el blanco del tema claro y en 1.4:1 sobre
    el negro del oscuro, es decir invisible en los dos. Va en el tono del texto
    secundario, que sí está pensado para leerse. */
-.login-sep { color: var(--fg-dim); margin: 0 8px; }
+.login-sep { color: var(--fg-dim); margin: 0 8px; font-family: var(--font-mono); font-weight: 700; }
 
 /* pass toggle */
 .pass-toggle {

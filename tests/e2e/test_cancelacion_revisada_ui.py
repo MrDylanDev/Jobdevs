@@ -48,6 +48,7 @@ def test_conflicto_se_media_y_libera_cupo_solo_tras_fallo(
     page.locator('#motivo').fill(
         'El hito comprometido venció sin entrega; intentamos acordar una solución por chat, pero no hubo respuesta.',
     )
+    page.locator('#form-disputa [name="evidencia_url"]').fill('https://evidencia.test/hito')
     page.locator('#form-disputa [name="confirma_intento_previo"]').check()
     page.locator('#form-disputa [name="confirma_gravedad"]').check()
     page.locator('#form-disputa [name="acepta_sanciones"]').check()
@@ -121,6 +122,7 @@ def test_fuerza_mayor_sin_respuesta_se_revisa_desde_modal(
     page.locator('#jdmMotivoDisputa').fill(
         'Una emergencia sobrevenida impide continuar; intentamos acordar una salida por chat, pero no hubo respuesta.',
     )
+    page.locator('#jdmEvidenciaDisputa').fill('https://evidencia.test/fuerza-mayor')
     page.locator('#jdmFormNuevaDisputa [name="confirma_intento_previo"]').check()
     page.locator('#jdmAceptaSanciones').check()
     with page.expect_response(lambda r: '/disputas/abrir/' in r.url and r.request.method == 'POST') as enviada:
