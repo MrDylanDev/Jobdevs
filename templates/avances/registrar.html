@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Registrar Avance — {{ proyecto.titulo }}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
 </head>
@@ -14,7 +14,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Avances &amp; Entregas</div>
@@ -53,16 +53,7 @@
           </div>
         </div>
 
-        {% if messages %}
-          {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-sm, 8px);">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-                <span>{{ message }}</span>
-              </div>
-            </div>
-          {% endfor %}
-        {% endif %}
+        {% include 'partials/_flash_toasts.html' %}
 
         <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:26px;">
           <form id="formRegistrarAvance" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:20px;">
@@ -95,7 +86,7 @@
             <div class="form-group-corp" id="grupoUrl" style="margin-bottom:0;">
               <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
                 <i data-lucide="link" style="width:14px; height:14px; color:var(--corp-brand);"></i>
-                <span>URL de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si adjuntas archivo)</span></span>
+                <span>URL de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></span>
               </label>
               <input type="url" id="archivoUrlInput" name="archivo_url" class="form-input-corp" value="{{ form_data.archivo_url|default:'' }}" placeholder="https://github.com/... o enlace a demo/staging">
             </div>
@@ -103,7 +94,7 @@
             <div class="form-group-corp" id="grupoArchivo" style="margin-bottom:0;">
               <label class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
                 <i data-lucide="paperclip" style="width:14px; height:14px; color:var(--corp-brand);"></i>
-                <span>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional si usas URL)</span></span>
+                <span>Archivo Adjunto de Evidencia <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></span>
               </label>
               <input type="file" id="archivoAdjuntoInput" name="archivo_adjunto" data-max-mb="10" accept=".pdf,.zip,.png,.jpg,.jpeg" class="form-input-corp">
               <div id="archivoPreviewBadge" style="display:none; margin-top:10px; padding:10px 14px; background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:8px; font-size:12.5px; color:#007c34; align-items:center; justify-content:space-between;">
@@ -197,16 +188,6 @@
         ocultarError();
 
         const urlVal = (urlInput ? urlInput.value : '').trim();
-        const tieneArchivo = fileInput && fileInput.files && fileInput.files.length > 0;
-
-        // 1. Validación instantánea en cliente sin recargar ni perder datos
-        if (!urlVal && !tieneArchivo) {
-          e.preventDefault();
-          if (urlInput) urlInput.style.borderColor = '#ef4444';
-          if (fileInput) fileInput.style.borderColor = '#ef4444';
-          mostrarErrorEnVivo('Debes proporcionar una URL o adjuntar un archivo de evidencia antes de enviar el avance.');
-          return;
-        }
 
         if (urlVal && !/^https?:\/\/.+/i.test(urlVal)) {
           e.preventDefault();
@@ -215,7 +196,7 @@
           return;
         }
 
-        // 2. Envío asíncrono con Fetch + FormData para evitar recarga si el servidor detecta un problema
+        // Envío asíncrono con Fetch + FormData para evitar recarga si el servidor detecta un problema
         e.preventDefault();
         const originalBtnHtml = btnEnviar.innerHTML;
         btnEnviar.disabled = true;

@@ -11,7 +11,7 @@
         <i data-lucide="scale" style="color:#e11d48; stroke-width:2.2;"></i>
         <span>Apertura de Disputa Formal</span>
       </div>
-      <div class="page-subtitle">Instancia de arbitraje y resolución administrativa para controversias graves</div>
+      <div class="page-subtitle">Revisión de fuerza mayor y resolución administrativa de controversias graves</div>
     </div>
     {% if request.user.rol == 'desarrollador' %}
       <a href="{% url 'dashboard_desarrollador' %}?section=activos" class="btn-corp-action secondary">
@@ -44,7 +44,7 @@
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:10px;">
           <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
             <strong style="display:block; margin-bottom:2px; color:#9f1239;">1. Congelamiento Preventivo</strong>
-            El proyecto y la contratación se suspenden de inmediato.
+            El proyecto y la contratación quedan congelados, conservando el cupo hasta el dictamen.
           </div>
           <div style="background:#ffffff; border:1px solid #fecdd3; border-radius:8px; padding:10px 12px; font-size:12px; color:#881337;">
             <strong style="display:block; margin-bottom:2px; color:#9f1239;">2. Pausa de Entregables</strong>
@@ -56,7 +56,7 @@
           </div>
         </div>
         <div style="font-size:12px; color:#9f1239; opacity:0.9;">
-          * Las dudas técnicas o ajustes menores de alcance deben canalizarse por mensaje directo en el chat y <strong>no califican como disputa</strong>.
+          La fuerza mayor no implica incumplimiento ni sanción automática. Si no hubo acuerdo o respuesta, puedes solicitar revisión; abrir la mediación no cancela el contrato. Las dudas técnicas y ajustes menores deben canalizarse por chat.
         </div>
       </div>
     </div>
@@ -94,20 +94,20 @@
     </div>
 
     <!-- Formulario de Radicación de Disputa -->
-    <form method="post" id="form-disputa" class="card" novalidate style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:26px; box-shadow:var(--corp-shadow-sm);">
+    <form method="post" enctype="multipart/form-data" id="form-disputa" class="card" novalidate style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:26px; box-shadow:var(--corp-shadow-sm);">
       {% csrf_token %}
 
       <div class="form-group-corp">
         <label for="categoria" class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
           <i data-lucide="alert-octagon" style="width:14px; height:14px; color:#e11d48;"></i>
-          <span>Causal formal grave <span class="disp-required">*</span></span>
+          <span>Motivo de la revisión o causal de controversia <span class="disp-required">*</span></span>
         </label>
         <select name="categoria" id="categoria" class="form-input-corp" required>
           {% for key, label in categorias %}
             <option value="{{ key }}" {% if categoria == key %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
-        <div class="disp-hint">Selecciona la causal contemplada en los términos contractuales que fundamenta el reclamo.</div>
+        <div class="disp-hint">Selecciona fuerza mayor para solicitar revisión sin atribuir incumplimiento a ninguna parte.</div>
       </div>
 
       <div class="form-group-corp">
@@ -121,7 +121,7 @@
           </span>
         </div>
         <textarea id="motivo" name="motivo" class="form-input-corp" rows="6" required
-                  placeholder="Detalla con precisión: qué se acordó, cuál compromiso se incumplió, fechas concretas y por qué el desacuerdo es insuperable de forma directa...">{{ motivo }}</textarea>
+                  placeholder="Describe los hechos, fechas, la situación que impide continuar y los intentos de alcanzar un acuerdo o la falta de respuesta...">{{ motivo }}</textarea>
         <div class="disp-hint">Mínimo 80 caracteres. Describe hechos verificables, fechas y acuerdos específicos con total objetividad.</div>
       </div>
 
@@ -133,8 +133,21 @@
         <input type="url" name="evidencia_url" id="evidencia_url" class="form-input-corp"
                placeholder="https://github.com/... o enlace a repositorio, Drive con capturas o pruebas técnicas"
                value="{{ evidencia_url }}">
-        <div class="disp-hint">Asegúrate de que el enlace sea accesible de forma pública para la revisión del equipo arbitral.</div>
+        <div class="disp-hint">Asegúrate de que el enlace sea accesible únicamente para las partes y el equipo de mediación.</div>
       </div>
+
+      <div class="form-group-corp">
+        <label for="evidencia_archivo" class="form-label-corp">Archivo de evidencia privado</label>
+        <input type="file" name="evidencia_archivo" id="evidencia_archivo"
+               accept=".pdf,.zip,.png,.jpg,.jpeg" class="form-input-corp">
+        <div class="disp-hint">PDF, ZIP, PNG o JPG; máximo 10 MB. Solo podrán acceder las partes y administradores.</div>
+      </div>
+
+      <label class="disp-check-row" id="declaracion-evidencia-indisponible">
+        <input type="checkbox" name="declara_evidencia_no_disponible" value="1"
+               {% if declara_evidencia_no_disponible %}checked{% endif %}>
+        <span>Para fuerza mayor: declaro expresamente que no dispongo de evidencia adicional y explicaré esta indisponibilidad en el motivo.</span>
+      </label>
 
       <div class="disp-checklist">
         <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-700); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
@@ -143,7 +156,7 @@
         </div>
         <label class="disp-check" for="confirma_intento_previo">
           <input type="checkbox" name="confirma_intento_previo" id="confirma_intento_previo" value="1" {% if confirma_intento_previo %}checked{% endif %} required>
-          <span><strong>Agotamiento previo:</strong> Certifico que intenté resolver este conflicto por chat directo con la otra parte y no fue posible alcanzar un acuerdo satisfactorio.</span>
+          <span><strong>Intento previo:</strong> Certifico que intenté acordar una salida con la otra parte y no hubo acuerdo o respuesta.</span>
         </label>
         <label class="disp-check" for="confirma_gravedad">
           <input type="checkbox" name="confirma_gravedad" id="confirma_gravedad" value="1" {% if confirma_gravedad %}checked{% endif %} required>
@@ -151,7 +164,7 @@
         </label>
         <label class="disp-check" for="acepta_sanciones">
           <input type="checkbox" name="acepta_sanciones" id="acepta_sanciones" value="1" {% if acepta_sanciones %}checked{% endif %} required>
-          <span><strong>Responsabilidad de parte:</strong> Entiendo que una disputa temeraria o sin fundamentos congela el proyecto y puede acarrear penalizaciones contractuales y pérdida irreversible de reputación.</span>
+          <span><strong>Reglas de mediación:</strong> Acepto la revisión de evidencias y el dictamen administrativo. Entiendo que el proyecto se congela y conserva el cupo; no se cancela ni sanciona automáticamente. Una denuncia temeraria podrá ser evaluada por administración.</span>
         </label>
       </div>
 
@@ -163,7 +176,7 @@
         {% else %}
           <a href="{% url 'dashboard_empresa' %}?section=desarrollo" class="btn-corp-action secondary">Cancelar</a>
         {% endif %}
-        <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
+        <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;" {% if not confirma_intento_previo or not confirma_gravedad or not acepta_sanciones %}disabled{% endif %}>
           <i data-lucide="gavel"></i>
           <span>Iniciar Mediación Formal</span>
         </button>
@@ -181,6 +194,28 @@
     const counter = document.getElementById('char-counter');
     const form = document.getElementById('form-disputa');
     const error = document.getElementById('disputa-error');
+    const categoria = document.getElementById('categoria');
+    const gravedad = document.getElementById('confirma_gravedad');
+    const submitBtn = document.getElementById('btn-submit-disputa');
+    const checks = document.querySelectorAll('#confirma_intento_previo, #confirma_gravedad, #acepta_sanciones');
+    function syncSubmit() {
+      if (!submitBtn || checks.length === 0) return;
+      const ready = Array.prototype.every.call(checks, function (cb) { return cb.checked; });
+      submitBtn.disabled = !ready;
+      submitBtn.style.opacity = ready ? '1' : '0.42';
+      submitBtn.style.cursor = ready ? 'pointer' : 'not-allowed';
+    }
+    checks.forEach(function (cb) { cb.addEventListener('change', syncSubmit); });
+    syncSubmit();
+
+    function actualizarCausal() {
+      const esFuerzaMayor = categoria.value === 'fuerza_mayor';
+      gravedad.required = !esFuerzaMayor;
+      gravedad.disabled = esFuerzaMayor;
+      gravedad.closest('label').style.display = esFuerzaMayor ? 'none' : '';
+    }
+    categoria.addEventListener('change', actualizarCausal);
+    actualizarCausal();
 
     function actualizar() {
       if (!motivo) return;
@@ -205,18 +240,18 @@
         if (error) error.style.display = 'none';
         if (motivo && motivo.value.trim().length < 80) {
           e.preventDefault();
-          mostrarError('El motivo debe tener al menos 80 caracteres explicando los hechos graves.');
+          mostrarError('El motivo debe tener al menos 80 caracteres explicando los hechos y antecedentes.');
           motivo.focus();
           return;
         }
         const marcadas = ['confirma_intento_previo', 'confirma_gravedad', 'acepta_sanciones']
           .every(id => {
             const el = document.getElementById(id);
-            return el && el.checked;
+            return el && (el.disabled || el.checked);
           });
         if (!marcadas) {
           e.preventDefault();
-          mostrarError('Debés marcar las tres casillas de la declaración jurada para radicar la disputa.');
+          mostrarError('Debes confirmar el intento previo y aceptar las reglas; en otras causales, también declarar la gravedad.');
         }
       });
     }

@@ -37,6 +37,21 @@
       </dl>
     </div>
 
+    {% if disputa.evidencia_archivo or disputa.evidencia_url or disputa.declara_evidencia_no_disponible %}
+      <div class="card">
+        <div class="card-header"><div class="card-title">Evidencia inicial</div></div>
+        {% if disputa.evidencia_archivo %}
+          <a class="btn btn-secondary" href="{% url 'disputas:descargar_evidencia' disputa.pk %}">Descargar archivo privado</a>
+        {% endif %}
+        {% if disputa.evidencia_url %}
+          <a class="btn btn-secondary" href="{{ disputa.evidencia_url }}" rel="noopener noreferrer" target="_blank">Abrir enlace aportado</a>
+        {% endif %}
+        {% if disputa.declara_evidencia_no_disponible %}
+          <p class="disp-hint">La parte iniciadora declaró expresamente que no dispone de evidencia adicional.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
     <div class="disp-notice disp-notice-warning" role="alert">
       <i data-lucide="alert-triangle"></i>
       <div>
@@ -84,7 +99,7 @@
               <select id="resolucion" name="resolucion" class="form-select" required>
                 <option value="" selected disabled>Selecciona una resolución...</option>
                 <option value="reanudar_proyecto">Reanudar proyecto (proyecto en desarrollo, contrato activo)</option>
-                <option value="cancelar_contrato">Cancelar contrato (el proyecto continúa en desarrollo)</option>
+                <option value="cancelar_contrato">Cancelar contrato (si queda cupo, el proyecto vuelve a publicado)</option>
                 <option value="sancionar_empresa">Sancionar empresa (suspende la cuenta e inactiva el proyecto)</option>
                 <option value="sancionar_desarrollador">Sancionar desarrollador (suspende la cuenta y cancela el contrato)</option>
               </select>

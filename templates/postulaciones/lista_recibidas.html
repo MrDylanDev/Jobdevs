@@ -1,14 +1,138 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Candidatos Postulados</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <title>JobDevs | Embudo de Candidatos</title>
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261114_v12">
+  <script>
+    (function() {
+      var tema = 'dark';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        }
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+  <style>
+    [data-theme="dark"] body { background: #000000; color: #ffffff; }
+    [data-theme="dark"] .main-content { background: #000000; }
+    [data-theme="dark"] .card { background: #0a0a0a !important; border: 1px solid #1a1a1a !important; color: #ffffff; }
+    [data-theme="dark"] .form-input, [data-theme="dark"] .form-select { background: #0f0f0f !important; border-color: #1a1a1a !important; color: #ffffff !important; }
+    [data-theme="dark"] .candidate-row-corp { background: #0a0a0a !important; border-color: #1a1a1a !important; }
+    [data-theme="dark"] .candidate-row-corp:hover { background: #141414 !important; border-color: #333 !important; }
+    [data-theme="dark"] .candidate-row-corp.is-selected { background: rgba(0, 230, 118, 0.12) !important; border-color: #00e676 !important; }
+    [data-theme="dark"] .candidato-inspector-panel { background: #0a0a0a !important; border: 1px solid #1a1a1a !important; color: #ffffff; }
+    [data-theme="dark"] .candidato-inspector-panel .btn-secondary { background: #1a1a1a; color: #ffffff; border-color: #444444; }
+    [data-theme="dark"] .candidato-inspector-panel .btn-secondary:hover { background: #262626; }
+    [data-theme="dark"] .funnel-tab-card { background: #0a0a0a !important; border: 1px solid #1a1a1a !important; color: #ffffff; }
+    [data-theme="dark"] .funnel-tab-card.is-active { background: rgba(0, 230, 118, 0.12) !important; border-color: #00e676 !important; }
+    [data-theme="dark"] .funnel-tab-count { color: #ffffff !important; }
+    [data-theme="dark"] .funnel-tab-label { color: #e2e8f0 !important; }
+
+    .funnel-tabs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .funnel-tab-card {
+      background: var(--corp-surface, #ffffff);
+      border: 1px solid var(--corp-border, #e4e7e5);
+      border-radius: var(--corp-radius, 10px);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+    }
+    .funnel-tab-card:hover {
+      border-color: var(--corp-brand, #00713f);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .funnel-tab-card.is-active {
+      border-color: var(--corp-brand, #00713f);
+      border-left: 4px solid var(--corp-brand, #00713f);
+      background: var(--corp-brand-light, #e6faf0);
+    }
+    .funnel-tab-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--corp-slate-600, #4b5563);
+    }
+    .funnel-tab-sub {
+      font-size: 11px;
+      color: var(--corp-slate-400, #8d9890);
+    }
+    .funnel-tab-count {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--corp-slate-900, #0b0f0c);
+    }
+
+    .candidatos-split-layout {
+      display: grid;
+      grid-template-columns: 55% calc(45% - 16px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .candidate-row-corp {
+      background: var(--corp-surface, #ffffff);
+      border: 1px solid var(--corp-border, #e4e7e5);
+      border-radius: var(--corp-radius, 10px);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
+      width: 100%;
+    }
+    .candidate-row-corp:hover {
+      background: #fafbfa;
+      border-color: var(--corp-slate-400, #8d9890);
+    }
+    .candidate-row-corp.is-selected {
+      background: var(--corp-brand-light, #e6faf0);
+      border-color: var(--corp-brand, #00713f);
+      border-left: 4px solid var(--corp-brand, #00713f);
+    }
+    .comparador-toolbar { display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+    .comparador-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:18px; }
+    .comparacion-candidato { border:1px solid var(--border,#e4e7e5); border-radius:10px; padding:14px; background:var(--card-bg,#fff); }
+    .comparacion-candidato dl { margin:10px 0 0; display:grid; gap:8px; }
+    .comparacion-candidato dt { color:var(--text-muted); font-size:11px; font-weight:700; text-transform:uppercase; }
+    .comparacion-candidato dd { margin:1px 0 0; color:var(--text-primary); font-size:13px; }
+
+    .candidato-inspector-panel {
+      background: var(--corp-surface, #ffffff);
+      border: 1px solid var(--corp-border, #e4e7e5);
+      border-radius: var(--corp-radius-lg, 14px);
+      padding: 22px;
+      box-shadow: 0 1px 3px rgba(11, 15, 12, 0.06);
+      position: sticky;
+      top: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .funnel-tabs-grid { grid-template-columns: repeat(2, 1fr); }
+      .candidatos-split-layout { grid-template-columns: 1fr; }
+      .candidato-inspector-panel { position: static; margin-top: 16px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -17,7 +141,7 @@
   <!-- Sidebar (minimalista) -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Empresa</div>
@@ -38,8 +162,8 @@
     <!-- Top header -->
     <header class="top-header">
       <div class="top-header-title">
-        Candidatos Postulados
-        <span>/ JobDevs Platform</span>
+        Gestión de Convocatoria
+        <span>/ {{ proyecto.titulo }}</span>
       </div>
       <div class="user-chip">
         <div class="user-avatar">{{ request.user.nombre|default:request.user.username|slice:":1"|upper }}</div>
@@ -54,186 +178,337 @@
     <main class="main-content">
       
       <!-- Mensajes Django -->
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-            {{ message }}
+      {% include 'partials/_flash_toasts.html' %}
+
+      <!-- Cabecera del Proyecto -->
+      <div class="card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <div class="card-subtitle" style="text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Convocatoria Activa</div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0;">{{ proyecto.titulo }}</h2>
+          <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 4px;">
+            {{ proyecto.categoria.nombre|default:"Tecnología" }} ·
+            <strong>{{ proyecto.vacantes }} vacantes totales</strong> ·
+            {% if proyecto.fecha_limite %}Cierra el {{ proyecto.fecha_limite|date:"d M, Y" }}{% else %}Convocatoria abierta{% endif %}
           </div>
-        {% endfor %}
-      {% endif %}
-
-      <div class="page-header">
-        <div>
-          <div class="page-title">Gestión de Talento</div>
-          <div class="page-subtitle">Revisa los perfiles de los desarrolladores interesados en tu oferta</div>
-        </div>
-      </div>
-
-      <!-- Detalle del Proyecto -->
-      <div class="card" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div class="card-subtitle" style="text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Proyecto Seleccionado</div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary);">{{ proyecto.titulo }}</h2>
         </div>
         <div>
           <span class="badge badge-gray" style="font-size:12px; padding:6px 12px;">{{ proyecto.get_estado_display|upper }}</span>
         </div>
       </div>
 
-      <!-- Filtros -->
-      <form method="get" action="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="card" style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
-        <div class="form-group" style="flex: 2; min-width: 220px; margin-bottom: 0;">
-          <label class="form-label" for="filtro-habilidad">Habilidades técnicas</label>
-          <input type="text" id="filtro-habilidad" name="habilidad" class="form-input" value="{{ filtros.habilidad }}" placeholder="Ej: Python, React, SQL...">
-        </div>
+      <!-- Barra de Embudo de Selección (Funnel Bar) -->
+      <div class="funnel-tabs-grid" aria-label="Etapas del embudo de candidatos">
+        <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="funnel-tab-card {% if not filtros.estado %}is-active{% endif %}" title="Ver todos los postulantes">
+          <div>
+            <div class="funnel-tab-label">1. Total Postulados</div>
+            <div class="funnel-tab-sub">Recepciones globales</div>
+          </div>
+          <span class="funnel-tab-count">{{ conteos_funnel.total }}</span>
+        </a>
+
+        <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=pendiente" class="funnel-tab-card {% if filtros.estado == 'pendiente' %}is-active{% endif %}" title="Filtrar por evaluar">
+          <div>
+            <div class="funnel-tab-label" style="color:var(--corp-warning,#d97706);">2. Por Evaluar</div>
+            <div class="funnel-tab-sub">Acción requerida</div>
+          </div>
+          <span class="funnel-tab-count" style="color:var(--corp-warning,#d97706);">{{ conteos_funnel.pendientes }}</span>
+        </a>
+
+        <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=en_negociacion" class="funnel-tab-card {% if filtros.estado == 'en_negociacion' %}is-active{% endif %}" title="Filtrar en negociación">
+          <div>
+            <div class="funnel-tab-label" style="color:var(--corp-info,#0284c7);">3. En Negociación</div>
+            <div class="funnel-tab-sub">Términos y acuerdos</div>
+          </div>
+          <span class="funnel-tab-count" style="color:var(--corp-info,#0284c7);">{{ conteos_funnel.en_negociacion }}</span>
+        </a>
+
+        <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=aceptada" class="funnel-tab-card {% if filtros.estado == 'aceptada' %}is-active{% endif %}" title="Filtrar contratados">
+          <div>
+            <div class="funnel-tab-label" style="color:var(--corp-brand,#00713f);">4. Contratados</div>
+            <div class="funnel-tab-sub">Cierres exitosos</div>
+          </div>
+          <span class="funnel-tab-count" style="color:var(--corp-brand,#00713f);">{{ conteos_funnel.aceptadas }}</span>
+        </a>
+      </div>
+
+      <!-- Filtros Rápidos -->
+      <form method="get" action="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="card" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; padding: 14px 18px;">
+        {% if filtros.estado %}
+          <input type="hidden" name="estado" value="{{ filtros.estado }}">
+        {% endif %}
         <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
-          <label class="form-label" for="filtro-programa">Programa de formación</label>
-          <select id="filtro-programa" name="programa" class="form-select">
+          <label class="form-label" for="filtro-habilidad" style="font-size:11.5px;">Habilidades técnicas</label>
+          <input type="text" id="filtro-habilidad" name="habilidad" class="form-input" value="{{ filtros.habilidad }}" placeholder="Ej: Python, React, PostgreSQL..." style="padding:6px 10px; font-size:12.5px;">
+        </div>
+        <div class="form-group" style="flex: 2; min-width: 180px; margin-bottom: 0;">
+          <label class="form-label" for="filtro-programa" style="font-size:11.5px;">Programa de formación</label>
+          <select id="filtro-programa" name="programa" class="form-select" style="padding:6px 10px; font-size:12.5px;">
             <option value="">Todos los programas</option>
             {% for prog in programas_disponibles %}
               <option value="{{ prog }}" {% if filtros.programa == prog %}selected{% endif %}>{{ prog }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="form-group" style="flex: 1; min-width: 140px; margin-bottom: 0;">
-          <label class="form-label" for="filtro-ficha">Ficha</label>
-          <input type="text" id="filtro-ficha" name="ficha" class="form-input" value="{{ filtros.ficha }}" placeholder="Ej: 2558104">
+        <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+          <label class="form-label" for="filtro-ficha" style="font-size:11.5px;">Ficha SENA</label>
+          <input type="text" id="filtro-ficha" name="ficha" class="form-input" value="{{ filtros.ficha }}" placeholder="Ej: 2558104" style="padding:6px 10px; font-size:12.5px;">
         </div>
         <div style="display: flex; gap: 8px;">
-          <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Filtrar</button>
-          {% if filtros.programa or filtros.ficha or filtros.habilidad %}
-            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary"><i data-lucide="x"></i> Limpiar filtros</a>
+          <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 12.5px;"><i data-lucide="search"></i> Filtrar</button>
+          {% if filtros.programa or filtros.ficha or filtros.habilidad or filtros.estado %}
+            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px;" title="Limpiar"><i data-lucide="x"></i></a>
           {% endif %}
         </div>
       </form>
 
-      <!-- Lista de Postulaciones -->
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        {% for post in postulaciones %}
-          <div class="card" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
-              <div style="flex: 1;">
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                      <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" title="Ver perfil público de {{ post.desarrollador.nombre }}" style="flex-shrink: 0;">
-                        <div class="user-avatar" style="width: 44px; height: 44px; font-size: 16px; background: var(--accent);">
-                            {% if post.desarrollador.foto_perfil %}
-                              <img src="{{ post.desarrollador.foto_perfil }}" alt="Perfil">
-                            {% else %}
-                              {{ post.desarrollador.nombre|slice:":1"|upper }}
-                            {% endif %}
-                        </div>
-                      </a>
-                      <div>
-                          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                            <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" class="text-decoration-none" title="Ver perfil público">
-                              <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0;">{{ post.desarrollador.nombre }}</h3>
-                            </a>
-                            {% if post.desarrollador.badge_info %}
-                              <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif post.desarrollador.badge_info.label == 'En Revisión SENA' or post.desarrollador.badge_info.label == 'En Revisión (Egresado)' %}badge-warning{% elif post.desarrollador.badge_info.label == 'Verificación Rechazada' %}badge-danger{% else %}badge-secondary{% endif %}"
-                                    data-testid="badge-sena-postulante"
-                                    style="font-size: 11px; padding: 2px 7px;"
-                                    title="{% if post.desarrollador.fecha_verificacion %}Verificado el {{ post.desarrollador.fecha_verificacion|date:'d/m/Y' }}{% else %}{{ post.desarrollador.badge_info.label }}{% endif %}">
-                                <i data-lucide="{% if post.desarrollador.es_verificado_sena %}check-circle-2{% elif 'Revisión' in post.desarrollador.badge_info.label %}hourglass{% else %}id-card{% endif %}" style="margin-right: 3px;"></i>{{ post.desarrollador.badge_info.label }}
-                              </span>
-                            {% endif %}
-                          </div>
-                          <div style="font-size: 12px; color: var(--text-secondary);">
-                              {% if post.desarrollador.programa_formacion %}
-                                <i data-lucide="graduation-cap" style="margin-right: 3px;"></i> {{ post.desarrollador.programa_formacion }}
-                                {% if post.desarrollador.ficha %} &nbsp;·&nbsp; Ficha {{ post.desarrollador.ficha }}{% endif %}
-                                <br>
-                              {% endif %}
-                              <i data-lucide="star" style="color: #f59e0b; margin-right: 4px;"></i> {{ post.calificacion_promedio|default:"0.0" }} reputación &nbsp;·&nbsp; 
-                              <i data-lucide="trophy" style="color: var(--text-muted); margin-left: 4px; margin-right: 4px;"></i> {{ post.proyectos_completados }} completados
-                          </div>
-                      </div>
+      <!-- Layout Split-View: Lista a la Izquierda / Inspector a la Derecha -->
+      {% if postulaciones %}
+        <div class="comparador-toolbar">
+          <button type="button" id="btnCompararCandidatos" class="btn btn-secondary" disabled>Comparar seleccionados (0)</button>
+          <span id="comparadorAyuda" style="font-size:12px;color:var(--text-muted);">Selecciona entre 2 y 4 candidatos.</span>
+        </div>
+        <section data-testid="comparador-candidatos" hidden aria-labelledby="tituloComparador">
+          <h2 id="tituloComparador" style="font-size:18px;">Comparación simultánea</h2>
+          <div class="comparador-grid">
+            {% for post in postulaciones %}
+              <article class="comparacion-candidato" data-comparacion-candidato data-id="{{ post.id }}" hidden>
+                <h3>{{ post.desarrollador.nombre }}</h3>
+                <dl>
+                  <div><dt>Verificación</dt><dd>{{ post.desarrollador.badge_info.label|default:"Sin verificar" }}</dd></div>
+                  <div><dt>Programa / ficha</dt><dd>{{ post.desarrollador.programa_formacion|default:"No informado" }}{% if post.desarrollador.ficha %} · {{ post.desarrollador.ficha }}{% endif %}</dd></div>
+                  <div><dt>Habilidades</dt><dd>{{ post.habilidades|default:"No informadas" }}</dd></div>
+                  <div><dt>Reputación</dt><dd>★ {{ post.calificacion_promedio|default:"0.0" }} · {{ post.proyectos_completados }} completados</dd></div>
+                  <div><dt>Carta</dt><dd>{{ post.mensaje|default:"Sin carta" }}</dd></div>
+                  <div><dt>Estado</dt><dd>{{ post.estado }}</dd></div>
+                </dl>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+        <div class="candidatos-split-layout">
+          <!-- Columna Izquierda: Lista de Candidatos -->
+          <div class="candidatos-list-col">
+            {% for post in postulaciones %}
+              <div class="candidate-row-corp {% if forloop.first %}is-selected{% endif %}"
+                   id="cand-card-{{ post.id }}"
+                   onclick="seleccionarCandidato({{ post.id }}, this)"
+                   onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); seleccionarCandidato({{ post.id }}, this); }"
+                   role="button"
+                   tabindex="0"
+                   aria-label="Ver detalles de {{ post.desarrollador.nombre }}">
+                <input type="checkbox" data-comparar-id="{{ post.id }}"
+                       aria-label="Seleccionar {{ post.desarrollador.nombre }} para comparar"
+                       onclick="event.stopPropagation();" style="margin-right:10px;">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                  <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" onclick="event.stopPropagation();" title="Ver perfil público" style="flex-shrink:0;">
+                    <div class="user-avatar" style="width: 40px; height: 40px; font-size: 15px; background: var(--corp-brand,#00713f); color:#fff;">
+                      {% if post.desarrollador.foto_perfil %}
+                        <img src="{{ post.desarrollador.foto_perfil }}" alt="{{ post.desarrollador.nombre }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                      {% else %}
+                        {{ post.desarrollador.nombre|slice:":1"|upper }}
+                      {% endif %}
+                    </div>
+                  </a>
+                  <div style="min-width:0;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                      <strong style="font-size:14px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ post.desarrollador.nombre }}</strong>
+                      {% if post.desarrollador.badge_info %}
+                        <span class="badge {% if post.desarrollador.es_verificado_sena %}badge-success{% elif 'Revisión' in post.desarrollador.badge_info.label %}badge-warning{% else %}badge-secondary{% endif %}"
+                              data-testid="badge-sena-postulante"
+                              style="font-size: 10px; padding: 1px 6px;"
+                              title="{% if post.desarrollador.fecha_verificacion %}Verificado el {{ post.desarrollador.fecha_verificacion|date:'d/m/Y' }}{% else %}{{ post.desarrollador.badge_info.label }}{% endif %}">
+                          {{ post.desarrollador.badge_info.label }}
+                        </span>
+                      {% endif %}
+                    </div>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      ★ {{ post.calificacion_promedio|default:"0.0" }} · {{ post.proyectos_completados }} completados · {{ post.habilidades|default:"Habilidades generales"|truncatechars:35 }}
+                    </div>
                   </div>
-                  
-                  <div style="margin-bottom: 16px;">
-                      <strong style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 6px;">Habilidades Destacadas</strong>
-                      <p style="font-size: 13.5px; color: var(--text-secondary);">{{ post.habilidades|default:"No se registraron habilidades" }}</p>
-                  </div>
+                </div>
 
-                  {% if post.portafolio_url %}
-                  <div style="margin-bottom: 16px;">
-                      <strong style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 6px;">Portafolio / URL</strong>
-                      <a href="{{ post.portafolio_url }}" target="_blank" rel="noopener" style="font-size: 13.5px; color: var(--accent); word-break: break-all;">{{ post.portafolio_url }}</a>
-                  </div>
-                  {% endif %}
-                  
-                  <div>
-                      <strong style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 6px;">Carta de Presentación</strong>
-                      <div style="background: var(--page-bg); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--border); font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
-                          {{ post.mensaje|linebreaksbr }}
-                      </div>
-                      <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-                          Postuló el {{ post.fecha|date:"d M Y, H:i" }}
-                      </div>
-                  </div>
-              </div>
-              
-              <div style="display: flex; flex-direction: column; gap: 10px; min-width: 160px;">
+                <div style="text-align:right; flex-shrink:0; margin-left:12px;">
                   {% if post.estado == 'en_negociacion' %}
-                      <span class="badge badge-info" style="justify-content: center;"><i data-lucide="handshake"></i>&nbsp;En Negociación</span>
-                      {% if post.fecha_limite_negociacion %}
-                        <div style="font-size: 11px; color: var(--text-muted); text-align: center;">Vence el {{ post.fecha_limite_negociacion|date:"d M Y" }}</div>
-                      {% endif %}
-                      {% if post.contrato_id %}
-                        <a href="{% url 'ver_contrato_digital' post.contrato_id %}" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                            <i data-lucide="file-signature"></i> Ver Contrato
-                        </a>
-                      {% endif %}
-                      <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
-                          <i data-lucide="message-square"></i> Ir al Chat
-                      </a>
-                  {% elif proyecto.estado == 'publicado' %}
-                      <form method="post" action="{% url 'iniciar_negociacion' post.id %}">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i data-lucide="handshake"></i> Iniciar Negociación
-                          </button>
-                      </form>
-                      <form method="post" action="{% url 'aceptar_postulacion' post.id %}">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i data-lucide="check"></i> Contratar
-                          </button>
-                      </form>
-                      <form method="post" action="{% url 'rechazar_postulacion' post.id %}" onsubmit="return confirm('¿Seguro que deseas rechazar esta postulación?');">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-danger" style="width: 100%; justify-content: center; padding: 10px;">
-                              <i data-lucide="x"></i> Rechazar
-                          </button>
-                      </form>
-                      <a href="{% url 'sala_chat' post.desarrollador.id proyecto.id %}" class="btn btn-secondary" style="width: 100%; justify-content: center;">
-                          <i data-lucide="message-square"></i> Mensaje Privado
-                      </a>
+                    <span class="badge badge-info" style="font-size:11px; padding:2px 6px;">En Negociación</span>
+                  {% elif post.estado == 'aceptada' %}
+                    <span class="badge badge-success" style="font-size:11px; padding:2px 6px;">Contratado</span>
+                  {% elif post.estado == 'rechazada' %}
+                    <span class="badge badge-danger" style="font-size:11px; padding:2px 6px;">Rechazado</span>
                   {% else %}
-                      <span class="badge badge-gray" style="justify-content: center;">Proyecto cerrado</span>
+                    <span class="badge badge-warning" style="font-size:11px; padding:2px 6px;">Por Evaluar</span>
                   {% endif %}
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">{{ post.fecha|date:"d M" }}</div>
+                </div>
               </div>
+            {% endfor %}
           </div>
-        {% empty %}
-          <div class="empty-state" style="padding: 80px 20px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);">
-              <i data-lucide="users" style="font-size: 40px; color: var(--border); margin-bottom: 15px;"></i>
-              {% if filtros.programa or filtros.ficha or filtros.habilidad %}
-                <p style="color: var(--text-secondary); font-size: 15px;">No hay postulaciones que coincidan con los filtros aplicados.</p>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Prueba con otros criterios o restablece los filtros.</p>
-                <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="margin-top: 16px;"><i data-lucide="rotate-ccw"></i> Restablecer filtros</a>
-              {% else %}
-                <p style="color: var(--text-secondary); font-size: 15px;">Aún no has recibido postulaciones para este proyecto.</p>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Te notificaremos cuando un desarrollador se interese.</p>
-              {% endif %}
+
+          <!-- Columna Derecha: Inspector Detallado Fijo -->
+          <div class="candidato-inspector-panel">
+            {% for post in postulaciones %}
+              <div id="inspector-{{ post.id }}" class="inspector-detail" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+                  <div>
+                    <h3 style="font-size:17px; font-weight:700; color:var(--text-primary); margin:0;">
+                      <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" style="text-decoration:none; color:inherit;" title="Ver perfil institucional">
+                        {{ post.desarrollador.nombre }} &rarr;
+                      </a>
+                    </h3>
+                    <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+                      {% if post.desarrollador.programa_formacion %}
+                        {{ post.desarrollador.programa_formacion }} {% if post.desarrollador.ficha %}· Ficha {{ post.desarrollador.ficha }}{% endif %}
+                      {% else %}
+                        Desarrollador de software
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:14px; font-weight:700; color:#f59e0b;">★ {{ post.calificacion_promedio|default:"0.0" }}</div>
+                    <div style="font-size:11px; color:var(--text-muted);">{{ post.proyectos_completados }} proyectos</div>
+                  </div>
+                </div>
+
+                <div style="margin-bottom:14px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">
+                    Habilidades Técnicas
+                  </div>
+                  <div style="font-size:13px; color:var(--text-primary); line-height:1.4;">
+                    {{ post.habilidades|default:"No se registraron habilidades específicas" }}
+                  </div>
+                </div>
+
+                {% if post.portafolio_url %}
+                <div style="margin-bottom:14px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">
+                    Portafolio / Enlaces
+                  </div>
+                  <a href="{{ post.portafolio_url }}" target="_blank" rel="noopener" style="font-size:13px; color:var(--corp-brand,#00713f); word-break:break-all; font-weight:600;">
+                    <i data-lucide="external-link" style="width:13px; height:13px; vertical-align:middle;"></i> {{ post.portafolio_url }}
+                  </a>
+                </div>
+                {% endif %}
+
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">
+                    Carta de Presentación
+                  </div>
+                  <div style="background:var(--page-bg,#f7f8f7); border:1px solid var(--border,#e4e7e5); border-left:3px solid var(--corp-brand,#00713f); border-radius:6px; padding:12px; font-size:13px; line-height:1.5; color:var(--text-primary); max-height:220px; overflow-y:auto;">
+                    {{ post.mensaje|linebreaksbr|default:"El candidato no incluyó mensaje adicional." }}
+                  </div>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">
+                    Postuló el {{ post.fecha|date:"d M Y, H:i" }}
+                  </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:14px;">
+                  {% if post.estado == 'en_negociacion' %}
+                    <div style="font-size:12px; color:var(--corp-info,#0284c7); font-weight:600; margin-bottom:2px;">
+                      <i data-lucide="handshake" style="width:14px; height:14px; vertical-align:middle;"></i> En Negociación Activa
+                      {% if post.fecha_limite_negociacion %} · Vence el {{ post.fecha_limite_negociacion|date:"d M Y" }}{% endif %}
+                    </div>
+                    {% if post.contrato_id %}
+                      <a href="{% url 'ver_contrato_digital' post.contrato_id %}" class="btn btn-primary" style="justify-content:center;">
+                        <i data-lucide="file-signature"></i> Ver Contrato Digital
+                      </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'rechazar_postulacion' post.id %}" onsubmit="return confirm('¿Seguro que deseas cancelar esta negociación?');" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center; padding:8px;">
+                        <i data-lucide="x"></i> Cancelar y Descartar
+                      </button>
+                    </form>
+                  {% elif proyecto.estado == 'publicado' %}
+                    <form method="post" action="{% url 'iniciar_negociacion' post.id %}" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:9px;">
+                        <i data-lucide="handshake"></i> Iniciar Negociación
+                      </button>
+                    </form>
+                    <a href="{% url 'dashboard_empresa' %}?section=centro-chat&chat_receptor={{ post.desarrollador.id }}&chat_proyecto={{ proyecto.id }}#centro-chat" class="btn btn-secondary" style="justify-content:center;">
+                      <i data-lucide="message-square"></i> Mensaje Privado
+                    </a>
+                    <form method="post" action="{% url 'rechazar_postulacion' post.id %}" onsubmit="return confirm('¿Seguro que deseas rechazar esta postulación?');" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center; padding:8px;">
+                        <i data-lucide="x"></i> Rechazar Candidato
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="badge badge-gray" style="justify-content:center;">Proyecto cerrado / fuera de convocatoria</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
           </div>
-        {% endfor %}
-      </div>
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding: 70px 20px; background: var(--card-bg, #fff); border-radius: var(--radius, 10px); border: 1px solid var(--border, #e4e7e5); text-align: center;">
+          <i data-lucide="users" style="font-size: 38px; color: var(--border); margin-bottom: 14px; opacity: 0.6;"></i>
+          {% if filtros.programa or filtros.ficha or filtros.habilidad or filtros.estado %}
+            <p style="color: var(--text-secondary); font-size: 15px; font-weight: 600;">No hay postulaciones con los filtros seleccionados.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Prueba restablecer los filtros para ver todos los candidatos de esta convocatoria.</p>
+            <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}" class="btn btn-secondary" style="margin-top: 14px;"><i data-lucide="rotate-ccw"></i> Restablecer filtros</a>
+          {% else %}
+            <p style="color: var(--text-secondary); font-size: 15px; font-weight: 600;">Aún no has recibido postulaciones para esta convocatoria.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Te notificaremos cuando los desarrolladores apliquen.</p>
+          {% endif %}
+        </div>
+      {% endif %}
       
     </main>
   </div>
 </div>
 
 <script>
+  function seleccionarCandidato(id, cardEl) {
+    document.querySelectorAll('.candidate-row-corp').forEach(function(el) {
+      el.classList.remove('is-selected');
+    });
+    if (cardEl) {
+      cardEl.classList.add('is-selected');
+    }
+    document.querySelectorAll('.inspector-detail').forEach(function(el) {
+      el.style.display = 'none';
+    });
+    var target = document.getElementById('inspector-' + id);
+    if (target) {
+      target.style.display = 'block';
+    }
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
+    var checks = Array.from(document.querySelectorAll('[data-comparar-id]'));
+    var boton = document.getElementById('btnCompararCandidatos');
+    var ayuda = document.getElementById('comparadorAyuda');
+    var comparador = document.querySelector('[data-testid="comparador-candidatos"]');
+    function actualizarComparador() {
+      var seleccionados = checks.filter(function(check) { return check.checked; });
+      if (seleccionados.length > 4) {
+        this.checked = false;
+        seleccionados = checks.filter(function(check) { return check.checked; });
+        ayuda.textContent = 'Puedes comparar como máximo 4 candidatos.';
+      } else {
+        ayuda.textContent = 'Selecciona entre 2 y 4 candidatos.';
+      }
+      boton.textContent = 'Comparar seleccionados (' + seleccionados.length + ')';
+      boton.disabled = seleccionados.length < 2;
+    }
+    checks.forEach(function(check) { check.addEventListener('change', actualizarComparador); });
+    if (boton) {
+      boton.addEventListener('click', function() {
+        var ids = checks.filter(function(check) { return check.checked; })
+          .map(function(check) { return check.getAttribute('data-comparar-id'); });
+        document.querySelectorAll('[data-comparacion-candidato]').forEach(function(card) {
+          card.hidden = ids.indexOf(card.getAttribute('data-id')) === -1;
+        });
+        comparador.hidden = ids.length < 2;
+        if (!comparador.hidden) comparador.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }

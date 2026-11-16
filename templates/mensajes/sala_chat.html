@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Chat — {% if es_grupal %}Grupo: {{ proyecto.titulo }}{% else %}{{ receptor.nombre|default:receptor.username }}{% endif %}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/chat.css' %}">
 </head>
@@ -15,7 +15,7 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Mensajería</div>
@@ -67,23 +67,25 @@
           <hr style="border:none; border-top:1px solid var(--border); margin:10px 0;">
         {% endif %}
 
-        {% if proyecto and request.user != proyecto.empresa %}
-          <a href="{% url 'sala_chat' proyecto.empresa.id proyecto.id %}" class="chat-participant-link {% if not es_grupal and receptor.id == proyecto.empresa.id %}active{% endif %}">
-            <span class="online-dot" style="background:var(--success);"></span>
-            {{ proyecto.empresa.nombre|default:proyecto.empresa.username }}
-            <span class="role-tag">Empresa</span>
-          </a>
-        {% endif %}
-
-        {% for comp in companeros %}
-          {% if comp != request.user %}
-            <a href="{% url 'sala_chat' comp.id proyecto.id %}" class="chat-participant-link {% if not es_grupal and receptor.id == comp.id %}active{% endif %}">
-              <span class="online-dot" style="background:var(--info);"></span>
-              {{ comp.nombre|default:comp.username }}
-              <span class="role-tag">Dev</span>
+        {% if not requiere_comunicacion_grupal %}
+          {% if proyecto and request.user != proyecto.empresa %}
+            <a href="{% url 'sala_chat' proyecto.empresa.id proyecto.id %}" class="chat-participant-link {% if not es_grupal and receptor.id == proyecto.empresa.id %}active{% endif %}">
+              <span class="online-dot" style="background:var(--success);"></span>
+              {{ proyecto.empresa.nombre|default:proyecto.empresa.username }}
+              <span class="role-tag">Empresa</span>
             </a>
           {% endif %}
-        {% endfor %}
+
+          {% for comp in companeros %}
+            {% if comp != request.user %}
+              <a href="{% url 'sala_chat' comp.id proyecto.id %}" class="chat-participant-link {% if not es_grupal and receptor.id == comp.id %}active{% endif %}">
+                <span class="online-dot" style="background:var(--info);"></span>
+                {{ comp.nombre|default:comp.username }}
+                <span class="role-tag">Dev</span>
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
       </div>
       {% endif %}
 

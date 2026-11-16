@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Panel Administrador</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261114_v6">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
 </head>
 <body>
@@ -74,6 +74,7 @@
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
       </button>
+      <a class="nav-item" href="{% url 'solicitudes_cancelacion' %}"><i data-lucide="file-x"></i><span>Revisar cancelaciones</span></a>
       <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
         <i data-lucide="building"></i>
         <span>Verificación Empresas</span>
@@ -92,6 +93,10 @@
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i data-lucide="shield"></i>
         <span>Auditoría</span>
+      </button>
+      <button class="nav-item" onclick="showSection('configSection', this)">
+        <i data-lucide="settings"></i>
+        <span>Configuración</span>
       </button>
       <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i data-lucide="shield-alert"></i><span>Auditoría de Chats</span></button>
       <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i data-lucide="terminal"></i><span>Logs Técnicos</span></button>
@@ -137,6 +142,26 @@
 
     <!-- Content -->
     <main class="main-content">
+
+      <section id="configSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Configuración de negociación</div>
+            <div class="page-subtitle">Los cambios aplican solo a negociaciones nuevas.</div>
+          </div>
+        </div>
+        <div class="panel-card" style="max-width:620px; padding:24px;">
+          <form method="post" action="{% url 'admin_actualizar_configuracion_negociacion' %}">
+            {% csrf_token %}
+            <label for="plazoNegociacionDias" class="form-label">Plazo global (días)</label>
+            <input id="plazoNegociacionDias" name="plazo_dias" type="number"
+                   min="1" max="30" required value="{{ plazo_negociacion_dias }}"
+                   class="form-control">
+            <p class="text-muted mt-2">Rango permitido: 1 a 30 días. El plazo queda congelado al iniciar cada negociación.</p>
+            <button type="submit" class="btn btn-primary">Guardar configuración</button>
+          </form>
+        </div>
+      </section>
 
       <!-- Estadísticas -->
       <section id="statsSection" class="section-v active">
@@ -481,6 +506,38 @@
           </table>
         </div>
 
+        {% if proyectos_pendientes_regularizacion %}
+          <div style="margin-top:32px;" data-testid="regularizacion-cierres">
+            <div class="page-title" style="font-size:16px;">Regularizar cierres históricos</div>
+            <p>Solo si existe evidencia verificable de la fecha real de cierre. El plazo de valoración corre desde esa fecha, no desde el registro administrativo.</p>
+            {% for proyecto in proyectos_pendientes_regularizacion %}
+              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}">
+                {% csrf_token %}
+                <strong>{{ proyecto.titulo }}</strong> — {{ proyecto.empresa.username }}
+                <label>Fecha y hora real de cierre <input type="datetime-local" name="fecha_cierre" required></label>
+                <label>Justificación <textarea name="motivo" minlength="20" required></textarea></label>
+                <label>Referencia de evidencia <input type="text" name="referencia_evidencia" maxlength="300"></label>
+                <button type="submit" class="btn btn-secondary btn-sm">Registrar cierre</button>
+              </form>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if proyectos_cumplimiento_vencido %}
+          <div style="margin-top:32px;" data-testid="alertas-cumplimiento">
+            <div class="page-title" style="font-size:16px;color:var(--danger);">Fechas de cumplimiento vencidas</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>Proyecto</th><th>Empresa</th><th>Fecha de cumplimiento</th></tr></thead>
+                <tbody>
+                  {% for proyecto in proyectos_cumplimiento_vencido %}
+                    <tr><td>{{ proyecto.titulo }}</td><td>{{ proyecto.empresa.nombre }}</td><td>{{ proyecto.fecha_cumplimiento|date:"d M, Y" }}</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
         <!-- Alertas de inactividad -->
         {% if alertas_retraso %}
           <div style="margin-top:32px;">
@@ -1829,7 +1886,7 @@
   })();
 </script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261114_v11"></script>
 <script>
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();

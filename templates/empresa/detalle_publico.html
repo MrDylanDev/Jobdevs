@@ -1,254 +1,287 @@
 {% extends "base.html" %}
-{% load static l10n %}
+{% load static l10n i18n %}
 
-{% block title %}JobDevs | {{ empresa.nombre|default:empresa.username }} - Perfil y Reputación{% endblock %}
+{% block title %}JobDevs | {{ perfil.razon_social|default:empresa.nombre|default:empresa.username }} - {% trans "Perfil de Empresa" %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'dashboard/css/perfil_publico.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261115_v65">
+<style>
+  .public-perfil-shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+  .public-perfil-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--corp-slate-600);
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  .public-perfil-back:hover {
+    color: var(--corp-brand);
+  }
+  .public-perfil-shell #perfil {
+    display: block !important;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+  @media (max-width: 900px) {
+    .public-perfil-info-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4 pp-page" style="max-width: 1080px;">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'listar_proyectos' %}"><i data-lucide="arrow-left"></i> Explorar Proyectos</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Perfil de Empresa</li>
-    </ol>
-  </nav>
+<div class="public-perfil-shell">
+  <a href="javascript:history.back()" class="public-perfil-back">
+    <i data-lucide="arrow-left" style="width:15px; height:15px;"></i>
+    <span>{% trans "Volver" %}</span>
+  </a>
 
-  <!-- Hero: identidad corporativa y verificación -->
-  <section class="pp-hero">
-    <div class="pp-hero-main">
-      <div class="pp-avatar pp-avatar--empresa">
-        {% if perfil.logo %}
-          <img src="{{ perfil.logo.url }}" alt="{{ empresa.nombre }}">
-        {% else %}
-          {{ empresa.nombre|default:empresa.username|slice:":1"|upper }}
-        {% endif %}
-      </div>
-
-      <div class="pp-identity">
-        <div class="pp-name-row">
-          <h1 class="pp-title">{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}</h1>
+  <section id="perfil" class="seccion-v activa">
+    <div class="linkedin-profile-card">
+      <div class="linkedin-profile-header">
+        <div class="linkedin-avatar-row">
+          <div class="linkedin-avatar">
+            {% if perfil.logo %}
+              <img src="{{ perfil.logo.url }}" alt="{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}">
+            {% else %}
+              {{ empresa.nombre|default:empresa.username|slice:":1"|upper }}
+            {% endif %}
+          </div>
           {% with badge=perfil.badge_info %}
-            <span class="pp-badge {{ badge.css_class }}" data-testid="badge-empresa">
-              <i data-lucide="{% if perfil.es_verificada %}check-circle{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
-              {{ badge.label }}
+            <span class="badge-verification-corp {{ perfil.estado_verificacion|default:'sin_verificar' }}"
+                  data-testid="badge-empresa"
+                  style="background:transparent; border:0; padding:0; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">
+              <i data-lucide="{% if perfil.es_verificada %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
+              <span>{{ badge.label }}</span>
             </span>
           {% endwith %}
         </div>
 
-        <div class="pp-meta">
-          {% if perfil.sector %}<span><i data-lucide="briefcase"></i>{{ perfil.sector }}</span>{% endif %}
-          {% if perfil.ciudad %}<span><i data-lucide="location-dot"></i>{{ perfil.ciudad }}</span>{% endif %}
-          <span><i data-lucide="user"></i>Contacto: {{ empresa.nombre|default:empresa.username }}</span>
+        <div class="linkedin-company-name">
+          <span>{{ perfil.razon_social|default:perfil.nombre_empresa|default:empresa.nombre|default:empresa.username }}</span>
         </div>
 
-        {% if perfil.es_verificada %}
-          <div class="pp-verified-banner">
-            <span class="pp-verified-icon"><i data-lucide="shield-check"></i></span>
-            <div class="pp-verified-copy">
-              <strong>Empresa verificada</strong>
-              <span>
-                {% if perfil.fecha_verificacion %}
-                  Validada el {{ perfil.fecha_verificacion|date:"d/m/Y" }}
-                {% else %}
-                  Verificación oficial vigente
-                {% endif %}
-              </span>
+        <div class="linkedin-headline">
+          {% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Empresa Empleadora en Tecnología" %}{% endif %}
+          {% if perfil.ciudad %} &nbsp;·&nbsp; {{ perfil.ciudad }}{% endif %}
+        </div>
+
+        <div class="linkedin-meta-row">
+          <span class="meta-item"><i data-lucide="building-2"></i> {% if perfil.get_tipo_persona_display %}{{ perfil.get_tipo_persona_display }}{% else %}{% trans "Persona Jurídica" %}{% endif %}</span>
+          <span class="meta-sep">·</span>
+          <span class="meta-item"><i data-lucide="user"></i> {% trans "Contacto:" %} {{ empresa.nombre|default:empresa.username }}</span>
+          <span class="meta-sep">·</span>
+          <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {{ promedio_reputacion|unlocalize }} / 5.0 ({{ total_resenas }})</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="linkedin-subnav">
+      <button type="button" class="linkedin-tab-btn active" onclick="switchPublicPerfilTab('info', this)">
+        <i data-lucide="building-2"></i>
+        <span>{% trans "Información General" %}</span>
+      </button>
+      <button type="button" class="linkedin-tab-btn" onclick="switchPublicPerfilTab('jobs', this)">
+        <i data-lucide="briefcase"></i>
+        <span>{% blocktrans with total=total_proyectos_abiertos %}Convocatorias Abiertas ({{ total }}){% endblocktrans %}</span>
+      </button>
+      <button type="button" class="linkedin-tab-btn" onclick="switchPublicPerfilTab('reviews', this)">
+        <i data-lucide="star"></i>
+        <span>{% blocktrans with total=total_resenas %}Opiniones & Reputación ({{ total }}){% endblocktrans %}</span>
+      </button>
+    </div>
+
+    <!-- Pane 1: Información General -->
+    <div id="public-pane-info" class="linkedin-tab-pane active">
+      <div class="public-perfil-info-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;">
+        <div>
+          <div class="linkedin-content-card">
+            <div class="linkedin-card-title">
+              <i data-lucide="align-left" class="text-corp-brand"></i>
+              <span>{% trans "Acerca de la Empresa" %}</span>
+            </div>
+            <p class="linkedin-about-text">
+              {% if perfil.descripcion %}{{ perfil.descripcion }}{% else %}{% trans "Esta empresa aún no cuenta con una descripción corporativa registrada." %}{% endif %}
+            </p>
+          </div>
+
+          <div class="linkedin-content-card">
+            <div class="linkedin-card-title">
+              <i data-lucide="info" class="text-corp-brand"></i>
+              <span>{% trans "Información Corporativa" %}</span>
+            </div>
+            <div class="linkedin-info-grid">
+              <div class="linkedin-info-item">
+                <div class="info-label">{% trans "Razón Social" %}</div>
+                <div class="info-value">{{ perfil.razon_social|default:perfil.nombre_empresa|default:empresa.nombre|default:empresa.username }}</div>
+              </div>
+              <div class="linkedin-info-item">
+                <div class="info-label">{% trans "Sector Económico" %}</div>
+                <div class="info-value">{% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Tecnología" %}{% endif %}</div>
+              </div>
+              <div class="linkedin-info-item">
+                <div class="info-label">{% trans "Sede / Ubicación" %}</div>
+                <div class="info-value">{{ perfil.ciudad|default:"Colombia" }}</div>
+              </div>
+              <div class="linkedin-info-item">
+                <div class="info-label">{% trans "Contacto" %}</div>
+                <div class="info-value">{{ empresa.nombre|default:empresa.username }}</div>
+              </div>
             </div>
           </div>
-        {% endif %}
-      </div>
-    </div>
 
-    <div class="pp-score">
-      <span class="pp-score-value">{{ promedio_reputacion|unlocalize }}</span>
-      <span class="pp-stars" aria-label="Reputación {{ promedio_reputacion|unlocalize }} de 5">
-        {% for i in "12345" %}
-          <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
-        {% endfor %}
-      </span>
-      <span class="pp-score-caption">{{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }}</span>
-    </div>
-  </section>
-
-  {% if perfil.descripcion %}
-    <section class="pp-card mb-4">
-      <h2 class="pp-card-title mb-2"><i data-lucide="building-2"></i>Acerca de la empresa</h2>
-      <p class="mb-0" style="font-size:14px;line-height:1.6;color:#374151;">{{ perfil.descripcion }}</p>
-    </section>
-  {% endif %}
-
-  <!-- Métricas de cumplimiento -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="pp-stat">
-        <div class="pp-stat-label">Proyectos publicados</div>
-        <div class="pp-stat-value is-accent">{{ total_proyectos_abiertos }}</div>
-        <div class="pp-stat-hint">Con vacantes abiertas</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="pp-stat">
-        <div class="pp-stat-label">Proyectos finalizados</div>
-        <div class="pp-stat-value is-success">{{ proyectos_finalizados_count }}</div>
-        <div class="pp-stat-hint">Culminados con éxito</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="pp-stat">
-        <div class="pp-stat-label">Tasa de aprobación</div>
-        <div class="pp-stat-value">
-          {% if total_resenas > 0 %}
-            {{ promedio_reputacion|unlocalize }} / 5.0
-          {% else %}
-            Nueva
-          {% endif %}
-        </div>
-        <div class="pp-stat-hint">Historial de cumplimiento</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <!-- Testimonios de desarrolladores -->
-    <div class="col-lg-7">
-      <section class="pp-card h-100">
-        <div class="pp-card-head">
-          <h2 class="pp-card-title"><i data-lucide="messages-square"></i>Opiniones de desarrolladores</h2>
-          <span class="pp-count-pill">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
-        </div>
-
-        {% if resenas %}
-          <div class="pp-review-list" data-testid="lista-resenas">
-            {% for r in resenas %}
-              <article class="pp-review">
-                <div class="pp-review-head">
-                  <div class="pp-review-author">
-                    <div class="pp-review-avatar">
-                      {{ r.desarrollador.nombre|default:r.desarrollador.username|slice:":1"|upper }}
-                    </div>
-                    <div>
-                      <div class="pp-review-name">{{ r.desarrollador.nombre|default:r.desarrollador.username }}</div>
-                      <div class="pp-review-role">
-                        {% if r.desarrollador.perfil_desarrollador %}
-                          {% with b=r.desarrollador.perfil_desarrollador.badge_info %}
-                            {{ b.label }}
-                          {% endwith %}
-                        {% else %}
-                          Desarrollador
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="pp-review-side">
-                    <span class="pp-stars pp-stars--sm" aria-label="{{ r.puntuacion }} de 5">
-                      {% for i in "12345" %}
-                        <span class="pp-star {% if forloop.counter <= r.puntuacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
-                      {% endfor %}
-                    </span>
-                    <time class="pp-review-date">{{ r.fecha|date:"d M Y" }}</time>
-                  </div>
+          {% with stack=perfil.lista_stack_interes %}
+            {% if stack %}
+              <div class="linkedin-content-card">
+                <div class="linkedin-card-title">
+                  <i data-lucide="cpu" class="text-corp-brand"></i>
+                  <span>{% trans "Stack de Interés" %}</span>
                 </div>
-
-                {% if r.proyecto %}
-                  <div class="pp-review-project">
-                    <i data-lucide="folder"></i>Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
-                  </div>
-                {% endif %}
-
-                <p class="pp-review-text">{{ r.comentario|default:"Sin comentario escrito." }}</p>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="pp-empty">
-            <i data-lucide="comment-slash"></i>
-            <p>Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados.</p>
-          </div>
-        {% endif %}
-      </section>
-    </div>
-
-    <!-- Distribución, stack y oportunidades -->
-    <div class="col-lg-5">
-      <section class="pp-card mb-4">
-        <div class="pp-card-head">
-          <h2 class="pp-card-title"><i data-lucide="bar-chart-3"></i>Distribución de estrellas</h2>
+                <div class="tech-stack-wrap">
+                  {% for tecnologia in stack %}
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> {{ tecnologia }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          {% endwith %}
         </div>
 
-        <div class="pp-rating-list">
-          {% for estrellas, cantidad in conteo_estrellas.items %}
-            <div class="pp-rating-row">
-              <span class="pp-rating-label">{{ estrellas }} <i data-lucide="star"></i></span>
-              <div class="pp-rating-track" role="img" aria-label="{{ cantidad }} valoraciones de {{ estrellas }} estrellas">
-                <div class="pp-rating-fill" style="width: {% if total_resenas %}{% widthratio cantidad total_resenas 100 %}{% else %}0{% endif %}%;"></div>
+        <div>
+          <div class="linkedin-content-card mb-0-corp">
+            <div class="linkedin-card-title">
+              <i data-lucide="bar-chart-2" class="text-corp-brand"></i>
+              <span>{% trans "Métricas en JobDevs" %}</span>
+            </div>
+            <div style="display:flex; flex-direction:column;">
+              <div class="analytics-stat-box">
+                <div class="stat-number">{{ total_proyectos_abiertos }}</div>
+                <div class="stat-label">{% trans "Convocatorias Abiertas" %}</div>
               </div>
-              <span class="pp-rating-count">{{ cantidad }}</span>
+              <div class="analytics-stat-box">
+                <div class="stat-number">{{ proyectos_activos_count }}</div>
+                <div class="stat-label">{% trans "Proyectos en Desarrollo" %}</div>
+              </div>
+              <div class="analytics-stat-box">
+                <div class="stat-number">{{ proyectos_finalizados_count }}</div>
+                <div class="stat-label">{% trans "Proyectos Finalizados" %}</div>
+              </div>
+              <div class="analytics-stat-box">
+                <div class="stat-number" style="color:var(--corp-gold);">{{ promedio_reputacion|unlocalize }} ★</div>
+                <div class="stat-label">{% trans "Calificación de Talento" %}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pane 2: Convocatorias Abiertas -->
+    <div id="public-pane-jobs" class="linkedin-tab-pane">
+      <div class="linkedin-content-card">
+        <div class="linkedin-card-title" style="margin-bottom:18px;">
+          <i data-lucide="briefcase" class="text-corp-brand"></i>
+          <span>{% trans "Convocatorias Abiertas para Desarrolladores" %}</span>
+        </div>
+
+        <div class="linkedin-jobs-list">
+          {% for p in proyectos_abiertos %}
+            <div class="linkedin-job-card">
+              <div>
+                <div class="linkedin-job-title">{{ p.titulo }}</div>
+                <div class="linkedin-job-meta">
+                  <span><i data-lucide="layers" class="mr-1-corp"></i>{{ p.get_tipo_solucion_display }}</span>
+                  <span>·</span>
+                  <span><i data-lucide="users" class="mr-1-corp"></i>{% blocktrans count counter=p.vacantes %}{{ counter }} vacante{% plural %}{{ counter }} vacantes{% endblocktrans %}</span>
+                </div>
+                {% if p.descripcion %}
+                  <p style="font-size:12.5px; color:var(--corp-slate-500); margin:6px 0 0;">{{ p.descripcion|truncatewords:22 }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <a href="{% url 'postularse_a_proyecto' p.id %}" class="btn-corp-action primary">
+                  <span>{% trans "Postularme" %}</span>
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              </div>
+            </div>
+          {% empty %}
+            <div class="activity-empty">
+              <i data-lucide="folder-open"></i>
+              <p>{% trans "No hay convocatorias abiertas en este momento." %}</p>
             </div>
           {% endfor %}
         </div>
-
-        <div class="pp-rating-summary">
-          <div class="pp-score-value">{{ promedio_reputacion|unlocalize }}</div>
-          <span class="pp-stars" aria-label="Promedio {{ promedio_reputacion|unlocalize }} de 5">
-            {% for i in "12345" %}
-              <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
-            {% endfor %}
-          </span>
-          <div class="pp-score-caption">Promedio sobre {{ total_resenas }} reseña{{ total_resenas|pluralize }} de desarrolladores</div>
-        </div>
-      </section>
-
-      {% with stack=perfil.lista_stack_interes %}
-        {% if stack %}
-          <section class="pp-card mb-4">
-            <div class="pp-card-head">
-              <h2 class="pp-card-title"><i data-lucide="layers"></i>Stack de interés</h2>
-              <span class="pp-count-pill">{{ stack|length }} tecnologías</span>
-            </div>
-            <div class="pp-chip-list">
-              {% for tecnologia in stack %}
-                <span class="pp-chip">{{ tecnologia }}</span>
-              {% endfor %}
-            </div>
-          </section>
-        {% endif %}
-      {% endwith %}
-
-      <section class="pp-card">
-        <div class="pp-card-head">
-          <h2 class="pp-card-title"><i data-lucide="briefcase"></i>Oportunidades abiertas</h2>
-        </div>
-
-        {% if proyectos_abiertos %}
-          <div class="pp-project-list">
-            {% for p in proyectos_abiertos %}
-              <article class="pp-project">
-                <div class="pp-project-head">
-                  <h3 class="pp-project-title">{{ p.titulo }}</h3>
-                  <span class="pp-project-tag">{{ p.get_tipo_solucion_display }}</span>
-                </div>
-                <p class="pp-project-desc">{{ p.descripcion|truncatewords:18 }}</p>
-                <div class="pp-project-foot">
-                  <span class="pp-project-vacancies"><i data-lucide="users"></i>{{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</span>
-                  <a href="{% url 'postularse_a_proyecto' p.id %}" class="pp-btn-soft">
-                    Postularme <i data-lucide="chevron-right"></i>
-                  </a>
-                </div>
-              </article>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="pp-empty">
-            <i data-lucide="folder-open"></i>
-            <p>No hay convocatorias abiertas en este momento.</p>
-          </div>
-        {% endif %}
-      </section>
+      </div>
     </div>
-  </div>
+
+    <!-- Pane 3: Opiniones y Reputación -->
+    <div id="public-pane-reviews" class="linkedin-tab-pane">
+      <div class="reputation-layout-corp">
+        <div class="reputation-summary-card">
+          <div class="rep-summary-label">{% trans "Calificación Global" %}</div>
+          <div class="rep-score-value">{{ promedio_reputacion|unlocalize }}</div>
+          <div class="rep-stars-row">
+            {% if promedio_reputacion >= 1 %}★{% else %}☆{% endif %}
+            {% if promedio_reputacion >= 2 %}★{% else %}☆{% endif %}
+            {% if promedio_reputacion >= 3 %}★{% else %}☆{% endif %}
+            {% if promedio_reputacion >= 4 %}★{% else %}☆{% endif %}
+            {% if promedio_reputacion >= 5 %}★{% else %}☆{% endif %}
+          </div>
+          <div class="rep-summary-sub">{% blocktrans with count=total_resenas count counter=total_resenas %}Promedio sobre 5.0 ({{ count }} reseña){% plural %}Promedio sobre 5.0 ({{ count }} reseñas){% endblocktrans %}</div>
+        </div>
+
+        <div class="reviews-list-corp" {% if resenas %}data-testid="lista-resenas"{% endif %}>
+          {% for r in resenas %}
+            <div class="review-card-corp">
+              <div class="review-card-header">
+                <div class="review-author">
+                  <i data-lucide="user" style="margin-right:6px; color:var(--corp-slate-400);"></i>
+                  {{ r.desarrollador.nombre|default:r.desarrollador.username }}
+                </div>
+                <div class="review-stars">
+                  {% with ''|center:r.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}
+                </div>
+              </div>
+              {% if r.proyecto %}
+                <div class="review-project">{% trans "Proyecto evaluado:" %} <strong>{{ r.proyecto.titulo }}</strong> · {{ r.fecha|date:"d M Y" }}</div>
+              {% endif %}
+              <div class="review-comment-box">
+                "{% if r.comentario %}{{ r.comentario }}{% else %}{% trans "Sin comentario escrito." %}{% endif %}"
+              </div>
+            </div>
+          {% empty %}
+            <div class="activity-empty">
+              <i data-lucide="star"></i>
+              <p>{% trans "Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados." %}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
+
+<script>
+  function switchPublicPerfilTab(tab, btn) {
+    document.querySelectorAll('.public-perfil-shell .linkedin-tab-btn').forEach(function (b) {
+      b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.public-perfil-shell .linkedin-tab-pane').forEach(function (p) {
+      p.classList.remove('active');
+    });
+    var pane = document.getElementById('public-pane-' + tab);
+    if (pane) pane.classList.add('active');
+  }
+</script>
 {% endblock %}

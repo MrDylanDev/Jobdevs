@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}JobDevs | Solicitudes de cancelación{% endblock %}
+
+{% block content %}
+<main class="container py-5" style="max-width: 980px;">
+  <a href="{% if rol == 'empresa' %}{% url 'dashboard_empresa' %}{% elif rol == 'desarrollador' %}{% url 'dashboard_desarrollador' %}{% else %}{% url 'dashboard_admin' %}{% endif %}" class="btn btn-outline-secondary mb-4">Volver al panel</a>
+  <h1>Solicitudes de cancelación</h1>
+  <p>Cualquiera de las partes puede proponer la terminación, incluso por fuerza mayor. Solo la contraparte puede confirmarla. El silencio no es aceptación: el contrato y la vacante siguen activos. Sin acuerdo o sin respuesta, solicita revisión en mediación; alegar fuerza mayor no genera sanciones automáticas.</p>
+
+  {% include 'partials/_flash_toasts.html' %}
+
+  {% if rol == 'empresa' or rol == 'desarrollador' %}
+    <h2 class="h4 mt-4">Proponer terminación de mutuo acuerdo</h2>
+    {% for contrato in contratos %}
+      <section class="card mb-3" aria-label="Contrato de {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}">
+        <div class="card-body">
+          <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</h3>
+          <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
+            {% csrf_token %}
+            <label class="form-label" for="causal-{{ contrato.id }}">Motivo de terminación</label>
+            <select id="causal-{{ contrato.id }}" name="causal" class="form-select" required>
+              <option value="acuerdo_mutuo">Acuerdo mutuo</option>
+              <option value="fuerza_mayor">Fuerza mayor (requiere acuerdo)</option>
+            </select>
+            <div class="mb-3">
+              <label class="form-label" for="motivo-{{ contrato.id }}">Motivo del acuerdo propuesto</label>
+              <textarea id="motivo-{{ contrato.id }}" name="motivo_cancelacion" class="form-control" minlength="10" maxlength="2000" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline-danger">Proponer acuerdo (no cancela aún)</button>
+          </form>
+          <p class="mt-3 mb-0">¿Hay un incumplimiento o conflicto grave? <a href="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}">Abrir una disputa formal para este contrato</a>.</p>
+        </div>
+      </section>
+    {% empty %}
+      <p>No hay contratos activos disponibles para solicitar terminación.</p>
+    {% endfor %}
+  {% endif %}
+
+  <h2 class="h4 mt-5">{% if rol == 'administrador' %}Revisión de causas unilaterales{% else %}Mis solicitudes{% endif %}</h2>
+  {% for solicitud in solicitudes %}
+    <section class="card mb-3" aria-label="Solicitud {{ solicitud.id }}">
+      <div class="card-body">
+        <h3 class="h5">#{{ solicitud.id }} · {{ solicitud.contratacion.proyecto.titulo }}</h3>
+        <p class="mb-1">{{ solicitud.get_causal_display }} — {{ solicitud.get_estado_display }}</p>
+        <p class="mb-1">Empresa: {{ solicitud.contratacion.empresa.nombre|default:solicitud.contratacion.empresa.username }} · Desarrollador: {{ solicitud.contratacion.desarrollador.nombre|default:solicitud.contratacion.desarrollador.username }}</p>
+        <p>Propuesta por: {{ solicitud.solicitante.nombre|default:solicitud.solicitante.username }}</p>
+        <p><strong>Explicación:</strong> {{ solicitud.motivo }}</p>
+        {% if solicitud.evidencia %}<p><strong>Evidencia referida:</strong> {{ solicitud.evidencia }}</p>{% endif %}
+        {% if solicitud.dictamen %}<p><strong>Decisión:</strong> {{ solicitud.dictamen }}</p>{% endif %}
+        {% if solicitud.contratacion.proyecto.estado == 'en_disputa' %}
+          <p>Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución.</p>
+        {% elif rol == 'administrador' and solicitud.estado == 'pendiente_revision' or rol == 'desarrollador' and solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
+          <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
+            {% csrf_token %}
+            {% if rol == 'administrador' %}
+              <label class="form-label" for="dictamen-{{ solicitud.id }}">Dictamen fundamentado</label>
+              <textarea class="form-control mb-2" id="dictamen-{{ solicitud.id }}" name="dictamen" required></textarea>
+            {% endif %}
+            <button type="submit" name="decision" value="aprobar" class="btn btn-danger">{% if rol == 'administrador' %}Aprobar causa y finalizar contrato{% else %}Confirmar acuerdo y finalizar contrato{% endif %}</button>
+            <button type="submit" name="decision" value="rechazar" class="btn btn-outline-secondary">{% if rol == 'administrador' %}Rechazar causa{% else %}No confirmar acuerdo{% endif %}</button>
+          </form>
+        {% endif %}
+        {% if rol != 'administrador' and solicitud.causal == 'fuerza_mayor' and solicitud.contratacion.estado == 'activa' and solicitud.contratacion.proyecto.estado != 'en_disputa' %}
+          {% if solicitud.estado == 'pendiente_acuerdo' or solicitud.estado == 'rechazada' %}
+            <p>Si no hay acuerdo o respuesta, puedes pedir mediación sin declarar incumplimiento.</p>
+            <a href="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&amp;categoria=fuerza_mayor">Solicitar revisión por fuerza mayor</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </section>
+  {% empty %}
+    <p>No hay solicitudes para mostrar.</p>
+  {% endfor %}
+</main>
+{% endblock %}
