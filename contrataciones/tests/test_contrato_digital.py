@@ -269,6 +269,109 @@ class TestVerContratoDigital:
 
 
 class TestFirmarContratoDigital:
+    def test_contrato_legado_con_firma_conserva_hash_y_no_inventa_perfil(self, empresa_c, contrato):
+        contrato.firmado_desarrollador = True
+        contrato.fecha_firma_desarrollador = timezone.now()
+        contrato.estado = 'pendiente_firma'
+        contrato.hash_documento = contrato.calcular_hash_documento()
+        contrato.save()
+        hash_original = contrato.hash_documento
+
+        assert contrato.obtener_perfil_profesional() is None
+        assert contrato.calcular_hash_documento() == hash_original
+        res = empresa_c.get(reverse('ver_contrato_digital', args=[contrato.id]))
+        assert 'sin evidencia de perfil conservada' in res.content.decode()
+        empresa_c.post(reverse('firmar_contrato_digital', args=[contrato.id]), {
+            'acepta_terminos': 'on',
+        })
+        contrato.refresh_from_db()
+        assert contrato.estado == 'firmado'
+        assert contrato.perfil_profesional is None
+        assert contrato.hash_documento == hash_original
+
+    def test_no_se_firma_si_evidencia_congelada_fue_alterada(self, empresa_c, dev_c, contrato):
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        empresa_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+        contrato.perfil_profesional['habilidades'] = 'Contenido alterado'
+        contrato.save(update_fields=['perfil_profesional'])
+
+        res = dev_c.post(url, {'acepta_terminos': 'on'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        assert res.status_code == 409
+        contrato.refresh_from_db()
+        assert not contrato.firmado_desarrollador
+        assert contrato.estado == 'pendiente_firma'
+        assert not Contratacion.objects.filter(proyecto=contrato.postulacion.proyecto).exists()
+
+    def test_perfil_con_campos_opcionales_vacios_no_impide_firma(self, empresa_c, contrato):
+        empresa_c.post(reverse('firmar_contrato_digital', args=[contrato.id]), {
+            'acepta_terminos': 'on',
+        })
+        contrato.refresh_from_db()
+        assert contrato.firmado_empresa
+        assert contrato.perfil_profesional['programa_formacion'] == ''
+        assert contrato.perfil_profesional['habilidades'] == ''
+        assert contrato.perfil_profesional['portafolio_url'] == ''
+
+    def test_perfil_profesional_se_congela_en_primera_firma(self, empresa_c, dev_c, contrato):
+        from usuarios.models import PerfilDesarrollador
+
+        perfil, _ = PerfilDesarrollador.objects.get_or_create(
+            usuario=contrato.postulacion.desarrollador)
+        perfil.estado_verificacion = 'verificado'
+        perfil.condicion_sena = 'egresado'
+        perfil.programa_formacion = 'ADSO'
+        perfil.ficha = '123'
+        perfil.habilidades = 'Python, Django'
+        perfil.portafolio_url = ''
+        perfil.save()
+        postulacion = contrato.postulacion
+        postulacion.mensaje = 'CARTA DE PRESENTACIÓN:\nPuedo construir la solución.'
+        postulacion.save(update_fields=['mensaje'])
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        vista = reverse('ver_contrato_digital', args=[contrato.id])
+
+        previo = empresa_c.get(vista, HTTP_X_REQUESTED_WITH='XMLHttpRequest').json()['contrato']
+        assert previo['perfil_profesional']['habilidades'] == 'Python, Django'
+        assert previo['perfil_profesional']['mensaje_postulacion'] == postulacion.mensaje
+        assert contrato.perfil_profesional is None
+
+        empresa_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+        evidencia = contrato.perfil_profesional.copy()
+        assert evidencia == {
+            'version': 1, 'nombre': 'CD Dev', 'condicion_sena': 'egresado',
+            'estado_verificacion': 'verificado', 'programa_formacion': 'ADSO',
+            'ficha': '123', 'habilidades': 'Python, Django', 'portafolio_url': '',
+            'postulacion_id': postulacion.id,
+            'mensaje_postulacion': postulacion.mensaje,
+        }
+        hash_documento = contrato.hash_documento
+        assert hash_documento == contrato.calcular_hash_documento()
+
+        perfil.habilidades = 'React (cambiado después)'
+        perfil.save(update_fields=['habilidades'])
+        postulacion.mensaje = 'Mensaje cambiado después'
+        postulacion.save(update_fields=['mensaje'])
+        congelado = dev_c.get(vista, HTTP_X_REQUESTED_WITH='XMLHttpRequest').json()['contrato']
+        assert congelado['perfil_profesional'] == evidencia
+        assert 'Python, Django' in dev_c.get(vista).content.decode()
+
+        dev_c.post(url, {'acepta_terminos': 'on'})
+        contrato.refresh_from_db()
+        assert contrato.estado == 'firmado'
+        assert contrato.perfil_profesional == evidencia
+        assert contrato.hash_documento == hash_documento == contrato.calcular_hash_documento()
+
+    def test_activacion_directa_sin_firmas_no_crea_contratacion(self, contrato):
+        from django.core.exceptions import ValidationError
+        from contrataciones.views import activar_contratacion_formal
+
+        with pytest.raises(ValidationError, match='firmas'):
+            activar_contratacion_formal(contrato, contrato.postulacion.proyecto.empresa)
+
+        assert not Contratacion.objects.filter(proyecto=contrato.postulacion.proyecto).exists()
+
 
     def test_requiere_post(self, empresa_c, contrato):
         res = empresa_c.get(reverse('firmar_contrato_digital', args=[contrato.id]))
@@ -358,6 +461,12 @@ class TestFirmarContratoDigital:
         pendiente.refresh_from_db()
         assert proyecto.vacantes == 1
         assert pendiente.estado == 'rechazada'
+        assert Notificacion.objects.filter(
+            usuario=otro,
+            proyecto=proyecto,
+            tipo='postulacion',
+            mensaje__contains='rechazada',
+        ).exists()
 
     def test_no_se_firma_contrato_ya_firmado(self, empresa_c, dev_c, contrato):
         url = reverse('firmar_contrato_digital', args=[contrato.id])
@@ -447,12 +556,13 @@ class TestFirmarContratoDigital:
         hash_congelado = contrato.hash_documento
         assert hash_congelado is not None
 
-        # Alteración posterior del contenido contractual: el hash congelado no debe cambiar.
+        # Alteración posterior del contenido contractual: no se permite la segunda firma.
         ContratoDigital.objects.filter(id=contrato.id).update(clausulas='Cláusulas alteradas')
-        empresa_c.post(url, {'acepta_terminos': 'on'})
+        respuesta = empresa_c.post(url, {'acepta_terminos': 'on'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
         contrato.refresh_from_db()
-        assert contrato.esta_firmado
+        assert respuesta.status_code == 409
+        assert not contrato.esta_firmado
         assert contrato.hash_documento == hash_congelado
         assert contrato.hash_documento != contrato.calcular_hash_documento()
 

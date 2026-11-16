@@ -121,6 +121,14 @@ def validar_ficha_sena_en_lista_blanca(numero_ficha, programa_formacion=None):
         return None, f'La ficha {limpio} no se encuentra registrada en la lista blanca oficial del SENA.'
     if not ficha.activa:
         return None, f'La ficha {limpio} se encuentra inactiva en la lista blanca oficial del SENA.'
+    if programa_formacion and not programas_formacion_coinciden(
+        programa_formacion,
+        ficha.programa_formacion,
+    ):
+        return None, (
+            'El programa de formación indicado no coincide con el programa oficial '
+            f'de la ficha {limpio}.'
+        )
 
     return ficha, None
 

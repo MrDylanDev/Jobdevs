@@ -8,12 +8,20 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
-from .models import Contratacion, ContratoDigital
+from .models import Contratacion, ContratoDigital, SolicitudCancelacion
 from . import services
 from postulaciones.models import Postulacion
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto, Equipo
 from logs.models import LogAuditoria
+
+
+def _destino_cancelaciones(usuario):
+    """Empresa vive en la pestaña de su panel; dev y admin, en la página propia."""
+    if getattr(usuario, 'rol', None) == 'empresa':
+        return f"{reverse('dashboard_empresa')}?section=cancelaciones"
+    return reverse('solicitudes_cancelacion')
+
 
 @login_required
 def listar_contrataciones_empresa(request):
@@ -38,24 +46,85 @@ def ver_detalle_contrato(request, contratacion_id):
 @login_required
 @require_POST
 def cancelar_contratacion(request, contratacion_id):
-    """Delega la cancelación del contrato en contrataciones/services.py"""
-    if request.user.rol != 'empresa':
-        return redirect('inicio')
+    """Ruta histórica: inicia una solicitud; nunca cancela inmediatamente."""
+    if request.user.rol not in ('empresa', 'desarrollador'):
+        raise PermissionDenied
 
-    get_object_or_404(Contratacion, id=contratacion_id, empresa=request.user)
+    titular = 'empresa' if request.user.rol == 'empresa' else 'desarrollador'
+    contrato = get_object_or_404(Contratacion, id=contratacion_id, **{titular: request.user})
     motivo = request.POST.get('motivo_cancelacion') or request.POST.get('motivo') or ''
+    causal = request.POST.get('causal', '')
+    evidencia = request.POST.get('evidencia', '')
+    if causal in ('incumplimiento', 'inactividad'):
+        messages.info(request, 'Para un conflicto grave completa el formulario formal de disputa; esta solicitud no se guardó.')
+        return redirect(
+            f"{reverse('disputas:abrir_disputa', args=[contrato.proyecto_id])}"
+            f"?contratacion_id={contrato.pk}"
+        )
 
     try:
-        services.cancelar_contratacion(contratacion_id, request.user, motivo=motivo)
-        messages.warning(request, "Contrato cancelado exitosamente.")
+        services.solicitar_cancelacion(
+            contratacion_id, request.user, causal=causal, motivo=motivo, evidencia=evidencia,
+        )
+        messages.success(request, 'Solicitud registrada. El contrato sigue activo hasta su aprobación.')
     except PermissionDenied as exc:
         messages.error(request, str(exc))
     except ValidationError as exc:
         messages.error(request, ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc))
-    except Exception as e:
-        messages.error(request, f"Error al cancelar contrato: {str(e)}")
 
-    return redirect('dashboard_empresa')
+    return redirect(_destino_cancelaciones(request.user))
+
+
+@login_required
+def solicitudes_cancelacion(request):
+    """Consulta privada de solicitudes y contratos que aún admiten una solicitud."""
+    rol = request.user.rol
+    if rol not in ('empresa', 'desarrollador', 'administrador'):
+        raise PermissionDenied
+    if rol == 'empresa':
+        # La empresa gestiona el flujo dentro de su panel; la URL histórica
+        # sobrevive como atajo para no romper enlaces ni marcadores.
+        return redirect(_destino_cancelaciones(request.user))
+    solicitudes = SolicitudCancelacion.objects.select_related(
+        'contratacion__proyecto', 'contratacion__empresa',
+        'contratacion__desarrollador', 'solicitante', 'resuelto_por',
+    )
+    contratos = Contratacion.objects.none()
+    if rol == 'desarrollador':
+        solicitudes = solicitudes.filter(contratacion__desarrollador=request.user)
+        contratos = Contratacion.objects.filter(
+            desarrollador=request.user, estado='activa',
+        ).exclude(
+            proyecto__estado='en_disputa',
+        ).exclude(
+            solicitudes_cancelacion__estado__in=['pendiente_acuerdo', 'pendiente_revision'],
+        ).select_related('proyecto', 'empresa', 'desarrollador')
+    else:
+        solicitudes = solicitudes.exclude(causal='acuerdo_mutuo').exclude(estado='pendiente_acuerdo')
+
+    return render(request, 'contrataciones/solicitudes_cancelacion.html', {
+        'solicitudes': solicitudes.order_by('-fecha_creacion'),
+        'contratos': contratos,
+        'causales': SolicitudCancelacion.CAUSALES,
+        'rol': rol,
+    })
+
+
+@login_required
+@require_POST
+def resolver_solicitud_cancelacion(request, solicitud_id):
+    decision = request.POST.get('decision')
+    if decision not in ('aprobar', 'rechazar'):
+        raise ValidationError('Selecciona una decisión válida.')
+    try:
+        services.resolver_solicitud_cancelacion(
+            solicitud_id, request.user, aprobar=(decision == 'aprobar'),
+            dictamen=request.POST.get('dictamen', ''),
+        )
+        messages.success(request, 'Decisión registrada y notificada a ambas partes.')
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
+    return redirect(_destino_cancelaciones(request.user))
 
 
 # ---------------------------------------------------------------------------
@@ -114,10 +183,12 @@ def _serializar_contrato_digital(contrato, rol_contrato):
     ya_firmo, puede_firmar = _permisos_firma(contrato, rol_contrato)
     return {
         'id': contrato.id,
+        'codigo': f"CTR-{contrato.id:04d}",
         'proyecto_titulo': proyecto.titulo,
         'proyecto_id': proyecto.id,
         'desarrollador_nombre': desarrollador.nombre or desarrollador.username,
         'desarrollador_id': desarrollador.id,
+        'perfil_profesional': contrato.obtener_perfil_profesional(),
         'empresa_nombre': empresa.nombre or empresa.username,
         'monto_formateado': contrato.monto_formateado,
         'monto': contrato.monto,
@@ -145,6 +216,7 @@ def _serializar_contrato_digital(contrato, rol_contrato):
         'puede_firmar': puede_firmar,
         'ya_firmo': ya_firmo,
         'url_firmar': reverse('firmar_contrato_digital', args=[contrato.id]),
+        'firma_url': reverse('firmar_contrato_digital', args=[contrato.id]),
         'url_editar': reverse('ver_contrato_digital', args=[contrato.id]),
     }
 
@@ -161,6 +233,8 @@ def _contrato_editable(contrato):
 
 def activar_contratacion_formal(contrato, empresa):
     """Formaliza la contratación cuando ambas partes firmaron. Debe llamarse dentro de una transacción."""
+    if not contrato.esta_firmado:
+        raise ValidationError('La contratación requiere ambas firmas.')
     postulacion = contrato.postulacion
     proyecto = Proyecto.objects.select_for_update().get(id=postulacion.proyecto_id)
     desarrollador = postulacion.desarrollador
@@ -196,7 +270,25 @@ def activar_contratacion_formal(contrato, empresa):
 
     contrataciones_activas = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count()
     if contrataciones_activas >= proyecto.vacantes:
-        Postulacion.objects.filter(proyecto=proyecto, estado='pendiente').update(estado='rechazada')
+        pendientes_rechazadas = list(
+            Postulacion.objects.filter(proyecto=proyecto, estado='pendiente')
+            .select_related('desarrollador')
+        )
+        Postulacion.objects.filter(
+            id__in=[postulacion.id for postulacion in pendientes_rechazadas]
+        ).update(estado='rechazada')
+        Notificacion.objects.bulk_create([
+            Notificacion(
+                usuario=postulacion.desarrollador,
+                proyecto=proyecto,
+                tipo='postulacion',
+                mensaje=(
+                    f"Tu postulación al proyecto '{proyecto.titulo}' fue rechazada "
+                    "porque se completaron las vacantes disponibles."
+                ),
+            )
+            for postulacion in pendientes_rechazadas
+        ])
 
     for destinatario in (empresa, desarrollador):
         Notificacion.objects.create(
@@ -247,7 +339,21 @@ def ver_contrato_digital(request, contrato_id):
         messages.warning(request, "El plazo para formalizar este contrato ha expirado.")
 
     if request.method == 'GET' and _peticion_ajax(request):
-        return JsonResponse(_serializar_contrato_digital(contrato, rol_contrato))
+        clausulas_raw = contrato.clausulas or ''
+        import re
+        clausulas_list = [c.strip() for c in re.split(r'(?=\d+\.\s)', clausulas_raw) if c.strip()]
+        c_dict = _serializar_contrato_digital(contrato, rol_contrato)
+        c_dict['clausulas'] = clausulas_list
+        c_dict['estado_label'] = contrato.get_estado_display()
+        c_dict['fecha_creacion'] = contrato.fecha_creacion.strftime('%d/%m/%Y %H:%M') if contrato.fecha_creacion else ''
+        c_dict['fecha_firma_empresa'] = contrato.fecha_firma_empresa.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_empresa else None
+        c_dict['fecha_firma_desarrollador'] = contrato.fecha_firma_desarrollador.strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_desarrollador else None
+        return JsonResponse({
+            'ok': True,
+            'status': 'ok',
+            'contrato': c_dict,
+            **c_dict,
+        })
 
     if request.method == 'POST':
         if rol_contrato != 'empresa':
@@ -328,6 +434,7 @@ def ver_contrato_digital(request, contrato_id):
                 'empresa_nombre': postulacion.proyecto.empresa.nombre or postulacion.proyecto.empresa.username,
                 'desarrollador_id': postulacion.desarrollador_id,
                 'desarrollador_nombre': postulacion.desarrollador.nombre or postulacion.desarrollador.username,
+                'perfil_profesional': contrato.obtener_perfil_profesional(),
                 'monto': f"{contrato.monto:,.2f}" if contrato.monto else 'A convenir',
                 'monto_formateado': contrato.monto_formateado,
                 'moneda': contrato.get_moneda_display(),
@@ -356,6 +463,8 @@ def ver_contrato_digital(request, contrato_id):
         'proyecto': postulacion.proyecto,
         'empresa': postulacion.proyecto.empresa,
         'desarrollador': postulacion.desarrollador,
+        'perfil_profesional': contrato.obtener_perfil_profesional(),
+        'perfil_congelado': contrato.perfil_profesional is not None,
         'rol_contrato': rol_contrato,
         'puede_editar': rol_contrato == 'empresa' and _contrato_editable(contrato),
         'puede_firmar': puede_firmar,
@@ -413,6 +522,14 @@ def firmar_contrato_digital(request, contrato_id):
             if ya_firmo:
                 return _respuesta_firma_error(
                     request, contrato, "Ya firmaste este contrato.", nivel='warning')
+
+            if contrato.hash_documento and contrato.perfil_profesional is not None:
+                if contrato.hash_documento != contrato.calcular_hash_documento():
+                    return _respuesta_firma_error(
+                        request, contrato, "El contenido firmado fue alterado; no se puede continuar.",
+                        status=409)
+            if not contrato.hash_documento:
+                contrato.perfil_profesional = contrato.obtener_perfil_profesional()
 
             ahora = timezone.now()
             if rol_contrato == 'empresa':

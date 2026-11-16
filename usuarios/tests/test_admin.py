@@ -10,6 +10,37 @@ from proyectos.models import Proyecto
 User = get_user_model()
 
 
+class TestAlertasCumplimiento:
+    def test_retraso_depende_de_cumplimiento_no_del_cierre_de_oferta(self, admin_client, empresa_user):
+        from django.core.cache import cache
+
+        hoy = timezone.localdate()
+        vencido = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Entrega vencida', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+            fecha_limite=hoy + timedelta(days=10),
+            fecha_cumplimiento=hoy - timedelta(days=1),
+        )
+        vigente = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Entrega vigente', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+            fecha_limite=hoy - timedelta(days=1),
+            fecha_cumplimiento=hoy + timedelta(days=10),
+        )
+        sin_fecha = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Sin entrega acordada', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+            fecha_limite=hoy - timedelta(days=1),
+        )
+        cache.clear()
+        response = admin_client.get(reverse('dashboard_admin'))
+        ids = {p.id for p in response.context['proyectos_cumplimiento_vencido']}
+        assert ids == {vencido.id}
+        assert vigente.id not in ids
+        assert sin_fecha.id not in ids
+        assert response.context['p_ret'] == 1
+
+
 class TestDashboardAdmin:
     """Tests for dashboard_admin view and admin-only features."""
 
@@ -54,6 +85,40 @@ class TestDashboardAdmin:
         """Contrato del modelo: no existe "staff sin superusuario"."""
         assert admin_user.is_staff == admin_user.is_superuser == True
         assert empresa_user.is_staff == empresa_user.is_superuser == False
+
+
+class TestContinuacionProyectoFinalizado:
+    def test_admin_crea_sucesor_sin_reactivar_original_ni_contratos(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        from contrataciones.models import Contratacion
+
+        original = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto cerrado', descripcion='Alcance original',
+            tipo_solucion='sitio_web', prioridad='alta', modalidad='remoto',
+            vacantes=2, estado='finalizado',
+        )
+        contrato = Contratacion.objects.create(
+            proyecto=original, empresa=empresa_user,
+            desarrollador=desarrollador_user, estado='finalizada',
+        )
+
+        response = admin_client.post(
+            reverse('admin_reactivar_proyecto', args=[original.pk])
+        )
+
+        assert response.status_code == 302
+        original.refresh_from_db()
+        contrato.refresh_from_db()
+        assert original.estado == 'finalizado'
+        assert contrato.estado == 'finalizada'
+        sucesor = Proyecto.objects.get(proyecto_origen=original)
+        assert sucesor.estado == 'publicado'
+        assert sucesor.empresa == original.empresa
+        assert sucesor.descripcion == original.descripcion
+        assert sucesor.vacantes == original.vacantes
+        assert sucesor.pk != original.pk
+        assert not sucesor.contrataciones.exists()
 
 
 class TestLoginUnico:
@@ -160,7 +225,7 @@ class TestAdminReactivarProyecto:
     """Tests for admin_reactivar_proyecto view."""
 
     def test_admin_can_reactivate(self, admin_client, empresa_user):
-        """Admin can reactivate a finalized project."""
+        """Admin creates a published continuation from a finalized project."""
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='Finalizado Proj',
             descripcion='T', tipo_solucion='sitio_web',
@@ -171,7 +236,10 @@ class TestAdminReactivarProyecto:
         )
         assert response.status_code == 302
         proyecto.refresh_from_db()
-        assert proyecto.estado != 'finalizado'
+        assert proyecto.estado == 'finalizado'
+        sucesor = Proyecto.objects.get(proyecto_origen=proyecto)
+        assert sucesor.estado == 'publicado'
+        assert sucesor.titulo == 'Continuación de Finalizado Proj'
 
     def test_non_admin_cannot_reactivate(self, auth_client, empresa_user):
         """Non-admin cannot reactivate projects."""
@@ -216,6 +284,14 @@ class TestApiBulkToggle:
         user2.refresh_from_db()
         assert user1.is_active
         assert user2.is_active
+
+        from logs.models import LogAuditoria
+        logs = LogAuditoria.objects.filter(
+            tabla_afectada='usuarios', registro_id__in=[user1.id, user2.id]
+        )
+        assert logs.count() == 2
+        assert all(log.valor_anterior == 'estado=suspendido' for log in logs)
+        assert all(log.valor_nuevo == 'estado=activo' for log in logs)
 
     def test_admin_bulk_suspend(self, admin_client, desarrollador_user):
         """Admin can bulk suspend users and their active sessions are deleted (SCRUM-44)."""

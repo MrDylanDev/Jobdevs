@@ -10,6 +10,7 @@ from django.utils.dateparse import parse_date
 from ..models import Usuario
 from ..decorators import api_ratelimit
 from ..utils import invalidar_sesiones_activas_usuario
+from logs.models import LogAuditoria
 
 
 def invalidar_cache_administradores():
@@ -124,6 +125,13 @@ def api_crear_usuario(request):
         
         if user.rol == 'administrador':
             invalidar_cache_administradores()
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=f'Creó el usuario {user.username}',
+            tabla_afectada='usuarios',
+            registro_id=user.id,
+            valor_nuevo=f'email={user.email}; rol={user.rol}; estado={user.estado}',
+        )
             
         return JsonResponse({'id': user.id, 'status': 'created'}, status=201)
     except IntegrityError:
@@ -146,8 +154,10 @@ def api_actualizar_usuario(request, usuario_id):
     try:
         data = json.loads(request.body)
         user = get_object_or_404(Usuario, id=usuario_id)
-        
-        from logs.models import LogAuditoria
+        valores_anteriores = {
+            campo: getattr(user, campo)
+            for campo in ('email', 'nombre', 'rol', 'estado')
+        }
         
         rol_anterior = user.rol
         if 'email' in data: user.email = data['email']
@@ -171,6 +181,12 @@ def api_actualizar_usuario(request, usuario_id):
             accion=f"Actualizó usuario {user.username}: {', '.join(campos_modificados)}",
             tabla_afectada='usuarios',
             registro_id=user.id,
+            valor_anterior='; '.join(
+                f'{campo}={valores_anteriores[campo]}' for campo in campos_modificados
+            ),
+            valor_nuevo='; '.join(
+                f'{campo}={getattr(user, campo)}' for campo in campos_modificados
+            ),
         )
 
         if rol_anterior == 'administrador' or user.rol == 'administrador':
@@ -197,6 +213,14 @@ def api_eliminar_usuario(request, usuario_id):
         return JsonResponse({'error': 'No puedes eliminarte a ti mismo.'}, status=400)
 
     era_administrador = user.rol == 'administrador'
+    LogAuditoria.objects.create(
+        usuario=request.user,
+        accion=f'Eliminó el usuario {user.username}',
+        tabla_afectada='usuarios',
+        registro_id=user.id,
+        valor_anterior=f'email={user.email}; rol={user.rol}; estado={user.estado}',
+        valor_nuevo='eliminado',
+    )
     user.delete()
     if era_administrador:
         invalidar_cache_administradores()
@@ -221,11 +245,31 @@ def api_bulk_toggle(request):
     if not ids or action not in ('activate', 'suspend'):
         return JsonResponse({'error': 'Parámetros inválidos.'}, status=400)
 
+    usuarios_objetivo = list(Usuario.objects.filter(id__in=ids).exclude(
+        id=request.user.id if action == 'suspend' else None
+    ))
     if action == 'activate':
-        Usuario.objects.filter(id__in=ids).update(estado='activo', is_active=True, intentos_fallidos=0, bloqueado_por_intentos=False)
+        Usuario.objects.filter(id__in=[u.id for u in usuarios_objetivo]).update(
+            estado='activo', is_active=True, intentos_fallidos=0,
+            bloqueado_por_intentos=False,
+        )
+        nuevo_estado = 'activo'
     else:
-        afectados = list(Usuario.objects.filter(id__in=ids).exclude(id=request.user.id).values_list('id', flat=True))
+        afectados = [u.id for u in usuarios_objetivo]
         Usuario.objects.filter(id__in=afectados).update(estado='suspendido', is_active=False, bloqueado_por_intentos=False)
         invalidar_sesiones_activas_usuario(afectados)
+        nuevo_estado = 'suspendido'
 
-    return JsonResponse({'status': 'ok', 'count': len(ids)})
+    LogAuditoria.objects.bulk_create([
+        LogAuditoria(
+            usuario=request.user,
+            accion=f'Cambio masivo de estado para {usuario.username}',
+            tabla_afectada='usuarios',
+            registro_id=usuario.id,
+            valor_anterior=f'estado={usuario.estado}',
+            valor_nuevo=f'estado={nuevo_estado}',
+        )
+        for usuario in usuarios_objetivo
+    ])
+
+    return JsonResponse({'status': 'ok', 'count': len(usuarios_objetivo)})

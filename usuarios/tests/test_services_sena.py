@@ -88,6 +88,17 @@ class TestValidarFichaEnListaBlanca:
         assert ficha is None
         assert 'no se encuentra registrada' in error.lower()
 
+    def test_ficha_activa_rechaza_programa_que_no_coincide(self, ficha_activa):
+        """RF 9.1.1 oficial: la ficha válida no basta si el programa contradice el padrón."""
+        ficha, error = validar_ficha_sena_en_lista_blanca(
+            ficha_activa.numero_ficha,
+            'Cocina',
+        )
+
+        assert ficha is None
+        assert 'programa' in error.lower()
+        assert 'no coincide' in error.lower()
+
 
 @pytest.mark.django_db
 class TestVerificacionDesarrolladorAutomatica:

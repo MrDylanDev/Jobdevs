@@ -1,5 +1,10 @@
+import csv
+import io
+
 import pytest
+from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from logs.models import LogAuditoria
 
@@ -66,6 +71,22 @@ class TestLogAuditoriaModel:
         assert log.valor_anterior == 'activa'
         assert log.valor_nuevo == 'cancelada'
 
+    def test_log_registrado_no_puede_modificarse_ni_eliminarse(self, db):
+        """La bitácora conserva la inmutabilidad exigida por el inventario interno."""
+        log = LogAuditoria.objects.create(
+            accion='Cambio original',
+            tabla_afectada='usuarios',
+        )
+        log.accion = 'Cambio alterado'
+
+        with pytest.raises(ValidationError):
+            log.save()
+        with pytest.raises(ValidationError):
+            log.delete()
+
+        log.refresh_from_db()
+        assert log.accion == 'Cambio original'
+
 
 
 
@@ -81,6 +102,71 @@ class TestReportes:
         """Anonymous cannot access reports."""
         response = client.get(reverse('reporte_vista_impresion'))
         assert response.status_code == 302
+
+    def test_historial_actividad_filtra_por_usuario_tipo_y_fecha(
+        self, admin_client, admin_user
+    ):
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='Cambió estado de proyecto',
+            tabla_afectada='proyectos',
+            registro_id=7,
+        )
+        LogAuditoria.objects.create(
+            accion='Otro evento',
+            tabla_afectada='usuarios',
+        )
+
+        hoy = timezone.localdate().isoformat()
+        response = admin_client.get(reverse('historial_actividad'), {
+            'usuario': admin_user.username,
+            'tipo': 'proyectos',
+            'desde': hoy,
+            'hasta': hoy,
+        })
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['total'] == 1
+        assert data['resultados'][0]['usuario'] == admin_user.username
+        assert data['resultados'][0]['tipo'] == 'proyectos'
+
+    def test_historial_actividad_bloquea_no_admin(self, dev_client):
+        assert dev_client.get(reverse('historial_actividad')).status_code == 403
+
+    def test_reporte_mensual_pdf_incluye_tres_totales(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        import pymupdf
+
+        from contrataciones.models import Contratacion
+        from proyectos.models import Proyecto
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto mensual',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='activa',
+        )
+        mes = timezone.localdate().strftime('%Y-%m')
+
+        response = admin_client.get(reverse('reporte_mensual_pdf'), {'mes': mes})
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/pdf'
+        assert response.content.startswith(b'%PDF')
+        documento = pymupdf.open(stream=response.content, filetype='pdf')
+        texto = ''.join(pagina.get_text() for pagina in documento)
+        documento.close()
+        assert 'Usuarios registrados:' in texto
+        assert 'Proyectos publicados:' in texto
+        assert 'Contrataciones realizadas:' in texto
 
     def test_reporte_aprendices_csv_sin_n_mas_1(self, admin_client, db):
         """SCRUM-177: reporte_aprendices_csv ejecuta un número acotado de consultas con .annotate()."""
@@ -115,6 +201,110 @@ class TestReportes:
         content = response.content.decode('utf-8')
         assert 'Empresa,NIT,Sector,Ciudad,Telefono,Email,Proyectos Publicados,Reputación (★)' in content
         assert 'csv_emp_0' in content
+
+    def test_reporte_aprendices_incluye_promedio_y_proyectos_completados(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        """RF 7.2.1 oficial: expone estrellas y proyectos completados."""
+        from proyectos.models import Proyecto, Valoracion
+        from usuarios.models import PerfilDesarrollador
+
+        perfil, _ = PerfilDesarrollador.objects.get_or_create(
+            usuario=desarrollador_user
+        )
+        perfil.num_proyectos_completados = 3
+        perfil.save(update_fields=['num_proyectos_completados'])
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto reportado',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Valoracion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            rol_evaluador='empresa',
+            puntuacion=4,
+        )
+
+        response = admin_client.get(reverse('reporte_aprendices_csv'))
+
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        fila = next(
+            item for item in filas
+            if item['Usuario'] == desarrollador_user.username
+        )
+        assert fila['Promedio'] == '4.0'
+        assert fila['Proyectos'] == '3'
+
+    def test_reporte_empresas_incluye_publicaciones_y_reputacion(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        """RF 7.2.2 oficial: expone volumen publicado y reputación."""
+        from proyectos.models import Proyecto, Valoracion
+        from usuarios.models import PerfilEmpresa
+
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+        perfil.nombre_empresa = 'Empresa del reporte'
+        perfil.save(update_fields=['nombre_empresa'])
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto empresarial',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Valoracion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador',
+            puntuacion=5,
+        )
+
+        response = admin_client.get(reverse('reporte_empresas_csv'))
+
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        fila = next(item for item in filas if item['Empresa'] == 'Empresa del reporte')
+        assert fila['Proyectos Publicados'] == '1'
+        assert fila['Reputación (★)'] == '5.0'
+
+    def test_reporte_proyectos_incluye_estado_y_detalle_gerencial(
+        self, admin_client, empresa_user
+    ):
+        """RF 7.2.3 oficial: lista el estado de todos los proyectos."""
+        from proyectos.models import Proyecto
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto con estado visible',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            prioridad='alta',
+            estado='en_desarrollo',
+            vacantes=2,
+        )
+
+        response = admin_client.get(reverse('reporte_proyectos_csv'))
+
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        fila = next(item for item in filas if item['Título'] == proyecto.titulo)
+        assert fila['Estado'] == proyecto.get_estado_display()
+        assert fila['Prioridad'] == proyecto.get_prioridad_display()
+        assert fila['Vacantes Totales'] == '2'
+
+    @pytest.mark.parametrize(
+        'nombre_ruta',
+        ('reporte_aprendices_csv', 'reporte_empresas_csv', 'reporte_proyectos_csv'),
+    )
+    def test_reportes_oficiales_bloquean_usuario_no_admin(
+        self, dev_client, nombre_ruta
+    ):
+        response = dev_client.get(reverse(nombre_ruta))
+
+        assert response.status_code == 302
 
 
 

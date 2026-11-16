@@ -36,6 +36,33 @@ class TestRegistroView:
         assert user.rol == 'desarrollador'
         assert user.estado == 'activo'
 
+    def test_registro_dev_guarda_habilidades_programa_sin_ficha(self, client):
+        response = client.post(reverse('registro'), {
+            'nombre': 'Aprendiz Uno',
+            'tipo_documento': 'cedula',
+            'identificacion': '1234567898',
+            'email': 'aprendiz.uno@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'habilidades': '  Python, Django  ',
+            'programa_formacion': 'ADSO',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        perfil = User.objects.get(email='aprendiz.uno@test.jobdevs').perfil_desarrollador
+        assert perfil.habilidades == 'Python, Django'
+        assert perfil.programa_formacion == 'ADSO'
+        assert not perfil.ficha
+
+    def test_registro_muestra_datos_academicos_solo_para_dev(self, client):
+        response = client.get(reverse('registro'))
+        assert response.status_code == 200
+        content = response.content.decode()
+        for campo in ('habilidades', 'programa_formacion', 'ficha'):
+            assert f'name="{campo}"' in content
+        assert 'id="container_desarrollador_academico"' in content
+
     def test_registro_empresa_success(self, client):
         """Valid empresa registration creates user and logs in with sector and ciudad (SCRUM-37)."""
         response = client.post(reverse('registro'), {

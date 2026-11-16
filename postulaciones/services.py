@@ -19,125 +19,46 @@ from django.utils import timezone
 from contrataciones.models import Contratacion
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from proyectos.models import Proyecto, Equipo
+from proyectos.models import Proyecto
 
-from .models import Postulacion
-from .policies import puede_aceptar_postulacion, puede_rechazar_postulacion
+from .models import ConfiguracionNegociacion, Postulacion
+from .policies import puede_rechazar_postulacion
+
+
+def obtener_plazo_negociacion_dias():
+    configuracion, _ = ConfiguracionNegociacion.objects.get_or_create(pk=1)
+    return configuracion.plazo_dias
+
+
+def actualizar_plazo_negociacion_dias(nuevo_plazo, ejecutado_por):
+    if ejecutado_por.rol != 'administrador':
+        raise PermissionDenied('Solo un administrador puede cambiar este plazo.')
+
+    with transaction.atomic():
+        configuracion, _ = ConfiguracionNegociacion.objects.select_for_update().get_or_create(pk=1)
+        anterior = configuracion.plazo_dias
+        configuracion.plazo_dias = nuevo_plazo
+        configuracion.full_clean()
+        configuracion.save(update_fields=['plazo_dias', 'actualizado_en'])
+        if anterior != nuevo_plazo:
+            LogAuditoria.objects.create(
+                usuario=ejecutado_por,
+                accion='Actualizó el plazo global de negociación',
+                tabla_afectada='configuracion_negociacion',
+                registro_id=1,
+                valor_anterior=f'plazo_dias={anterior}',
+                valor_nuevo=f'plazo_dias={nuevo_plazo}',
+            )
+        return configuracion
 
 
 def aceptar_postulacion(postulacion_id, ejecutado_por):
-    """Acepta una postulación pendiente y crea la contratación (RF 3.3.2).
-
-    Bloquea primero la fila del proyecto para serializar la decisión de
-    vacantes y devuelve la `Contratacion` creada.
-
-    Lanza `PermissionDenied` si el usuario no está autorizado y
-    `ValidationError` si la operación incumple una regla de negocio.
-    """
-    try:
-        contexto = Postulacion.objects.select_related('proyecto').get(
-            id=postulacion_id, proyecto__empresa=ejecutado_por
-        )
-    except Postulacion.DoesNotExist:
+    """Bloquea el antiguo acceso directo, incluso para llamadas fuera de la vista."""
+    if not Postulacion.objects.filter(
+        id=postulacion_id, proyecto__empresa=ejecutado_por,
+    ).exists():
         raise PermissionDenied('No tienes autorización sobre esta postulación.')
-
-    with transaction.atomic():
-        # El proyecto se bloquea primero: serializa la decisión de vacantes
-        proyecto = Proyecto.objects.select_for_update().get(id=contexto.proyecto_id)
-        postulacion = Postulacion.objects.select_for_update().get(
-            id=postulacion_id, proyecto=proyecto
-        )
-
-        if proyecto.estado not in ('publicado', 'en_desarrollo'):
-            raise ValidationError(
-                f"No se pueden aceptar postulaciones en un proyecto con estado "
-                f"'{proyecto.get_estado_display()}'."
-            )
-        if postulacion.estado != 'pendiente':
-            raise ValidationError('La postulación ya fue procesada o no existe.')
-        if not puede_aceptar_postulacion(ejecutado_por, postulacion):
-            raise PermissionDenied('No tienes autorización para aceptar esta postulación.')
-
-        # Cupos (RF 3.3.2): contrataciones activas + negociaciones en curso
-        contrataciones_activas = Contratacion.objects.filter(
-            proyecto=proyecto, estado='activa'
-        ).count()
-        postulaciones_en_negociacion = Postulacion.objects.filter(
-            proyecto=proyecto, estado='en_negociacion'
-        ).exclude(id=postulacion.id).count()
-        if contrataciones_activas + postulaciones_en_negociacion >= proyecto.vacantes:
-            raise ValidationError('El proyecto ya ha alcanzado el límite de vacantes disponibles.')
-
-        contratacion = Contratacion.objects.create(
-            proyecto=proyecto,
-            desarrollador=postulacion.desarrollador,
-            empresa=ejecutado_por,
-            estado='activa',
-        )
-
-        nombre_equipo = f'Equipo {proyecto.titulo}'[:100]
-        equipo, _ = Equipo.objects.get_or_create(
-            proyecto=proyecto,
-            nombre=nombre_equipo,
-            defaults={'nombre': nombre_equipo},
-        )
-        equipo.miembros.add(postulacion.desarrollador)
-
-        postulacion.estado = 'aceptada'
-        postulacion.save()
-
-        if proyecto.estado == 'publicado':
-            estado_anterior = proyecto.estado
-            proyecto.estado = 'en_desarrollo'
-            proyecto.save()
-            proyecto.registrar_cambio_estado(
-                'en_desarrollo', ejecutado_por, estado_anterior=estado_anterior
-            )
-
-        Notificacion.objects.create(
-            usuario=postulacion.desarrollador,
-            proyecto=proyecto,
-            tipo='aprobacion',
-            mensaje=(
-                f"¡Felicidades! Tu postulación al proyecto '{proyecto.titulo}' "
-                f"ha sido aceptada y tu contratación está activa."
-            ),
-        )
-
-        # Despacho asíncrono de correo transaccional vía Celery (SCRUM-199)
-        if postulacion.desarrollador.email:
-            from notificaciones.tasks import despachar_email_transaccional
-            despachar_email_transaccional(
-                asunto=f"¡Tu postulación al proyecto '{proyecto.titulo}' fue aceptada!",
-                template_name='emails/postulacion_aceptada.html',
-                contexto={
-                    'usuario': {
-                        'nombre': postulacion.desarrollador.nombre,
-                        'username': postulacion.desarrollador.username,
-                    },
-                    'empresa': {
-                        'nombre': ejecutado_por.nombre or ejecutado_por.username,
-                        'username': ejecutado_por.username,
-                    },
-                    'proyecto': {
-                        'titulo': proyecto.titulo,
-                        'tipo_solucion': proyecto.get_tipo_solucion_display(),
-                    },
-                },
-                destinatarios=[postulacion.desarrollador.email],
-            )
-
-        LogAuditoria.objects.create(
-            usuario=ejecutado_por,
-            accion=(
-                f"Aceptó postulación de {postulacion.desarrollador.nombre} "
-                f"en {proyecto.titulo}"
-            )[:300],
-            tabla_afectada='postulaciones',
-            registro_id=postulacion.id,
-        )
-
-    return contratacion
+    raise ValidationError('La contratación requiere ambas firmas; inicia la negociación.')
 
 
 def expirar_negociacion(postulacion_id):

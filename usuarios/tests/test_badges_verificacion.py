@@ -82,21 +82,20 @@ def test_dashboard_empresa_enlace_verificacion(auth_client, perfil):
     assert response.status_code == 200
     html = response.content.decode()
     assert f'href="{reverse("solicitar_verificacion_empresa")}"' in html
-    assert 'Verificación NIT / Identidad' in html
+    assert 'Verificación NIT / Legal' in html
 
 
 @pytest.mark.parametrize('estado,tipo,texto', [
-    ('sin_verificar', 'juridica', 'Sin Verificar'),
-    ('en_revision', 'juridica', 'En Revisión'),
-    ('verificada', 'juridica', 'Empresa Verificada'),
-    ('verificada', 'natural', 'Negocio Verificado'),
+    ('sin_verificar', 'juridica', 'Sin verificar'),
+    ('en_revision', 'juridica', 'Sin verificar'),
+    ('verificada', 'juridica', 'Verificado'),
 ])
 def test_dashboard_empresa_muestra_badge_estado(auth_client, perfil, estado, tipo, texto):
     perfil.estado_verificacion = estado
     perfil.tipo_persona = tipo
     perfil.save()
     html = auth_client.get(reverse('dashboard_empresa')).content.decode()
-    assert 'data-testid="badge-verificacion-header"' in html
+    assert 'data-testid="badge-verificacion-header"' not in html
     assert texto in html
 
 

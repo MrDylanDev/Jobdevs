@@ -156,9 +156,6 @@ def registrar_avance(request, proyecto_id):
             if not descripcion:
                 return _responder_error("Debes ingresar una descripción detallada del progreso realizado.")
             
-            if not archivo_url and not archivo_adjunto:
-                return _responder_error("Debes proporcionar una URL o adjuntar un archivo de evidencia.")
-
             if archivo_url:
                 from django.core.validators import URLValidator
                 from django.core.exceptions import ValidationError
@@ -291,6 +288,7 @@ def revisar_avance(request, avance_id):
         messages.error(request, "Debes escribir un comentario explicando por qué rechazas el avance.")
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
+    proyecto_recien_finalizado = False
     try:
         with transaction.atomic():
             avance = (
@@ -322,6 +320,13 @@ def revisar_avance(request, avance_id):
                 # Marcar hito como COMPLETADO
                 avance.entregable.estado = 'completado'
                 avance.entregable.save()
+
+                # RF 5.1.1 oficial: aprobar el último hito finaliza el proyecto.
+                if not avance.proyecto.entregables.exclude(estado='completado').exists():
+                    from proyectos.services import finalizar_proyecto, desarrolladores_pendientes
+
+                    finalizar_proyecto(avance.proyecto_id, request.user)
+                    proyecto_recien_finalizado = desarrolladores_pendientes(avance.proyecto).exists()
                 
                 # Notificar al desarrollador
                 Notificacion.objects.create(
@@ -351,6 +356,9 @@ def revisar_avance(request, avance_id):
                     mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido RECHAZADO. Revisa los comentarios."
                 )
                 messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+
+        if proyecto_recien_finalizado:
+            return redirect(f"{reverse('dashboard_empresa')}?section=historial&calificar_proyecto={avance.proyecto.id}#historial")
 
         next_url = request.POST.get('next')
         if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):

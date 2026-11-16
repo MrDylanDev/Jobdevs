@@ -28,3 +28,24 @@ class Notificacion(models.Model):
 
     def __str__(self):
         return f"{self.tipo} - {self.usuario.username}"
+
+
+class AvisoCumplimiento(models.Model):
+    """Marca persistente para evitar repetir avisos aun si se purga la notificación."""
+
+    proyecto = models.ForeignKey('proyectos.Proyecto', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    fecha_cumplimiento = models.DateField()
+    etapa = models.CharField(max_length=12)
+    notificacion = models.OneToOneField(
+        Notificacion, on_delete=models.SET_NULL, null=True, blank=True,
+    )
+
+    class Meta:
+        db_table = 'avisos_cumplimiento'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['proyecto', 'usuario', 'fecha_cumplimiento', 'etapa'],
+                name='uniq_aviso_cumplimiento_destinatario',
+            ),
+        ]

@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
-from datetime import timedelta
+
 from .models import Postulacion
 from . import services
 from proyectos.models import Proyecto
@@ -32,10 +32,25 @@ def _espera_json(request):
 @login_required
 def ver_postulaciones_empresa(request, proyecto_id):
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
+
+    estado_filtro = request.GET.get('estado', '').strip()
+    if estado_filtro in ['pendiente', 'en_negociacion', 'aceptada', 'rechazada']:
+        estados_consulta = [estado_filtro]
+    else:
+        estados_consulta = ['pendiente', 'en_negociacion']
+        estado_filtro = ''
+
+    conteos_funnel = {
+        'total': Postulacion.objects.filter(proyecto_id=proyecto_id).count(),
+        'pendientes': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='pendiente').count(),
+        'en_negociacion': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='en_negociacion').count(),
+        'aceptadas': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='aceptada').count(),
+        'rechazadas': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='rechazada').count(),
+    }
     
     postulaciones_orm = Postulacion.objects.filter(
         proyecto_id=proyecto_id,
-        estado__in=['pendiente', 'en_negociacion']
+        estado__in=estados_consulta
     ).select_related(
         'desarrollador__perfil_desarrollador', 'contrato_digital'
     ).order_by('-fecha')
@@ -100,7 +115,8 @@ def ver_postulaciones_empresa(request, proyecto_id):
         'proyecto': proyecto,
         'postulaciones': postulaciones,
         'programas_disponibles': list(programas_disponibles),
-        'filtros': {'programa': programa, 'ficha': ficha, 'habilidad': habilidad},
+        'filtros': {'programa': programa, 'ficha': ficha, 'habilidad': habilidad, 'estado': estado_filtro},
+        'conteos_funnel': conteos_funnel,
     })
 
 def _es_peticion_ajax(request):
@@ -263,44 +279,6 @@ def postularse_a_proyecto(request, proyecto_id):
 
 @login_required
 @require_POST
-def aceptar_postulacion(request, postulacion_id):
-    """Autoriza, delega la contratación en el servicio y traduce el resultado."""
-    if request.user.rol != 'empresa':
-        messages.error(request, "Acceso denegado.")
-        return redirect('inicio')
-
-    postulacion = get_object_or_404(Postulacion, id=postulacion_id, proyecto__empresa=request.user)
-    proyecto_id = postulacion.proyecto.id
-
-    try:
-        services.aceptar_postulacion(postulacion_id, request.user)
-        msg = "¡Contratación exitosa! El desarrollador ha sido vinculado al proyecto."
-        messages.success(request, msg)
-        if _espera_json(request):
-            return JsonResponse({'status': 'ok', 'message': msg})
-    except PermissionDenied as exc:
-        messages.error(request, str(exc))
-        if _espera_json(request):
-            return JsonResponse({'status': 'error', 'message': str(exc)}, status=403)
-    except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages))
-        if _espera_json(request):
-            return JsonResponse({'status': 'error', 'message': ' '.join(exc.messages)}, status=400)
-    except Exception:
-        logger.exception("Error inesperado al aceptar postulación %s por usuario %s", postulacion_id, request.user.id)
-        mensaje_error = "Error inesperado al procesar la solicitud."
-        messages.error(request, mensaje_error)
-        if _espera_json(request):
-            return JsonResponse({'status': 'error', 'message': mensaje_error}, status=500)
-
-    next_url = request.POST.get('next')
-    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
-        return HttpResponseRedirect(next_url)
-    return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
-
-
-@login_required
-@require_POST
 def iniciar_negociacion(request, postulacion_id):
     """La empresa pasa una postulación pendiente a negociación y abre el contrato digital."""
     if request.user.rol != 'empresa':
@@ -337,7 +315,10 @@ def iniciar_negociacion(request, postulacion_id):
                 return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
             postulacion.estado = 'en_negociacion'
-            postulacion.fecha_limite_negociacion = timezone.now() + timedelta(days=7)
+            plazo_dias = services.obtener_plazo_negociacion_dias()
+            postulacion.fecha_limite_negociacion = timezone.now() + timezone.timedelta(
+                days=plazo_dias
+            )
             postulacion.save()
 
             ContratoDigital.objects.get_or_create(postulacion=postulacion)
@@ -348,7 +329,19 @@ def iniciar_negociacion(request, postulacion_id):
                 tipo='postulacion',
                 mensaje=(
                     f"{request.user.nombre} inició una negociación contigo para el proyecto "
-                    f"'{proyecto.titulo}'. Tienes 7 días para revisar y firmar el contrato digital."
+                    f"'{proyecto.titulo}'. Tienes {plazo_dias} días para revisar y firmar el contrato digital."
+                ),
+            )
+
+            # El aviso de firma pendiente vive en la campana, no en el cuerpo del panel.
+            Notificacion.objects.create(
+                usuario=request.user,
+                proyecto=proyecto,
+                tipo='alerta',
+                mensaje=(
+                    f"Tu contrato digital del proyecto '{proyecto.titulo}' espera tu firma. "
+                    f"Completá los términos y firmá para que "
+                    f"{postulacion.desarrollador.nombre} pueda iniciar labores."
                 ),
             )
 

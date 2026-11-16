@@ -41,6 +41,21 @@ def _usuario_vinculado_a_proyecto(usuario, proyecto):
     return False
 
 
+def proyecto_requiere_comunicacion_grupal(proyecto):
+    """
+    Retorna True si conviene ofrecer chat grupal por tener dos o más devs.
+
+    Es una señal de interfaz, no una prohibición del chat directo privado exigido
+    por el RF 6.1.1 oficial.
+    """
+    if not proyecto:
+        return False
+    devs_contratados_count = Contratacion.objects.filter(
+        proyecto=proyecto, estado__in=['activa', 'finalizada']
+    ).values('desarrollador_id').distinct().count()
+    return devs_contratados_count >= 2
+
+
 def puede_comunicarse(emisor, receptor, proyecto=None):
     """
     Verifica si dos usuarios tienen autorización legítima para comunicarse por mensajería.

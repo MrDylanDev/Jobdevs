@@ -1,12 +1,17 @@
 """Tests unitarios de los servicios de finalización/valoración de proyectos
 (SCRUM-156, Fase 2)."""
 
+from datetime import timedelta
+
 import pytest
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.utils import timezone
 
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+from proyectos import services
 from proyectos.models import Entregable, HistorialEstadoProyecto, Proyecto, Valoracion
 from usuarios.models import PerfilDesarrollador
 from proyectos.services import (
@@ -134,6 +139,70 @@ class TestFinalizarProyecto:
 
 
 class TestValorarYFinalizar:
+
+    def test_empresa_valora_despues_de_finalizacion_automatica(
+        self, empresa_user, proyecto, contratacion, hitos_completos
+    ):
+        """RF 5.2.1 oficial: la valoración ocurre después de concluir el proyecto."""
+        finalizar_proyecto(proyecto.id, empresa_user)
+
+        finalizado_ahora, restantes = valorar_y_finalizar_si_ultima(
+            proyecto.id,
+            contratacion.desarrollador_id,
+            5,
+            'Excelente trabajo, comunicación y calidad técnica',
+            empresa_user,
+        )
+
+        assert finalizado_ahora is False
+        assert restantes == 0
+        assert Valoracion.objects.filter(
+            proyecto=proyecto,
+            desarrollador=contratacion.desarrollador,
+            rol_evaluador='empresa',
+        ).exists()
+
+    def test_rechaza_valoracion_despues_de_treinta_dias(
+        self, empresa_user, proyecto, contratacion, hitos_completos
+    ):
+        """RF 5.3.3 oficial: la ventana para valorar termina a los 30 días."""
+        finalizar_proyecto(proyecto.id, empresa_user)
+        proyecto.historial_estados.filter(estado_nuevo='finalizado').update(
+            fecha=timezone.now() - timedelta(days=31)
+        )
+
+        with pytest.raises(ValidationError) as exc:
+            valorar_y_finalizar_si_ultima(
+                proyecto.id,
+                contratacion.desarrollador_id,
+                5,
+                'Valoración extemporánea que no debe registrarse',
+                empresa_user,
+            )
+
+        assert '30 días' in str(exc.value)
+        assert not Valoracion.objects.filter(proyecto=proyecto).exists()
+
+    def test_valoracion_guardada_es_inmutable(
+        self, empresa_user, proyecto, contratacion
+    ):
+        """RF 5.3.3 oficial: una valoración creada no admite modificaciones."""
+        valoracion = Valoracion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=contratacion.desarrollador,
+            puntuacion=5,
+            comentario='Valoración original completa y verificable',
+            rol_evaluador='empresa',
+        )
+        valoracion.puntuacion = 1
+
+        with pytest.raises(ValidationError) as exc:
+            valoracion.save()
+
+        assert 'no puede modificarse' in str(exc.value)
+        valoracion.refresh_from_db()
+        assert valoracion.puntuacion == 5
 
     def test_devuelve_false_si_quedan_pendientes(
         self, empresa_user, proyecto, contratacion, hitos_completos
@@ -267,3 +336,73 @@ class TestValorarYFinalizar:
 
         perfil = PerfilDesarrollador.objects.get(usuario=contratacion.desarrollador)
         assert perfil.num_proyectos_completados == 1
+
+
+class TestReputacionBayesiana:
+    def test_pondera_promedio_personal_con_promedio_global(self):
+        resultado = services.calcular_reputacion_bayesiana(
+            promedio_simple=Decimal('5'),
+            cantidad=1,
+            promedio_global=Decimal('4'),
+            minimo_confianza=5,
+        )
+
+        assert resultado == Decimal('4.17')
+
+    def test_sin_valoraciones_usa_referencia_global(self):
+        resultado = services.calcular_reputacion_bayesiana(
+            promedio_simple=Decimal('0'),
+            cantidad=0,
+            promedio_global=Decimal('4.2'),
+            minimo_confianza=5,
+        )
+
+        assert resultado == Decimal('4.20')
+
+    @pytest.mark.django_db
+    def test_minimo_confianza_predeterminado_es_cinco(self):
+        assert services.obtener_minimo_confianza_reputacion() == 5
+
+    @pytest.mark.django_db
+    def test_cambio_de_minimo_confianza_es_auditado(self, admin_user):
+        from logs.models import LogAuditoria
+
+        services.actualizar_minimo_confianza_reputacion(8, admin_user)
+
+        assert services.obtener_minimo_confianza_reputacion() == 8
+        log = LogAuditoria.objects.get(
+            tabla_afectada='configuracion_reputacion', registro_id=1
+        )
+        assert log.valor_anterior == 'minimo_confianza=5'
+        assert log.valor_nuevo == 'minimo_confianza=8'
+
+    @pytest.mark.django_db
+    def test_metricas_exponen_reputacion_promedio_y_cantidad(
+            self, empresa_user, desarrollador_user):
+        otro = User.objects.create_user(
+            username='reput_otro', email='reput_otro@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        for indice, (dev, puntuacion) in enumerate((
+            (desarrollador_user, 5),
+            (desarrollador_user, 3),
+            (otro, 2),
+        )):
+            proyecto = Proyecto.objects.create(
+                empresa=empresa_user, titulo=f'Reputación {indice}', descripcion='D',
+                tipo_solucion='sitio_web', estado='finalizado',
+            )
+            Valoracion.objects.create(
+                proyecto=proyecto, empresa=empresa_user, desarrollador=dev,
+                rol_evaluador='empresa', puntuacion=puntuacion,
+            )
+
+        metricas = services.obtener_metricas_reputacion_desarrollador(
+            desarrollador_user.id
+        )
+
+        assert metricas['promedio_simple'] == Decimal('4.00')
+        assert metricas['cantidad'] == 2
+        assert metricas['reputacion'] == Decimal('3.52')
+        assert metricas['minimo_confianza'] == 5
+
