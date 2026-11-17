@@ -56,6 +56,11 @@ class RegistroUsuarioForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Programa de formación (ADSO, etc)'}),
         label="Programa de Formación (Opcional)"
     )
+    habilidades = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        label="Habilidades técnicas (Opcional)"
+    )
     sector = forms.CharField(
         max_length=100,
         required=False,
@@ -170,11 +175,12 @@ class RegistroUsuarioForm(UserCreationForm):
                 perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=user)
                 ficha = (self.cleaned_data.get('ficha') or '').strip()
                 programa = (self.cleaned_data.get('programa_formacion') or '').strip()
+                perfil.habilidades = (self.cleaned_data.get('habilidades') or '').strip()
+                perfil.programa_formacion = programa
                 if ficha:
                     perfil.ficha = ficha
-                    if programa:
-                        perfil.programa_formacion = programa
-                    perfil.save()
+                perfil.save()
+                if ficha:
                     verificar_desarrollador_automatico(
                         perfil=perfil,
                         numero_ficha=ficha,

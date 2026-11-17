@@ -77,7 +77,7 @@ class TestQueEsJobDevs:
     def test_css_agrupa_las_bandas(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
         assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
-        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg {' in css
+        assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg,\n.foot-grid-bg {' in css
         assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
 
 

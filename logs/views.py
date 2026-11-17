@@ -1,5 +1,8 @@
 import csv
 from collections import deque
+from datetime import datetime
+
+import pymupdf
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -8,9 +11,114 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q, Value, FloatField
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django.utils.dateparse import parse_date
+from contrataciones.models import Contratacion
 from proyectos.models import Proyecto, Valoracion
 from usuarios.models import Usuario, PerfilDesarrollador, PerfilEmpresa
 from logs.models import LogAuditoria
+
+
+def _exigir_admin(request):
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+
+@login_required
+def historial_actividad(request):
+    """Consulta filtrable adicional de la bitácora para administración."""
+    _exigir_admin(request)
+
+    logs = LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora')
+    usuario = request.GET.get('usuario', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+    accion = request.GET.get('accion', '').strip()
+    desde_texto = request.GET.get('desde', '').strip()
+    hasta_texto = request.GET.get('hasta', '').strip()
+
+    if usuario:
+        if usuario.isdigit():
+            logs = logs.filter(usuario_id=int(usuario))
+        else:
+            logs = logs.filter(usuario__username__icontains=usuario)
+    if tipo:
+        logs = logs.filter(tabla_afectada__iexact=tipo)
+    if accion:
+        logs = logs.filter(accion__icontains=accion)
+
+    try:
+        desde = parse_date(desde_texto) if desde_texto else None
+        hasta = parse_date(hasta_texto) if hasta_texto else None
+    except ValueError:
+        return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
+    if (desde_texto and desde is None) or (hasta_texto and hasta is None):
+        return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
+    if desde:
+        logs = logs.filter(fecha_hora__date__gte=desde)
+    if hasta:
+        logs = logs.filter(fecha_hora__date__lte=hasta)
+
+    total = logs.count()
+    resultados = list(logs[:200])
+    return JsonResponse({
+        'total': total,
+        'resultados': [
+            {
+                'id': log.id,
+                'usuario': log.usuario.username if log.usuario else 'Sistema',
+                'accion': log.accion,
+                'tipo': log.tabla_afectada,
+                'registro_id': log.registro_id,
+                'valor_anterior': log.valor_anterior,
+                'valor_nuevo': log.valor_nuevo,
+                'fecha_hora': timezone.localtime(log.fecha_hora).isoformat(),
+            }
+            for log in resultados
+        ],
+    })
+
+
+@login_required
+def reporte_mensual_pdf(request):
+    """Reporte mensual adicional con totales de actividad de la plataforma."""
+    _exigir_admin(request)
+
+    mes_texto = request.GET.get('mes') or timezone.localdate().strftime('%Y-%m')
+    try:
+        mes = datetime.strptime(mes_texto, '%Y-%m')
+    except ValueError:
+        return JsonResponse({'error': 'El mes debe usar el formato AAAA-MM.'}, status=400)
+
+    filtros = {'year': mes.year, 'month': mes.month}
+    usuarios = Usuario.objects.filter(
+        date_joined__year=filtros['year'],
+        date_joined__month=filtros['month'],
+    ).count()
+    proyectos = Proyecto.objects.filter(
+        fecha_publicacion__year=filtros['year'],
+        fecha_publicacion__month=filtros['month'],
+    ).count()
+    contrataciones = Contratacion.objects.filter(
+        fecha_inicio__year=filtros['year'],
+        fecha_inicio__month=filtros['month'],
+    ).count()
+
+    documento = pymupdf.open()
+    pagina = documento.new_page()
+    lineas = [
+        f"Reporte mensual JobDevs - {mes_texto}",
+        f"Usuarios registrados: {usuarios}",
+        f"Proyectos publicados: {proyectos}",
+        f"Contrataciones realizadas: {contrataciones}",
+    ]
+    for indice, linea in enumerate(lineas):
+        pagina.insert_text((72, 72 + indice * 28), linea, fontsize=14 if indice == 0 else 11)
+    contenido = documento.tobytes()
+    documento.close()
+
+    response = HttpResponse(contenido, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_mensual_{mes_texto}.pdf"'
+    return response
 
 @login_required
 def reporte_proyectos_csv(request):

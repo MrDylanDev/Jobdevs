@@ -245,6 +245,8 @@ def test_api_categoria_toggle_success(admin_client):
 
 
 def test_consumo_dinamico_en_vistas_crear_y_listar(client, empresa):
+    from datetime import timedelta
+    from django.utils import timezone
     activa = CategoriaSolucion.objects.create(nombre='Cat Dinámica', slug='cat-dinamica')
     inactiva = CategoriaSolucion.objects.create(nombre='Cat Inactiva', slug='cat-inactiva', activo=False)
     client.force_login(empresa)
@@ -252,6 +254,7 @@ def test_consumo_dinamico_en_vistas_crear_y_listar(client, empresa):
     response = client.post(reverse('crear_proyecto'), {
         'titulo': 'Proyecto Dinámico', 'descripcion': 'Desc',
         'tipo_solucion': 'cat-dinamica', 'prioridad': 'media', 'vacantes': 1,
+        'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
     })
     assert response.status_code == 302
     proyecto = Proyecto.objects.get(titulo='Proyecto Dinámico')
@@ -261,6 +264,7 @@ def test_consumo_dinamico_en_vistas_crear_y_listar(client, empresa):
     client.post(reverse('crear_proyecto'), {
         'titulo': 'Proyecto Inactivo', 'descripcion': 'Desc',
         'tipo_solucion': 'cat-inactiva', 'prioridad': 'media', 'vacantes': 1,
+        'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
     })
     assert not Proyecto.objects.filter(titulo='Proyecto Inactivo').exists()
 

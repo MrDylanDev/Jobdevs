@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from usuarios.models import Usuario
 from proyectos.models import Proyecto
 
@@ -22,3 +23,25 @@ class Postulacion(models.Model):
 
     def __str__(self):
         return f"{self.desarrollador.username} - {self.proyecto.titulo}"
+
+
+class ConfiguracionNegociacion(models.Model):
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    plazo_dias = models.PositiveSmallIntegerField(
+        default=7,
+        validators=[MinValueValidator(1), MaxValueValidator(30)],
+    )
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'configuracion_negociacion'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(id=1),
+                name='configuracion_negociacion_singleton',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(plazo_dias__gte=1, plazo_dias__lte=30),
+                name='configuracion_negociacion_plazo_1_30',
+            ),
+        ]

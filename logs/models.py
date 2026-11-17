@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from usuarios.models import Usuario
 
 class LogAuditoria(models.Model):
@@ -15,12 +16,17 @@ class LogAuditoria(models.Model):
         verbose_name_plural = "Logs de Auditoría"
 
     def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError('Los logs de auditoría no pueden modificarse.')
         # SCRUM-179: Truncado defensivo automático para evitar DataError en PostgreSQL
         if self.accion and len(self.accion) > 300:
             self.accion = self.accion[:300]
         if self.tabla_afectada and len(self.tabla_afectada) > 100:
             self.tabla_afectada = self.tabla_afectada[:100]
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError('Los logs de auditoría no pueden eliminarse.')
 
     def __str__(self):
         return f"{self.fecha_hora} - {self.usuario.username if self.usuario else 'Sistema'}: {self.accion}"

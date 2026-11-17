@@ -162,6 +162,24 @@
       form.hidden = !puedeEscribir;
       if (readonlyEl) readonlyEl.hidden = puedeEscribir;
 
+      var contextPanel = root.querySelector('[data-chat-context]');
+      var contextTitle = root.querySelector('[data-context-project-title]');
+      var contextBadge = root.querySelector('[data-context-project-badge]');
+      if (contextPanel) {
+        if (data.proyecto) {
+          contextPanel.style.display = 'flex';
+          root.classList.add('has-context');
+          if (contextTitle) contextTitle.textContent = data.proyecto.titulo;
+          if (contextBadge) contextBadge.textContent = data.proyecto.estado_label || 'En Desarrollo';
+        } else {
+          contextPanel.style.display = 'none';
+          root.classList.remove('has-context');
+        }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+
       scrollToBottom(true);
     }
 

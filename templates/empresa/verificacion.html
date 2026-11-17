@@ -1,34 +1,49 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ CURRENT_LANGUAGE|default:'es' }}" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobDevs | Verificación de Empresa</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <title>{% trans "JobDevs | Verificación de Empresa" %}</title>
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261115_v3">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261115_v3">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('jobdevs-theme');
+        if (saved === 'dark' || saved === 'light') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
+<a href="#main-content" class="skip-link">{% trans "Saltar al contenido principal" %}</a>
 <div class="app-layout">
 
   <!-- Sidebar Corporativo -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
-        <div class="sidebar-brand-sub">Verificación de Identidad</div>
+        <div class="sidebar-brand-sub">{% trans "Verificación de Identidad" %}</div>
       </div>
     </div>
     <div class="sidebar-group" style="padding-top:20px;">
       <a class="nav-item" href="{% url 'dashboard_empresa' %}#perfil">
         <i data-lucide="arrow-left"></i>
-        <span>Volver a Mi Perfil</span>
+        <span>{% trans "Volver a Mi Perfil" %}</span>
       </a>
       <a class="nav-item" href="{% url 'dashboard_empresa' %}">
         <i data-lucide="layout-dashboard"></i>
-        <span>Panel Principal</span>
+        <span>{% trans "Panel Principal" %}</span>
       </a>
     </div>
   </aside>
@@ -36,161 +51,154 @@
   <!-- Contenido Principal -->
   <div class="main-wrapper">
     <header class="top-header">
-      <div class="top-header-title">Verificación de Identidad <span>/ Validación Empresarial</span></div>
+      <div class="top-header-title">{% trans "Verificación de Identidad" %} <span>/ {% trans "Validación Empresarial" %}</span></div>
       <a href="{% url 'dashboard_empresa' %}#perfil" class="btn-corp-action secondary">
         <i data-lucide="arrow-left"></i>
-        <span>Volver al Panel</span>
+        <span>{% trans "Volver al Panel" %}</span>
       </a>
     </header>
 
-    <main class="main-content" style="max-width:880px; margin:0 auto; padding-top:24px;">
+    <main id="main-content" class="main-content verif-main">
 
-      {% for message in messages %}
-        <div class="{% if message.tags == 'error' or message.tags == 'danger' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-sm, 8px);">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <i data-lucide="{% if message.tags == 'error' or message.tags == 'danger' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-            <span>{{ message }}</span>
-          </div>
-        </div>
-      {% endfor %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <div class="page-header" style="margin-bottom:24px;">
         <div>
-          <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+          <h1 class="page-title" style="display:flex; align-items:center; gap:10px;">
             <i data-lucide="shield-check" style="color:var(--corp-brand); stroke-width:2.2;"></i>
-            <span>Verificación Oficial de Empresa</span>
-          </div>
-          <div class="page-subtitle">Acredita la existencia legal de tu organización mediante certificado RUES, Cámara de Comercio o RUT</div>
+            <span>{% trans "Verificación Oficial de Empresa" %}</span>
+          </h1>
+          <div class="page-subtitle">{% trans "Acredita la existencia legal de tu organización mediante certificado RUES, Cámara de Comercio o RUT" %}</div>
         </div>
         <div>
-          <span class="badge" style="background:{% if perfil.estado_verificacion == 'verificada' %}#e6faf0{% elif perfil.estado_verificacion == 'en_revision' %}#fef9c3{% elif perfil.estado_verificacion == 'rechazada' %}#fff1f2{% else %}#f1f5f9{% endif %}; color:{% if perfil.estado_verificacion == 'verificada' %}#007c34{% elif perfil.estado_verificacion == 'en_revision' %}#a16207{% elif perfil.estado_verificacion == 'rechazada' %}#9f1239{% else %}#475569{% endif %}; border:1px solid {% if perfil.estado_verificacion == 'verificada' %}rgba(0,200,83,0.3){% elif perfil.estado_verificacion == 'en_revision' %}#fde047{% elif perfil.estado_verificacion == 'rechazada' %}#fecdd3{% else %}#e2e8f0{% endif %}; font-weight:700; font-size:12.5px; padding:4px 12px; border-radius:12px;">
+          <span class="verif-status-badge is-{{ perfil.estado_verificacion }}">
             {{ perfil.badge_info.label }}
           </span>
         </div>
       </div>
 
       {% if perfil.estado_verificacion == 'verificada' %}
-        <div class="card" style="background:#e6faf0; border:1px solid rgba(0,200,83,0.3); border-radius:var(--corp-radius-lg); padding:24px; box-shadow:var(--corp-shadow-sm);">
-          <div style="display:flex; align-items:flex-start; gap:16px;">
-            <div style="width:42px; height:42px; border-radius:50%; background:#00c853; color:#ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <div class="verif-card is-verificada">
+          <div class="verif-card-row">
+            <div class="verif-icon-circle is-verificada">
               <i data-lucide="check" style="width:24px; height:24px; stroke-width:3;"></i>
             </div>
             <div>
-              <h2 style="font-size:17px; font-weight:700; color:#065f46; margin:0 0 6px 0;">Verificación Exitosa</h2>
-              <p style="font-size:14px; color:#047857; margin:0 0 8px 0;">Tu empresa <strong>{{ perfil.razon_social }}</strong> cuenta con el aval de verificación institucional de JobDevs.</p>
-              <div style="font-size:12.5px; color:#065f46; font-weight:600;">
-                Documento acreditado: {{ perfil.tipo_documento }} {{ perfil.documento_completo }}
+              <h2 class="verif-card-title">{% trans "Verificación Exitosa" %}</h2>
+              <p class="verif-card-copy">{% blocktrans with razon=perfil.razon_social %}Tu empresa <strong>{{ razon }}</strong> cuenta con el aval de verificación institucional de JobDevs.{% endblocktrans %}</p>
+              <div class="verif-card-meta">
+                {% trans "Documento acreditado:" %} {{ perfil.tipo_documento }} {{ perfil.documento_completo }}
               </div>
             </div>
           </div>
         </div>
       {% else %}
         {% if perfil.estado_verificacion == 'en_revision' %}
-          <div class="card" style="background:#fefce8; border:1px solid #fde047; border-radius:var(--corp-radius-lg); padding:24px; box-shadow:var(--corp-shadow-sm); margin-bottom:20px;">
-            <div style="display:flex; align-items:flex-start; gap:16px;">
-              <div style="width:42px; height:42px; border-radius:50%; background:#eab308; color:#ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div class="verif-card is-en_revision">
+            <div class="verif-card-row">
+              <div class="verif-icon-circle is-en_revision">
                 <i data-lucide="clock" style="width:24px; height:24px;"></i>
               </div>
               <div style="flex:1;">
-                <h2 style="font-size:17px; font-weight:700; color:#854d0e; margin:0 0 6px 0;">Solicitud en Revisión</h2>
-                <p style="font-size:14px; color:#713f12; margin:0 0 8px 0;">Tu solicitud ya se encuentra en revisión por el equipo del SENA. No es posible modificarla hasta obtener una respuesta.</p>
-                <div style="font-size:12.5px; color:#854d0e; margin-bottom:10px;">
-                  Documento radicado: <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong>
+                <h2 class="verif-card-title">{% trans "Solicitud en Revisión" %}</h2>
+                <p class="verif-card-copy">{% trans "Tu solicitud ya se encuentra en revisión por el equipo administrativo. No es posible modificarla hasta obtener una respuesta." %}</p>
+                <div class="verif-card-meta" style="margin-bottom:10px;">
+                  {% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong>
                 </div>
                 {% if perfil.documento_soporte %}
                   <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm">
                     <i data-lucide="file-text"></i>
-                    <span>Ver documento enviado</span>
+                    <span>{% trans "Ver documento enviado" %}</span>
                   </a>
                 {% endif %}
               </div>
             </div>
           </div>
         {% elif perfil.estado_verificacion == 'rechazada' %}
-          <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:var(--corp-radius-lg); padding:18px 22px; margin-bottom:24px; color:#9f1239; font-size:13.5px;">
+          <div class="verif-card is-rechazada">
             <div style="display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:6px;">
               <i data-lucide="alert-circle" style="width:18px; height:18px;"></i>
-              <span>Tu solicitud anterior fue rechazada</span>
+              <span>{% trans "Tu solicitud anterior fue rechazada" %}</span>
             </div>
             {% if perfil.notas_auditoria %}
-              <div style="margin-bottom:6px;"><strong>Motivo de rechazo:</strong> {{ perfil.notas_auditoria }}</div>
+              <div style="margin-bottom:6px;"><strong>{% trans "Motivo de rechazo:" %}</strong> {{ perfil.notas_auditoria }}</div>
             {% endif %}
-            <div>Por favor corrige la información señalada y vuelve a enviar el formulario.</div>
+            <div>{% trans "Por favor corrige la información señalada y vuelve a enviar el formulario." %}</div>
           </div>
         {% else %}
-          <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:18px 22px; margin-bottom:24px; font-size:13.5px; color:var(--corp-slate-600); display:flex; gap:12px; align-items:center;">
+          <div class="verif-card is-info">
             <i data-lucide="info" style="color:var(--corp-brand); width:20px; height:20px; flex-shrink:0;"></i>
-            <span>Verifica tu empresa adjuntando tu Cámara de Comercio o RUT en formato PDF (máx. 5 MB) para obtener el sello oficial de verificación.</span>
+            <span>{% trans "Verifica tu empresa adjuntando tu Cámara de Comercio o RUT en formato PDF (máx. 5 MB) para obtener el sello oficial de verificación." %}</span>
           </div>
         {% endif %}
 
         {% if perfil.estado_verificacion != 'en_revision' %}
           {% if errores %}
-            <div class="msg-error" style="margin-bottom:20px; border-radius:var(--corp-radius-sm, 8px);" role="alert">
+            <div class="msg-error" style="margin-bottom:20px; border-radius:var(--corp-radius-sm);" role="alert">
               <i data-lucide="alert-triangle"></i>
-              <span>Revisa los campos marcados: la solicitud no fue enviada.</span>
+              <span>{% trans "Revisa los campos marcados: la solicitud no fue enviada." %}</span>
             </div>
           {% endif %}
 
-          <form method="post" enctype="multipart/form-data" class="card" novalidate style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:28px; box-shadow:var(--corp-shadow-sm);">
+          <form method="post" enctype="multipart/form-data" class="verif-form" novalidate>
             {% csrf_token %}
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:18px; margin-bottom:18px;">
+            <div class="verif-grid-2">
               <div class="form-group-corp" style="margin-bottom:0;">
-                <label for="tipo_persona" class="form-label-corp">Tipo de persona</label>
+                <label for="tipo_persona" class="form-label-corp">{% trans "Tipo de persona" %}</label>
                 <select id="tipo_persona" name="tipo_persona" class="form-input-corp" required>
                   {% for value, label in tipos_persona %}
                     <option value="{{ value }}"{% if valores.tipo_persona == value %} selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
-                {% if errores.tipo_persona %}<div style="color:#e11d48; font-size:12px; margin-top:4px;">{{ errores.tipo_persona }}</div>{% endif %}
+                {% if errores.tipo_persona %}<div class="verif-field-error">{{ errores.tipo_persona }}</div>{% endif %}
               </div>
 
               <div class="form-group-corp" style="margin-bottom:0;">
-                <label for="tipo_documento" class="form-label-corp">Tipo de documento</label>
+                <label for="tipo_documento" class="form-label-corp">{% trans "Tipo de documento" %}</label>
                 <select id="tipo_documento" name="tipo_documento" class="form-input-corp" required>
                   {% for value, label in tipos_documento %}
                     <option value="{{ value }}"{% if valores.tipo_documento == value %} selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
-                {% if errores.tipo_documento %}<div style="color:#e11d48; font-size:12px; margin-top:4px;">{{ errores.tipo_documento }}</div>{% endif %}
+                {% if errores.tipo_documento %}<div class="verif-field-error">{{ errores.tipo_documento }}</div>{% endif %}
               </div>
             </div>
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:18px; margin-bottom:18px;">
+            <div class="verif-grid-2">
               <div class="form-group-corp" style="margin-bottom:0;">
-                <label for="numero_documento" class="form-label-corp">Número de documento (sin dígito de verificación)</label>
+                <label for="numero_documento" class="form-label-corp">{% trans "Número de documento (sin dígito de verificación)" %}</label>
                 <input type="text" id="numero_documento" name="numero_documento" inputmode="numeric"
-                       class="form-input-corp" value="{{ valores.numero_documento }}" placeholder="Ej: 900123456" required>
+                       class="form-input-corp" value="{{ valores.numero_documento }}" placeholder="{% trans "Ej: 900123456" %}" required>
                 {% if errores.numero_documento %}
-                  <div style="color:#e11d48; font-size:12px; margin-top:4px;">{{ errores.numero_documento }}</div>
+                  <div class="verif-field-error">{{ errores.numero_documento }}</div>
                 {% else %}
-                  <div style="font-size:11.5px; color:var(--corp-slate-400); margin-top:4px;">El dígito de verificación se calcula automáticamente.</div>
+                  <div class="verif-field-hint">{% trans "El dígito de verificación se calcula automáticamente." %}</div>
                 {% endif %}
               </div>
 
               <div class="form-group-corp" style="margin-bottom:0;">
-                <label for="razon_social" class="form-label-corp">Razón social oficial</label>
+                <label for="razon_social" class="form-label-corp">{% trans "Razón social oficial" %}</label>
                 <input type="text" id="razon_social" name="razon_social" maxlength="255"
-                       class="form-input-corp" value="{{ valores.razon_social }}" placeholder="Ej: Tech Innovations S.A.S." required>
-                {% if errores.razon_social %}<div style="color:#e11d48; font-size:12px; margin-top:4px;">{{ errores.razon_social }}</div>{% endif %}
+                       class="form-input-corp" value="{{ valores.razon_social }}" placeholder="{% trans "Ej: Tech Innovations S.A.S." %}" required>
+                {% if errores.razon_social %}<div class="verif-field-error">{{ errores.razon_social }}</div>{% endif %}
               </div>
             </div>
 
             <div class="form-group-corp" style="margin-bottom:24px;">
-              <label for="documento_soporte" class="form-label-corp">Documento de soporte (Cámara de Comercio o RUT, PDF)</label>
+              <label for="documento_soporte" class="form-label-corp">{% trans "Documento de soporte (Cámara de Comercio o RUT, PDF)" %}</label>
               <input type="file" id="documento_soporte" name="documento_soporte" accept="application/pdf,.pdf" class="form-input-corp">
-              {% if errores.documento_soporte %}<div style="color:#e11d48; font-size:12px; margin-top:4px;">{{ errores.documento_soporte }}</div>{% endif %}
+              {% if errores.documento_soporte %}<div class="verif-field-error">{{ errores.documento_soporte }}</div>{% endif %}
               {% if perfil.documento_soporte %}
-                <div style="font-size:11.5px; color:var(--corp-brand); margin-top:4px;">Ya hay un documento cargado; adjunta uno nuevo solo si deseas reemplazarlo.</div>
+                <div class="verif-field-hint is-brand">{% trans "Ya hay un documento cargado; adjunta uno nuevo solo si deseas reemplazarlo." %}</div>
               {% endif %}
             </div>
 
-            <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--corp-border); padding-top:20px;">
-              <a href="{% url 'dashboard_empresa' %}#perfil" class="btn-corp-action secondary">Volver</a>
+            <div class="verif-actions">
+              <a href="{% url 'dashboard_empresa' %}#perfil" class="btn-corp-action secondary">{% trans "Volver" %}</a>
               <button type="submit" class="btn-corp-primary">
                 <i data-lucide="upload-cloud"></i>
-                <span>Enviar solicitud</span>
+                <span>{% trans "Enviar solicitud" %}</span>
               </button>
             </div>
           </form>

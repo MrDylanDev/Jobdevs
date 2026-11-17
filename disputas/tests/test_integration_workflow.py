@@ -37,6 +37,7 @@ class TestWorkflowCompletoDisputas:
             {
                 "categoria": "incumplimiento_contractual",
                 "motivo": "Incumplimiento grave y continuado de términos contractuales y falta total de retroalimentación en el proyecto.",
+                "evidencia_url": "https://evidencia.test/hito",
                 "confirma_intento_previo": "1",
                 "confirma_gravedad": "1",
                 "acepta_sanciones": "1",

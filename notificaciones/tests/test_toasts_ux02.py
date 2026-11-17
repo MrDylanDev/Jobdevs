@@ -110,10 +110,14 @@ class TestCacheBusting:
             html = _leer(path)
             assert "static 'dashboard/css/dashboard.css' %}?v=3" in html, rol
             assert "static 'dashboard/script/notificaciones_sse.js' %}?v=2" in html, rol
+            assert "static 'dashboard/css/dashboard_modals.css' %}?v=20261117_v1" in html, rol
+            assert "static 'dashboard/script/dashboard_modals.js' %}?v=20261117_v1" in html, rol
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['admin'])
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['dev'])
+        assert "static 'Desarrollador/css/desarrollador.css' %}?v=3" in _leer(TEMPLATES['dev'])
+        assert "static 'Desarrollador/script/desarrollador.js' %}?v=5" in _leer(TEMPLATES['dev'])
 
     def test_chat_actualizado_en_los_tres_roles(self):
         assert "static 'mensajes/script/chat_inline.js' %}?v=5" in _leer(TEMPLATES['admin'])
         assert "static 'mensajes/script/chat_inline.js' %}?v=5" in _leer(TEMPLATES['dev'])
-        assert "static 'mensajes/script/chat_inline.js' %}?v=20261110_v1" in _leer(TEMPLATES['empresa'])
+        assert "static 'mensajes/script/chat_inline.js' %}?v=20261115_v6" in _leer(TEMPLATES['empresa'])

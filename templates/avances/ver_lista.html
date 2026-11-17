@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Línea de Tiempo de Avances — {{ proyecto.titulo }}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/avances.css' %}">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
@@ -15,7 +15,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Avances &amp; Entregas</div>
@@ -91,16 +91,7 @@
     </header>
 
     <main class="main-content">
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-md);">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}"></i>
-              <span>{{ message }}</span>
-            </div>
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <!-- Sub-tabs: Avances / Hitos (sin recarga de página) -->
       {% if request.user.rol == 'empresa' %}
@@ -136,15 +127,15 @@
             <div style="background:#fffbeb; border:1px dashed #f59e0b; padding:16px 20px; border-radius:var(--corp-radius-md); min-width:220px;">
               <div style="font-size:11px; color:#b45309; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
                 <i data-lucide="shield" style="width:14px; height:14px;"></i>
-                <span>Moderación Administrativa</span>
+                <span>Continuación Administrativa</span>
               </div>
               <form method="post" action="{% url 'admin_reactivar_proyecto' proyecto.id %}">
                 {% csrf_token %}
                 <button type="submit"
-                  onclick="return confirm('¿Reactivar este proyecto? Todos los involucrados serán notificados.')"
+                  onclick="return confirm('¿Crear un proyecto sucesor? El cierre y los contratos originales permanecerán intactos.')"
                   class="btn-corp-action secondary btn-sm" style="width:100%; justify-content:center; color:#b45309; border-color:#f59e0b;">
                   <i data-lucide="rotate-ccw"></i>
-                  <span>Reactivar Proyecto</span>
+                  <span>Crear proyecto sucesor</span>
                 </button>
               </form>
             </div>

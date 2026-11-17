@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Editar Proyecto</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/finalizar.css' %}">
 </head>
@@ -14,7 +14,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Editar Proyecto</div>
@@ -37,18 +37,11 @@
         <div class="page-header">
           <div>
             <div class="page-title"><i style="margin-right:10px; color:var(--primary);" data-lucide="edit"></i>{{ proyecto.titulo }}</div>
-            <div class="page-subtitle">Modifica los requerimientos mientras el proyecto esté publicado</div>
+            <div class="page-subtitle">{% if permite_edicion_tecnica %}Modifica los requerimientos de la oferta{% else %}Solo título y prioridad: los requerimientos ya están comprometidos{% endif %}</div>
           </div>
         </div>
 
-        {% if messages %}
-          {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
-              <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
+        {% include 'partials/_flash_toasts.html' %}
 
         <div class="card">
           <form method="post" style="display:flex; flex-direction:column; gap:20px;">
@@ -59,6 +52,7 @@
               <input type="text" name="titulo" value="{{ proyecto.titulo }}" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
             </div>
 
+            {% if permite_edicion_tecnica %}
             <div class="form-group">
               <label class="form-label"><i style="margin-right:6px;" data-lucide="align-left"></i>Descripción</label>
               <textarea name="descripcion" required placeholder="Describe el proyecto..." style="width:100%; min-height:130px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); font-family:inherit; resize:vertical; outline:none;">{{ proyecto.descripcion }}</textarea>
@@ -74,6 +68,7 @@
                 {% endfor %}
               </select>
             </div>
+            {% endif %}
 
             <div class="form-group">
               <label class="form-label"><i style="margin-right:6px;" data-lucide="signal"></i>Prioridad</label>
@@ -83,6 +78,7 @@
                 <option value="baja" {% if proyecto.prioridad == 'baja' %}selected{% endif %}>Baja</option>
               </select>
             </div>
+            {% if permite_edicion_tecnica %}
 
             <div class="form-group">
               <label class="form-label" for="modalidad_select_editar"><i style="margin-right:6px;" data-lucide="laptop-house"></i>Modalidad</label>
@@ -104,9 +100,15 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label"><i style="margin-right:6px;" data-lucide="calendar"></i>Fecha Límite</label>
+              <label class="form-label"><i style="margin-right:6px;" data-lucide="calendar"></i>Cierre de postulaciones</label>
               <input type="date" name="fecha_limite" value="{{ proyecto.fecha_limite|date:'Y-m-d'|default_if_none:'' }}" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
             </div>
+
+            <div class="form-group">
+              <label class="form-label" for="fecha_cumplimiento"><i style="margin-right:6px;" data-lucide="calendar"></i>Fecha de cumplimiento (opcional)</label>
+              <input type="date" id="fecha_cumplimiento" name="fecha_cumplimiento" value="{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default_if_none:'' }}" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
+            </div>
+            {% endif %}
 
             <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; gap:12px;">
               <a href="{% url 'dashboard_empresa' %}" class="btn btn-secondary" style="flex:1; justify-content:center;">Cancelar</a>

@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, SolicitudCancelacion
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
@@ -16,6 +16,12 @@ ESTADOS_ACTIVOS = ('abierta', 'en_mediacion')
 LONGITUD_MINIMA_MOTIVO = 80
 # SCRUM-232 (RF 10.1.2): estados válidos para el filtro fino del centro de disputas.
 ESTADOS_VALIDOS = tuple(valor for valor, _ in Disputa.ESTADO)
+CATEGORIAS_EVIDENCIA_OBLIGATORIA = (
+    'incumplimiento_contractual',
+    'falta_comunicacion_grave',
+    'bloqueo_insumos',
+    'inactividad',
+)
 
 
 def abrir_disputa(
@@ -25,6 +31,8 @@ def abrir_disputa(
     contratacion=None,
     categoria='incumplimiento_contractual',
     evidencia_url='',
+    evidencia_archivo=None,
+    declara_evidencia_no_disponible=False,
     confirma_intento_previo=True,
     confirma_gravedad=True,
     acepta_sanciones=True,
@@ -33,7 +41,8 @@ def abrir_disputa(
 
     Lanza PermissionDenied si el usuario no participa en el proyecto y
     ValidationError si el motivo está vacío o no alcanza la longitud mínima,
-    la causal no es válida, no se confirma el checklist de gravedad o el proyecto
+    la causal no es válida, no se confirman las reglas y el intento previo
+    (y la gravedad, salvo en fuerza mayor) o el proyecto
     no es disputable.
     """
     motivo = (motivo or '').strip()
@@ -43,21 +52,41 @@ def abrir_disputa(
     if len(motivo) < LONGITUD_MINIMA_MOTIVO:
         raise ValidationError(
             f'El motivo de la disputa debe ser detallado y contar con al menos '
-            f'{LONGITUD_MINIMA_MOTIVO} caracteres explicando los antecedentes graves del conflicto.'
+            f'{LONGITUD_MINIMA_MOTIVO} caracteres explicando los hechos y antecedentes.'
         )
 
     categorias_validas = dict(Disputa.CATEGORIAS)
     if not categoria or categoria not in categorias_validas:
-        raise ValidationError('Debes seleccionar una causal grave válida para iniciar la disputa.')
+        raise ValidationError('Debes seleccionar una causal válida para iniciar la mediación.')
 
-    if not (confirma_intento_previo and confirma_gravedad and acepta_sanciones):
+    requiere_gravedad = categoria != 'fuerza_mayor'
+    if not (confirma_intento_previo and acepta_sanciones and (
+        confirma_gravedad or not requiere_gravedad
+    )):
         raise ValidationError(
-            'Debes certificar el agotamiento de la vía previa y confirmar la gravedad del conflicto.'
+            'Debes confirmar el intento previo y aceptar las reglas de mediación; '
+            'salvo en fuerza mayor, también confirmar la gravedad del conflicto.'
         )
 
     evidencia_url = (evidencia_url or '').strip()
+    if evidencia_archivo:
+        from .validators import validar_evidencia_archivo
+        validar_evidencia_archivo(evidencia_archivo)
     if evidencia_url and not (evidencia_url.startswith('http://') or evidencia_url.startswith('https://')):
         raise ValidationError('La URL de evidencia debe iniciar con http:// o https://.')
+    if categoria in CATEGORIAS_EVIDENCIA_OBLIGATORIA and not (
+        evidencia_url or evidencia_archivo
+    ):
+        raise ValidationError(
+            'Esta causal requiere evidencia verificable para iniciar la mediación.'
+        )
+    if categoria == 'fuerza_mayor' and not (
+        evidencia_url or evidencia_archivo or declara_evidencia_no_disponible
+    ):
+        raise ValidationError(
+            'En fuerza mayor debes aportar evidencia o declarar expresamente '
+            'que no está disponible.'
+        )
 
     with transaction.atomic():
         proyecto = Proyecto.objects.select_for_update().get(pk=proyecto.pk)
@@ -101,8 +130,35 @@ def abrir_disputa(
             categoria=categoria,
             motivo=motivo,
             evidencia_url=evidencia_url,
+            evidencia_archivo=evidencia_archivo,
+            declara_evidencia_no_disponible=declara_evidencia_no_disponible,
             estado='abierta',
         )
+        if contratacion is not None:
+            # Conservar los expedientes previos, pero impedir una decisión paralela
+            # sobre el mismo contrato mientras está bajo mediación.
+            pendientes = SolicitudCancelacion.objects.select_for_update().filter(
+                contratacion=contratacion,
+                estado__in=['pendiente_acuerdo', 'pendiente_revision'],
+            )
+            for solicitud in pendientes:
+                estado_anterior = solicitud.estado
+                solicitud.estado = 'rechazada'
+                solicitud.dictamen = f'Sustituida por la disputa #{disputa.pk}.'
+                solicitud.fecha_resolucion = timezone.now()
+                solicitud.save(update_fields=['estado', 'dictamen', 'fecha_resolucion'])
+                LogAuditoria.objects.create(
+                    usuario=usuario,
+                    accion=f'Sustituyó solicitud de cancelación #{solicitud.pk} por disputa #{disputa.pk}',
+                    tabla_afectada='solicitudes_cancelacion', registro_id=solicitud.pk,
+                    valor_anterior=estado_anterior, valor_nuevo='rechazada',
+                )
+                for destinatario_id in {contratacion.empresa_id, contratacion.desarrollador_id}:
+                    Notificacion.objects.create(
+                        usuario_id=destinatario_id, proyecto=proyecto, tipo='alerta',
+                        mensaje=(f'Solicitud de cancelación #{solicitud.pk} sustituida '
+                                 f'por la disputa #{disputa.pk}; su historial se conserva.'),
+                    )
 
         LogAuditoria.objects.create(
             usuario=usuario,
@@ -201,10 +257,22 @@ def resolver_disputa(disputa, admin_user, resolucion, dictamen):
                 desarrollador.is_active = False
                 desarrollador.save()
 
-        _cambiar_estado_proyecto(proyecto, nuevo_estado_proyecto, admin_user)
         if contratacion is not None:
             contratacion.estado = nuevo_estado_contrato
             contratacion.save()
+            if resolucion in ('cancelar_contrato', 'sancionar_desarrollador') and (
+                Contratacion.objects.filter(
+                    proyecto=proyecto, estado__in=['activa', 'en_disputa'],
+                ).count() < proyecto.vacantes
+            ):
+                nuevo_estado_proyecto = 'publicado'
+        if resolucion == 'cancelar_contrato':
+            efecto = (f'El contrato fue cancelado y el proyecto quedó '
+                      f'{nuevo_estado_proyecto.replace("_", " ")}.')
+        elif resolucion == 'sancionar_desarrollador':
+            efecto = (f'El contrato fue cancelado, el desarrollador suspendido y '
+                      f'el proyecto quedó {nuevo_estado_proyecto.replace("_", " ")}.')
+        _cambiar_estado_proyecto(proyecto, nuevo_estado_proyecto, admin_user)
 
         # Efectos colaterales sobre hitos y avances (SCRUM-218)
         if resolucion in ('cancelar_contrato', 'sancionar_desarrollador'):
@@ -325,20 +393,24 @@ def datos_dashboard_disputas(usuario, estado=None):
             estado__in=ESTADOS_DISPUTABLES,
         ).select_related('empresa')
 
-    activas = qs.filter(estado__in=ESTADOS_ACTIVOS).order_by('-fecha_creacion')
-    resueltas = qs.filter(estado__in=('resuelta', 'cancelada')).order_by(
-        '-fecha_resolucion', '-fecha_creacion',
+    disputas = list(qs.order_by('-fecha_creacion'))
+    activas = [disputa for disputa in disputas if disputa.estado in ESTADOS_ACTIVOS]
+    resueltas = sorted(
+        (disputa for disputa in disputas if disputa.estado in ('resuelta', 'cancelada')),
+        key=lambda disputa: (disputa.fecha_resolucion or disputa.fecha_creacion, disputa.fecha_creacion),
+        reverse=True,
     )
-
     disputas_por_estado = {clave: 0 for clave in ESTADOS_VALIDOS}
-    for fila in qs.values('estado').annotate(total=Count('id')):
-        disputas_por_estado[fila['estado']] = fila['total']
+    for disputa in disputas:
+        disputas_por_estado[disputa.estado] += 1
 
     filtro_estado_actual = estado if estado in ESTADOS_VALIDOS else ''
     if filtro_estado_actual:
-        disputas_filtradas = qs.filter(estado=filtro_estado_actual).order_by('-fecha_creacion')
+        disputas_filtradas = [
+            disputa for disputa in disputas if disputa.estado == filtro_estado_actual
+        ]
     else:
-        disputas_filtradas = qs.all().order_by('-fecha_creacion')
+        disputas_filtradas = disputas
 
     return {
         'disputas_activas': activas,

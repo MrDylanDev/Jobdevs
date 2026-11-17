@@ -179,9 +179,9 @@ class TestCancelar:
         _post(client, caso, 'cancelar_contrato')
         _refrescar(caso)
         assert caso['contratacion'].estado == 'cancelada'
-        assert caso['proyecto'].estado == 'en_desarrollo'
+        assert caso['proyecto'].estado == 'publicado'
         assert HistorialEstadoProyecto.objects.filter(
-            proyecto=caso['proyecto'], estado_nuevo='en_desarrollo',
+            proyecto=caso['proyecto'], estado_nuevo='publicado',
         ).exists()
         assert caso['empresa'].is_active and caso['dev'].is_active
 
@@ -207,7 +207,7 @@ class TestSancionDesarrollador:
         _post(client, caso, 'sancionar_desarrollador')
         _refrescar(caso)
         assert caso['contratacion'].estado == 'cancelada'
-        assert caso['proyecto'].estado == 'en_desarrollo'
+        assert caso['proyecto'].estado == 'publicado'
         assert caso['dev'].estado == 'suspendido'
         assert caso['dev'].is_active is False
         assert caso['empresa'].estado == 'activo' and caso['empresa'].is_active
@@ -248,6 +248,7 @@ class TestTemplate:
         assert 'Emitir Resolución Vinculante' in content
         assert 'name="dictamen"' in content
         assert 'sancionar_desarrollador' in content
+        assert 'si queda cupo, el proyecto vuelve a publicado' in content
         assert _url(caso['disputa']) in content
 
     @pytest.mark.parametrize('quien', ['empresa', 'dev'])

@@ -1,21 +1,36 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Gestionar Hitos — {{ proyecto.titulo }}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261115_v10">
   <link rel="stylesheet" href="{% static 'dashboard/css/avances.css' %}">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261115_v38">
+  <script>
+    (function() {
+      var tema = 'light';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        }
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
 </head>
 <body>
 <div class="app-layout">
 
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Gestión de Hitos</div>
@@ -66,16 +81,7 @@
 
     <main class="main-content">
 
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}" style="margin-bottom:18px; border-radius:var(--corp-radius-md);">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i data-lucide="{% if message.tags == 'success' %}check-circle-2{% else %}alert-circle{% endif %}"></i>
-              <span>{{ message }}</span>
-            </div>
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <div class="page-header" style="margin-bottom:24px;">
         <div>
@@ -102,7 +108,7 @@
       <div id="panelHitos" class="subtab-panel" role="tabpanel" aria-labelledby="tabHitos">
 
       <!-- Formulario nuevo hito -->
-      <div class="card" style="margin-bottom:28px; background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:22px;">
+      <div class="card" style="margin-bottom:28px; background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:0; box-shadow:none; padding:22px;">
         <div class="card-header" style="margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--corp-border);">
           <div class="card-title" style="display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; color:var(--corp-slate-900);">
             <i data-lucide="plus-circle" style="color:var(--corp-brand);"></i>
@@ -166,23 +172,23 @@
 
       <div style="display:flex; flex-direction:column; gap:12px;">
         {% for hito in hitos %}
-          <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if hito.estado == 'completado' %}var(--corp-brand){% elif hito.estado == 'en_revision' %}var(--corp-warning){% else %}var(--corp-border){% endif %}; border-radius:var(--corp-radius-lg); padding:18px 22px; box-shadow:var(--corp-shadow-sm);">
+          <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if hito.estado == 'completado' %}var(--corp-brand){% elif hito.estado == 'en_revision' %}var(--corp-warning){% else %}var(--corp-border){% endif %}; border-radius:0; box-shadow:none; padding:18px 22px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
               <div style="flex:1;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
                   <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">{{ hito.titulo }}</span>
                   {% if hito.estado == 'completado' %}
-                    <span class="badge" style="background:#e6faf0; color:#007c34; border:1px solid rgba(0,200,83,0.3); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                    <span class="badge" style="background:var(--corp-brand-light); color:var(--corp-brand); border:1px solid rgba(0,200,83,0.3); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
                       <i data-lucide="check-circle-2" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
                       Completado
                     </span>
                   {% elif hito.estado == 'en_revision' %}
-                    <span class="badge" style="background:#fef9c3; color:#a16207; border:1px solid #fde047; font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                    <span class="badge" style="background:rgba(245,158,11,0.14); color:var(--corp-warning); border:1px solid rgba(245,158,11,0.32); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
                       <i data-lucide="clock" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
                       En Revisión
                     </span>
                   {% else %}
-                    <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                    <span class="badge" style="background:var(--corp-surface-alt); color:var(--corp-slate-600); border:1px solid var(--corp-border); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
                       <i data-lucide="circle" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
                       Pendiente
                     </span>
@@ -191,17 +197,17 @@
                 <p style="font-size:13.5px; color:var(--corp-slate-600); margin:0 0 10px 0; line-height:1.5;">{{ hito.descripcion|default:"Sin descripción adicional." }}</p>
                 <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
                   {% if hito.desarrollador %}
-                    <span data-testid="hito-asignado-desarrollador" style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-900); font-weight:600; background:#f8fafc; padding:3px 8px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <span data-testid="hito-asignado-desarrollador" style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-900); font-weight:600; background:var(--corp-surface-alt); padding:3px 8px; border-radius:6px; border:1px solid var(--corp-border);">
                       <i data-lucide="user" style="width:13px; height:13px; color:var(--corp-brand);"></i>
                       Asignado a {{ hito.desarrollador.nombre|default:hito.desarrollador.username }}
                     </span>
                   {% elif hito.equipo %}
-                    <span style="display:inline-flex; align-items:center; gap:5px; color:#0284c7; font-weight:600; background:#f0f9ff; padding:3px 8px; border-radius:6px; border:1px solid #bae6fd;">
+                    <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-info); font-weight:600; background:rgba(2,132,199,0.12); padding:3px 8px; border-radius:6px; border:1px solid rgba(2,132,199,0.3);">
                       <i data-lucide="users" style="width:13px; height:13px;"></i>
                       Equipo {{ hito.equipo.nombre }}
                     </span>
                   {% else %}
-                    <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-500); background:#f8fafc; padding:3px 8px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-500); background:var(--corp-surface-alt); padding:3px 8px; border-radius:6px; border:1px solid var(--corp-border);">
                       <i data-lucide="globe" style="width:13px; height:13px;"></i>
                       Hito General
                     </span>
@@ -219,7 +225,7 @@
             </div>
           </div>
         {% empty %}
-          <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:48px 24px;">
+          <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:0; box-shadow:none; padding:48px 24px;">
             <i data-lucide="flag" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
             <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">No has definido hitos para este proyecto todavía</p>
             <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Define el primer hito para organizar las entregas y el avance de los desarrolladores.</p>
@@ -253,7 +259,7 @@
             <div class="timeline-item">
               <div class="timeline-dot" style="background:{% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-color:#ffffff; box-shadow:0 0 0 3px {% if avance.estado == 'aceptado' %}rgba(0,200,83,0.25){% elif avance.estado == 'rechazado' %}rgba(225,29,72,0.25){% else %}rgba(245,158,11,0.25){% endif %};"></div>
 
-              <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:20px;">
+              <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-radius:0; box-shadow:none; padding:20px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:14px; flex-wrap:wrap;">
                   <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                     <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">
@@ -323,7 +329,7 @@
               </div>
             </div>
           {% empty %}
-            <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:48px 24px;">
+            <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:0; box-shadow:none; padding:48px 24px;">
               <i data-lucide="clock" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
               <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">Aún no se han registrado avances para este proyecto</p>
               <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Cuando los desarrolladores envíen entregables o avances técnicos, aparecerán listados aquí.</p>

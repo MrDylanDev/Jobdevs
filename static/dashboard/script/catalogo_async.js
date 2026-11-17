@@ -62,7 +62,7 @@
             : `<i data-lucide="building" style="color: var(--text-muted);"></i>`;
 
         const empresaNombreHtml = p.empresa_id
-            ? `<a href="/usuarios/empresa/${p.empresa_id}/" style="text-decoration:none; color:inherit;" title="Ver perfil institucional y reseñas">
+            ? `<a href="${escapeHtml(p.empresa_url)}" style="text-decoration:none; color:inherit;" title="Ver perfil institucional y reseñas">
                  <div style="font-size:13px; font-weight:600; color:var(--text-primary); display:inline-flex; align-items:center; gap:4px;">
                    ${escapeHtml(p.empresa_nombre)} <i data-lucide="arrow-up-right" style="font-size:10px; opacity:0.6;"></i>
                  </div>
@@ -103,7 +103,7 @@
                             </div>
                         </div>
                     </div>
-                    <a href="/postulaciones/postular/${p.id}/" class="btn btn-primary btn-sm">
+                    <a href="${escapeHtml(p.postular_url)}" class="btn btn-primary btn-sm">
                       <i data-lucide="send"></i> Postularme
                     </a>
                 </div>
@@ -176,6 +176,7 @@
             const formData = new FormData(form);
             const params = new URLSearchParams();
             for (const [key, value] of formData.entries()) {
+                if (key === 'csrfmiddlewaretoken') continue;
                 const trimmed = (value || '').trim();
                 if (trimmed) {
                     params.append(key, trimmed);

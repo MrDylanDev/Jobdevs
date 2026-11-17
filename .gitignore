@@ -80,3 +80,6 @@ backups/
 
 # Logs locales temporales
 .jarvis/
+
+# Harness local (skills/commands por proyecto)
+.opencode/
