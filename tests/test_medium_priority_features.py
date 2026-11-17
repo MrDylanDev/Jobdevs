@@ -120,7 +120,10 @@ def test_scrum_449_criterio_admin_documentado_coincide_con_el_codigo():
         Notificacion,
         AvisoCumplimiento,
     ):
-        assert admin.site._registry[model].list_display, f'{model.__name__} no declara list_display'
+        list_display = admin.site._registry[model].list_display
+        assert list_display != admin.ModelAdmin.list_display, (
+            f'{model.__name__} no declara list_display propio (usa el default __str__)'
+        )
 
 
 def test_scrum_455_456_457_variables_semanticas_y_tema_claro():
