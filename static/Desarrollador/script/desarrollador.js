@@ -7,6 +7,55 @@ document.addEventListener("DOMContentLoaded", function () {
     // Inicialización específica si fuera necesaria
 });
 
+// ═══════════════════════════════════════════════
+// MODO CLARO / OSCURO (comparte preferencia con la landing)
+// ═══════════════════════════════════════════════
+var DEV_THEME_STORAGE_KEY = 'jobdevs-theme';
+
+function devTemaActual() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function actualizarBotonTemaDev(tema) {
+  var btn = document.getElementById('devThemeToggle');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
+  btn.setAttribute('aria-label', 'Cambiar entre tema oscuro y claro');
+  btn.title = tema === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro';
+}
+
+function toggleDevTheme() {
+  var nuevoTema = devTemaActual() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nuevoTema);
+  try {
+    localStorage.setItem(DEV_THEME_STORAGE_KEY, nuevoTema);
+  } catch (e) {}
+  actualizarBotonTemaDev(nuevoTema);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  actualizarBotonTemaDev(devTemaActual());
+
+  // Si el usuario no ha elegido manualmente, seguir la preferencia del sistema.
+  if (window.matchMedia) {
+    var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    var handleSystemThemeChange = function (e) {
+      var guardado = null;
+      try { guardado = localStorage.getItem(DEV_THEME_STORAGE_KEY); } catch (err) {}
+      if (guardado === 'light' || guardado === 'dark') return;
+      var tema = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+      actualizarBotonTemaDev(tema);
+    };
+    handleSystemThemeChange(mediaQuery);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemThemeChange);
+    }
+  }
+});
+
 // Función para previsualizar foto de perfil antes de subir (opcional)
 function previewFoto(event) {
     const reader = new FileReader();
@@ -473,4 +522,61 @@ document.addEventListener('submit', async (event) => {
       submit.innerHTML = textoOriginal;
     }
   }
+});
+
+// ═══════════════════════════════════════════════
+// DRAWER MÓVIL ACCESIBLE (SCRUM-411)
+// ═══════════════════════════════════════════════
+function _syncDevDrawerAria(isOpen) {
+  const toggleBtn = document.querySelector('.mobile-menu-toggle');
+  if (!toggleBtn) return;
+  toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  toggleBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen = sidebar ? sidebar.classList.toggle('is-open') : false;
+  if (backdrop) backdrop.classList.toggle('is-open', isOpen);
+  _syncDevDrawerAria(isOpen);
+  if (isOpen && sidebar) {
+    const firstFocusable = sidebar.querySelector('.nav-item, a, button');
+    if (firstFocusable) firstFocusable.focus();
+  } else if (!isOpen) {
+    const toggleBtn = document.querySelector('.mobile-menu-toggle');
+    if (toggleBtn) toggleBtn.focus();
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const wasOpen = sidebar ? sidebar.classList.contains('is-open') : false;
+  if (sidebar) sidebar.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  _syncDevDrawerAria(false);
+  if (wasOpen) {
+    const toggleBtn = document.querySelector('.mobile-menu-toggle');
+    if (toggleBtn) toggleBtn.focus();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar && sidebar.classList.contains('is-open')) closeSidebar();
+    }
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
+  });
 });

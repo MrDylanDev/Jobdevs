@@ -49,6 +49,7 @@ def login_view(request):
                 user.save(update_fields=['intentos_fallidos', 'bloqueado_por_intentos'])
 
             login(request, user)
+            request.session.cycle_key()
 
             # Si hay next y es admin, redirigir solo si el host/esquema es seguro y permitido
             next_url = request.POST.get('next', '')

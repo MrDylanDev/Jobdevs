@@ -1,8 +1,74 @@
 /* ==========================================================================
-   JobDevs — Modales Integrados de Dashboard (Dev / Admin / Empresa)
-   Estética Cyber Tech: Negro carbón (#080d0b), Verde Neón (#00e676), Mono.
-   Elimina redirecciones de página manteniendo navegación 100% compacta en dashboard.
+   Tema Claro: Contraste y Legibilidad en Modales (SCRUM-455 / SCRUM-457)
    ========================================================================== */
+[data-theme="light"] .jdm-modal {
+  color: #0f172a;
+}
+
+[data-theme="light"] .jdm-backdrop {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+[data-theme="light"] .jdm-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="light"] .jdm-header,
+[data-theme="light"] .jdm-footer {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .jdm-title,
+[data-theme="light"] .jdm-party-name,
+[data-theme="light"] .jdm-meta-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .jdm-kicker,
+[data-theme="light"] .jdm-sub,
+[data-theme="light"] .jdm-meta-label,
+[data-theme="light"] .jdm-party-role,
+[data-theme="light"] .jdm-form-label {
+  color: #475569;
+}
+
+[data-theme="light"] .jdm-meta-box,
+[data-theme="light"] .jdm-party-card,
+[data-theme="light"] .jdm-clauses-container,
+[data-theme="light"] .jdm-disputa-chat,
+[data-theme="light"] .jdm-admin-resolution-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .jdm-input,
+[data-theme="light"] .jdm-select,
+[data-theme="light"] .jdm-textarea {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .jdm-bubble-other {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .jdm-btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .jdm-btn-secondary:hover {
+  background: #e2e8f0;
+  color: #15803d;
+  border-color: #16a34a;
+}
 
 .jdm-modal[hidden] {
   display: none !important;

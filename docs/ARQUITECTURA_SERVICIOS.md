@@ -112,3 +112,28 @@ Fases 3 a 10 de la hoja de ruta, cada una como issue propio:
   `select_for_update()`.
 - ¿La autorización se pregunta en más de un sitio? Va a `policies.py`.
 - ¿La operación tiene tests de camino feliz, de regla de negocio y de rollback?
+
+---
+
+## Criterio de Views (Thin Controller vs Service) y Registro en Django Admin (SCRUM-449)
+
+### 1. Patrón de Views (`views.py`)
+Toda vista Django debe actuar exclusivamente como **controlador delgado (Thin Controller)**:
+
+1. **Autenticación y permisos**: validar `@login_required`, rol o pertenencia básica al recurso (`PermissionDenied` / `403`).
+2. **Parseo y validación de entrada HTTP**: extraer parámetros de `request.GET`, `request.POST` o `request.FILES`.
+3. **Delegación al servicio (`services.py`)**: invocar la función de dominio encargada de transacciones (`@transaction.atomic`), reglas de negocio, auditoría (`LogAuditoria`) y notificaciones.
+4. **Respuesta HTTP**: devolver `JsonResponse` (para peticiones AJAX/fetch) o `render`/`redirect` con `messages`.
+
+**Prohibido en `views.py`:**
+- Consultas complejas o mutaciones multi-modelo directas sin servicio.
+- Lógica de negocio (> ~40 líneas de reglas condicionales o cálculos de dominio): debe extraerse a `<app>/services.py`.
+
+### 2. Criterio de Registro en `admin.py`
+Los modelos de dominio de las apps cubiertas por el estándar (`avances`, `favoritos`, `contrataciones`, `postulaciones`, `notificaciones`) se registran en `<app>/admin.py` con `list_display` y, cuando el modelo lo permite, `list_filter` y `search_fields`, para inspección y soporte operativo en `/admin/` (por ejemplo: `Avance`, `Favorito`, `ContratoDigital`, `SolicitudCancelacion`, `Postulacion`, `Notificacion`, `AvisoCumplimiento`). Hoy los nueve modelos de esas cinco apps están registrados y exponen `list_display`.
+
+Los modelos nuevos que se creen en esas apps —y los de cualquier app que se incorpore al estándar— nacen ya registrados con esos atributos. Los modelos de configuración que se publican en modo solo lectura (por ejemplo `ConfiguracionNegociacion`) se registran sin `list_filter` ni `search_fields`, porque no admiten edición.
+
+Si un modelo del estándar se excluye intencionalmente del admin (tablas efímeras o de solo lectura externa), se documenta con un comentario explicativo en `<app>/admin.py`. Hoy no hay ningún modelo excluido.
+
+Las apps fuera del estándar (`disputas`, `mensajes`, `logs`, `proyectos`, `usuarios`) son legado pendiente de migración incremental: no están obligadas a este criterio hasta que se incorporen.

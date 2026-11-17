@@ -127,6 +127,8 @@ def abrir_disputa_view(request, proyecto_id):
             return render(request, 'disputas/abrir_disputa.html', context, status=200)
 
         if categoria not in dict(categorias):
+            if es_ajax:
+                return JsonResponse({'ok': False, 'mensaje': 'Debes seleccionar una causal válida para tu rol.'}, status=400)
             messages.error(request, 'Debes seleccionar una causal válida para tu rol.')
             return render(request, 'disputas/abrir_disputa.html', context, status=400)
 
@@ -277,8 +279,12 @@ def detalle_disputa_view(request, disputa_id):
                 'dictamen': disputa.notas_resolucion or '',
                 'puede_escribir': ctx['puede_escribir'],
                 'es_admin': request.user.rol == 'administrador',
-                'enviar_url': reverse('disputas:enviar_mensaje', args=[disputa.id]),
-                'resolver_url': reverse('disputas:resolver', args=[disputa.id]) if request.user.rol == 'administrador' else None,
+                'resoluciones': (
+                    [{'codigo': r[0], 'label': str(r[1])} for r in Disputa.RESOLUCION]
+                    if request.user.rol == 'administrador' else []
+                ),
+                'enviar_url': reverse('disputas:enviar_mensaje_disputa', args=[disputa.id]),
+                'resolver_url': reverse('disputas:resolver_disputa', args=[disputa.id]) if request.user.rol == 'administrador' else None,
             },
             'mensajes': mensajes_data,
         })

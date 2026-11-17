@@ -171,37 +171,78 @@ function resetAdminExploreFilters() {
 }
 
 // ═══════════════════════════════════════════════
-// SEARCH & FILTER: Users
+// SEARCH & FILTER: Users & Projects (SCRUM-408)
 // ═══════════════════════════════════════════════
-function filterUsers() {
-  const search = (document.getElementById('userSearch').value || '').toLowerCase();
-  const role = document.getElementById('userRoleFilter').value;
-  const status = document.getElementById('userStatusFilter').value;
+function debounce(fn, delay = 300) {
+  let timer = null;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
 
-  document.querySelectorAll('#usersTable tbody tr').forEach(row => {
-    const text = (row.dataset.username + ' ' + row.dataset.nombre + ' ' + row.dataset.email).toLowerCase();
-    const matchSearch = !search || text.includes(search);
+function filterUsers() {
+  const search = (document.getElementById('userSearch')?.value || '').toLowerCase().trim();
+  const role = document.getElementById('userRoleFilter')?.value || '';
+  const status = document.getElementById('userStatusFilter')?.value || '';
+
+  const rows = document.querySelectorAll('#usersTable tbody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const estadoText = row.dataset.active === 'active' ? 'activo' : 'inactivo suspendido';
+    const text = [
+      row.dataset.username || '',
+      row.dataset.nombre || '',
+      row.dataset.email || '',
+      row.dataset.rol || '',
+    ].join(' ').toLowerCase();
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matchEstadoSearch = search ? new RegExp('(^|\\s)' + escapedSearch + '(\\s|$)').test(estadoText) : false;
+    const matchSearch = !search || text.includes(search) || matchEstadoSearch;
     const matchRole = !role || row.dataset.rol === role;
     const matchStatus = !status || row.dataset.active === status;
-    row.style.display = (matchSearch && matchRole && matchStatus) ? '' : 'none';
+    const show = matchSearch && matchRole && matchStatus;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
+  const countEl = document.getElementById('usersResultCount');
+  if (countEl) {
+    countEl.textContent = `Mostrando ${visible} de ${rows.length} usuarios`;
+  }
   updateBulkActions();
 }
 
-// ═══════════════════════════════════════════════
-// SEARCH & FILTER: Projects
-// ═══════════════════════════════════════════════
 function filterProjects() {
-  const search = (document.getElementById('projectSearch').value || '').toLowerCase();
-  const estado = document.getElementById('projectEstadoFilter').value;
+  const search = (document.getElementById('projectSearch')?.value || '').toLowerCase().trim();
+  const estado = document.getElementById('projectEstadoFilter')?.value || '';
 
-  document.querySelectorAll('#projectsSection .data-table tbody tr').forEach(row => {
-    const text = (row.dataset.titulo + ' ' + row.dataset.empresa).toLowerCase();
+  const rows = document.querySelectorAll('#projectsSection .data-table tbody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const text = [
+      row.dataset.titulo || '',
+      row.dataset.empresa || '',
+      row.dataset.estado || '',
+    ].join(' ').toLowerCase();
     const matchSearch = !search || text.includes(search);
     const matchEstado = !estado || row.dataset.estado === estado;
-    row.style.display = (matchSearch && matchEstado) ? '' : 'none';
+    const show = matchSearch && matchEstado;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
+  const countEl = document.getElementById('projectsResultCount');
+  if (countEl) {
+    countEl.textContent = `Mostrando ${visible} de ${rows.length} proyectos`;
+  }
 }
+
+const debouncedFilterUsers = debounce(filterUsers, 300);
+const debouncedFilterProjects = debounce(filterProjects, 300);
+
+document.addEventListener('DOMContentLoaded', () => {
+  filterUsers();
+  filterProjects();
+});
 
 // ═══════════════════════════════════════════════
 // BULK ACTIONS: Users
@@ -238,3 +279,107 @@ async function bulkToggleUsers(action) {
     else { const r = await response.json(); alert(r.error || 'Error'); }
   } catch (e) { alert('Error de red'); }
 }
+
+// ═══════════════════════════════════════════════
+// MODAL DOBLE CONFIRMACIÓN TOGGLE USUARIO (SCRUM-407)
+// ═══════════════════════════════════════════════
+let _pendingToggleUserForm = null;
+
+function openToggleUserConfirmModal(btn, nombre, rol, isActive) {
+  _pendingToggleUserForm = btn ? btn.closest('form') : null;
+  const modal = document.getElementById('toggleUserConfirmModal');
+  if (!modal || !_pendingToggleUserForm) return;
+
+  const titleEl = document.getElementById('toggleConfirmTitle');
+  const msgEl = document.getElementById('toggleConfirmMessage');
+  const nameEl = document.getElementById('toggleConfirmUserName');
+  const roleEl = document.getElementById('toggleConfirmUserRole');
+  const submitBtn = document.getElementById('toggleConfirmSubmitBtn');
+
+  if (nameEl) nameEl.textContent = nombre || 'Usuario';
+  if (roleEl) roleEl.textContent = rol || '—';
+
+  if (isActive) {
+    if (titleEl) titleEl.textContent = 'Confirmar suspensión de usuario';
+    if (msgEl) msgEl.textContent = '¿Estás seguro de que deseas suspender el acceso de esta cuenta a la plataforma?';
+    if (submitBtn) {
+      submitBtn.textContent = 'Suspender usuario';
+      submitBtn.className = 'btn btn-danger';
+    }
+  } else {
+    if (titleEl) titleEl.textContent = 'Confirmar reactivación de usuario';
+    if (msgEl) msgEl.textContent = '¿Estás seguro de que deseas reactivar el acceso de esta cuenta a la plataforma?';
+    if (submitBtn) {
+      submitBtn.textContent = 'Reactivar usuario';
+      submitBtn.className = 'btn btn-success';
+    }
+  }
+
+  modal.classList.add('open');
+}
+
+function confirmToggleUserAction() {
+  if (_pendingToggleUserForm) {
+    const form = _pendingToggleUserForm;
+    _pendingToggleUserForm = null;
+    closeModal('toggleUserConfirmModal');
+    form.submit();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DRAWER MÓVIL ACCESIBLE (SCRUM-411)
+// ═══════════════════════════════════════════════
+function _syncAdminDrawerAria(isOpen) {
+  const toggleBtn = document.querySelector('.mobile-menu-toggle');
+  if (!toggleBtn) return;
+  toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  toggleBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen = sidebar ? sidebar.classList.toggle('is-open') : false;
+  if (backdrop) backdrop.classList.toggle('is-open', isOpen);
+  _syncAdminDrawerAria(isOpen);
+  if (isOpen && sidebar) {
+    const firstFocusable = sidebar.querySelector('.nav-item, a, button');
+    if (firstFocusable) firstFocusable.focus();
+  } else if (!isOpen) {
+    const toggleBtn = document.querySelector('.mobile-menu-toggle');
+    if (toggleBtn) toggleBtn.focus();
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const wasOpen = sidebar ? sidebar.classList.contains('is-open') : false;
+  if (sidebar) sidebar.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+  _syncAdminDrawerAria(false);
+  if (wasOpen) {
+    const toggleBtn = document.querySelector('.mobile-menu-toggle');
+    if (toggleBtn) toggleBtn.focus();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar && sidebar.classList.contains('is-open')) closeSidebar();
+    }
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+});
