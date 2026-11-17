@@ -19,6 +19,7 @@
 <div class="scan-line"></div>
 <div class="tech-bg"></div>
 
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 <div class="app-layout">
 
   <!-- Sidebar -->
@@ -120,6 +121,9 @@
 
     <!-- Top header -->
     <header class="top-header">
+      <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú de navegación">
+        <i data-lucide="menu"></i>
+      </button>
       <div class="top-header-title">
         Panel Administrador
         <span>/ JobDevs Platform</span>
@@ -441,8 +445,8 @@
         </div>
 
         <!-- Search + Filters for Projects -->
-        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-          <input type="text" id="projectSearch" placeholder="🔍 Buscar proyecto..." oninput="filterProjects()"
+        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="projectSearch" placeholder="🔍 Buscar proyecto..." oninput="debouncedFilterProjects()"
             style="flex:1; min-width:200px; padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
           <select id="projectEstadoFilter" onchange="filterProjects()"
             style="padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
@@ -453,6 +457,7 @@
             <option value="finalizado">Finalizado</option>
             <option value="rechazado">Rechazado</option>
           </select>
+          <span id="projectsResultCount" style="font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
         </div>
 
         <div class="table-wrapper">
@@ -840,7 +845,7 @@
 
         <!-- Search + Filters + Bulk Actions -->
         <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="userSearch" placeholder="🔍 Buscar usuario..." oninput="filterUsers()"
+          <input type="text" id="userSearch" placeholder="🔍 Buscar usuario..." oninput="debouncedFilterUsers()"
             style="flex:1; min-width:200px; padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
           <select id="userRoleFilter" onchange="filterUsers()"
             style="padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
@@ -870,6 +875,7 @@
             <button class="btn btn-danger btn-sm" onclick="bulkToggleUsers('suspend')"><i data-lucide="ban"></i> Suspender</button>
             <span id="bulkCount" style="font-size:12px; color:var(--text-muted);"></span>
           </div>
+          <span id="usersResultCount" style="font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
         </div>
 
         <div class="table-wrapper">
@@ -907,9 +913,12 @@
                   </td>
                   <td style="color:var(--text-secondary);">{{ u.date_joined|date:"d/m/Y" }}</td>
                   <td style="text-align:center; white-space:nowrap;">
-                    <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;">
+                    <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
                       {% csrf_token %}
-                      <button type="submit" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px;" title="Alternar Estado">
+                      <button type="button"
+                        onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
+                        style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px;"
+                        title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
                         {% if u.is_active %}
                           <i style="color:var(--success);" data-lucide="toggle-on"></i>
                         {% else %}
@@ -930,6 +939,22 @@
           </table>
         </div>
       </section>
+
+      <!-- Modal Doble Confirmación Suspender/Reactivar Usuario (SCRUM-407) -->
+      <div id="toggleUserConfirmModal" class="modal-overlay" onclick="if(event.target===this)closeModal('toggleUserConfirmModal')">
+        <div class="modal-box" style="max-width:440px;">
+          <h3 id="toggleConfirmTitle" style="margin-bottom:10px; font-size:18px;">Confirmar acción</h3>
+          <p id="toggleConfirmMessage" style="font-size:13.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:14px;"></p>
+          <div style="background:var(--page-bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:13px;">
+            <div><strong>Usuario:</strong> <span id="toggleConfirmUserName"></span></div>
+            <div style="margin-top:4px;"><strong>Rol:</strong> <span id="toggleConfirmUserRole"></span></div>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('toggleUserConfirmModal')">Cancelar</button>
+            <button type="button" id="toggleConfirmSubmitBtn" class="btn btn-danger" onclick="confirmToggleUserAction()">Confirmar</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Modales Crud Usuarios -->
       <!-- Modal Editar Usuario -->

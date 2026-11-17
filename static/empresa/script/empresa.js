@@ -2507,6 +2507,11 @@
     if (backdrop) {
       backdrop.addEventListener('click', window.closeSidebar);
     }
+    document.querySelectorAll('.sidebar .nav-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        if (window.innerWidth <= 768) window.closeSidebar();
+      });
+    });
 
     // Backdrop del drawer de candidatos
     const drawerCandidatos = document.getElementById('drawerCandidatos');

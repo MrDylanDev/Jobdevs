@@ -7,6 +7,54 @@ document.addEventListener("DOMContentLoaded", function () {
     // Inicialización específica si fuera necesaria
 });
 
+// ═══════════════════════════════════════════════
+// MODO CLARO / OSCURO (comparte preferencia con la landing)
+// ═══════════════════════════════════════════════
+var DEV_THEME_STORAGE_KEY = 'jobdevs-theme';
+
+function devTemaActual() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function actualizarBotonTemaDev(tema) {
+  var btn = document.getElementById('devThemeToggle');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
+  btn.setAttribute('aria-label', tema === 'light' ? 'Tema claro activo' : 'Tema oscuro activo');
+  btn.title = tema === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro';
+}
+
+function toggleDevTheme() {
+  var nuevoTema = devTemaActual() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nuevoTema);
+  try {
+    localStorage.setItem(DEV_THEME_STORAGE_KEY, nuevoTema);
+  } catch (e) {}
+  actualizarBotonTemaDev(nuevoTema);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  actualizarBotonTemaDev(devTemaActual());
+
+  // Si el usuario no ha elegido manualmente, seguir la preferencia del sistema.
+  if (window.matchMedia) {
+    var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    var handleSystemThemeChange = function (e) {
+      var guardado = null;
+      try { guardado = localStorage.getItem(DEV_THEME_STORAGE_KEY); } catch (err) {}
+      if (guardado === 'light' || guardado === 'dark') return;
+      var tema = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', tema);
+      actualizarBotonTemaDev(tema);
+    };
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemThemeChange);
+    }
+  }
+});
+
 // Función para previsualizar foto de perfil antes de subir (opcional)
 function previewFoto(event) {
     const reader = new FileReader();
@@ -478,4 +526,31 @@ document.addEventListener('submit', async (event) => {
       submit.innerHTML = textoOriginal;
     }
   }
+});
+
+// ═══════════════════════════════════════════════
+// DRAWER MÓVIL ACCESIBLE (SCRUM-411)
+// ═══════════════════════════════════════════════
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar) sidebar.classList.toggle('is-open');
+  if (backdrop) backdrop.classList.toggle('is-open');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar) sidebar.classList.remove('is-open');
+  if (backdrop) backdrop.classList.remove('is-open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
 });

@@ -871,6 +871,16 @@
 
       // Panel de resolución si es Admin y la disputa no está resuelta
       if (d.es_admin && d.resolver_url && d.estado !== 'resuelta' && d.estado !== 'cancelada') {
+        var resolucionesList = (d.resoluciones && d.resoluciones.length) ? d.resoluciones : [
+          { codigo: 'reanudar_proyecto', label: 'Reanudar Proyecto' },
+          { codigo: 'cancelar_contrato', label: 'Cancelar Contrato' },
+          { codigo: 'sancionar_empresa', label: 'Sancionar Empresa' },
+          { codigo: 'sancionar_desarrollador', label: 'Sancionar Desarrollador' }
+        ];
+        var resolucionesOptions = '<option value="">-- Selecciona el sentido de la resolución --</option>';
+        resolucionesList.forEach(function (r) {
+          resolucionesOptions += '<option value="' + escapeHtml(r.codigo) + '">' + escapeHtml(r.label) + '</option>';
+        });
         html +=
           '<div class="jdm-admin-resolution-box">' +
             '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#f87171;margin-bottom:8px;"><i data-lucide="gavel"></i> PANEL DE RESOLUCIÓN ARBITRAL (ADMIN)</div>' +
@@ -878,11 +888,7 @@
               '<div class="jdm-form-group">' +
                 '<label class="jdm-form-label">Dictamen de Fallo <span class="req">*</span></label>' +
                 '<select name="resolucion" class="jdm-select" required>' +
-                  '<option value="">-- Selecciona el sentido de la resolución --</option>' +
-                  '<option value="favor_empresa">Fallo a favor de la Empresa (libera fondos / cancela contratación)</option>' +
-                  '<option value="favor_desarrollador">Fallo a favor del Desarrollador (libera pago al aprendiz)</option>' +
-                  '<option value="acuerdo_mutuo">Acuerdo mutuo de partes (cierre sin penalizaciones)</option>' +
-                  '<option value="cancelacion_sin_sancion">Cancelación administrativa sin sanción</option>' +
+                  resolucionesOptions +
                 '</select>' +
               '</div>' +
               '<div class="jdm-form-group">' +

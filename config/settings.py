@@ -18,6 +18,10 @@ if not SECRET_KEY:
         SECRET_KEY = get_random_secret_key()
     else:
         raise ValueError("DJANGO_SECRET_KEY es obligatorio en producción. Verifica tu archivo .env")
+elif not DEBUG and (len(SECRET_KEY) <= 50 or SECRET_KEY.startswith('django-insecure-')):
+    raise ValueError(
+        "DJANGO_SECRET_KEY en producción debe tener más de 50 caracteres y no usar el prefijo 'django-insecure-'."
+    )
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -271,6 +275,9 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expira al cerrar navegador
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 _csrf_origins = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS')
 if _csrf_origins:
     CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
@@ -284,16 +291,35 @@ elif DEBUG:
 else:
     CSRF_TRUSTED_ORIGINS = []
 
-# Configuraciones de transporte seguro y cookies (activadas vía env en producción)
-SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'False') == 'True'
-SESSION_COOKIE_SECURE = os.environ.get('DJANGO_SESSION_COOKIE_SECURE', 'False') == 'True'
-CSRF_COOKIE_SECURE = os.environ.get('DJANGO_CSRF_COOKIE_SECURE', 'False') == 'True'
-if os.environ.get('DJANGO_SECURE_HSTS_SECONDS'):
-    SECURE_HSTS_SECONDS = int(os.environ['DJANGO_SECURE_HSTS_SECONDS'])
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-if os.environ.get('DJANGO_SECURE_PROXY_SSL_HEADER', 'False') == 'True':
+# ==============================================================================
+# Hardening de Seguridad HTTP, SSL/TLS, Cookies y Cargas (SCRUM-475)
+# ==============================================================================
+_default_prod_sec = 'False' if DEBUG else 'True'
+_default_hsts = '0' if DEBUG else '31536000'
+
+# Capa 1: Transporte y Red (SSL/TLS & HSTS)
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', _default_prod_sec) == 'True'
+if os.environ.get('DJANGO_SECURE_PROXY_SSL_HEADER', _default_prod_sec) == 'True':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', _default_hsts))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', _default_prod_sec) == 'True'
+SECURE_HSTS_PRELOAD = os.environ.get('DJANGO_SECURE_HSTS_PRELOAD', _default_prod_sec) == 'True'
+
+# Capa 2: Cabeceras HTTP del Navegador
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+
+# Capa 3: Cookies seguras en HTTPS
+SESSION_COOKIE_SECURE = os.environ.get('DJANGO_SESSION_COOKIE_SECURE', _default_prod_sec) == 'True'
+CSRF_COOKIE_SECURE = os.environ.get('DJANGO_CSRF_COOKIE_SECURE', _default_prod_sec) == 'True'
+
+# Capa 7: Cuotas de memoria y permisos seguros de archivos subidos
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
