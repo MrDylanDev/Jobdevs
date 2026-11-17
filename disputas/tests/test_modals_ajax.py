@@ -2,6 +2,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 
 from contrataciones.models import Contratacion, ContratoDigital
@@ -50,9 +51,13 @@ def test_detalle_disputa_json_incluye_resoluciones_validas_para_admin(client):
     codigos = [r['codigo'] for r in data['disputa']['resoluciones']]
     assert codigos == [r[0] for r in Disputa.RESOLUCION]
 
-    js_path = Path('static/dashboard/script/dashboard_modals.js').read_text(encoding='utf-8')
+
+def test_dashboard_modals_js_no_contiene_resoluciones_invalidas():
+    """SCRUM-471: El script de modales no debe contener los valores inválidos de resolución."""
+    js_path = Path(settings.BASE_DIR) / 'static/dashboard/script/dashboard_modals.js'
+    js_text = js_path.read_text(encoding='utf-8')
     for invalido in ('favor_empresa', 'favor_desarrollador', 'acuerdo_mutuo', 'cancelacion_sin_sancion'):
-        assert invalido not in js_path
+        assert invalido not in js_text
 
 
 @pytest.mark.django_db

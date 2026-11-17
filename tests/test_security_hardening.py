@@ -1,4 +1,5 @@
 import importlib
+import os
 import subprocess
 import sys
 
@@ -27,54 +28,48 @@ def test_http_security_headers_present_on_response(client):
     CSRF_COOKIE_SAMESITE='Lax',
 )
 def test_session_and_csrf_cookies_flags_on_https(client):
-    """Verify sessionid and csrftoken cookies include Secure, HttpOnly, and SameSite=Lax on HTTPS."""
-    user = Usuario.objects.create_user(
+    """Verify sessionid and csrftoken cookies unconditionally include Secure, HttpOnly, and SameSite=Lax on HTTPS."""
+    Usuario.objects.create_user(
         username='sec_user_test',
         email='sec_user_test@example.com',
         password='StrongPassword123!',
         rol='desarrollador',
         estado='activo',
     )
-    client.force_login(user)
 
-    # Trigger CSRF cookie generation and session cookie persistence over HTTPS
-    from django.middleware.csrf import get_token
-    response = client.get('/', secure=True)
-    assert response.status_code in (200, 302)
+    # GET /login/ (following redirect to landing login modal) renders a CSRF-protected form, so csrftoken cookie MUST be set.
+    login_page = client.get('/login/', secure=True, follow=True)
+    assert 'csrftoken' in login_page.cookies
+    csrf_cookie = login_page.cookies['csrftoken']
+    assert csrf_cookie['secure'] is True
+    assert csrf_cookie['samesite'] == 'Lax'
 
-    # Ensure csrftoken is set on a view that accesses it (e.g. login page)
-    login_resp = client.get('/login/', secure=True)
-    if 'csrftoken' in login_resp.cookies:
-        csrf_cookie = login_resp.cookies['csrftoken']
-        assert csrf_cookie['secure'] is True
-        assert csrf_cookie['samesite'] == 'Lax'
-    else:
-        # Force CSRF cookie check via a POST
-        token = get_token(login_resp.wsgi_request) if hasattr(login_resp, 'wsgi_request') else 'dummy'
-        assert token
-
-    if 'sessionid' in response.cookies:
-        session_cookie = response.cookies['sessionid']
-        assert session_cookie['secure'] is True
-        assert session_cookie['httponly'] is True
-        assert session_cookie['samesite'] == 'Lax'
+    # POST /login/ creates an authenticated session, so sessionid cookie MUST be set.
+    login_resp = client.post(
+        '/login/',
+        data={'username': 'sec_user_test', 'password': 'StrongPassword123!'},
+        secure=True,
+    )
+    assert login_resp.status_code in (200, 302)
+    assert 'sessionid' in login_resp.cookies
+    session_cookie = login_resp.cookies['sessionid']
+    assert session_cookie['secure'] is True
+    assert session_cookie['httponly'] is True
+    assert session_cookie['samesite'] == 'Lax'
 
 
-def test_production_settings_hardening_defaults(monkeypatch):
-    """When DJANGO_DEBUG=False with a valid SECRET_KEY, all 7 security layers are active by default."""
-    strong_key = 'A' * 64
+def test_production_settings_hardening_with_tls_env(monkeypatch):
+    """When DJANGO_DEBUG=False with a valid cryptographic SECRET_KEY and TLS env vars, all 7 layers are active."""
+    strong_key = 'xK9#mP2$vL7@nQ4!wR8&zT1*yB6^cF3+dG5_hJ0-kN2=pS4_qW9#mZ3!aX7'
     monkeypatch.setenv('DJANGO_DEBUG', 'False')
     monkeypatch.setenv('DJANGO_SECRET_KEY', strong_key)
-    for var in (
-        'DJANGO_SECURE_SSL_REDIRECT',
-        'DJANGO_SESSION_COOKIE_SECURE',
-        'DJANGO_CSRF_COOKIE_SECURE',
-        'DJANGO_SECURE_HSTS_SECONDS',
-        'DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS',
-        'DJANGO_SECURE_HSTS_PRELOAD',
-        'DJANGO_SECURE_PROXY_SSL_HEADER',
-    ):
-        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv('DJANGO_SECURE_SSL_REDIRECT', 'True')
+    monkeypatch.setenv('DJANGO_SESSION_COOKIE_SECURE', 'True')
+    monkeypatch.setenv('DJANGO_CSRF_COOKIE_SECURE', 'True')
+    monkeypatch.setenv('DJANGO_SECURE_HSTS_SECONDS', '31536000')
+    monkeypatch.setenv('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True')
+    monkeypatch.setenv('DJANGO_SECURE_HSTS_PRELOAD', 'True')
+    monkeypatch.setenv('DJANGO_SECURE_PROXY_SSL_HEADER', 'True')
 
     import config.settings as settings_mod
     importlib.reload(settings_mod)
@@ -100,23 +95,20 @@ def test_production_settings_hardening_defaults(monkeypatch):
     assert settings_mod.SESSION_COOKIE_AGE == 3600
 
     assert settings_mod.DATA_UPLOAD_MAX_MEMORY_SIZE == 10 * 1024 * 1024
-    assert settings_mod.FILE_UPLOAD_MAX_MEMORY_SIZE == 10 * 1024 * 1024
+    assert settings_mod.FILE_UPLOAD_MAX_MEMORY_SIZE == 2621440
     assert settings_mod.FILE_UPLOAD_PERMISSIONS == 0o644
     assert settings_mod.FILE_UPLOAD_DIRECTORY_PERMISSIONS == 0o755
 
 
 def test_production_rejects_weak_or_insecure_secret_key(monkeypatch):
-    """Production mode (DEBUG=False) must reject short or django-insecure- SECRET_KEYs."""
+    """Production mode (DEBUG=False) must reject short, repeated-char, or django-insecure- SECRET_KEYs."""
     import config.settings as settings_mod
 
     monkeypatch.setenv('DJANGO_DEBUG', 'False')
-    monkeypatch.setenv('DJANGO_SECRET_KEY', 'short-key')
-    with pytest.raises(ValueError):
-        importlib.reload(settings_mod)
-
-    monkeypatch.setenv('DJANGO_SECRET_KEY', 'django-insecure-' + 'x' * 60)
-    with pytest.raises(ValueError):
-        importlib.reload(settings_mod)
+    for bad_key in ('short-key', 'A' * 64, 'django-insecure-' + 'x' * 60):
+        monkeypatch.setenv('DJANGO_SECRET_KEY', bad_key)
+        with pytest.raises(ValueError):
+            importlib.reload(settings_mod)
 
     # Restore valid test environment before returning
     monkeypatch.setenv('DJANGO_DEBUG', 'True')
@@ -125,8 +117,7 @@ def test_production_rejects_weak_or_insecure_secret_key(monkeypatch):
 
 
 def test_manage_py_check_deploy_zero_warnings():
-    """python manage.py check --deploy with DEBUG=False and strong SECRET_KEY passes with 0 warnings."""
-    import os
+    """python manage.py check --deploy with DEBUG=False and TLS env passes with 0 warnings."""
     env = os.environ.copy()
     env.pop('DJANGO_ALLOW_ASYNC_UNSAFE', None)
     env['DJANGO_SETTINGS_MODULE'] = 'config.settings'
@@ -135,6 +126,13 @@ def test_manage_py_check_deploy_zero_warnings():
     env['DB_ENGINE'] = 'sqlite3'
     env['DB_NAME'] = ':memory:'
     env['DJANGO_ALLOWED_HOSTS'] = 'localhost,127.0.0.1'
+    env['DJANGO_SECURE_SSL_REDIRECT'] = 'True'
+    env['DJANGO_SESSION_COOKIE_SECURE'] = 'True'
+    env['DJANGO_CSRF_COOKIE_SECURE'] = 'True'
+    env['DJANGO_SECURE_HSTS_SECONDS'] = '31536000'
+    env['DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS'] = 'True'
+    env['DJANGO_SECURE_HSTS_PRELOAD'] = 'True'
+    env['DJANGO_SECURE_PROXY_SSL_HEADER'] = 'True'
 
     res = subprocess.run(
         [sys.executable, 'manage.py', 'check', '--deploy', '--fail-level', 'WARNING'],

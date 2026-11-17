@@ -195,9 +195,10 @@ function filterUsers() {
       row.dataset.nombre || '',
       row.dataset.email || '',
       row.dataset.rol || '',
-      estadoText,
     ].join(' ').toLowerCase();
-    const matchSearch = !search || text.includes(search);
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matchEstadoSearch = search ? new RegExp('(^|\\s)' + escapedSearch + '(\\s|$)').test(estadoText) : false;
+    const matchSearch = !search || text.includes(search) || matchEstadoSearch;
     const matchRole = !role || row.dataset.rol === role;
     const matchStatus = !status || row.dataset.active === status;
     const show = matchSearch && matchRole && matchStatus;
@@ -314,7 +315,7 @@ function openToggleUserConfirmModal(btn, nombre, rol, isActive) {
     }
   }
 
-  modal.classList.add('active');
+  modal.classList.add('open');
 }
 
 function confirmToggleUserAction() {
@@ -329,11 +330,19 @@ function confirmToggleUserAction() {
 // ═══════════════════════════════════════════════
 // DRAWER MÓVIL ACCESIBLE (SCRUM-411)
 // ═══════════════════════════════════════════════
+function _syncAdminDrawerAria(isOpen) {
+  const toggleBtn = document.querySelector('.mobile-menu-toggle');
+  if (!toggleBtn) return;
+  toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  toggleBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+}
+
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
-  if (sidebar) sidebar.classList.toggle('is-open');
-  if (backdrop) backdrop.classList.toggle('is-open');
+  const isOpen = sidebar ? sidebar.classList.toggle('is-open') : false;
+  if (backdrop) backdrop.classList.toggle('is-open', isOpen);
+  _syncAdminDrawerAria(isOpen);
 }
 
 function closeSidebar() {
@@ -341,6 +350,7 @@ function closeSidebar() {
   const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar) sidebar.classList.remove('is-open');
   if (backdrop) backdrop.classList.remove('is-open');
+  _syncAdminDrawerAria(false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -350,5 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
     item.addEventListener('click', () => {
       if (window.innerWidth <= 768) closeSidebar();
     });
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
   });
 });

@@ -32,11 +32,10 @@
 <div class="scan-line"></div>
 <div class="tech-bg"></div>
 
-<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="devSidebar">
     <div class="sidebar-brand">
       <div class="brand-tech-wrap">
         <div class="brand-square blink"></div>
@@ -126,13 +125,14 @@
       </a>
     </div>
   </aside>
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
   <!-- Main Wrapper -->
   <div class="main-wrapper">
 
     <!-- Top header -->
     <header class="top-header">
-      <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú de navegación">
+      <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-expanded="false" aria-controls="devSidebar" aria-label="Abrir menú de navegación">
         <i data-lucide="menu"></i>
       </button>
       <div class="top-header-title">

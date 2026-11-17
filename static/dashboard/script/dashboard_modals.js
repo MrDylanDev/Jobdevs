@@ -871,14 +871,8 @@
 
       // Panel de resolución si es Admin y la disputa no está resuelta
       if (d.es_admin && d.resolver_url && d.estado !== 'resuelta' && d.estado !== 'cancelada') {
-        var resolucionesList = (d.resoluciones && d.resoluciones.length) ? d.resoluciones : [
-          { codigo: 'reanudar_proyecto', label: 'Reanudar Proyecto' },
-          { codigo: 'cancelar_contrato', label: 'Cancelar Contrato' },
-          { codigo: 'sancionar_empresa', label: 'Sancionar Empresa' },
-          { codigo: 'sancionar_desarrollador', label: 'Sancionar Desarrollador' }
-        ];
         var resolucionesOptions = '<option value="">-- Selecciona el sentido de la resolución --</option>';
-        resolucionesList.forEach(function (r) {
+        (d.resoluciones || []).forEach(function (r) {
           resolucionesOptions += '<option value="' + escapeHtml(r.codigo) + '">' + escapeHtml(r.label) + '</option>';
         });
         html +=

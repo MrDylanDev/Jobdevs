@@ -13,3 +13,9 @@ class PostulacionAdmin(admin.ModelAdmin):
 @admin.register(ConfiguracionNegociacion)
 class ConfiguracionNegociacionAdmin(admin.ModelAdmin):
     list_display = ('id',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

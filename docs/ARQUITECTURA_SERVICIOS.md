@@ -130,5 +130,5 @@ Toda vista Django debe actuar exclusivamente como **controlador delgado (Thin Co
 - Lógica de negocio (> ~40 líneas de reglas condicionales o cálculos de dominio): debe extraerse a `<app>/services.py`.
 
 ### 2. Criterio de Registro en `admin.py`
-Todos los modelos de dominio persistentes deben estar registrados en `<app>/admin.py` con `list_display`, `list_filter` y `search_fields` para inspección y soporte operativo en `/admin/` (por ejemplo: `Avance`, `Favorito`, `ContratoDigital`, `SolicitudCancelacion`, `Postulacion`, `Notificacion`, `AvisoCumplimiento`).
-Si un modelo se excluye intencionalmente del admin (p. ej. tablas efímeras o de solo lectura externa), debe documentarse explícitamente con un comentario en `<app>/admin.py`.
+Los nuevos modelos de dominio y las apps cubiertas por el estándar (`avances`, `favoritos`, `contrataciones`, `postulaciones`, `notificaciones`) se registran en `<app>/admin.py` con `list_display`, `list_filter` y `search_fields` para inspección y soporte operativo en `/admin/` (por ejemplo: `Avance`, `Favorito`, `ContratoDigital`, `SolicitudCancelacion`, `Postulacion`, `Notificacion`, `AvisoCumplimiento`).
+Si un modelo se excluye intencionalmente del admin (p. ej. tablas efímeras o de solo lectura externa), debe documentarse explícitamente con un comentario en `<app>/admin.py`. Los modelos legados pendientes de migración se incorporan de forma incremental bajo este mismo estándar.

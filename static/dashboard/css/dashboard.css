@@ -823,27 +823,29 @@ ul { list-style: none; }
   .mobile-menu-toggle {
     display: inline-flex;
   }
-  .sidebar {
+  .app-layout > .sidebar {
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
     width: 260px;
     z-index: 1100;
+    visibility: hidden;
     transform: translateX(-100%);
-    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.26s;
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   }
-  .sidebar.is-open {
+  .app-layout > .sidebar.is-open {
+    visibility: visible;
     transform: translateX(0);
   }
-  .sidebar-brand-text,
-  .sidebar-brand-sub,
-  .nav-item span,
-  .sidebar-group-label {
+  .app-layout > .sidebar .sidebar-brand-text,
+  .app-layout > .sidebar .sidebar-brand-sub,
+  .app-layout > .sidebar .nav-item span,
+  .app-layout > .sidebar .sidebar-group-label {
     display: initial;
   }
-  .nav-item {
+  .app-layout > .sidebar .nav-item {
     justify-content: flex-start;
     padding: 10px 14px;
   }

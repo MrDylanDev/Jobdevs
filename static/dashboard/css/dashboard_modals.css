@@ -28,7 +28,7 @@
 }
 
 [data-theme="light"] .jdm-kicker,
-[data-theme="light"] .jdm-subtitle,
+[data-theme="light"] .jdm-sub,
 [data-theme="light"] .jdm-meta-label,
 [data-theme="light"] .jdm-party-role,
 [data-theme="light"] .jdm-form-label {
@@ -38,7 +38,7 @@
 [data-theme="light"] .jdm-meta-box,
 [data-theme="light"] .jdm-party-card,
 [data-theme="light"] .jdm-clauses-container,
-[data-theme="light"] .jdm-chat-box,
+[data-theme="light"] .jdm-disputa-chat,
 [data-theme="light"] .jdm-admin-resolution-box {
   background: #f8fafc;
   border-color: #e2e8f0;
@@ -62,6 +62,12 @@
   background: #f1f5f9;
   color: #0f172a;
   border-color: #cbd5e1;
+}
+
+[data-theme="light"] .jdm-btn-secondary:hover {
+  background: #e2e8f0;
+  color: #15803d;
+  border-color: #16a34a;
 }
 
 .jdm-modal[hidden] {

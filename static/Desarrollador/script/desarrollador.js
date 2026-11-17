@@ -20,7 +20,7 @@ function actualizarBotonTemaDev(tema) {
   var btn = document.getElementById('devThemeToggle');
   if (!btn) return;
   btn.setAttribute('aria-pressed', tema === 'light' ? 'true' : 'false');
-  btn.setAttribute('aria-label', tema === 'light' ? 'Tema claro activo' : 'Tema oscuro activo');
+  btn.setAttribute('aria-label', 'Cambiar entre tema oscuro y claro');
   btn.title = tema === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro';
 }
 
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.documentElement.setAttribute('data-theme', tema);
       actualizarBotonTemaDev(tema);
     };
+    handleSystemThemeChange(mediaQuery);
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleSystemThemeChange);
     } else if (mediaQuery.addListener) {
@@ -531,11 +532,19 @@ document.addEventListener('submit', async (event) => {
 // ═══════════════════════════════════════════════
 // DRAWER MÓVIL ACCESIBLE (SCRUM-411)
 // ═══════════════════════════════════════════════
+function _syncDevDrawerAria(isOpen) {
+  const toggleBtn = document.querySelector('.mobile-menu-toggle');
+  if (!toggleBtn) return;
+  toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  toggleBtn.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+}
+
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
-  if (sidebar) sidebar.classList.toggle('is-open');
-  if (backdrop) backdrop.classList.toggle('is-open');
+  const isOpen = sidebar ? sidebar.classList.toggle('is-open') : false;
+  if (backdrop) backdrop.classList.toggle('is-open', isOpen);
+  _syncDevDrawerAria(isOpen);
 }
 
 function closeSidebar() {
@@ -543,6 +552,7 @@ function closeSidebar() {
   const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar) sidebar.classList.remove('is-open');
   if (backdrop) backdrop.classList.remove('is-open');
+  _syncDevDrawerAria(false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -552,5 +562,8 @@ document.addEventListener('DOMContentLoaded', () => {
     item.addEventListener('click', () => {
       if (window.innerWidth <= 768) closeSidebar();
     });
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
   });
 });
