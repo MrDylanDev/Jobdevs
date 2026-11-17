@@ -151,22 +151,20 @@ class TestBotonDeTema:
 
     def test_el_switch_no_choca_la_marca_en_pantallas_angostas(self, css):
         movil = css[css.index('@media (max-width: 767.98px)'):]
-        assert '.theme-toggle-icon { padding: 7px 6px; }' in movil, (
-            'A 320px la marca y el switch quedan a 3px si no se achica el relleno'
+        assert '.theme-toggle { width: 36px;' in movil, (
+            'A 320px el botón de tema se compacta para no chocar con la marca'
         )
 
-    def test_es_un_switch_de_dos_posiciones(self, html):
+    def test_usa_icono_morph_de_tema(self, html):
         navbar = html[html.index('id="navbar"'):html.index('id="inicio"')]
-        assert 'lucide-moon' in navbar and 'lucide-sun' in navbar, (
-            'Las dos posiciones tienen que estar a la vista: un solo icono no dice a dónde va'
-        )
+        assert 'theme-toggle-morph' in navbar
+        assert 'lucide-moon' not in navbar and 'lucide-sun' not in navbar
         assert 'themeToggleLabel' not in navbar, (
             'El texto de estado se leía como etiqueta pasiva, no como control'
         )
 
     def test_el_estado_lo_comunica_el_css_no_el_js(self, css, js):
-        assert '.theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark' in css
-        assert '.theme-toggle[aria-pressed="true"] .theme-toggle-icon--light' in css
+        assert '.theme-toggle[aria-pressed="false"] .theme-toggle-morph .main-circle' in css
         assert 'themeToggleLabel' not in js, 'Quedó código muerto del botón viejo'
 
 
@@ -482,7 +480,8 @@ class TestTokensInexistentes:
     los tests de contraste, así que se fija acá."""
 
     def test_las_plantillas_solo_referencian_tokens_existentes(self, css, html):
-        declarados = set(re.findall(r'(--[\w-]+):', css))
+        # La landing también define variables locales para su spinner inline.
+        declarados = set(re.findall(r'(--[\w-]+)\s*:', css + html))
         referenciados = set(re.findall(r'var\((--[\w-]+)', html))
         inexistentes = sorted(referenciados - declarados)
         assert not inexistentes, (

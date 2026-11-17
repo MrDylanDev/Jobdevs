@@ -1,0 +1,125 @@
+{% load i18n %}
+{# Pestaña: Cancelaciones de contrato (empresa). Requiere solicitudes_cancelacion, contratos_cancelables y cancelaciones_pendientes_count. #}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% trans "Solicitudes de cancelación" %}</h1>
+  </div>
+</div>
+
+<div class="cancel-workspace-grid">
+  <section class="cancel-workspace-col">
+    <h2 class="cancel-section-title">{% trans "Proponer terminación de mutuo acuerdo" %}</h2>
+    <div class="contracts-grid-corp">
+  {% for contrato in contratos_cancelables %}
+    <article class="contract-card-corp" aria-label="{% blocktrans with titulo=contrato.proyecto.titulo %}Contrato de {{ titulo }}{% endblocktrans %}">
+      <div>
+        <div class="contract-card-top">
+          <span class="contract-estado-badge estado-firmado">{% trans "Activo" %}</span>
+        </div>
+        <div class="cancel-card-title">{{ contrato.proyecto.titulo }}</div>
+        <div class="cancel-card-meta">
+          <i data-lucide="user"></i>
+          <strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong>
+          <span>·</span>
+          <span>{{ contrato.desarrollador.email|truncatechars:28 }}</span>
+        </div>
+        <div class="cancel-card-meta cancel-card-fecha">
+          <i data-lucide="calendar"></i>
+          <span>{% trans "Inicio:" %} {{ contrato.fecha_inicio|date:"d M Y" }}</span>
+        </div>
+      </div>
+
+      <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
+        {% csrf_token %}
+        <label class="form-label-corp" for="causal-{{ contrato.id }}">{% trans "Motivo de terminación" %}</label>
+        <select id="causal-{{ contrato.id }}" name="causal" class="form-input-corp" required>
+          <option value="acuerdo_mutuo">{% trans "Acuerdo mutuo" %}</option>
+          <option value="fuerza_mayor">{% trans "Fuerza mayor (requiere acuerdo)" %}</option>
+        </select>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="motivo-{{ contrato.id }}">{% trans "Motivo del acuerdo propuesto" %}</label>
+          <textarea id="motivo-{{ contrato.id }}" name="motivo_cancelacion" class="form-input-corp cancel-motivo" minlength="10" maxlength="2000" required placeholder="{% trans "Explica el acuerdo (mínimo 10 caracteres)" %}"></textarea>
+        </div>
+        <button type="submit" class="btn-corp-action danger-subtle cancel-submit">
+          <i data-lucide="handshake"></i>
+          <span>{% trans "Proponer acuerdo (no cancela aún)" %}</span>
+        </button>
+      </form>
+
+      <p class="cancel-disputa-link">
+        {% trans "¿Hay un incumplimiento o conflicto grave?" %}
+        <a href="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}"
+           onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}', '{{ contrato.proyecto.titulo|escapejs }}'); return false;">{% trans "Abrir una disputa formal para este contrato" %}</a>.
+      </p>
+    </article>
+  {% empty %}
+    <div class="activity-empty cancel-empty">
+      <i data-lucide="file-x"></i>
+      <p>{% trans "No hay contratos activos disponibles para solicitar terminación" %}</p>
+      <p>{% trans "Solo aparecen contratos activos, fuera de mediación y sin una solicitud en curso." %}</p>
+    </div>
+  {% endfor %}
+    </div>
+  </section>
+
+  <section class="cancel-workspace-col">
+    <h2 class="cancel-section-title">{% trans "Mis solicitudes" %}</h2>
+    <div class="cancel-lista">
+  {% for solicitud in solicitudes_cancelacion %}
+    <article class="cancel-item" aria-label="{% blocktrans with numero=solicitud.id %}Solicitud {{ numero }}{% endblocktrans %}">
+      <div class="cancel-item-head">
+        <div>
+          <div class="cancel-item-title">
+            #{{ solicitud.id }} · {{ solicitud.contratacion.proyecto.titulo }}
+          </div>
+          <div class="cancel-item-meta">
+            <i data-lucide="user"></i>
+            <span>{{ solicitud.contratacion.desarrollador.nombre|default:solicitud.contratacion.desarrollador.username }}</span>
+            <span>·</span>
+            <span>{{ solicitud.get_causal_display }}</span>
+          </div>
+        </div>
+        <span class="cancel-estado-badge estado-{{ solicitud.estado }}">{{ solicitud.get_estado_display }}</span>
+      </div>
+
+      <div class="cancel-item-body">
+        <p><strong>{% trans "Propuesta por:" %}</strong> {{ solicitud.solicitante.nombre|default:solicitud.solicitante.username }}</p>
+        <p><strong>{% trans "Motivo:" %}</strong> {{ solicitud.motivo }}</p>
+        {% if solicitud.evidencia %}
+          <p><strong>{% trans "Evidencia referida:" %}</strong> {{ solicitud.evidencia }}</p>
+        {% endif %}
+        {% if solicitud.dictamen %}
+          <p><strong>{% trans "Decisión:" %}</strong> {{ solicitud.dictamen }}</p>
+        {% endif %}
+      </div>
+
+      {% if solicitud.contratacion.proyecto.estado == 'en_disputa' %}
+        <div class="cancel-pausa">
+          <i data-lucide="pause-circle"></i>
+          <span>{% trans "Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución." %}</span>
+        </div>
+      {% elif solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
+        <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" name="decision" value="aprobar" class="btn-corp-action danger-subtle">{% trans "Confirmar acuerdo y finalizar contrato" %}</button>
+          <button type="submit" name="decision" value="rechazar" class="btn-corp-action">{% trans "No confirmar acuerdo" %}</button>
+        </form>
+      {% endif %}
+      {% if solicitud.causal == 'fuerza_mayor' and solicitud.contratacion.estado == 'activa' and solicitud.contratacion.proyecto.estado != 'en_disputa' %}
+        {% if solicitud.estado == 'pendiente_acuerdo' or solicitud.estado == 'rechazada' %}
+          <p>{% trans "Si no hay acuerdo o respuesta, puedes pedir mediación sin declarar incumplimiento." %}</p>
+          <a href="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&amp;categoria=fuerza_mayor"
+             onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&categoria=fuerza_mayor', '{{ solicitud.contratacion.proyecto.titulo|escapejs }}'); return false;">{% trans "Solicitar revisión por fuerza mayor" %}</a>
+        {% endif %}
+      {% endif %}
+    </article>
+  {% empty %}
+    <div class="activity-empty cancel-empty">
+      <i data-lucide="clipboard-list"></i>
+      <p>{% trans "No hay propuestas de terminación enviadas ni recibidas" %}</p>
+      <p>{% trans "Cuando propongas un acuerdo, podrás seguir su estado aquí sin salir del panel." %}</p>
+    </div>
+  {% endfor %}
+    </div>
+  </section>
+</div>

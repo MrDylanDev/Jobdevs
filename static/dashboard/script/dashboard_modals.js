@@ -170,10 +170,11 @@
         credentials: 'same-origin'
       });
       var data = await res.json();
-      if (!data.ok || !data.contrato) throw new Error(data.error || 'No se pudo obtener el contrato');
+      var c = data.contrato || (data.id ? data : null);
+      if (!c) throw new Error(data.error || 'No se pudo obtener el contrato');
 
-      var c = data.contrato;
-      setHeader('CONTRATACIÓN // CONTRATO DIGITAL', c.codigo + ' — ' + c.proyecto_titulo, 'Estado: ' + c.estado_label);
+      var cEstadoLabel = c.estado_label || c.estado_display || c.estado || '';
+      setHeader('CONTRATACIÓN // CONTRATO DIGITAL', c.codigo + ' — ' + c.proyecto_titulo, 'Estado: ' + cEstadoLabel);
 
       var estadoCls = c.estado === 'firmado' ? 'jdm-badge-success' : (c.estado === 'borrador' ? 'jdm-badge-warning' : 'jdm-badge-info');
 
@@ -217,12 +218,29 @@
         '<div class="jdm-form-label"><i data-lucide="scroll"></i> Cláusulas y Términos del Acuerdo</div>' +
         '<div class="jdm-clauses-container">';
 
-      if (c.clausulas && c.clausulas.length) {
-        c.clausulas.forEach(function (clausula, i) {
+      var clausulasArr = Array.isArray(c.clausulas) ? c.clausulas : (typeof c.clausulas === 'string' && c.clausulas.trim() ? [c.clausulas] : []);
+      if (clausulasArr.length) {
+        clausulasArr.forEach(function (clausula, i) {
           html += '<div class="jdm-clause-item"><strong>CLÁUSULA ' + (i + 1) + '.</strong> ' + escapeHtml(clausula) + '</div>';
         });
       } else {
         html += '<p>Sin cláusulas adicionales registradas.</p>';
+      }
+      html += '</div>';
+
+      var perfil = c.perfil_profesional;
+      html += '<div class="jdm-clauses-container"><strong>Perfil profesional de la postulación</strong>';
+      if (perfil) {
+        html += '<p style="margin:6px 0 10px;opacity:.8;">' + (c.hash_documento ? 'Datos conservados en la primera firma.' : 'Vista previa: se conservará en la primera firma.') + '</p>' +
+          '<div class="jdm-clause-item"><strong>Nombre:</strong> ' + escapeHtml(perfil.nombre) + '</div>' +
+          '<div class="jdm-clause-item"><strong>Verificación SENA:</strong> ' + escapeHtml(perfil.estado_verificacion) + ' · ' + escapeHtml(perfil.condicion_sena) + '</div>' +
+          '<div class="jdm-clause-item"><strong>Programa:</strong> ' + escapeHtml(perfil.programa_formacion || 'No registrado') + '</div>' +
+          '<div class="jdm-clause-item"><strong>Ficha:</strong> ' + escapeHtml(perfil.ficha || 'No registrada') + '</div>' +
+          '<div class="jdm-clause-item"><strong>Habilidades:</strong> ' + escapeHtml(perfil.habilidades || 'No registradas') + '</div>' +
+          (perfil.portafolio_url ? '<div class="jdm-clause-item"><strong>Portafolio:</strong> ' + escapeHtml(perfil.portafolio_url) + '</div>' : '') +
+          '<div class="jdm-clause-item" style="white-space:pre-wrap;"><strong>Mensaje de presentación:</strong>\n' + escapeHtml(perfil.mensaje_postulacion || 'Sin mensaje') + '</div>';
+      } else {
+        html += '<p>Contrato anterior sin evidencia de perfil conservada.</p>';
       }
       html += '</div>';
 
@@ -231,9 +249,9 @@
           '<div class="jdm-sign-callout" id="jdmSignCallout">' +
             '<div>' +
               '<strong style="color:#00e676;display:block;margin-bottom:2px;"><i data-lucide="fingerprint"></i> Firma electrónica lista para emitir</strong>' +
-              '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos y retribución estipulados para este proyecto.</span>' +
+              '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos, retribución y el perfil profesional mostrado.</span>' +
             '</div>' +
-            '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url) + '">' +
+            '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url || c.url_firmar || '') + '">' +
               '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora' +
             '</button>' +
           '</div>';
@@ -999,7 +1017,7 @@
       var catOptions = '<option value="">-- Selecciona causal de disputa --</option>';
       if (data.categorias && data.categorias.length) {
         data.categorias.forEach(function (c) {
-          catOptions += '<option value="' + c.codigo + '">' + escapeHtml(c.label) + '</option>';
+          catOptions += '<option value="' + escapeHtml(c.codigo) + '"' + (c.codigo === data.categoria ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>';
         });
       }
 
@@ -1009,7 +1027,7 @@
 
           '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);padding:12px 14px;border-radius:4px;margin-bottom:16px;font-size:12.5px;color:#fca5a5;">' +
             '<i data-lucide="alert-triangle" style="margin-right:6px;color:#ef4444;"></i>' +
-            '<strong>Importante:</strong> Abrir una disputa <strong>congela de inmediato</strong> el proyecto y su contratación hasta resolución arbitral. Solo procede ante faltas graves.' +
+            '<strong>Importante:</strong> La mediación <strong>congela de inmediato</strong> el proyecto y su contratación hasta el dictamen. Fuerza mayor permite revisión sin atribuir incumplimiento ni generar sanciones automáticas; las demás causales corresponden a conflictos graves.' +
           '</div>' +
 
           '<div class="jdm-form-group">' +
@@ -1019,7 +1037,7 @@
 
           '<div class="jdm-form-group">' +
             '<label class="jdm-form-label" for="jdmMotivoDisputa">Motivo y hechos detallados <span class="req">*</span></label>' +
-            '<textarea id="jdmMotivoDisputa" name="motivo" class="jdm-textarea" placeholder="Relata objetivamente los incumplimientos o incidentes ocurridos…" required></textarea>' +
+            '<textarea id="jdmMotivoDisputa" name="motivo" class="jdm-textarea" placeholder="Describe los hechos y los intentos de llegar a un acuerdo…" required></textarea>' +
           '</div>' +
 
           '<div class="jdm-form-group">' +
@@ -1027,9 +1045,11 @@
             '<input type="url" id="jdmEvidenciaDisputa" name="evidencia_url" class="jdm-input" placeholder="https://drive.google.com/... o captura">' +
           '</div>' +
 
+          '<label class="jdm-form-group"><input type="checkbox" name="confirma_intento_previo" required> Intenté llegar a un acuerdo por los canales de comunicación.</label>' +
+          '<label class="jdm-form-group" id="jdmDeclaracionGravedad"><input type="checkbox" name="confirma_gravedad" required> Declaro que existe un conflicto grave que requiere mediación.</label>' +
           '<div style="margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#c0d0c6;">' +
             '<input type="checkbox" id="jdmAceptaSanciones" name="acepta_sanciones" style="margin-top:3px;" required>' +
-            '<label for="jdmAceptaSanciones">Comprendo que el proyecto quedará congelado y que realizar denuncias infundadas conlleva sanciones disciplinarias en la plataforma.</label>' +
+            '<label for="jdmAceptaSanciones">Acepto las reglas de mediación y comprendo que el proyecto quedará congelado hasta el dictamen. Alegar fuerza mayor no supone culpa ni sanción automática.</label>' +
           '</div>' +
         '</form>';
 
@@ -1043,6 +1063,17 @@
       var formD = document.getElementById('jdmFormNuevaDisputa');
 
       if (btnConf && formD) {
+        var categoriaD = formD.querySelector('[name="categoria"]');
+        var gravedadD = formD.querySelector('[name="confirma_gravedad"]');
+        function actualizarDeclaraciones() {
+          var esFuerzaMayor = categoriaD.value === 'fuerza_mayor';
+          gravedadD.disabled = esFuerzaMayor;
+          gravedadD.required = !esFuerzaMayor;
+          document.getElementById('jdmDeclaracionGravedad').hidden = esFuerzaMayor;
+          if (esFuerzaMayor) gravedadD.checked = false;
+        }
+        categoriaD.addEventListener('change', actualizarDeclaraciones);
+        actualizarDeclaraciones();
         btnConf.addEventListener('click', async function () {
           var cat = formD.querySelector('[name="categoria"]').value;
           var mot = formD.querySelector('[name="motivo"]').value.trim();
@@ -1064,6 +1095,8 @@
             errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes aceptar la declaración de responsabilidad.</span>';
             return;
           }
+
+          if (!formD.reportValidity()) return;
 
           errBox.style.display = 'none';
           btnConf.disabled = true;

@@ -1,8 +1,10 @@
 import os
+from urllib.parse import urlparse
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.db import connection
+from django.test import Client
 from playwright.sync_api import sync_playwright
 
 User = get_user_model()
@@ -68,8 +70,28 @@ def page(browser, live_server):
     """Create a new page for each test, pointing at the live server."""
     context = browser.new_context(viewport={'width': 1280, 'height': 800})
     page = context.new_page()
+    # LiveServerTestCase sirve WSGI: un EventSource infinito deja hilos activos
+    # que acceden a la BD de pruebas tras su cierre. Los SSE se prueban aparte.
+    page.route('**/notificaciones/stream/**', lambda route: route.fulfill(status=204))
     yield page
     context.close()
+
+
+@pytest.fixture
+def login_user(page, live_server):
+    """Autentica el navegador con una sesión Django ya persistida."""
+    def _login(user):
+        client = Client()
+        client.force_login(user)
+        page.context.clear_cookies()
+        page.context.add_cookies([{
+            'name': 'sessionid',
+            'value': client.cookies['sessionid'].value,
+            'domain': urlparse(live_server.url).hostname,
+            'path': '/',
+        }])
+
+    return _login
 
 
 # Los fixtures de datos son de alcance 'function': los tests E2E usan

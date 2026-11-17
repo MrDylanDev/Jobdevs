@@ -3,12 +3,16 @@ Tareas Celery asíncronas para el módulo de notificaciones y correos transaccio
 """
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
+from django.db.models import F, Q
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
@@ -105,3 +109,61 @@ def purgar_notificaciones_antiguas_task(dias: int = 30, incluir_no_leidas: bool 
     borradas, _ = qs.delete()
     logger.info("Purga Celery Beat: eliminadas %d notificaciones con más de %d días.", borradas, dias)
     return borradas
+
+
+@shared_task(name='notificaciones.enviar_avisos_cumplimiento')
+def enviar_avisos_cumplimiento_task() -> int:
+    """Avisos internos 48 h antes del fin del día local y al vencimiento.
+
+    Una fecha sin hora vence al finalizar ese día local. La marca única
+    conserva la deduplicación incluso tras purgar notificaciones leídas.
+    """
+    from notificaciones.models import AvisoCumplimiento, Notificacion
+    from proyectos.models import Proyecto
+    from usuarios.models import Usuario
+
+    hoy = timezone.localdate()
+    administradores = list(Usuario.objects.filter(
+        rol='administrador', estado='activo', is_active=True,
+    ).values_list('id', flat=True))
+    # Una reprogramación invalida avisos no leídos de la fecha anterior.
+    obsoletos = AvisoCumplimiento.objects.filter(
+        Q(proyecto__fecha_cumplimiento__isnull=True)
+        | ~Q(fecha_cumplimiento=F('proyecto__fecha_cumplimiento'))
+    ).select_related('notificacion')
+    for aviso in obsoletos.iterator():
+        with transaction.atomic():
+            if aviso.notificacion_id:
+                Notificacion.objects.filter(pk=aviso.notificacion_id, leida=False).delete()
+            aviso.delete()
+    total = 0
+    for etapa, fecha, descripcion in (
+        ('anticipado', hoy + timedelta(days=1), 'vence en 48 horas'),
+        ('vencido', hoy - timedelta(days=1), 'ha vencido'),
+    ):
+        proyectos = Proyecto.objects.filter(
+            estado__in=('publicado', 'en_desarrollo', 'en_revision'),
+            fecha_cumplimiento=fecha,
+        ).select_related('empresa')
+        for proyecto in proyectos.iterator():
+            destinatarios = set(administradores)
+            if proyecto.empresa.is_active and proyecto.empresa.estado == 'activo':
+                destinatarios.add(proyecto.empresa_id)
+            mensaje = (
+                f"La fecha de cumplimiento del proyecto '{proyecto.titulo}' {descripcion} "
+                f"({fecha:%Y-%m-%d})."
+            )
+            for usuario_id in destinatarios:
+                with transaction.atomic():
+                    marca, creado = AvisoCumplimiento.objects.get_or_create(
+                        proyecto=proyecto, usuario_id=usuario_id,
+                        fecha_cumplimiento=fecha, etapa=etapa,
+                    )
+                    if creado:
+                        marca.notificacion = Notificacion.objects.create(
+                            usuario_id=usuario_id, proyecto=proyecto,
+                            tipo='alerta', mensaje=mensaje,
+                        )
+                        marca.save(update_fields=['notificacion'])
+                        total += 1
+    return total

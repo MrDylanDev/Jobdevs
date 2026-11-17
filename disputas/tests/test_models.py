@@ -73,6 +73,26 @@ class TestDisputaModel:
             'sancionar_empresa', 'sancionar_desarrollador',
         }
 
+    def test_inactividad_es_causal_disponible_para_ambas_partes(self):
+        from disputas.models import Disputa
+
+        assert 'inactividad' in dict(Disputa.CATEGORIAS_EMPRESA)
+        assert 'inactividad' in dict(Disputa.CATEGORIAS_DESARROLLADOR)
+
+    @pytest.mark.parametrize(('resolucion', 'familia'), [
+        ('reanudar_proyecto', 'continuidad'),
+        ('cancelar_contrato', 'terminacion'),
+        ('sancionar_empresa', 'sancion'),
+        ('sancionar_desarrollador', 'sancion'),
+    ])
+    def test_resoluciones_se_agrupan_en_tres_familias_oficiales(
+            self, resolucion, familia):
+        from disputas.models import Disputa
+
+        disputa = Disputa(resolucion=resolucion)
+
+        assert disputa.familia_resolucion == familia
+
     def test_contratacion_nullable(self, escenario):
         from disputas.models import Disputa
         d = Disputa.objects.create(

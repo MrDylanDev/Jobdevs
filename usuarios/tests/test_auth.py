@@ -148,6 +148,33 @@ class TestLoginView:
         assert not any('suspendida' in m.lower() for m in messages)
         assert any('incorrectos' in m.lower() for m in messages)
 
+    def test_cinco_fallos_consecutivos_suspenden_y_bloquean_login(self, client, empresa_user):
+        for intento in range(1, 6):
+            response = client.post(reverse('login'), {
+                'username': empresa_user.username,
+                'password': 'WrongPassword!',
+            })
+            assert response.status_code == 302
+            empresa_user.refresh_from_db()
+            assert empresa_user.intentos_fallidos == intento
+            assert empresa_user.estado == ('suspendido' if intento == 5 else 'activo')
+        assert not empresa_user.is_active
+        response = client.post(reverse('login'), {
+            'username': empresa_user.username,
+            'password': 'TestPass123!',
+        })
+        assert response.url == reverse('inicio')
+
+    def test_cookie_de_login_es_de_sesion_del_navegador(self, client, empresa_user):
+        response = client.post(reverse('login'), {
+            'username': empresa_user.username,
+            'password': 'TestPass123!',
+        })
+        assert response.status_code == 302
+        cookie = response.cookies['sessionid']
+        assert cookie['expires'] == ''
+        assert cookie['max-age'] == ''
+
     def test_suspended_user_session_restoration_rejected(self, client, empresa_user):
         """If a logged in user becomes suspended, session restoration must reject them on protected views."""
         client.force_login(empresa_user)

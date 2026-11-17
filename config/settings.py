@@ -354,6 +354,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'postulaciones.expirar_negociaciones_vencidas',
         'schedule': crontab(minute='*/30'),
     },
+    'avisos-cumplimiento-diario': {
+        'task': 'notificaciones.enviar_avisos_cumplimiento',
+        'schedule': crontab(hour=0, minute=0),
+    },
 }
 
 # ==============================================================================

@@ -5,14 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Redactar Mensaje</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
 </head>
 <body>
 <div class="app-layout">
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <img src="{% static 'IMG/Logo.jpg' %}" alt="JobDevs">
+      <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div>
         <div class="sidebar-brand-text">JobDevs</div>
         <div class="sidebar-brand-sub">Mensajería</div>
@@ -34,14 +34,7 @@
           </div>
         </div>
 
-        {% if messages %}
-          {% for message in messages %}
-            <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}" style="margin-bottom:16px;">
-              <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
+        {% include 'partials/_flash_toasts.html' %}
 
         <div class="card">
           <form method="post" style="display:flex; flex-direction:column; gap:16px;">

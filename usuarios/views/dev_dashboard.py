@@ -185,7 +185,7 @@ def dashboard_desarrollador(request):
 
     proyectos_explorar = [
         p for p in proyectos_explorar_qs
-        if p.estado == 'publicado' or p.vacantes_disponibles > 0
+        if p.vacantes_disponibles > 0
     ][:48]
 
     favoritos_ids = list(Favorito.objects.filter(desarrollador=request.user).values_list('proyecto_id', flat=True))

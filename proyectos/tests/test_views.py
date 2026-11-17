@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 import pytest
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto
+from proyectos.models import Proyecto, HistorialEstadoProyecto
 from postulaciones.models import Postulacion
 
 User = get_user_model()
@@ -47,6 +49,36 @@ class TestListarProyectos:
         content = response.content.decode()
         assert 'CupoAbierto' in content
         assert '1 de 2 cupos libres' in content
+
+    def test_publicado_sin_cupo_no_aparece_ni_cuenta_en_vitrina(
+        self, dev_client, empresa_user, desarrollador_user,
+    ):
+        from contrataciones.models import Contratacion
+
+        ocupado = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Cupo agotado', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        reservado = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Cupo reservado', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Cupo abierto', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        Contratacion.objects.create(
+            proyecto=ocupado, empresa=empresa_user,
+            desarrollador=desarrollador_user, estado='activa',
+        )
+        Postulacion.objects.create(
+            proyecto=reservado, desarrollador=desarrollador_user,
+            estado='en_negociacion',
+        )
+        response = dev_client.get(reverse('listar_proyectos'), HTTP_ACCEPT='application/json')
+        assert response.status_code == 200
+        assert response.json()['total_proyectos'] == 1
+        assert {p['titulo'] for p in response.json()['proyectos']} == {'Cupo abierto'}
 
     def test_listar_proyectos_oculta_proyectos_con_fecha_limite_vencida(self, auth_client, empresa_user):
         """SCRUM-233 (RF 3.1.1): Los proyectos con fecha límite vencida se ocultan de la vitrina pública."""
@@ -194,12 +226,14 @@ class TestCrearProyecto:
 
     def test_empresa_puede_crear(self, auth_client, empresa_user):
         """Empresa user can create a project."""
+        from datetime import timedelta
         response = auth_client.post(reverse('crear_proyecto'), {
             'titulo': 'Nuevo Proyecto',
             'descripcion': 'Descripción del proyecto',
             'tipo_solucion': 'sitio_web',
             'prioridad': 'alta',
             'vacantes': '2',
+            'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
         })
         assert response.status_code == 302
         assert Proyecto.objects.filter(titulo='Nuevo Proyecto').exists()
@@ -226,15 +260,55 @@ class TestCrearProyecto:
 
     def test_crear_registra_historial(self, auth_client, empresa_user):
         """Creating a project registers initial estado in historial."""
+        from datetime import timedelta
         auth_client.post(reverse('crear_proyecto'), {
             'titulo': 'Con Historial',
             'descripcion': 'Test',
             'tipo_solucion': 'sitio_web',
+            'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
         })
         proyecto = Proyecto.objects.get(titulo='Con Historial')
         historial = proyecto.historial_estados.first()
         assert historial is not None
         assert historial.estado_nuevo == 'publicado'
+
+    def test_fecha_cumplimiento_independiente_del_cierre_de_postulaciones(self, auth_client, empresa_user):
+        from datetime import timedelta
+
+        hoy = timezone.localdate()
+        response = auth_client.post(reverse('crear_proyecto'), {
+            'titulo': 'Dos fechas', 'descripcion': 'D', 'tipo_solucion': 'sitio_web',
+            'fecha_limite': (hoy + timedelta(days=7)).isoformat(),
+            'fecha_cumplimiento': (hoy + timedelta(days=30)).isoformat(),
+        })
+        assert response.status_code == 302
+        proyecto = Proyecto.objects.get(titulo='Dos fechas')
+        assert proyecto.fecha_limite == hoy + timedelta(days=7)
+        assert proyecto.fecha_cumplimiento == hoy + timedelta(days=30)
+
+    @pytest.mark.parametrize('valor', [None, '', '   '])
+    def test_fecha_cumplimiento_obligatoria_al_publicar(self, auth_client, valor):
+        datos = {
+            'titulo': 'Sin fecha de cumplimiento', 'descripcion': 'D',
+            'tipo_solucion': 'sitio_web',
+        }
+        if valor is not None:
+            datos['fecha_cumplimiento'] = valor
+        respuesta = auth_client.post(reverse('crear_proyecto'), datos, follow=True)
+        assert not Proyecto.objects.filter(titulo='Sin fecha de cumplimiento').exists()
+        assert 'fecha de cumplimiento es obligatoria' in respuesta.content.decode().lower()
+
+    def test_formulario_exige_fecha_de_cumplimiento(self, auth_client):
+        respuesta = auth_client.get(reverse('dashboard_empresa'))
+        assert 'id="crear_fecha_cumplimiento"' in respuesta.content.decode()
+        assert 'name="fecha_cumplimiento" id="crear_fecha_cumplimiento" class="form-input-corp" required' in respuesta.content.decode()
+
+    def test_formulario_de_creacion_distingue_las_dos_fechas(self, auth_client):
+        response = auth_client.get(reverse('dashboard_empresa'))
+        content = response.content.decode()
+        assert 'name="fecha_limite"' in content
+        assert 'name="fecha_cumplimiento"' in content
+        assert 'Fecha de cumplimiento' in content
 
     @pytest.mark.parametrize('vacantes_invalidas', ['0', '-1', '-5', 'abc', ''])
     def test_crear_proyecto_vacantes_invalidas_no_guarda(self, auth_client, vacantes_invalidas):
@@ -252,11 +326,13 @@ class TestCrearProyecto:
 
     def test_crear_proyecto_con_prioridades(self, auth_client, empresa_user):
         """SCRUM-312: La empresa puede seleccionar la prioridad (alta, media, baja)."""
+        from datetime import timedelta
         auth_client.post(reverse('crear_proyecto'), {
             'titulo': 'Proyecto Urgente',
             'descripcion': 'Test prioridad alta',
             'tipo_solucion': 'sitio_web',
             'prioridad': 'alta',
+            'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
         })
         p_alta = Proyecto.objects.get(titulo='Proyecto Urgente')
         assert p_alta.prioridad == 'alta'
@@ -266,6 +342,7 @@ class TestCrearProyecto:
             'descripcion': 'Test prioridad baja',
             'tipo_solucion': 'sitio_web',
             'prioridad': 'baja',
+            'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
         })
         p_baja = Proyecto.objects.get(titulo='Proyecto Calmo')
         assert p_baja.prioridad == 'baja'
@@ -281,6 +358,207 @@ class TestCrearProyecto:
         assert 'value="baja"' in content
 
 
+class TestDesactivarProyecto:
+    def test_publicado_sin_contratos_puede_retirarse(self, auth_client, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Oferta abierta', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        response = auth_client.post(reverse('desactivar_proyecto', args=[proyecto.pk]))
+        proyecto.refresh_from_db()
+        assert response.status_code == 302
+        assert proyecto.estado == 'inactivo'
+
+    @pytest.mark.parametrize('estado', ['en_desarrollo', 'en_revision'])
+    def test_proyecto_en_ejecucion_no_se_retira(self, auth_client, empresa_user, desarrollador_user, estado):
+        from contrataciones.models import Contratacion
+        from notificaciones.models import Notificacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Compromiso vigente', descripcion='D',
+            tipo_solucion='sitio_web', estado=estado,
+        )
+        contrato = Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='activa',
+        )
+        response = auth_client.post(reverse('desactivar_proyecto', args=[proyecto.pk]))
+        proyecto.refresh_from_db()
+        contrato.refresh_from_db()
+        assert response.status_code == 302
+        assert proyecto.estado == estado
+        assert contrato.estado == 'activa'
+        assert not proyecto.historial_estados.exists()
+        assert not Notificacion.objects.filter(usuario=desarrollador_user).exists()
+
+    def test_publicado_con_contrato_historico_no_se_retira(self, auth_client, empresa_user, desarrollador_user):
+        from contrataciones.models import Contratacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Oferta con contrato', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            empresa=empresa_user, estado='finalizada',
+        )
+        auth_client.post(reverse('desactivar_proyecto', args=[proyecto.pk]))
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+
+
+class TestReabrirPostulaciones:
+    def test_empresa_amplia_plazo_tras_cancelar_sin_alterar_cumplimiento(
+        self, auth_client, empresa_user, desarrollador_user,
+    ):
+        from datetime import timedelta
+        from contrataciones.models import Contratacion
+        from disputas.services import abrir_disputa, resolver_disputa
+        from django.test import Client
+        from logs.models import LogAuditoria
+        from usuarios.models import PerfilDesarrollador
+
+        hoy = timezone.localdate()
+        vencida = hoy - timedelta(days=1)
+        nueva = hoy + timedelta(days=7)
+        cumplimiento = hoy + timedelta(days=30)
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Reemplazo', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo', vacantes=1,
+            fecha_limite=vencida, fecha_cumplimiento=cumplimiento,
+        )
+        contrato = Contratacion.objects.create(
+            empresa=empresa_user, desarrollador=desarrollador_user,
+            proyecto=proyecto, estado='activa',
+        )
+        admin = User.objects.create_user(
+            username='admin_reapertura', email='admin_reapertura@test.jobdevs',
+            rol='administrador', estado='activo', password='TestPass123!',
+        )
+        disputa = abrir_disputa(
+            proyecto, empresa_user, contratacion=contrato,
+            motivo='El hito contractual venció sin entrega y no fue posible resolver el conflicto tras conversar con el desarrollador.',
+            evidencia_url='https://evidencia.test/hito',
+        )
+        resolver_disputa(disputa, admin, 'cancelar_contrato', 'Se verificó el hito pendiente.')
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+        assert proyecto.fecha_limite == vencida
+        assert not proyecto.acepta_postulaciones
+        reemplazo = User.objects.create_user(
+            username='dev_reemplazo', email='dev_reemplazo@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=reemplazo)  # type: ignore[attr-defined]
+        perfil.estado_verificacion = 'verificado'
+        perfil.save(update_fields=['estado_verificacion'])
+        candidato = Client()
+        candidato.force_login(reemplazo)
+        postular = reverse('postularse_a_proyecto', args=[proyecto.pk])
+        candidato.post(postular, {'carta': 'Antes del plazo'})
+        assert not Postulacion.objects.filter(proyecto=proyecto, desarrollador=reemplazo).exists()  # type: ignore[attr-defined]
+        url = reverse('reabrir_postulaciones', args=[proyecto.pk])
+        panel = auth_client.get(reverse('dashboard_empresa'))
+        assert f'action="{url}"'.encode() in panel.content
+        assert auth_client.get(url).status_code == 405
+        response = auth_client.post(url, {
+            'fecha_limite': nueva.isoformat(),
+            'fecha_cumplimiento': (hoy + timedelta(days=90)).isoformat(),
+            'descripcion': 'No cambiar',
+        })
+        assert response.status_code == 302
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == nueva
+        assert proyecto.fecha_cumplimiento == cumplimiento
+        assert proyecto.descripcion == 'D'
+        assert proyecto.acepta_postulaciones
+        candidato.post(postular, {'carta': 'Nueva postulación'})
+        assert Postulacion.objects.filter(proyecto=proyecto, desarrollador=reemplazo).exists()  # type: ignore[attr-defined]
+        assert LogAuditoria.objects.filter(
+            usuario=empresa_user, tabla_afectada='proyectos',
+            registro_id=proyecto.pk,
+            valor_anterior=vencida.isoformat(), valor_nuevo=nueva.isoformat(),
+        ).exists()
+
+    @pytest.mark.parametrize('estado', ['en_desarrollo', 'finalizado', 'inactivo', 'en_disputa'])
+    def test_no_reabre_estados_no_publicados(
+        self, auth_client, empresa_user, desarrollador_user, estado,
+    ):
+        from datetime import timedelta
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Cerrado', descripcion='D',
+            tipo_solucion='sitio_web', estado=estado,
+            fecha_limite=hoy - timedelta(days=1),
+        )
+        Contratacion.objects.create(
+            empresa=empresa_user, proyecto=proyecto,
+            estado='cancelada', desarrollador=desarrollador_user,
+        )
+        auth_client.post(reverse('reabrir_postulaciones', args=[proyecto.pk]), {
+            'fecha_limite': (hoy + timedelta(days=7)).isoformat(),
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == hoy - timedelta(days=1)
+
+    def test_no_reabre_sin_cancelacion_o_sin_cupo_ni_con_fecha_invalida(
+        self, auth_client, empresa_user, desarrollador_user,
+    ):
+        from datetime import timedelta
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        vencida = hoy - timedelta(days=1)
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='No reabrir', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado',
+            fecha_limite=vencida,
+        )
+        url = reverse('reabrir_postulaciones', args=[proyecto.pk])
+        nueva = (hoy + timedelta(days=3)).isoformat()
+        auth_client.post(url, {'fecha_limite': nueva})
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == vencida
+        Contratacion.objects.create(
+            empresa=empresa_user, desarrollador=desarrollador_user,
+            proyecto=proyecto, estado='cancelada',
+        )
+        for fecha in ('', '2020-99-99', vencida.isoformat(), hoy.isoformat()):
+            auth_client.post(url, {'fecha_limite': fecha})
+            proyecto.refresh_from_db()
+            assert proyecto.fecha_limite == vencida
+        otro_dev = User.objects.create_user(
+            username='dev_otro_cupo', email='dev_otro_cupo@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            empresa=empresa_user, desarrollador=otro_dev,
+            proyecto=proyecto, estado='activa',
+        )
+        auth_client.post(url, {'fecha_limite': nueva})
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == vencida
+
+    def test_otra_empresa_no_puede_reabrir(self, client, empresa_user):
+        from datetime import timedelta
+        from django.contrib.auth import get_user_model
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Ajeno', descripcion='D',
+            tipo_solucion='sitio_web', fecha_limite=timezone.localdate() - timedelta(days=1),
+        )
+        otra = get_user_model().objects.create_user(
+            username='otra_reap', rol='empresa', estado='activo',
+            password='TestPass123!',
+        )
+        client.force_login(otra)
+        assert client.post(reverse('reabrir_postulaciones', args=[proyecto.pk]), {
+            'fecha_limite': (timezone.localdate() + timedelta(days=7)).isoformat(),
+        }).status_code == 404
+
+
 class TestEditarProyecto:
     """Tests for editar_proyecto view (SCRUM-103 / RF 2.2.2)."""
 
@@ -289,6 +567,37 @@ class TestEditarProyecto:
             empresa=empresa, titulo='Editable', descripcion='E',
             tipo_solucion='sitio_web', estado='publicado', vacantes=2,
         )
+
+    def test_editar_fecha_cumplimiento_sin_cambiar_cierre(self, auth_client, empresa_user):
+        from datetime import timedelta
+
+        proyecto = self._proyecto_publicado(empresa_user)
+        hoy = timezone.localdate()
+        proyecto.fecha_limite = hoy + timedelta(days=5)
+        proyecto.save()
+        response = auth_client.post(reverse('editar_proyecto', args=[proyecto.pk]), {
+            'titulo': proyecto.titulo, 'descripcion': proyecto.descripcion,
+            'tipo_solucion': proyecto.tipo_solucion, 'vacantes': '2',
+            'fecha_limite': proyecto.fecha_limite.isoformat(),
+            'fecha_cumplimiento': (hoy + timedelta(days=20)).isoformat(),
+        })
+        proyecto.refresh_from_db()
+        assert response.status_code == 302
+        assert proyecto.fecha_limite == hoy + timedelta(days=5)
+        assert proyecto.fecha_cumplimiento == hoy + timedelta(days=20)
+
+    def test_cliente_antiguo_no_borra_fecha_cumplimiento(self, auth_client, empresa_user):
+        from datetime import timedelta
+
+        proyecto = self._proyecto_publicado(empresa_user)
+        proyecto.fecha_cumplimiento = timezone.localdate() + timedelta(days=20)
+        proyecto.save()
+        auth_client.post(reverse('editar_proyecto', args=[proyecto.pk]), {
+            'titulo': proyecto.titulo, 'descripcion': proyecto.descripcion,
+            'tipo_solucion': proyecto.tipo_solucion, 'vacantes': '2',
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_cumplimiento == timezone.localdate() + timedelta(days=20)
 
     def test_empresa_duena_ve_formulario(self, auth_client, empresa_user):
         """Empresa owner can GET the edit form prefilled."""
@@ -349,17 +658,121 @@ class TestEditarProyecto:
         )
         assert response.status_code == 302  # redirect a dashboard_empresa
 
-    def test_no_editable_si_estado_no_publicado(self, auth_client, empresa_user):
-        """Project in en_desarrollo cannot be edited."""
+    def test_en_desarrollo_sin_contrato_edita_solo_datos_basicos(self, auth_client, empresa_user):
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='En Desarrollo',
             descripcion='D', tipo_solucion='sitio_web',
             estado='en_desarrollo',
         )
-        response = auth_client.get(
-            reverse('editar_proyecto', args=[proyecto.id])
+        url = reverse('editar_proyecto', args=[proyecto.id])
+        response = auth_client.get(url)
+        assert response.status_code == 200
+        assert b'name="titulo"' in response.content
+        assert b'name="descripcion"' not in response.content
+        auth_client.post(url, {
+            'titulo': 'Nuevo rótulo', 'prioridad': 'alta',
+            'descripcion': 'Cambio indebido', 'tipo_solucion': 'aplicacion_movil',
+            'vacantes': '9',
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.titulo == 'Nuevo rótulo'
+        assert proyecto.prioridad == 'alta'
+        assert proyecto.descripcion == 'D'
+        assert proyecto.tipo_solucion == 'sitio_web'
+        assert proyecto.vacantes == 1
+
+    @pytest.mark.parametrize('estado', ['en_desarrollo', 'en_revision'])
+    def test_panel_ofrece_edicion_basica_solo_sin_contrato_activo(
+        self, auth_client, empresa_user, desarrollador_user, estado,
+    ):
+        from contrataciones.models import Contratacion
+
+        editable = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Editable básica', descripcion='D',
+            tipo_solucion='sitio_web', estado=estado,
         )
-        assert response.status_code == 302  # blocked
+        bloqueado = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Contratada', descripcion='D',
+            tipo_solucion='sitio_web', estado=estado,
+        )
+        Contratacion.objects.create(
+            empresa=empresa_user, desarrollador=desarrollador_user,
+            proyecto=bloqueado, estado='activa',
+        )
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        assert f'href="{reverse("editar_proyecto", args=[editable.pk])}"'.encode() in response.content
+        assert f'href="{reverse("editar_proyecto", args=[bloqueado.pk])}"'.encode() not in response.content
+
+    def test_publicado_en_negociacion_no_cambia_condiciones_tecnicas(
+        self, auth_client, empresa_user, desarrollador_user,
+    ):
+        proyecto = self._proyecto_publicado(empresa_user)
+        Postulacion.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user,
+            estado='en_negociacion',
+        )
+        url = reverse('editar_proyecto', args=[proyecto.pk])
+        response = auth_client.get(url)
+        assert response.status_code == 200
+        assert b'name="descripcion"' not in response.content
+        dashboard = auth_client.get(reverse('dashboard_empresa')).content.decode()
+        assert f'href="{url}"' in dashboard
+        assert f'onclick="abrirModalEditarProyecto(event, \'{proyecto.id}\'' not in dashboard
+        auth_client.post(url, {
+            'titulo': 'Rótulo nuevo', 'prioridad': 'alta',
+            'descripcion': 'Requisito alterado', 'vacantes': '1',
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.titulo == 'Rótulo nuevo'
+        assert proyecto.descripcion == 'E'
+        assert proyecto.vacantes == 2
+
+    def test_contrato_historico_solo_permite_cambios_basicos(
+        self, auth_client, empresa_user, desarrollador_user,
+    ):
+        from contrataciones.models import Contratacion
+
+        proyecto = self._proyecto_publicado(empresa_user)
+        Contratacion.objects.create(
+            empresa=empresa_user, desarrollador=desarrollador_user,
+            proyecto=proyecto, estado='finalizada',
+        )
+        url = reverse('editar_proyecto', args=[proyecto.pk])
+        assert b'name="descripcion"' not in auth_client.get(url).content
+        auth_client.post(url, {
+            'titulo': 'Identificador', 'prioridad': 'baja',
+            'descripcion': 'Otro alcance', 'tipo_solucion': 'otro',
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.titulo == 'Identificador'
+        assert proyecto.descripcion == 'E'
+        assert proyecto.tipo_solucion == 'sitio_web'
+
+    @pytest.mark.parametrize('estado', ['finalizado', 'rechazado', 'inactivo', 'en_disputa'])
+    def test_terminal_o_disputa_no_admite_edicion(
+        self, auth_client, empresa_user, estado,
+    ):
+        proyecto = self._proyecto_publicado(empresa_user)
+        proyecto.estado = estado
+        proyecto.save(update_fields=['estado'])
+        url = reverse('editar_proyecto', args=[proyecto.pk])
+        assert auth_client.get(url).status_code == 302
+        assert auth_client.post(url, {'titulo': 'Alterado', 'prioridad': 'alta'}).status_code == 302
+        proyecto.refresh_from_db()
+        assert proyecto.titulo == 'Editable'
+
+    def test_no_permite_prioridad_invalida_en_edicion_basica(
+        self, auth_client, empresa_user,
+    ):
+        proyecto = self._proyecto_publicado(empresa_user)
+        proyecto.estado = 'en_revision'
+        proyecto.save(update_fields=['estado'])
+        auth_client.post(reverse('editar_proyecto', args=[proyecto.pk]), {
+            'titulo': 'Alterado', 'prioridad': 'inventada',
+        })
+        proyecto.refresh_from_db()
+        assert proyecto.titulo == 'Editable'
 
     def test_no_editable_con_contrato_activo(self, auth_client, empresa_user):
         """Project with an active contratacion cannot be edited."""
@@ -467,6 +880,50 @@ class TestFinalizarProyecto:
         )
         assert response.status_code == 404
 
+    def test_empresa_califica_colaborador_despues_de_finalizado(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """RF 5.2.1: el cierre automático antecede a la valoración del equipo."""
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Cerrado antes de valorar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        response = auth_client.post(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            {
+                'puntuacion': '5',
+                'comentario': 'Excelente calidad técnica y comunicación durante el proyecto',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert Valoracion.objects.filter(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            rol_evaluador='empresa',
+            puntuacion=5,
+        ).exists()
+
 
 class TestCalificarEmpresa:
     """RF 5.2.2: el desarrollador califica a la empresa con comentario obligatorio."""
@@ -481,6 +938,10 @@ class TestCalificarEmpresa:
         Contratacion.objects.create(
             proyecto=proyecto, desarrollador=desarrollador_user,
             empresa=empresa_user, estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto, estado_anterior='en_revision',
+            estado_nuevo='finalizado', cambiado_por=empresa_user,
         )
         return proyecto
 
@@ -526,6 +987,33 @@ class TestCalificarEmpresa:
         assert Valoracion.objects.filter(
             proyecto=proyecto_finalizado, desarrollador=desarrollador_user
         ).count() == 1
+
+    def test_rechaza_calificacion_fuera_de_ventana(
+        self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
+    ):
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        historial = proyecto_finalizado.historial_estados.get(estado_nuevo='finalizado')
+        HistorialEstadoProyecto.objects.filter(pk=historial.pk).update(
+            fecha=timezone.now() - timedelta(days=31)
+        )
+
+        response = dev_client.post(
+            reverse('calificar_empresa', args=[proyecto_finalizado.id]),
+            {
+                'puntuacion': '4',
+                'comentario': 'Valoración tardía que debe rechazarse por plazo',
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert '30 días' in response.content.decode('utf-8')
+        assert not Valoracion.objects.filter(
+            proyecto=proyecto_finalizado,
+            desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador',
+        ).exists()
 
 
 class TestGestionarHitosAsignacionIndividual:
@@ -618,3 +1106,47 @@ class TestGestionarHitosAsignacionIndividual:
         assert 'data-testid="select-desarrollador-hito"' in content
         assert dev_contratado.nombre in content
         assert dev_no_contratado.nombre not in content
+
+    def test_crea_equipo_y_asigna_hito_a_sus_miembros(
+        self, auth_client, empresa_user, proyecto_hitos
+    ):
+        """RF 4.1.2 oficial: la empresa asigna un hito a un equipo del proyecto."""
+        from contrataciones.models import Contratacion
+        from notificaciones.models import Notificacion
+        from proyectos.models import Entregable, Equipo
+
+        proyecto, dev_uno, dev_dos = proyecto_hitos
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=dev_dos,
+            empresa=empresa_user,
+            estado='activa',
+        )
+
+        response = auth_client.post(
+            reverse('gestionar_equipos', args=[proyecto.id]),
+            {'nombre': 'Célula Backend', 'miembros': [dev_uno.id, dev_dos.id]},
+        )
+        assert response.status_code == 302
+        equipo = Equipo.objects.get(proyecto=proyecto, nombre='Célula Backend')
+        assert set(equipo.miembros.values_list('id', flat=True)) == {dev_uno.id, dev_dos.id}
+
+        response = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {
+                'titulo': 'API colaborativa',
+                'descripcion': 'Entrega del equipo backend',
+                'equipo_id': str(equipo.id),
+            },
+        )
+        assert response.status_code == 302
+        hito = Entregable.objects.get(proyecto=proyecto, titulo='API colaborativa')
+        assert hito.equipo_id == equipo.id
+        assert hito.desarrollador_id is None
+        assert set(
+            Notificacion.objects.filter(
+                usuario_id__in=[dev_uno.id, dev_dos.id],
+                tipo='avance',
+                mensaje__contains='Célula Backend',
+            ).values_list('usuario_id', flat=True)
+        ) == {dev_uno.id, dev_dos.id}

@@ -201,18 +201,21 @@ class TestRegistrarAvance:
         avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
         assert avance.archivo_url == 'https://github.com/mrdylan/jobdevs'
 
-    def test_registrar_avance_sin_url_ni_archivo_muestra_error(self, dev_client, desarrollador_user, escenario_avance):
-        """Si no se ingresa ni URL ni archivo adjunto, se rechaza la solicitud."""
+    def test_registrar_avance_acepta_descripcion_como_evidencia(self, dev_client, desarrollador_user, escenario_avance):
+        """RF 4.2.1 oficial: la descripción puede ser la evidencia del hito."""
         proyecto, entregable, _ = escenario_avance
         response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
             'entregable_id': entregable.id,
-            'descripcion': 'Sin evidencia alguna',
+            'descripcion': 'Se completó la integración y se describen aquí las pruebas realizadas.',
             'archivo_url': '',
         }, follow=True)
         assert response.status_code == 200
-        assert not Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
-        content = response.content.decode('utf-8')
-        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in content
+        avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
+        assert avance.archivo_url is None
+        assert not avance.archivo_adjunto
+        assert avance.fecha_hora is not None
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'en_revision'
 
     def test_registrar_avance_rechaza_extension_no_permitida(self, dev_client, desarrollador_user, escenario_avance):
         """SCRUM-168: Se rechazan archivos con extensiones no permitidas (.html, .sh, .exe)."""
@@ -305,31 +308,31 @@ class TestRegistrarAvance:
         assert 'no admite nuevos avances' in content or 'ya han sido entregados' in content
 
     def test_registrar_avance_preserva_datos_en_error_sin_redireccion(self, dev_client, desarrollador_user, escenario_avance):
-        """SCRUM-206: Al fallar validación (sin URL ni archivo), no redirige (200) y preserva la descripción y el hito."""
+        """SCRUM-206: una URL inválida preserva la descripción y el hito."""
         proyecto, entregable, _ = escenario_avance
         texto_largo = "Implementé toda la capa de autenticación JWT y pruebas de integración completas."
 
         response = dev_client.post(reverse('registrar_avance', args=[proyecto.id]), {
             'entregable_id': str(entregable.id),
             'descripcion': texto_largo,
-            'archivo_url': '',
+            'archivo_url': 'repositorio-sin-esquema',
         })
         assert response.status_code == 200  # Render directo, NO redirect 302
         content = response.content.decode('utf-8')
         assert texto_largo in content
-        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in content
+        assert 'La URL de evidencia debe ser una dirección web válida' in content
         assert response.context['form_data']['descripcion'] == texto_largo
         assert response.context['form_data']['entregable_id'] == str(entregable.id)
 
     def test_registrar_avance_ajax_retorna_json_error_sin_recarga(self, dev_client, desarrollador_user, escenario_avance):
-        """SCRUM-206: Petición AJAX/Fetch sin URL ni archivo retorna JSON 400 con detalle del error."""
+        """SCRUM-206: petición AJAX con URL inválida retorna JSON 400."""
         proyecto, entregable, _ = escenario_avance
         response = dev_client.post(
             reverse('registrar_avance', args=[proyecto.id]),
             {
                 'entregable_id': entregable.id,
                 'descripcion': 'Avance por Fetch',
-                'archivo_url': '',
+                'archivo_url': 'repositorio-sin-esquema',
             },
             headers={'Accept': 'application/json'}
         )
@@ -337,7 +340,7 @@ class TestRegistrarAvance:
         assert response.headers['Content-Type'] == 'application/json'
         data = response.json()
         assert data['status'] == 'error'
-        assert 'Debes proporcionar una URL o adjuntar un archivo de evidencia' in data['error']
+        assert 'La URL de evidencia debe ser una dirección web válida' in data['error']
 
     def test_registrar_avance_ajax_exitoso_retorna_json_redirect(self, dev_client, desarrollador_user, escenario_avance):
         """SCRUM-206: Petición AJAX/Fetch válida crea el avance y retorna JSON 200 con redirect_url."""
@@ -397,13 +400,17 @@ class TestRevisarAvance:
         assert response.status_code == 200
         avance.refresh_from_db()
         entregable.refresh_from_db()
+        proyecto.refresh_from_db()
         assert avance.estado == 'aceptado'
         assert avance.comentario_revision == 'Excelente trabajo'
         assert entregable.estado == 'completado'
+        assert proyecto.estado == 'finalizado'
 
     def test_empresa_rechaza_avance_pendiente_con_comentario(self, auth_client, escenario_revision):
         """Empresa puede rechazar un avance pendiente proporcionando justificación."""
         proyecto, entregable, avance = escenario_revision
+        proyecto.estado = 'en_revision'
+        proyecto.save(update_fields=['estado'])
         response = auth_client.post(
             reverse('revisar_avance', args=[avance.id]),
             {'accion': 'rechazar', 'comentario': 'Falta documentación de la API'},
@@ -415,6 +422,14 @@ class TestRevisarAvance:
         assert avance.estado == 'rechazado'
         assert avance.comentario_revision == 'Falta documentación de la API'
         assert entregable.estado == 'pendiente'
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'en_desarrollo'
+        assert Notificacion.objects.filter(
+            usuario=avance.desarrollador,
+            proyecto=proyecto,
+            tipo='alerta',
+            mensaje__contains='RECHAZADO',
+        ).exists()
 
     def test_revisar_avance_bloquea_si_avance_ya_fue_aceptado(self, auth_client, escenario_revision):
         """SCRUM-308: Un avance ya aceptado no puede ser modificado ni rechazado posteriormente."""

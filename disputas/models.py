@@ -3,6 +3,7 @@ from django.db import models
 from contrataciones.models import Contratacion
 from proyectos.models import Proyecto
 from usuarios.models import Usuario
+from .validators import validar_evidencia_archivo
 
 
 class Disputa(models.Model):
@@ -18,7 +19,16 @@ class Disputa(models.Model):
         ('sancionar_empresa', 'Sancionar Empresa'),
         ('sancionar_desarrollador', 'Sancionar Desarrollador'),
     ]
+    FAMILIA_POR_RESOLUCION = {
+        'reanudar_proyecto': 'continuidad',
+        'cancelar_contrato': 'terminacion',
+        'sancionar_empresa': 'sancion',
+        'sancionar_desarrollador': 'sancion',
+    }
+    CATEGORIA_FUERZA_MAYOR = ('fuerza_mayor', 'Fuerza mayor: solicitud de revisión sin atribuir incumplimiento')
     CATEGORIAS_EMPRESA = [
+        CATEGORIA_FUERZA_MAYOR,
+        ('inactividad', 'Inactividad prolongada de la contraparte'),
         ('incumplimiento_contractual', 'Incumplimiento de plazos, abandono o falta de entregas'),
         ('entrega_defectuosa', 'Entregables defectuosos, no funcionales o fuera de especificaciones'),
         ('falta_etica_confidencialidad', 'Violación a confidencialidad, propiedad intelectual o filtración'),
@@ -27,6 +37,8 @@ class Disputa(models.Model):
     ]
 
     CATEGORIAS_DESARROLLADOR = [
+        CATEGORIA_FUERZA_MAYOR,
+        ('inactividad', 'Inactividad prolongada de la contraparte'),
         ('retencion_fondos', 'Retención injustificada de pagos o negativa en liberación de hitos'),
         ('desviacion_alcance', 'Exigencia abusiva de requerimientos fuera de contrato (Scope Creep)'),
         ('bloqueo_insumos', 'Falta prolongada de accesos, credenciales, servidores o respuesta'),
@@ -35,6 +47,8 @@ class Disputa(models.Model):
     ]
 
     CATEGORIAS = [
+        CATEGORIA_FUERZA_MAYOR,
+        ('inactividad', 'Inactividad prolongada de la contraparte'),
         ('incumplimiento_contractual', 'Incumplimiento contractual o abandono de actividades'),
         ('entrega_defectuosa', 'Entregables defectuosos, no funcionales o fuera de especificaciones'),
         ('retencion_fondos', 'Retención indebida de fondos o conflicto en liberación de hitos'),
@@ -59,6 +73,11 @@ class Disputa(models.Model):
     )
     motivo = models.TextField()
     evidencia_url = models.URLField(max_length=500, blank=True, default='')
+    evidencia_archivo = models.FileField(
+        upload_to='evidencias_disputas/', blank=True,
+        validators=[validar_evidencia_archivo],
+    )
+    declara_evidencia_no_disponible = models.BooleanField(default=False)
     estado = models.CharField(max_length=20, choices=ESTADO, default='abierta')
     resolucion = models.CharField(max_length=30, choices=RESOLUCION, null=True, blank=True)
     notas_resolucion = models.TextField(blank=True, default='')
@@ -71,6 +90,10 @@ class Disputa(models.Model):
 
     def __str__(self):
         return f"Disputa #{self.pk} - {self.proyecto_id} ({self.get_estado_display()})"
+
+    @property
+    def familia_resolucion(self):
+        return self.FAMILIA_POR_RESOLUCION.get(self.resolucion)
 
 
 class MensajeDisputa(models.Model):

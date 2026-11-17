@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Desarrollador</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'Desarrollador/css/desarrollador.css' %}?v=2">
-  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261114_v6">
   <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=3">
@@ -79,6 +79,7 @@
           <span class="nav-badge" style="background:#2563eb;">{{ contratos_pendientes_firma_count }}</span>
         {% endif %}
       </button>
+      <a class="nav-item" href="{% url 'solicitudes_cancelacion' %}"><i data-lucide="file-x"></i><span>Solicitudes de cancelación</span></a>
       <button class="nav-item" onclick="verSeccion('favoritos', this)">
         <i data-lucide="heart"></i>
         <span>Favoritos</span>
@@ -189,14 +190,7 @@
     <main class="main-content">
 
       <!-- Mensajes Django -->
-      {% if messages %}
-        {% for message in messages %}
-          <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
-            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       <!-- Alerta Verificación SENA (tema oscuro del dashboard) -->
       {% if perfil and not perfil.es_verificado_sena %}
@@ -1322,7 +1316,7 @@
 <script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
 <script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=1"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261114_v11"></script>
 <script>
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();

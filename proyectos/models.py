@@ -81,6 +81,11 @@ class Proyecto(models.Model):
     estado = models.CharField(max_length=25, choices=ESTADO, default='publicado')
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
     fecha_limite = models.DateField(null=True, blank=True)
+    fecha_cumplimiento = models.DateField(null=True, blank=True)
+    proyecto_origen = models.ForeignKey(
+        'self', on_delete=models.PROTECT, null=True, blank=True,
+        related_name='proyectos_sucesores', db_column='proyecto_origen_id',
+    )
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
@@ -117,17 +122,18 @@ class Proyecto(models.Model):
         anotadas = getattr(self, 'disponibles_anotadas', None)
         if anotadas is not None:
             return max(anotadas, 0)
-        ocupadas = self.contrataciones.filter(estado='activa').count()
+        ocupadas = self.contrataciones.filter(estado__in=['activa', 'en_disputa']).count()
         negociando = self.postulaciones.filter(estado='en_negociacion').count()
         return max(self.vacantes - ocupadas - negociando, 0)
 
     @property
     def acepta_postulaciones(self):
-        """RF 3.1.1: publicado, o en desarrollo mientras queden cupos libres y plazo vigente."""
+        """Publicado o en desarrollo con cupo libre y plazo de postulación vigente."""
         if self.fecha_limite and self.fecha_limite < timezone.now().date():
             return False
-        return self.estado == 'publicado' or (
-            self.estado == 'en_desarrollo' and self.vacantes_disponibles > 0
+        return (
+            self.estado in ('publicado', 'en_desarrollo')
+            and self.vacantes_disponibles > 0
         )
 
     def get_tipo_solucion_display(self):
@@ -168,11 +174,22 @@ class Proyecto(models.Model):
 
     def registrar_cambio_estado(self, nuevo_estado, usuario, estado_anterior=None):
         """Registra una entrada en el historial de estados."""
+        anterior = estado_anterior or self.estado
         HistorialEstadoProyecto.objects.create(
             proyecto=self,
-            estado_anterior=estado_anterior or self.estado,
+            estado_anterior=anterior,
             estado_nuevo=nuevo_estado,
             cambiado_por=usuario
+        )
+        from logs.models import LogAuditoria
+
+        LogAuditoria.objects.create(
+            usuario=usuario,
+            accion=f"Cambió estado del proyecto '{self.titulo}' de {anterior} a {nuevo_estado}",
+            tabla_afectada='proyectos',
+            registro_id=self.pk,
+            valor_anterior=anterior,
+            valor_nuevo=nuevo_estado,
         )
 
     class Meta:
@@ -206,6 +223,12 @@ class Valoracion(models.Model):
         unique_together = ('proyecto', 'desarrollador', 'rol_evaluador')
         verbose_name_plural = "Valoraciones"
 
+    def save(self, *args, **kwargs):
+        """RF 5.3.3: una valoración publicada es inmutable."""
+        if not self._state.adding:
+            raise ValidationError('Una valoración registrada no puede modificarse.')
+        return super().save(*args, **kwargs)
+
 class HistorialEstadoProyecto(models.Model):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='historial_estados', db_column='proyecto_id')
     estado_anterior = models.CharField(max_length=50, null=True, blank=True)
@@ -216,6 +239,74 @@ class HistorialEstadoProyecto(models.Model):
     class Meta:
         db_table = 'historial_estado_proyecto'
         verbose_name_plural = "Historiales de Estados"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError('El historial de estados no puede modificarse.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError('El historial de estados no puede eliminarse.')
+
+
+class RegularizacionCierreProyecto(models.Model):
+    """Fecha real de cierre declarada para un proyecto legado sin historial fiable."""
+
+    proyecto = models.OneToOneField(
+        Proyecto,
+        on_delete=models.PROTECT,
+        related_name='regularizacion_cierre',
+        db_column='proyecto_id',
+    )
+    fecha_cierre = models.DateTimeField()
+    motivo = models.TextField()
+    referencia_evidencia = models.CharField(max_length=300, blank=True, default='')
+    registrado_por = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        related_name='regularizaciones_cierre_registradas',
+        db_column='registrado_por_id',
+    )
+    registrado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'regularizaciones_cierre_proyecto'
+        verbose_name = 'Regularización de cierre de proyecto'
+        verbose_name_plural = 'Regularizaciones de cierre de proyectos'
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError('La regularización de cierre no puede modificarse.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError('La regularización de cierre no puede eliminarse.')
+
+
+class ConfiguracionReputacion(models.Model):
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    minimo_confianza = models.PositiveSmallIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+    )
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'configuracion_reputacion'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(id=1),
+                name='configuracion_reputacion_singleton',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(
+                    minimo_confianza__gte=1,
+                    minimo_confianza__lte=100,
+                ),
+                name='configuracion_reputacion_minimo_1_100',
+            ),
+        ]
+
 
 class Entregable(models.Model):
     ESTADO_CHOICES = [

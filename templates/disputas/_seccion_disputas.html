@@ -1,21 +1,85 @@
-{# Contenido de Disputas con estilos de dashboard.css. Requiere disputas_activas, disputas_resueltas y proyectos_disputables. #}
+{% load i18n %}
+{# Contenido de Disputas: Centro de Mediación Integral (Dirección 01). Requiere disputas_activas, disputas_resueltas y proyectos_disputables. #}
 <div class="page-header">
   <div>
-    <div class="page-title">Centro de Mediación y Resolución de Disputas</div>
-    <div class="page-subtitle">Resolución formal de controversias contractuales y arbitraje de entregables</div>
+    <h1 class="page-title">{% trans "Centro de Mediación y Resolución de Disputas" %}</h1>
+    <div class="page-subtitle">{% trans "Resolución formal de controversias contractuales, mediación técnica neutral y emisión de dictámenes vinculantes auditados." %}</div>
   </div>
   {% if request.user.rol != 'administrador' %}
     <button type="button" id="btn-iniciar-disputa" class="btn btn-danger btn-corp-action danger-subtle btn-disputa-iniciar" onclick="abrirModalDisputa()">
-      <i data-lucide="gavel"></i> Iniciar Nueva Disputa
+      <i data-lucide="gavel"></i> {% trans "Iniciar Nueva Disputa" %}
     </button>
   {% endif %}
 </div>
 
-<!-- Banner de protocolo y seguridad -->
-<div class="disputas-notice-box">
-  <i data-lucide="shield-check"></i>
-  <div>
-    <strong>Protocolo de Arbitraje JobDevs:</strong> Las disputas activadas ingresan a una sala de mediación privada con un mediador administrativo neutral asignado. La apertura suspende temporalmente las entregas hasta emitir un dictamen vinculante.
+<!-- Banner de protocolo de arbitraje oficial JobDevs -->
+<div class="disputas-protocol-card" data-testid="protocolo-arbitraje-banner">
+  <div class="disputas-protocol-icon">
+    <i data-lucide="shield-check"></i>
+  </div>
+  <div class="disputas-protocol-body">
+    <h2>{% trans "Protocolo de Arbitraje Oficial JobDevs" %}</h2>
+    <p>
+      {% trans "Las disputas son atendidas por un mediador administrativo neutral designado por la plataforma. Al abrirse el caso, las entregas de ese hito quedan en pausa temporal y ambas partes disponen de una Sala Virtual privada de deliberación hasta la emisión del dictamen final vinculante." %}
+    </p>
+  </div>
+</div>
+
+<!-- 4 KPIs Reales de Arbitraje (Calculados desde la base de datos) -->
+<div class="disputas-kpi-grid" data-testid="disputas-kpis">
+  <div class="disputas-kpi-card">
+    <div class="disputas-kpi-head">
+      <span>{% trans "En Mediación Activa" %}</span>
+      <i data-lucide="scale" style="color:var(--corp-warning);"></i>
+    </div>
+    <div class="disputas-kpi-val is-warning">{{ disputas_por_estado.en_mediacion|default:"0" }}</div>
+    <div class="disputas-kpi-sub">{% trans "Audiencias en deliberación en sala virtual" %}</div>
+  </div>
+  <div class="disputas-kpi-card">
+    <div class="disputas-kpi-head">
+      <span>{% trans "Casos Abiertos" %}</span>
+      <i data-lucide="clock" style="color:var(--corp-slate-500);"></i>
+    </div>
+    <div class="disputas-kpi-val">{{ disputas_por_estado.abierta|default:"0" }}</div>
+    <div class="disputas-kpi-sub">{% trans "Reportes en espera de asignación de mediador" %}</div>
+  </div>
+  <div class="disputas-kpi-card">
+    <div class="disputas-kpi-head">
+      <span>{% trans "Dictámenes Resueltos" %}</span>
+      <i data-lucide="check-circle-2" style="color:var(--corp-brand);"></i>
+    </div>
+    <div class="disputas-kpi-val is-brand">{{ disputas_por_estado.resuelta|default:"0" }}</div>
+    <div class="disputas-kpi-sub">{% trans "Controversias con resolución vinculante emitida" %}</div>
+  </div>
+  <div class="disputas-kpi-card">
+    <div class="disputas-kpi-head">
+      <span>{% trans "Total Registrado" %}</span>
+      <i data-lucide="archive" style="color:var(--corp-slate-500);"></i>
+    </div>
+    <div class="disputas-kpi-val">{{ total_disputas|default:"0" }}</div>
+    <div class="disputas-kpi-sub">{% trans "Historial consolidado en la plataforma" %}</div>
+  </div>
+</div>
+
+<!-- Switcher, filtros y paneles unificados -->
+<div class="disputas-unified-card">
+<div class="disputas-toolbar-corp">
+  <div class="disputas-tabs-group" role="tablist" aria-label="{% trans "Vistas del Centro de Mediación" %}">
+    <button type="button" class="disputas-tab-pill active" id="tab-disputas-activas" role="tab" aria-selected="true" onclick="switchDisputasSubTab('activas', this)">
+      <i data-lucide="clock"></i>
+      <span>{% trans "Casos Activos & En Mediación" %}</span>
+      <span class="disputas-pill-badge{% if disputas_activas|length > 0 %} is-warning{% endif %}">{{ disputas_activas|length }}</span>
+    </button>
+    <button type="button" class="disputas-tab-pill" id="tab-disputas-resueltas" role="tab" aria-selected="false" onclick="switchDisputasSubTab('resueltas', this)">
+      <i data-lucide="folder-check"></i>
+      <span>{% trans "Expedientes Resueltos" %}</span>
+      <span class="disputas-pill-badge">{{ disputas_resueltas|length }}</span>
+    </button>
+  </div>
+
+  <div class="disputas-toolbar-note">
+    <i data-lucide="shield-check"></i>
+    <span>{% trans "Trazabilidad formal respaldada con SHA-256" %}</span>
   </div>
 </div>
 
@@ -25,27 +89,27 @@
   <a href="?{% if seccion %}section={{ seccion }}{% endif %}"
      class="btn btn-sm {% if not filtro_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'todos', this); }">
-    <span>Todos ({{ total_disputas }})</span>
+    <span>{% trans "Todos" %} ({{ total_disputas }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=abierta"
      class="btn btn-sm {% if filtro_estado_actual == 'abierta' %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'abierta', this); }">
-    <span>Abiertas ({{ disputas_por_estado.abierta }})</span>
+    <span>{% trans "Abiertas" %} ({{ disputas_por_estado.abierta }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=en_mediacion"
      class="btn btn-sm {% if filtro_estado_actual == 'en_mediacion' %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'en_mediacion', this); }">
-    <span>En mediación ({{ disputas_por_estado.en_mediacion }})</span>
+    <span>{% trans "En mediación" %} ({{ disputas_por_estado.en_mediacion }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=resuelta"
      class="btn btn-sm {% if filtro_estado_actual == 'resuelta' %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'resuelta', this); }">
-    <span>Resueltas ({{ disputas_por_estado.resuelta }})</span>
+    <span>{% trans "Resueltas" %} ({{ disputas_por_estado.resuelta }})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=cancelada"
      class="btn btn-sm {% if filtro_estado_actual == 'cancelada' %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'cancelada', this); }">
-    <span>Canceladas ({{ disputas_por_estado.cancelada }})</span>
+    <span>{% trans "Canceladas" %} ({{ disputas_por_estado.cancelada }})</span>
   </a>
 </div>
 {% endwith %}
@@ -55,7 +119,7 @@
   <div class="disputas-card-header">
     <div class="disputas-card-title">
       <i data-lucide="filter" style="color:var(--corp-brand);"></i>
-      <span>Disputas Filtradas</span>
+      <span>{% trans "Disputas Filtradas" %}</span>
     </div>
     <span class="disp-badge-id">{{ disputas_filtradas|length }}</span>
   </div>
@@ -64,11 +128,11 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Proyecto</th>
-          <th>Estado</th>
-          <th>Fecha Registro</th>
-          <th>Resolución</th>
-          <th style="text-align:right;">Acción</th>
+          <th>{% trans "Proyecto" %}</th>
+          <th>{% trans "Estado" %}</th>
+          <th>{% trans "Fecha Registro" %}</th>
+          <th>{% trans "Resolución" %}</th>
+          <th style="text-align:right;">{% trans "Acción" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -87,12 +151,12 @@
             {% if d.resolucion %}
               <span class="disp-category-tag">{{ d.get_resolucion_display }}</span>
             {% else %}
-              <span style="color:var(--corp-slate-400);">En deliberación</span>
+              <span style="color:var(--corp-slate-400);">{% trans "En deliberación" %}</span>
             {% endif %}
           </td>
           <td style="text-align:right;">
             <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
-              <i data-lucide="folder-open"></i> Ver Expediente
+              <i data-lucide="folder-open"></i> {% trans "Ver Expediente" %}
             </a>
           </td>
         </tr>
@@ -101,7 +165,7 @@
           <td colspan="6">
             <div class="activity-empty">
               <i data-lucide="filter"></i>
-              <p>No hay disputas en este estado.</p>
+              <p>{% trans "No hay disputas en este estado." %}</p>
             </div>
           </td>
         </tr>
@@ -112,146 +176,184 @@
 </div>
 {% endif %}
 
-<!-- Disputas Activas -->
-<div class="disputas-card" id="cardDisputasActivas">
-  <div class="disputas-card-header">
-    <div class="disputas-card-title">
-      <i data-lucide="gavel" style="color:var(--corp-danger);"></i>
-      <span>Disputas Activas en Proceso</span>
-    </div>
-    <span class="disp-status-badge abierta">{{ disputas_activas|length }} activa{{ disputas_activas|length|pluralize }}</span>
-  </div>
-  <div style="overflow-x:auto;">
-    <table class="data-table-corp data-table">
-      <thead>
-        <tr>
-          <th>Expediente</th>
-          <th>Proyecto</th>
-          <th>Causal / Motivo</th>
-          <th>Iniciada por</th>
-          <th>Estado</th>
-          <th>Mediador Asignado</th>
-          <th style="text-align:right;">Sala Virtual</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in disputas_activas %}
-        <tr class="disputa-row-item" data-disputa-row-estado="{{ d.estado }}">
-          <td><span class="disp-badge-id">#{{ d.pk }}</span></td>
-          <td><strong>{{ d.proyecto.titulo }}</strong></td>
-          <td>
-            <span class="disp-category-tag">{{ d.get_categoria_display }}</span>
-            <div class="disp-hint-corp disp-hint">{{ d.motivo|truncatechars:70 }}</div>
-          </td>
-          <td style="font-weight:500;">{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
-          <td>
+<!-- Panel 1: Casos Activos & En Mediación -->
+<div id="pane-disputas-activas" class="disputas-tab-pane active">
+  <div id="cardDisputasActivas">
+    {% for d in disputas_activas %}
+      <article class="disputas-case-card disputa-row-item" data-disputa-row-estado="{{ d.estado }}">
+        <div class="disputas-case-top">
+          <div class="disputas-case-meta-left">
+            <span class="disp-badge-id">#{{ d.pk }}</span>
             <span class="disp-status-badge {{ d.estado }}">
               <i data-lucide="{% if d.estado == 'en_mediacion' %}hourglass{% else %}alert-circle{% endif %}"></i>
               {{ d.get_estado_display }}
             </span>
-          </td>
-          <td>
-            {% if d.mediador %}
-              <span style="font-weight:600; color:var(--corp-slate-900);"><i data-lucide="shield-check" style="color:var(--corp-brand); margin-right:4px;"></i>{{ d.mediador.nombre|default:d.mediador.username }}</span>
-            {% else %}
-              <span style="color:var(--corp-slate-400); font-style:italic;">Asignando mediador...</span>
-            {% endif %}
-          </td>
-          <td style="text-align:right;">
-            <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action primary">
-              <i data-lucide="message-square"></i> Ingresar a Sala
-            </a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7">
-            <div class="activity-empty">
-              <i data-lucide="scale"></i>
-              <p>No hay disputas activas. Tus proyectos se desarrollan con normalidad.</p>
+            <span class="disputas-case-date">{% trans "Apertura:" %} {{ d.fecha_creacion|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div class="disputas-case-live-tag">
+            {% if d.estado == 'en_mediacion' %}{% trans "Audiencia virtual en curso" %}{% else %}{% trans "Pendiente de asignación" %}{% endif %}
+          </div>
+        </div>
+
+        <h3 class="disputas-case-title">{{ d.proyecto.titulo }}</h3>
+
+        <div class="disputas-case-parties">
+          <span>
+            {% trans "Contraparte:" %}
+            <strong>
+              {% if request.user.rol == 'empresa' %}
+                {% if d.contratacion and d.contratacion.desarrollador %}
+                  {{ d.contratacion.desarrollador.nombre|default:d.contratacion.desarrollador.username }}
+                {% else %}
+                  {{ d.iniciado_por.nombre|default:d.iniciado_por.username }}
+                {% endif %}
+              {% else %}
+                {{ d.proyecto.empresa.nombre|default:d.proyecto.empresa.username }}
+              {% endif %}
+            </strong>
+          </span>
+          <span>·</span>
+          <span>{% trans "Iniciada por:" %} <strong>{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</strong></span>
+        </div>
+
+        <div class="disputas-case-details">
+          <div class="disputas-details-row">
+            <span class="disputas-details-label">{% trans "Causal invocada:" %}</span>
+            <span class="disputas-details-val">
+              <span class="disp-category-tag">{{ d.get_categoria_display }}</span>
+            </span>
+          </div>
+          <div class="disputas-details-row">
+            <span class="disputas-details-label">{% trans "Motivo reportado:" %}</span>
+            <span class="disputas-details-val">{{ d.motivo|truncatechars:140 }}</span>
+          </div>
+        </div>
+
+        <div class="disputas-case-footer">
+          <div class="disputas-mediator-chip">
+            <div class="disputas-mediator-avatar">
+              {% if d.mediador %}
+                {{ d.mediador.nombre|default:d.mediador.username|slice:":2"|upper }}
+              {% else %}
+                <i data-lucide="shield-check"></i>
+              {% endif %}
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            <div>
+              {% if d.mediador %}
+                <div class="disputas-mediator-name">{{ d.mediador.nombre|default:d.mediador.username }}</div>
+                <div class="disputas-mediator-role">{% trans "Mediador Administrativo Designado" %}</div>
+              {% else %}
+                <div class="disputas-mediator-name is-pending">{% trans "Asignando mediador neutral..." %}</div>
+                <div class="disputas-mediator-role">{% trans "Arbitraje Oficial JobDevs" %}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action primary">
+            <i data-lucide="message-square"></i>
+            <span>{% trans "Ingresar a Sala Virtual" %}</span>
+          </a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="disputas-card">
+        <div class="activity-empty">
+          <i data-lucide="scale"></i>
+          <p>{% trans "No hay disputas activas. Tus proyectos se desarrollan con normalidad." %}</p>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 </div>
 
-{% if not ocultar_historial %}
-<!-- Historial de Disputas Resueltas -->
-<div class="disputas-card" id="cardDisputasResueltas">
-  <div class="disputas-card-header">
-    <div class="disputas-card-title">
-      <i data-lucide="archive" style="color:var(--corp-slate-500);"></i>
-      <span>Historial y Expedientes Cerrados</span>
+<!-- Panel 2: Expedientes Resueltos -->
+<div id="pane-disputas-resueltas" class="disputas-tab-pane" style="display:none;">
+  <div class="disputas-card" id="cardDisputasResueltas">
+    {% if disputas_resueltas %}
+    <div style="overflow-x:auto;">
+      <table class="data-table-corp data-table">
+        <thead>
+          <tr>
+            <th>{% trans "Expediente" %}</th>
+            <th>{% trans "Proyecto" %}</th>
+            <th>{% trans "Causal" %}</th>
+            <th>{% trans "Dictamen Vinculante" %}</th>
+            <th>{% trans "Fecha Resolución" %}</th>
+            <th style="text-align:right;">{% trans "Expediente / Acta" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in disputas_resueltas %}
+          <tr class="disputa-row-item" data-disputa-row-estado="{{ d.estado }}">
+            <td><span class="disp-badge-id">#{{ d.pk }}</span></td>
+            <td><strong>{{ d.proyecto.titulo }}</strong></td>
+            <td><span class="disp-category-tag">{{ d.get_categoria_display }}</span></td>
+            <td>
+              <span class="disp-status-badge {% if d.estado == 'resuelta' %}resuelta{% else %}cancelada{% endif %}">
+                {% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}
+              </span>
+              <div class="disp-hint-corp disp-hint">{% if d.notas_resolucion %}{{ d.notas_resolucion|truncatechars:70 }}{% else %}{% trans "Sin notas adicionales." %}{% endif %}</div>
+            </td>
+            <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+            <td style="text-align:right;">
+              <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
+                <i data-lucide="file-text"></i> {% trans "Ver Expediente / Acta" %}
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <span class="disp-badge-id">{{ disputas_resueltas|length }}</span>
-  </div>
-  <div style="overflow-x:auto;">
-    <table class="data-table-corp data-table">
-      <thead>
-        <tr>
-          <th>Expediente</th>
-          <th>Proyecto</th>
-          <th>Resolución</th>
-          <th>Dictamen / Notas</th>
-          <th>Fecha Resolución</th>
-          <th style="text-align:right;">Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in disputas_resueltas %}
-        <tr class="disputa-row-item" data-disputa-row-estado="{{ d.estado }}">
-          <td><span class="disp-badge-id">#{{ d.pk }}</span></td>
-          <td><strong>{{ d.proyecto.titulo }}</strong></td>
-          <td>
-            <span class="disp-status-badge {% if d.estado == 'resuelta' %}resuelta{% else %}cancelada{% endif %}">
-              {% if d.resolucion %}{{ d.get_resolucion_display }}{% else %}{{ d.get_estado_display }}{% endif %}
-            </span>
-          </td>
-          <td style="color:var(--corp-slate-600); font-size:12.5px;">{{ d.notas_resolucion|default:"Sin notas adicionales."|truncatechars:70 }}</td>
-          <td style="color:var(--corp-slate-500); font-size:12.5px;">{% if d.fecha_resolucion %}{{ d.fecha_resolucion|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
-          <td style="text-align:right;">
-            <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn-corp-action secondary">
-              <i data-lucide="eye"></i> Ver Expediente
-            </a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6">
-            <div class="activity-empty">
-              <i data-lucide="archive"></i>
-              <p>Aún no hay disputas registradas en el historial.</p>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% else %}
+      <div class="activity-empty">
+        <i data-lucide="archive"></i>
+        <p>{% trans "Aún no hay expedientes resueltos registrados." %}</p>
+      </div>
+    {% endif %}
   </div>
 </div>
-{% endif %}
 
 <!-- Empty state reactivo para filtrado en cliente -->
 <div id="disputasClienteVacio" class="activity-empty" style="display:none; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg); padding: 36px 20px; margin-bottom: 22px;">
   <i data-lucide="scale"></i>
-  <p>No se encontraron disputas para el estado seleccionado.</p>
+  <p>{% trans "No se encontraron disputas para el estado seleccionado." %}</p>
+</div>
 </div>
 
+<script>
+  function switchDisputasSubTab(tab, btn) {
+    var paneActivas = document.getElementById('pane-disputas-activas');
+    var paneResueltas = document.getElementById('pane-disputas-resueltas');
+    var tabActivas = document.getElementById('tab-disputas-activas');
+    var tabResueltas = document.getElementById('tab-disputas-resueltas');
+
+    if (tab === 'activas') {
+      if (paneActivas) paneActivas.style.display = 'block';
+      if (paneResueltas) paneResueltas.style.display = 'none';
+      if (tabActivas) { tabActivas.classList.add('active'); tabActivas.setAttribute('aria-selected', 'true'); }
+      if (tabResueltas) { tabResueltas.classList.remove('active'); tabResueltas.setAttribute('aria-selected', 'false'); }
+    } else {
+      if (paneActivas) paneActivas.style.display = 'none';
+      if (paneResueltas) paneResueltas.style.display = 'block';
+      if (tabResueltas) { tabResueltas.classList.add('active'); tabResueltas.setAttribute('aria-selected', 'true'); }
+      if (tabActivas) { tabActivas.classList.remove('active'); tabActivas.setAttribute('aria-selected', 'false'); }
+    }
+    if (btn && btn.blur) btn.blur();
+  }
+</script>
+
 {% if request.user.rol != 'administrador' %}
-<div id="modalNuevaDisputa" class="modal-overlay" onclick="if(event.target===this)cerrarModalDisputa()">
+<div id="modalNuevaDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalNuevaDisputaTitulo" onclick="if(event.target===this)cerrarModalDisputa()">
   <div class="modal-box-corp" style="max-width:540px;">
     <div class="modal-header-corp">
       <div>
-        <h2 class="modal-title-corp" style="display:flex; align-items:center; gap:8px;">
-          <i data-lucide="gavel" style="color:var(--corp-danger);"></i>
-          <span>Iniciar Mediación Formal</span>
+        <h2 id="modalNuevaDisputaTitulo" class="modal-title-corp" style="display:flex; align-items:center; gap:8px;">
+          <i data-lucide="gavel" style="color:var(--corp-slate-500);"></i>
+          <span>{% trans "Iniciar Mediación Formal" %}</span>
         </h2>
-        <span style="font-size:12px; color:var(--corp-slate-500);">Apertura de arbitraje sobre proyectos con anomalías</span>
       </div>
-      <button onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="Cerrar modal">
+      <button onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -259,19 +361,23 @@
     {% if proyectos_disputables %}
       <div class="disp-notice disp-notice-danger">
         <i data-lucide="alert-triangle" style="margin-top:2px;"></i>
-        <span>Abrir una disputa <strong>congela de inmediato</strong> el proyecto y la contratación. Solo corresponde ante faltas contractuales graves.</span>
+        <span>{% blocktrans %}Abrir una disputa <strong>congela de inmediato</strong> el proyecto y la contratación. Solo corresponde ante faltas contractuales graves.{% endblocktrans %}</span>
       </div>
 
-      <div class="form-label-corp" style="margin-bottom:8px;">Selecciona el proyecto en controversia:</div>
+      <div class="form-label-corp" style="margin-bottom:8px;">{% trans "Selecciona el proyecto en controversia:" %}</div>
       <div style="display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; padding-right:4px;">
         {% for p in proyectos_disputables %}
-          <a href="{% url 'disputas:abrir_disputa' p.id %}" data-abrir-formulario-disputa data-url="{% url 'disputas:abrir_disputa' p.id %}" class="disp-proyecto-item-corp disp-proyecto-item">
+          <a href="{% url 'disputas:abrir_disputa' p.id %}"
+             data-abrir-formulario-disputa
+             data-url="{% url 'disputas:abrir_disputa' p.id %}"
+             onclick="if (document.getElementById('modalReportarDisputa') && typeof window.abrirModalDisputa === 'function') { cerrarModalDisputa(); window.abrirModalDisputa(event, this.getAttribute('data-url'), '{{ p.titulo|escapejs }}'); return false; }"
+             class="disp-proyecto-item-corp disp-proyecto-item">
             <div>
               <strong>{{ p.titulo }}</strong>
-              <small>{% if request.user.rol == 'empresa' %}{{ p.get_estado_display }}{% else %}Empresa: {{ p.empresa.nombre|default:p.empresa.username }}{% endif %}</small>
+              <small>{% if request.user.rol == 'empresa' %}{{ p.get_estado_display }}{% else %}{% trans "Empresa:" %} {{ p.empresa.nombre|default:p.empresa.username }}{% endif %}</small>
             </div>
-            <span class="btn-corp-action danger-subtle" style="font-size:12px; padding:5px 10px;">
-              <span>Iniciar</span> <i data-lucide="arrow-right"></i>
+            <span class="btn-corp-action secondary" style="font-size:12px; padding:5px 10px;">
+              <span>{% trans "Seleccionar" %}</span> <i data-lucide="arrow-right"></i>
             </span>
           </a>
         {% endfor %}
@@ -279,12 +385,12 @@
     {% else %}
       <div class="activity-empty" style="padding:24px 10px;">
         <i data-lucide="folder-open"></i>
-        <p>No tenés proyectos elegibles. Solo se puede disputar un proyecto <em>en desarrollo</em> o <em>en revisión</em> con contratación activa.</p>
+        <p>{% blocktrans %}No tienes proyectos elegibles. Solo se puede disputar un proyecto <em>en desarrollo</em> o <em>en revisión</em> con contratación activa.{% endblocktrans %}</p>
       </div>
     {% endif %}
 
     <div class="modal-footer-corp" style="margin-top:20px;">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">Cerrar</button>
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">{% trans "Cerrar" %}</button>
     </div>
   </div>
 </div>
@@ -302,4 +408,3 @@
   });
 </script>
 {% endif %}
-

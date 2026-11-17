@@ -10,6 +10,7 @@ from django.urls import reverse
 
 from usuarios.models import Usuario
 from usuarios.utils import get_admin_ids
+from logs.models import LogAuditoria
 
 
 @pytest.fixture(autouse=True)
@@ -42,6 +43,13 @@ class TestCacheAdministradores:
         assert objetivo.id not in get_admin_ids(), (
             'la lista cacheada de administradores sigue conteniendo al usuario eliminado'
         )
+        log = LogAuditoria.objects.get(
+            tabla_afectada='usuarios', registro_id=objetivo.id
+        )
+        assert log.valor_anterior == (
+            'email=admin_a_borrar@test.jobdevs; rol=administrador; estado=activo'
+        )
+        assert log.valor_nuevo == 'eliminado'
 
     def test_crear_admin_invalida_la_cache(self, admin_client, admin_user):
         """Comportamiento previo que debe conservarse: crear un admin invalida la caché."""
@@ -58,6 +66,11 @@ class TestCacheAdministradores:
 
         nuevo = Usuario.objects.get(username='admin_nuevo')
         assert nuevo.id in get_admin_ids()
+        log = LogAuditoria.objects.get(tabla_afectada='usuarios', registro_id=nuevo.id)
+        assert log.valor_nuevo == (
+            'email=nuevo@test.jobdevs; rol=administrador; estado=activo'
+        )
+        assert 'TestPass123!' not in f'{log.accion} {log.valor_nuevo}'
 
     def test_actualizar_rol_a_admin_invalida_la_cache(self, admin_client, admin_user, desarrollador_user):
         """Comportamiento previo que debe conservarse: cambiar el rol invalida la caché."""
@@ -71,6 +84,11 @@ class TestCacheAdministradores:
         assert response.status_code == 200, response.content
 
         assert desarrollador_user.id in get_admin_ids()
+        log = LogAuditoria.objects.get(
+            tabla_afectada='usuarios', registro_id=desarrollador_user.id
+        )
+        assert log.valor_anterior == 'rol=desarrollador'
+        assert log.valor_nuevo == 'rol=administrador'
 
     def test_admin_no_puede_eliminarse_a_si_mismo(self, admin_client, admin_user):
         """Comportamiento previo que debe conservarse: el auto-borrado se rechaza."""

@@ -2,24 +2,27 @@ import os
 import re
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import Http404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value, FloatField, F, Max
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.dateparse import parse_date
+from django.utils.dateparse import parse_date, parse_datetime
 from datetime import timedelta
 from django.core.paginator import Paginator
 from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena, ExcepcionFichaSena
 from ..services_sena import normalizar_numero_ficha
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
-from proyectos.models import Proyecto, Valoracion, CategoriaSolucion
+from proyectos.models import Proyecto, Valoracion, CategoriaSolucion, RegularizacionCierreProyecto
+from proyectos.services import regularizar_cierre_historico
 from postulaciones.models import Postulacion
+from postulaciones import services as postulaciones_services
 from contrataciones.models import Contratacion
 from disputas.models import Disputa
 from notificaciones.models import Notificacion
@@ -52,7 +55,8 @@ def dashboard_admin(request):
         post_pen = Postulacion.objects.filter(estado='pendiente').count()
         promedio_global = Valoracion.objects.aggregate(avg=Avg('puntuacion'))['avg'] or 0
         p_ret = Proyecto.objects.filter(
-            estado='en_desarrollo', fecha_limite__lt=timezone.now()
+            estado__in=('en_desarrollo', 'en_revision'),
+            fecha_cumplimiento__lt=timezone.localdate(),
         ).count()
         return user_stats, proy_stats, post_pen, promedio_global, p_ret
 
@@ -130,6 +134,13 @@ def dashboard_admin(request):
     proy_page = request.GET.get('proy_page', 1)
     proyectos_lista = proy_paginator.get_page(proy_page)
 
+    proyectos_pendientes_regularizacion = list(
+        Proyecto.objects.filter(estado='finalizado')
+        .exclude(historial_estados__estado_nuevo='finalizado')
+        .exclude(pk__in=RegularizacionCierreProyecto.objects.values('proyecto_id'))
+        .select_related('empresa').order_by('-fecha_publicacion')[:25]
+    )
+
     # Catálogo completo para la sección integrada Explorar en Admin
     proyectos_catalogo = list(Proyecto.objects.select_related(
         'empresa', 'empresa__perfil_empresa', 'categoria'
@@ -192,6 +203,11 @@ def dashboard_admin(request):
         .values_list('nombre', 'proyectos_comp', 'promedio', 'id'))
 
     salud_global = (promedio_global, p_ret)
+
+    proyectos_cumplimiento_vencido = Proyecto.objects.filter(
+        estado__in=('en_desarrollo', 'en_revision'),
+        fecha_cumplimiento__lt=timezone.localdate(),
+    ).select_related('empresa').order_by('fecha_cumplimiento')[:50]
 
     # SCRUM-315 (HU-A07): el umbral de inactividad es configurable (15 días por defecto).
     dias_alerta = getattr(settings, 'PROYECTO_DIAS_ALERTA_RETRASO', 15)
@@ -320,6 +336,7 @@ def dashboard_admin(request):
         'p_pub': p_pub, 'p_des': p_des, 'p_fin': p_fin,
         'post_pen': post_pen, 'promedio_global': promedio_global, 'p_ret': p_ret,
         'usuarios_todos': usuarios_lista, 'proyectos_todos': proyectos_lista,
+        'proyectos_pendientes_regularizacion': proyectos_pendientes_regularizacion,
         'proyectos_catalogo': proyectos_catalogo,
         'user_q': user_q, 'user_rol': user_rol, 'user_estado': user_estado,
         'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'usuarios_inactivos': usuarios_inactivos,
@@ -333,14 +350,63 @@ def dashboard_admin(request):
         'ranking_empresas_bajo': ranking_empresas_bajo,
         'resenas_auditoria': resenas_auditoria,
         'salud_global': salud_global,
+        'proyectos_cumplimiento_vencido': proyectos_cumplimiento_vencido,
         'alertas_retraso': alertas_retraso,
         'dias_alerta_retraso': dias_alerta,
         'notificaciones': notificaciones_admin,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'admin_id': request.user.id,
-        'admin_ids': list(admin_ids)
+        'admin_ids': list(admin_ids),
+        'plazo_negociacion_dias': postulaciones_services.obtener_plazo_negociacion_dias(),
     }
     return render(request, 'administrador/Administrador.html', context)
+
+
+@login_required
+@requiere_usuario_activo
+@require_POST
+def admin_actualizar_configuracion_negociacion(request):
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+    try:
+        plazo_dias = int(request.POST.get('plazo_dias', ''))
+        postulaciones_services.actualizar_plazo_negociacion_dias(
+            plazo_dias, request.user
+        )
+        messages.success(request, 'Plazo global de negociación actualizado.')
+    except (TypeError, ValueError, ValidationError) as exc:
+        mensaje = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
+        messages.error(request, mensaje or 'El plazo debe estar entre 1 y 30 días.')
+    return redirect(reverse('dashboard_admin') + '?section=configSection')
+
+
+@login_required
+@requiere_usuario_activo
+@require_POST
+def admin_regularizar_cierre_proyecto(request, proyecto_id):
+    if request.user.rol != 'administrador':
+        raise PermissionDenied
+
+    destino = redirect(reverse('dashboard_admin') + '?section=projectsSection')
+    fecha_cierre = parse_datetime(request.POST.get('fecha_cierre', ''))
+    if fecha_cierre is not None and timezone.is_naive(fecha_cierre):
+        fecha_cierre = timezone.make_aware(fecha_cierre, timezone.get_current_timezone())
+
+    try:
+        regularizar_cierre_historico(
+            proyecto_id=proyecto_id,
+            fecha_cierre=fecha_cierre,
+            motivo=request.POST.get('motivo', ''),
+            referencia_evidencia=request.POST.get('referencia_evidencia', ''),
+            registrado_por=request.user,
+        )
+    except Proyecto.DoesNotExist:
+        raise Http404 from None
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
+    else:
+        messages.success(request, 'Fecha de cierre histórico registrada con auditoría.')
+    return destino
 
 
 @login_required
@@ -382,36 +448,49 @@ def admin_reactivar_proyecto(request, proyecto_id):
         proyecto = Proyecto.objects.select_for_update().get(id=proyecto_id)
         
         if proyecto.estado != 'finalizado':
-            messages.warning(request, "Solo se pueden reactivar proyectos finalizados.")
+            messages.warning(request, "Solo se puede crear una continuación desde un proyecto finalizado.")
             return redirect('ver_avances', proyecto_id=proyecto.id)
 
-        estado_anterior = proyecto.estado
-        proyecto.estado = 'en_desarrollo'
-        proyecto.save()
-        proyecto.registrar_cambio_estado('en_desarrollo', request.user, estado_anterior=estado_anterior)
-        
-        Contratacion.objects.filter(proyecto=proyecto, estado='finalizada').update(estado='activa')
-        
-        notificaciones = [
-            Notificacion(
-                usuario=proyecto.empresa,
-                tipo='avance',
-                mensaje=f"SOPORTE: Tu proyecto '{proyecto.titulo}' ha sido reactivado exitosamente."
-            )
-        ]
-        
-        devs_ids = Contratacion.objects.filter(proyecto=proyecto, estado='activa').values_list('desarrollador_id', flat=True)
-        for dev_id in devs_ids:
-            notificaciones.append(Notificacion(
-                usuario_id=dev_id,
-                tipo='avance',
-                mensaje=f"ALERTA: El proyecto '{proyecto.titulo}' ha sido reactivado por la empresa."
-            ))
-        
-        Notificacion.objects.bulk_create(notificaciones)
+        if proyecto.proyectos_sucesores.exists():
+            messages.info(request, "Este proyecto ya tiene una continuación publicada.")
+            return redirect('ver_avances', proyecto_id=proyecto.id)
 
-    messages.success(request, f"Proyecto '{proyecto.titulo}' reactivado y contratos restablecidos.")
-    return redirect('ver_avances', proyecto_id=proyecto.id)
+        sucesor = Proyecto.objects.create(
+            empresa=proyecto.empresa,
+            titulo=f'Continuación de {proyecto.titulo}'[:200],
+            descripcion=proyecto.descripcion,
+            tipo_solucion=proyecto.tipo_solucion,
+            categoria=proyecto.categoria,
+            prioridad=proyecto.prioridad,
+            modalidad=proyecto.modalidad,
+            ciudad=proyecto.ciudad,
+            vacantes=proyecto.vacantes,
+            estado='publicado',
+            proyecto_origen=proyecto,
+        )
+        LogAuditoria.objects.create(
+            usuario=request.user,
+            accion=f"Creó el proyecto sucesor '{sucesor.titulo}' sin reactivar '{proyecto.titulo}'",
+            tabla_afectada='proyectos',
+            registro_id=sucesor.pk,
+            valor_anterior=f'proyecto_origen={proyecto.pk}; estado=finalizado',
+            valor_nuevo='estado=publicado; contratos=0',
+        )
+        Notificacion.objects.create(
+            usuario=proyecto.empresa,
+            proyecto=sucesor,
+            tipo='avance',
+            mensaje=(
+                f"Se creó '{sucesor.titulo}' como continuación independiente. "
+                'Revisa fechas y condiciones antes de recibir postulaciones.'
+            ),
+        )
+
+    messages.success(
+        request,
+        f"Se creó '{sucesor.titulo}'. El proyecto finalizado y sus contratos no se modificaron.",
+    )
+    return redirect('ver_avances', proyecto_id=sucesor.id)
 
 
 @login_required

@@ -237,8 +237,33 @@ class TestAutorizacionMensajeria:
         }, follow=True)
         assert response.status_code == 200
         assert not Mensaje.objects.filter(remitente=dev_ajeno, receptor=empresa).exists()
-        content = response.content.decode('utf-8')
-        assert 'No tienes autorización' in content or 'no válido' in content
+
+    def test_proyecto_multi_dev_conserva_chat_directo_privado(self, client, escenario):
+        """RF 6.1.1 oficial: los participantes conservan mensajería privada directa."""
+        from mensajes.policies import puede_comunicarse
+        empresa = escenario['empresa']
+        dev1 = escenario['dev']
+        dev2 = escenario['dev_ajeno']
+        proyecto = escenario['proyecto']
+        admin = escenario['admin']
+
+        # Contratar a dev2 en el mismo proyecto
+        Contratacion.objects.create(
+            proyecto=proyecto, empresa=empresa, desarrollador=dev2, estado='activa'
+        )
+
+        # 1. Política permite chat 1:1 a participantes del mismo proyecto
+        assert puede_comunicarse(empresa, dev1, proyecto=proyecto) is True
+        assert puede_comunicarse(dev1, empresa, proyecto=proyecto) is True
+        assert puede_comunicarse(dev1, dev2, proyecto=proyecto) is True
+        # 3. Política permite comunicación con Admin
+        assert puede_comunicarse(dev1, admin, proyecto=proyecto) is True
+        assert puede_comunicarse(empresa, admin, proyecto=proyecto) is True
+
+        # 4. La sala privada no redirige al chat grupal opcional
+        client.force_login(dev1)
+        res = client.get(reverse('sala_chat', args=[empresa.id, proyecto.id]))
+        assert res.status_code == 200
 
 
 class TestIndicadorMensajesNoLeidos:

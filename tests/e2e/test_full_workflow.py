@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import Client
 from proyectos.models import Proyecto, Entregable, Equipo, Valoracion
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, ContratoDigital
 from avances.models import Avance
 from mensajes.models import Mensaje
 from usuarios.models import PerfilDesarrollador
@@ -18,7 +18,7 @@ class TestFullWorkflowE2E:
     def test_full_project_lifecycle(self, page, live_server):
         """
         Complete project lifecycle E2E:
-        1. Create empresa + 2 devs, publish project, both apply, empresa accepts
+        1. Create empresa + 2 devs, publish project, both apply, sign contracts
         2. Create groups, assign hitos to groups
         3. Devs submit avances via browser
         4. Empresa accepts one, rejects another (with comment)
@@ -55,13 +55,17 @@ class TestFullWorkflowE2E:
         for dev in [dev1, dev2]:
             perfil, _ = PerfilDesarrollador.objects.get_or_create(usuario=dev)
             perfil.estado_verificacion = 'verificado'
-            perfil.save(update_fields=['estado_verificacion'])
+            perfil.habilidades = 'Python E2E'
+            perfil.save(update_fields=['estado_verificacion', 'habilidades'])
 
         # ── Empresa publishes ──
+        from datetime import timedelta
+        from django.utils import timezone
         client.login(username='full_emp', password='FullPass123!')
         client.post(reverse('crear_proyecto'), {
             'titulo': 'Full Test Project', 'descripcion': 'E2E complete',
             'tipo_solucion': 'sitio_web', 'prioridad': 'alta', 'vacantes': '2',
+            'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
         })
         proyecto = Proyecto.objects.get(titulo='Full Test Project')
         assert proyecto.estado == 'publicado'
@@ -77,10 +81,21 @@ class TestFullWorkflowE2E:
             })
         assert Postulacion.objects.filter(proyecto=proyecto).count() == 2
 
-        # ── Empresa accepts both ──
+        # ── Empresa inicia negociación; ambas partes firman cada contrato ──
         client.login(username='full_emp', password='FullPass123!')
         for post in Postulacion.objects.filter(proyecto=proyecto):
-            client.post(reverse('aceptar_postulacion', args=[post.id]))
+            assert client.post(reverse('iniciar_negociacion', args=[post.id])).status_code == 302
+            post.refresh_from_db()
+            assert post.estado == 'en_negociacion'
+            contrato = ContratoDigital.objects.get(postulacion=post)
+            url_firma = reverse('firmar_contrato_digital', args=[contrato.id])
+            assert client.post(url_firma, {'acepta_terminos': 'on'}).status_code == 302
+            dev_client = Client()
+            assert dev_client.login(username=post.desarrollador.username, password='FullPass123!')
+            assert dev_client.post(url_firma, {'acepta_terminos': 'on'}).status_code == 302
+            contrato.refresh_from_db()
+            assert contrato.esta_firmado
+            assert contrato.perfil_profesional['habilidades'] == 'Python E2E'
         proyecto.refresh_from_db()
         assert proyecto.estado == 'en_desarrollo'
 
@@ -115,6 +130,12 @@ class TestFullWorkflowE2E:
         page.fill('#password', 'FullPass123!')
         page.locator('.btn-submit-tech:has-text("INGRESAR")').click(force=True)
         page.wait_for_timeout(2000)
+
+        contrato_dev1 = ContratoDigital.objects.get(  # type: ignore[attr-defined]
+            postulacion__desarrollador=dev1, postulacion__proyecto=proyecto)
+        page.goto(live_server.url + reverse('ver_contrato_digital', args=[contrato_dev1.id]))
+        assert page.get_by_text('Perfil profesional de la postulación').is_visible()
+        assert page.get_by_text('Python E2E').is_visible()
 
         page.goto(live_server.url + reverse('registrar_avance', args=[proyecto.id]))
         page.wait_for_timeout(1000)
@@ -186,15 +207,7 @@ class TestFullWorkflowE2E:
             'archivo_url': 'https://github.com/test/docs/1',
         })
 
-        # ── Empresa accepts remaining ──
-        client.login(username='full_emp', password='FullPass123!')
-        for avance in Avance.objects.filter(proyecto=proyecto, estado='pendiente'):
-            client.post(reverse('revisar_avance', args=[avance.id]), {
-                'accion': 'aceptar', 'comentario': 'Aprobado',
-            })
-        assert Entregable.objects.filter(proyecto=proyecto, estado='completado').count() == 3
-
-        # ═══ BROWSER: Chat in workspace ═══
+        # ═══ BROWSER: Chat in workspace before the last hito closes the project ═══
         page.goto(live_server.url + reverse('login'))
         page.wait_for_timeout(2000)
         page.locator('#username').wait_for(state='visible', timeout=5000)
@@ -210,18 +223,25 @@ class TestFullWorkflowE2E:
         page.wait_for_timeout(1500)
         assert Mensaje.objects.filter(proyecto=proyecto, receptor__isnull=True).count() >= 1
 
-        # ── Finalize + rate both devs ──
+        # ── Empresa accepts remaining; the last acceptance finalizes automatically ──
         client.login(username='full_emp', password='FullPass123!')
-        client.post(reverse('finalizar_proyecto', args=[proyecto.id]), {
-            'puntuacion': '5', 'comentario': 'Excelente dev, muy profesional',
-        }, follow=True)
-        proyecto.refresh_from_db()
-        if proyecto.estado != 'finalizado':
-            client.post(reverse('finalizar_proyecto', args=[proyecto.id]), {
-                'puntuacion': '4', 'comentario': 'Buen trabajo, cumplio',
-            }, follow=True)
+        for avance in Avance.objects.filter(proyecto=proyecto, estado='pendiente'):
+            client.post(reverse('revisar_avance', args=[avance.id]), {
+                'accion': 'aceptar', 'comentario': 'Aprobado',
+            })
+        assert Entregable.objects.filter(proyecto=proyecto, estado='completado').count() == 3
+
+        # ── Rate both devs after automatic project finalization ──
+        client.login(username='full_emp', password='FullPass123!')
         proyecto.refresh_from_db()
         assert proyecto.estado == 'finalizado'
+        for puntuacion, comentario in (
+            ('5', 'Excelente dev, muy profesional'),
+            ('4', 'Buen trabajo, cumplio'),
+        ):
+            client.post(reverse('finalizar_proyecto', args=[proyecto.id]), {
+                'puntuacion': puntuacion, 'comentario': comentario,
+            }, follow=True)
 
         # ── Both devs rate empresa ──
         for dev in [dev1, dev2]:

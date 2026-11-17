@@ -18,6 +18,121 @@ class TestDashboardAccess:
         """Empresa user can access their dashboard."""
         response = auth_client.get(reverse('dashboard_empresa'))
         assert response.status_code == 200
+        content = response.content.decode()
+        assert 'id="inicio"' in content
+        assert 'dashboard-layout-corp' in content
+        assert 'modalBienvenidaEmpresa' in content
+        assert 'Convocatorias' in content
+        assert 'Candidatos' in content
+        assert 'Contratos / Firmas' in content
+
+    def test_ledger_suma_historia_y_desglosa_solo_seis_meses(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        from datetime import timedelta
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from contrataciones.models import ContratoDigital
+        from postulaciones.models import Postulacion
+        from proyectos.models import Proyecto
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Cierre contable', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=2,
+        )
+        otro = get_user_model().objects.create_user(
+            username='dev_ledger', email='dev_ledger@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        anterior = ContratoDigital.objects.create(
+            postulacion=Postulacion.objects.create(
+                proyecto=proyecto, desarrollador=desarrollador_user),
+            monto='75.00',
+        )
+        ContratoDigital.objects.filter(pk=anterior.pk).update(
+            fecha_creacion=timezone.now() - timedelta(days=220),
+        )
+        ContratoDigital.objects.create(
+            postulacion=Postulacion.objects.create(proyecto=proyecto, desarrollador=otro),
+            monto='25.00',
+        )
+
+        respuesta = auth_client.get(reverse('dashboard_empresa'))
+        assert respuesta.status_code == 200
+        assert respuesta.context['capital_ejecutado'] == 100
+        meses = respuesta.context['meses_ledger']
+        assert len(meses) == 6
+        assert meses[-1]['monto'] == 25.0
+        assert sum(fila['monto'] for fila in meses) == 25.0
+        assert respuesta.context['breakdown_stack'][0]['total'] == 100.0
+
+    def test_empresa_dashboard_renders_mini_roadmap_and_deliverable_alert(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        from proyectos.models import Proyecto, Entregable
+        from contrataciones.models import Contratacion
+        from avances.models import Avance
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto con Hitos y Avance',
+            descripcion='Desc', tipo_solucion='sitio_web', estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, empresa=empresa_user, desarrollador=desarrollador_user,
+            estado='activa',
+        )
+        h1 = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito 1 Setup', estado='completado'
+        )
+        h2 = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito 2 API', estado='en_revision'
+        )
+        Avance.objects.create(
+            proyecto=proyecto, desarrollador=desarrollador_user, entregable=h2,
+            descripcion='Entrega de API completada', estado='pendiente'
+        )
+
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert 'alerta-avance-pendiente-empresa' in content
+        assert 'Roadmap de Hitos del Proyecto' in content
+        assert 'Hito 1 Setup' in content
+        assert 'Hito 2 API' in content
+        assert 'Entrega de API completada' in content
+
+    def test_empresa_ve_alerta_de_cumplimiento_sin_confundirla_con_cierre(self, auth_client, empresa_user):
+        from datetime import timedelta
+        from django.utils import timezone
+        from proyectos.models import Proyecto
+
+        hoy = timezone.localdate()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Entrega atrasada', descripcion='D',
+            tipo_solucion='sitio_web', estado='en_desarrollo',
+            fecha_limite=hoy + timedelta(days=10),
+            fecha_cumplimiento=hoy - timedelta(days=1),
+        )
+        response = auth_client.get(reverse('dashboard_empresa'))
+        fila = next(p for p in response.context['en_desarrollo_v'] if p['proyecto_id'] == proyecto.id)
+        assert fila['fecha_fin'] == proyecto.fecha_cumplimiento
+        assert fila['cumplimiento_vencido'] is True
+        assert 'Cumplimiento vencido' in response.content.decode()
+
+    def test_oferta_con_contrato_historico_no_ofrece_retiro(self, auth_client, empresa_user, desarrollador_user):
+        from proyectos.models import Proyecto
+        from contrataciones.models import Contratacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Oferta con historial contractual',
+            descripcion='D', tipo_solucion='sitio_web', estado='publicado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, empresa=empresa_user,
+            desarrollador=desarrollador_user, estado='finalizada',
+        )
+        response = auth_client.get(reverse('dashboard_empresa'))
+        assert f'action="{reverse("desactivar_proyecto", args=[proyecto.id])}"' not in response.content.decode()
 
     def test_empresa_dashboard_incluye_postulaciones_y_vacantes_en_desarrollo(self, auth_client, empresa_user, desarrollador_user):
         """Dashboard de empresa debe contabilizar postulaciones de proyectos en desarrollo y reportar vacantes disponibles."""
@@ -86,6 +201,34 @@ class TestDashboardAccess:
         """Dev user can access their dashboard."""
         response = dev_client.get(reverse('dashboard_desarrollador'))
         assert response.status_code == 200
+
+    def test_explorar_no_muestra_publicado_sin_cupo(
+        self, dev_client, empresa_user,
+    ):
+        from django.contrib.auth import get_user_model
+        from contrataciones.models import Contratacion
+        from proyectos.models import Proyecto
+
+        otro_dev = get_user_model().objects.create_user(
+            username='ocupante_explorar', email='ocupante@test.jobdevs',
+            rol='desarrollador', estado='activo', password='TestPass123!',
+        )
+        agotado = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Sin cupo', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        disponible = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Con cupo', descripcion='D',
+            tipo_solucion='sitio_web', estado='publicado', vacantes=1,
+        )
+        Contratacion.objects.create(
+            empresa=empresa_user, proyecto=agotado,
+            desarrollador=otro_dev, estado='activa',
+        )
+        response = dev_client.get(reverse('dashboard_desarrollador'))
+        ids = {p.id for p in response.context['proyectos_explorar']}
+        assert disponible.id in ids
+        assert agotado.id not in ids
 
     def test_dev_dashboard_blocked_for_anon(self, client):
         """Anonymous users cannot access dev dashboard."""
@@ -518,11 +661,11 @@ def test_dev_dashboard_incluye_seccion_explorar_integrada(client, desarrollador_
 
 def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_client, empresa_user, desarrollador_user, db):
     """
-    Verifica que en el dashboard de empresa:
-    1. La sección Disputas NO contenga el bloque 'Historial y Expedientes Cerrados'.
-    2. La sección Historial contenga las subpestañas organizadas: 'Proyectos (Historial Completo)'
-       y 'Disputas (Historial Completo)'.
-    3. Los expedientes resueltos de disputas se rendericen dentro de Historial.
+    Verifica la arquitectura Dirección 01 (Centro de Mediación Integral sin duplicación en Historial):
+    1. La sección Disputas centraliza todo el ciclo: banner de protocolo SENA/JobDevs, 4 KPIs,
+       switcher dual ('Casos Activos & En Mediación' y 'Expedientes Resueltos') y los expedientes resueltos.
+    2. La sección Historial queda enfocada en Proyectos Archivados y Libro Mayor Financiero,
+       sin la subpestaña/panel duplicado de disputas ('btn-historial-disputas', 'pane-historial-disputas').
     """
     from django.utils import timezone
     from proyectos.models import Proyecto
@@ -555,14 +698,366 @@ def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_c
     bloque_disputas = content[disputas_idx:historial_idx]
     bloque_historial = content[historial_idx:perfil_idx]
 
-    # En la sección Disputas no debe estar 'Historial y Expedientes Cerrados'
-    assert 'Historial y Expedientes Cerrados' not in bloque_disputas
+    # En la sección Disputas debe estar el Centro de Mediación Integral con ambas vistas
+    assert 'protocolo-arbitraje-banner' in bloque_disputas
+    assert 'disputas-kpis' in bloque_disputas
+    # La etiqueta {% trans %} es contenido seguro y Django conserva el '&'
+    # literal. Ambas serializaciones producen el mismo texto en el DOM; la
+    # aserción valida el contenido visible sin exigir una codificación HTML.
+    from html import unescape
+    assert 'Casos Activos & En Mediación' in unescape(bloque_disputas)
+    assert 'Expedientes Resueltos' in bloque_disputas
+    assert 'pane-disputas-activas' in bloque_disputas
+    assert 'pane-disputas-resueltas' in bloque_disputas
+    assert 'Proyecto Con Disputa Resuelta' in bloque_disputas
+    assert f'#{disputa.pk}' in bloque_disputas
+    assert 'Acuerdo alcanzado satisfactoriamente' in bloque_disputas
 
-    # En la sección Historial debe estar la organización de subpestañas y el expediente cerrado
-    assert 'Proyectos (Historial Completo)' in bloque_historial
-    assert 'Disputas (Historial Completo)' in bloque_historial
+    # En la sección Historial NO debe duplicarse la subpestaña/panel de disputas
+    assert 'history-toolbar-corp' in bloque_historial
+    assert 'Proyectos Archivados' in bloque_historial
     assert 'pane-historial-proyectos' in bloque_historial
-    assert 'pane-historial-disputas' in bloque_historial
-    assert 'Proyecto Con Disputa Resuelta' in bloque_historial
-    assert f'#{disputa.pk}' in bloque_historial
+    assert 'btn-historial-disputas' not in bloque_historial
+    assert 'pane-historial-disputas' not in bloque_historial
+    assert 'Expedientes de Disputas' not in bloque_historial
+    assert f'#{disputa.pk}' not in bloque_historial
+    assert 'Acuerdo alcanzado satisfactoriamente' not in bloque_historial
+
+
+@pytest.mark.django_db
+def test_empresa_dashboard_renders_donut_chart_with_offsets_and_tooltips(auth_client, empresa_user):
+    """Verifica que el dashboard de la empresa renderice el gráfico de torta/dona con cálculo de dash_offset y tooltip."""
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # Contexto contiene breakdown_stack con dash_offset
+    breakdown = response.context['breakdown_stack']
+    assert len(breakdown) > 0
+    for item in breakdown:
+        assert 'dash_offset' in item
+        assert 'dash_length' in item
+        assert 'porcentaje' in item
+        assert 'label' in item
+
+    # La dona redundante ya no se renderiza en Inicio (vive en Historial)
+    assert 'command-donut-card' not in content
+    assert 'id="donutHomeTooltip"' not in content
+
+
+@pytest.mark.django_db
+def test_empresa_dashboard_renders_pending_deliverables_queue(auth_client, empresa_user, desarrollador_user):
+    """Verifica que dashboard_empresa entregue avances_pendientes_revision y renderice la bandeja de aprobación."""
+    from django.urls import reverse
+    from proyectos.models import Proyecto, Entregable
+    from contrataciones.models import Contratacion
+    from avances.models import Avance
+
+    proyecto = Proyecto.objects.create(
+        empresa=empresa_user,
+        titulo='Plataforma Analítica B2B',
+        descripcion='Desarrollo de dashboard analítico',
+        tipo_solucion='sitio_web',
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto,
+        empresa=empresa_user,
+        desarrollador=desarrollador_user,
+        estado='activa',
+    )
+    hito = Entregable.objects.create(
+        proyecto=proyecto,
+        titulo='Hito 1: Módulo de Reportes',
+        estado='en_revision',
+    )
+    avance = Avance.objects.create(
+        proyecto=proyecto,
+        desarrollador=desarrollador_user,
+        entregable=hito,
+        descripcion='Implementación completa de exportación CSV y filtros.',
+        archivo_url='https://github.com/jobdevs/demo-pr/pull/42',
+        estado='pendiente',
+    )
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+
+    assert 'avances_pendientes_revision' in response.context
+    assert 'total_avances_pendientes' in response.context
+    assert response.context['total_avances_pendientes'] == 1
+
+    avances_ctx = response.context['avances_pendientes_revision']
+    assert len(avances_ctx) == 1
+    assert avances_ctx[0]['id'] == avance.id
+    assert avances_ctx[0]['proyecto_id'] == proyecto.id
+    assert avances_ctx[0]['proyecto_titulo'] == 'Plataforma Analítica B2B'
+    assert avances_ctx[0]['entregable_id'] == hito.id
+    assert avances_ctx[0]['entregable_titulo'] == 'Hito 1: Módulo de Reportes'
+    assert avances_ctx[0]['descripcion'] == 'Implementación completa de exportación CSV y filtros.'
+    assert avances_ctx[0]['archivo_url'] == 'https://github.com/jobdevs/demo-pr/pull/42'
+
+    content = response.content.decode()
+    assert 'Entregables Pendientes de Aprobación' in content
+    assert 'Plataforma Analítica B2B' in content
+    assert 'Hito 1: Módulo de Reportes' in content
+    assert 'Implementación completa de exportación CSV y filtros.' in content
+    assert 'https://github.com/jobdevs/demo-pr/pull/42' in content
+
+    revisar_url = reverse('revisar_avance', args=[avance.id])
+    assert f'action="{revisar_url}"' in content
+    assert 'name="comentario"' in content
+    assert 'value="aceptar"' in content
+    assert 'value="rechazar"' in content
+    assert 'Aprobar y Liberar Hito' in content
+    assert 'Solicitar Ajustes' in content
+    assert 'Revisar Entregables' in content
+
+
+@pytest.mark.django_db
+def test_empresa_dashboard_pending_deliverables_queue_empty_state(auth_client):
+    """Verifica el estado vacío de la bandeja cuando no hay avances pendientes."""
+    from django.urls import reverse
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    assert response.context['total_avances_pendientes'] == 0
+    assert response.context['avances_pendientes_revision'] == []
+
+    content = response.content.decode()
+    assert 'Entregables Pendientes de Aprobación' in content
+    assert 'Todos los entregables técnicos están al día.' in content
+
+
+@pytest.mark.django_db
+def test_empresa_dashboard_no_usa_espacio_con_firma_pendiente(
+    auth_client, empresa_user, desarrollador_user,
+):
+    """El aviso de contrato por firmar vive en la campana, no en el cuerpo del panel."""
+    from django.urls import reverse
+    from proyectos.models import Proyecto
+    from postulaciones.models import Postulacion
+    from contrataciones.models import ContratoDigital
+
+    proyecto = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto pendiente de firma', descripcion='D',
+        tipo_solucion='sitio_web', estado='en_desarrollo',
+    )
+    postulacion = Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado='en_negociacion',
+    )
+    ContratoDigital.objects.create(postulacion=postulacion, estado='borrador')
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    # El dato sigue disponible para la campana y el badge del sidebar.
+    assert response.context['contratos_pendientes_firma_count'] == 1
+
+    content = response.content.decode()
+    assert 'Firmar Contratos' not in content
+    assert 'pendiente de firma digital' not in content
+
+
+@pytest.mark.django_db
+def test_empresa_dashboard_financial_escrow_widget(auth_client, empresa_user, desarrollador_user):
+    """Valida el cálculo en context y renderizado del widget Presupuesto de Contratos Vigentes (Opción A)."""
+    from decimal import Decimal
+    from django.contrib.auth import get_user_model
+    from django.urls import reverse
+    from proyectos.models import Proyecto, Entregable
+    from postulaciones.models import Postulacion
+    from contrataciones.models import Contratacion, ContratoDigital
+
+    # 1. Estado inicial sin compromisos activos
+    empty_resp = auth_client.get(reverse('dashboard_empresa'))
+    assert empty_resp.status_code == 200
+    assert empty_resp.context['presupuesto_total_comprometido'] == Decimal('0')
+    assert empty_resp.context['fondos_liberados'] == Decimal('0')
+    assert empty_resp.context['fondos_en_custodia'] == Decimal('0')
+    assert empty_resp.context['porcentaje_fondos_liberados'] == 0
+    empty_html = empty_resp.content.decode()
+    assert 'command-financial-card' in empty_html
+    assert 'Presupuesto de Contratos' in empty_html
+    assert 'Sin compromisos activos' in empty_html
+    assert 'SHA-256' in empty_html
+
+    # 2. Con contratos formalizados (firmados y/o con contratación activa) y borrador excluido
+    dev2 = get_user_model().objects.create_user(
+        username='dev_escrow_2', email='dev_escrow_2@test.jobdevs',
+        rol='desarrollador', estado='activo', password='TestPass123!',
+    )
+    dev3 = get_user_model().objects.create_user(
+        username='dev_escrow_3', email='dev_escrow_3@test.jobdevs',
+        rol='desarrollador', estado='activo', password='TestPass123!',
+    )
+
+    # Proyecto 1: en_desarrollo con 3 hitos (1 completado -> 1/3 de 3.000.000 = 1.000.000 liberado)
+    proy1 = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto Escrow Hitos',
+        descripcion='D1', tipo_solucion='sitio_web', estado='en_desarrollo',
+    )
+    c1 = Contratacion.objects.create(
+        proyecto=proy1, empresa=empresa_user, desarrollador=desarrollador_user, estado='activa',
+    )
+    p1 = Postulacion.objects.create(proyecto=proy1, desarrollador=desarrollador_user, estado='aceptada')
+    ContratoDigital.objects.create(
+        postulacion=p1, contratacion=c1, monto=Decimal('3000000.00'), moneda='COP',
+        estado='firmado', firmado_empresa=True, firmado_desarrollador=True,
+    )
+    Entregable.objects.create(proyecto=proy1, titulo='H1', estado='completado')
+    Entregable.objects.create(proyecto=proy1, titulo='H2', estado='en_revision')
+    Entregable.objects.create(proyecto=proy1, titulo='H3', estado='pendiente')
+
+    # Proyecto 2: finalizado (100% liberado = 2.000.000)
+    proy2 = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto Escrow Finalizado',
+        descripcion='D2', tipo_solucion='aplicacion_movil', estado='finalizado',
+    )
+    c2 = Contratacion.objects.create(
+        proyecto=proy2, empresa=empresa_user, desarrollador=dev2, estado='finalizada',
+    )
+    p2 = Postulacion.objects.create(proyecto=proy2, desarrollador=dev2, estado='aceptada')
+    ContratoDigital.objects.create(
+        postulacion=p2, contratacion=c2, monto=Decimal('2000000.00'), moneda='COP',
+        estado='firmado', firmado_empresa=True, firmado_desarrollador=True,
+    )
+
+    # Contrato 3: borrador sin formalizar (NO debe sumarse)
+    proy3 = Proyecto.objects.create(
+        empresa=empresa_user, titulo='Proyecto Borrador Excluido',
+        descripcion='D3', tipo_solucion='automatizacion', estado='publicado',
+    )
+    p3 = Postulacion.objects.create(proyecto=proy3, desarrollador=dev3, estado='en_negociacion')
+    ContratoDigital.objects.create(
+        postulacion=p3, monto=Decimal('5000000.00'), moneda='COP',
+        estado='pendiente_firma', firmado_empresa=True, firmado_desarrollador=False,
+    )
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    assert response.context['presupuesto_total_comprometido'] == Decimal('5000000.00')
+    assert response.context['fondos_liberados'] == Decimal('3000000')
+    assert response.context['fondos_en_custodia'] == Decimal('2000000.00')
+    assert response.context['porcentaje_fondos_liberados'] == 60
+
+    content = response.content.decode()
+    assert 'command-financial-card' in content
+    assert 'Contratos Vigentes' in content
+    assert '60%' in content
+    assert 'Presupuesto Total Acordado' in content
+    assert 'Hitos Cumplidos' in content
+    assert 'Pendiente de Ejecución' in content
+    assert '2000000' in content
+    assert '5000000' in content
+    assert '3000000' in content
+    # Asegurar que NO contenga términos erróneos de custodia o retención
+    assert 'Custodia Activa' not in content
+    assert 'Fondos en Custodia / Garantía' not in content
+    assert 'Los fondos se retienen de forma segura' not in content
+
+
+def test_empresa_dashboard_historial_chart_datasets_and_controls(auth_client, empresa_user, desarrollador_user, db):
+    """El historial financiero expone datasets JSON (6m/12m) para las 3 métricas y controles interactivos en el HTML."""
+    import json
+    from datetime import timedelta
+    from decimal import Decimal
+    from django.urls import reverse
+    from django.utils import timezone
+    from proyectos.models import Proyecto, Entregable
+    from postulaciones.models import Postulacion
+    from contrataciones.models import ContratoDigital
+
+    proyecto = Proyecto.objects.create(
+        empresa=empresa_user,
+        titulo='Proyecto Analítica Historial',
+        descripcion='Desc',
+        tipo_solucion='sitio_web',
+        estado='en_desarrollo',
+    )
+    post = Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado='aceptada'
+    )
+    contrato = ContratoDigital.objects.create(
+        postulacion=post, monto=Decimal('4000000.00'), moneda='COP'
+    )
+    # Contrato de hace ~8 meses (visible en 12m, fuera de 6m)
+    ContratoDigital.objects.filter(pk=contrato.pk).update(
+        fecha_creacion=timezone.now() - timedelta(days=240)
+    )
+
+    # 2 hitos totales: 1 completado este mes, 1 pendiente -> liquidado proporcional = 2,000,000
+    Entregable.objects.create(proyecto=proyecto, titulo='Hito Aprobado 1', estado='completado')
+    Entregable.objects.create(proyecto=proyecto, titulo='Hito Pendiente 2', estado='pendiente')
+
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    assert 'chart_datasets_json' in response.context
+
+    datasets = json.loads(response.context['chart_datasets_json'])
+    assert set(datasets.keys()) == {'contratado', 'liquidado', 'hitos_qty'}
+
+    for key in ('contratado', 'liquidado', 'hitos_qty'):
+        serie = datasets[key]
+        assert len(serie['puntos_6m']) == 6
+        assert len(serie['puntos_12m']) == 12
+        assert 'total_6m' in serie
+        assert 'total_12m' in serie
+        assert 'label' in serie
+        assert all('mes' in p and 'valor' in p for p in serie['puntos_6m'])
+        assert all('mes' in p and 'valor' in p for p in serie['puntos_12m'])
+
+    assert datasets['contratado']['label'] == 'Presupuesto Contratado (COP)'
+    assert datasets['contratado']['total_6m'] == 0.0
+    assert datasets['contratado']['total_12m'] == 4000000.0
+
+    assert datasets['liquidado']['label'] == 'Liquidaciones por Hitos Aprobados (COP)'
+    assert datasets['liquidado']['total_6m'] == 2000000.0
+    assert datasets['liquidado']['total_12m'] == 2000000.0
+
+    assert datasets['hitos_qty']['label'] == 'Volumen de Hitos Aprobados (Cant.)'
+    assert datasets['hitos_qty']['total_6m'] == 1
+    assert datasets['hitos_qty']['total_12m'] == 1
+
+    content = response.content.decode()
+    assert 'ledger-filter-pill' in content
+    assert 'Presupuesto Contratado' in content
+    assert 'Hitos Aprobados (COP)' in content
+    assert 'Volumen de Hitos' in content
+    assert '6 Meses' in content
+    assert '12 Meses' in content
+    assert 'id="ledgerChartTitle"' in content
+    assert 'id="ledgerChartSub"' in content
+    assert 'id="ledgerChartTotal"' in content
+    assert 'actualizarGraficaLedger' in content
+
+
+def test_empresa_dashboard_user_dropdown_menu(auth_client, empresa_user):
+    """El topbar de empresa incluye el menú desplegable de usuario y el sidebar omite el grupo Cuenta."""
+    response = auth_client.get(reverse('dashboard_empresa'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    # Estructura del dropdown en el topbar
+    assert 'user-dropdown-wrapper' in content
+    assert 'id="userMenuBtn"' in content
+    assert 'onclick="toggleUserMenu(event)"' in content
+    assert 'id="userDropdownMenu"' in content
+    assert 'user-dropdown-menu' in content
+
+    # Opciones del menú desplegable
+    assert 'Perfil de Empresa' in content
+    assert "switchTab('perfil')" in content
+    assert 'Vista Pública para Talentos' not in content
+    assert 'Verificación NIT / Legal' in content
+    assert 'abrirModalVerificacion(event)' in content
+    assert 'user-dropdown-divider' in content
+    assert 'Cerrar Sesión' in content
+    assert reverse('logout') in content
+    assert 'is-danger' in content
+
+    # El sidebar no debe contener el grupo Cuenta ni el enlace de logout redundante
+    sidebar_html = content.split('<aside class="sidebar">')[1].split('</aside>')[0]
+    assert 'Cuenta' not in sidebar_html
+    assert 'Perfil Empresa' not in sidebar_html
+    assert reverse('logout') not in sidebar_html
 

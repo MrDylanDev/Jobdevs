@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% trans "Registro | JobDevs" %}</title>
-  <link rel="shortcut icon" href="{% static 'IMG/Logo.jpg' %}" type="image/x-icon">
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script>
@@ -30,9 +30,22 @@
 <body>
   <div class="register-wrapper theme-dev">
     <div class="register-image">
-      <a href="{% url 'inicio' %}" class="btn-back-landing" aria-label="{% trans "Volver al inicio" %}" title="{% trans "Volver al inicio" %}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </a>
+      <div class="styled-wrapper">
+        <a href="{% url 'inicio' %}" class="button" aria-label="{% trans "Volver al inicio" %}" title="{% trans "Volver al inicio" %}">
+          <div class="button-box">
+            <span class="button-elem">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="arrow-icon" aria-hidden="true">
+                <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+              </svg>
+            </span>
+            <span class="button-elem">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="arrow-icon" aria-hidden="true">
+                <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+              </svg>
+            </span>
+          </div>
+        </a>
+      </div>
       <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="{% trans "Profesionales trabajando en software" %}" class="register-image-bg" loading="eager" fetchpriority="high">
       <div class="register-image-content">
         <div class="logo">JobDevs</div>
@@ -53,17 +66,7 @@
         </div>
       </div>
 
-      {% if messages %}
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }}">
-            {% if message.tags == 'success' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-            {% else %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12.01" y1="16" y2="16"/></svg>
-            {% endif %} {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include 'partials/_flash_toasts.html' %}
 
       {% if form.rol.errors %}
         <div class="alert alert-error">
@@ -120,6 +123,24 @@
           {% if form.ciudad.errors %}
             <ul class="errorlist">{% for error in form.ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>
           {% endif %}
+        </div>
+
+        <div id="container_desarrollador_academico">
+          <div class="form-group {% if form.ficha.errors %}error{% endif %}">
+            <label for="id_ficha">{% trans "FICHA SENA (OPCIONAL)" %}</label>
+            {{ form.ficha }}
+            {% if form.ficha.errors %}<ul class="errorlist">{% for error in form.ficha.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="form-group {% if form.programa_formacion.errors %}error{% endif %}">
+            <label for="id_programa_formacion">{% trans "PROGRAMA DE FORMACIÓN (OPCIONAL)" %}</label>
+            {{ form.programa_formacion }}
+            {% if form.programa_formacion.errors %}<ul class="errorlist">{% for error in form.programa_formacion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="form-group {% if form.habilidades.errors %}error{% endif %}">
+            <label for="id_habilidades">{% trans "HABILIDADES TÉCNICAS (OPCIONAL)" %}</label>
+            {{ form.habilidades }}
+            {% if form.habilidades.errors %}<ul class="errorlist">{% for error in form.habilidades.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+          </div>
         </div>
 
         <div class="form-group full-width {% if form.identificacion.errors %}error{% endif %}">

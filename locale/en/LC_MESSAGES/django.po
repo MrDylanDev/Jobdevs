@@ -192,8 +192,8 @@ msgid "FLUJO ÁGIL"
 msgstr "AGILE FLOW"
 
 #: templates/publico/index.html:191
-msgid "// WHAT_IS_JOBDEVS"
-msgstr "// WHAT_IS_JOBDEVS"
+msgid "LA PLATAFORMA"
+msgstr "THE PLATFORM"
 
 #: templates/publico/index.html:192
 msgid "¿Qué es"
@@ -300,11 +300,11 @@ msgstr "Development"
 
 #: templates/publico/index.html:264
 msgid ""
-"Ejecución estructurada por entregables. Cada avance incluye evidencia "
-"técnica auditable en Cloudflare R2."
+"Ejecución estructurada por entregables. Cada avance incluye archivos, enlaces "
+"y evidencia verificable en la nube."
 msgstr ""
-"Structured execution by deliverables. Every progress update includes "
-"technical evidence auditable in Cloudflare R2."
+"Structured execution by deliverables. Every progress update includes files, "
+"links, and verifiable cloud evidence."
 
 #: templates/publico/index.html:266
 msgid "Revisión obligatoria: aprobar o solicitar corrección."
@@ -325,11 +325,11 @@ msgstr "Closing"
 #: templates/publico/index.html:278
 #, python-format
 msgid ""
-"100%% de hitos completados. Cierre formal del contrato con hash SHA-256 y "
-"valoración bilateral de reputación."
+"100%% de hitos completados. Cierre formal del contrato con sello digital "
+"verificable y calificación mutua entre empresa y desarrollador."
 msgstr ""
-"100%% of milestones completed. Formal contract closing with SHA-256 hashing "
-"and two-way reputation rating."
+"100%% of milestones completed. Formal contract closing with a verifiable "
+"digital seal and mutual rating between company and developer."
 
 #: templates/publico/index.html:280
 msgid "Sello inmutable del contrato para validez legal."
@@ -514,19 +514,23 @@ msgstr "Milestone control:"
 
 #: templates/publico/index.html:460
 msgid ""
-"aprueba avances con evidencia técnica documentada antes de liberar pagos."
+"aprueba avances con evidencia técnica documentada para dar conformidad a "
+"cada entrega."
 msgstr ""
-"approve progress with documented technical evidence before releasing "
-"payments."
+"approve progress with documented technical evidence to sign off on each "
+"deliverable."
 
 #: templates/publico/index.html:461
 msgid "Seguridad jurídica:"
 msgstr "Legal certainty:"
 
 #: templates/publico/index.html:461
-msgid "contratos digitales con hash criptográfico SHA-256 y mediación formal."
+msgid ""
+"contratos digitales con sello de verificación único, historial inalterable y "
+"mediación formal."
 msgstr ""
-"digital contracts with SHA-256 cryptographic hashing and formal mediation."
+"digital contracts with a unique verification seal, tamper-proof history, and "
+"formal mediation."
 
 #: templates/publico/index.html:469
 msgid "Para Aprendices y Egresados SENA"
@@ -573,8 +577,9 @@ msgid "Experiencia en producción:"
 msgstr "Production experience:"
 
 #: templates/publico/index.html:476
-msgid "entrega de código y avances por hitos con evidencias auditadas en R2."
-msgstr "code delivery and milestone progress with evidence audited in R2."
+msgid ""
+"entrega de código y avances por hitos con evidencias respaldadas en la nube."
+msgstr "code delivery and milestone progress with cloud-backed evidence."
 
 #: templates/publico/index.html:477
 msgid "Reputación verificable:"
@@ -783,8 +788,8 @@ msgid "Equipo de desarrollo trabajando en una oficina"
 msgstr "Development team working in an office"
 
 #: templates/publico/index.html:627
-msgid "// MODULE_06: BEGIN_PROTOCOL"
-msgstr "// MODULE_06: BEGIN_PROTOCOL"
+msgid "COMENZAR AHORA"
+msgstr "GET STARTED"
 
 #: templates/publico/index.html:628
 msgid "Inicia tu"
@@ -2264,3 +2269,1315 @@ msgid "<strong>%(total)s</strong> contrato digital"
 msgid_plural "<strong>%(total)s</strong> contratos digitales"
 msgstr[0] "<strong>%(total)s</strong> digital contract"
 msgstr[1] "<strong>%(total)s</strong> digital contracts"
+
+msgid "Saltar al contenido principal"
+msgstr "Skip to main content"
+
+msgid "Buscar contacto o proyecto"
+msgstr "Search contact or project"
+
+msgid "Buscar convocatoria por título"
+msgstr "Search call by title"
+
+msgid "Comentario o feedback para el desarrollador"
+msgstr "Comment or feedback for the developer"
+
+msgid "Abrir una disputa formal para este contrato"
+msgstr "Open a formal dispute for this contract"
+
+msgid "Progreso de hitos"
+msgstr "Milestone progress"
+
+msgid "Hito actual:"
+msgstr "Current milestone:"
+
+msgid "Si propones una terminación por acuerdo, decide el desarrollador. Si hay incumplimiento, inactividad o fuerza mayor, el caso va al Centro de Mediación y lo resuelve un administrador."
+msgstr "If you propose a mutual termination, the developer decides. If there is breach, inactivity, or force majeure, the case goes to the Mediation Center and an administrator resolves it."
+
+msgid "Explica el acuerdo (mínimo 10 caracteres)"
+msgstr "Explain the agreement (minimum 10 characters)"
+
+msgid "Cuando propongas un acuerdo, podrás seguir su estado aquí sin salir del panel."
+msgstr "When you propose an agreement, you will be able to track its status here without leaving the dashboard."
+
+msgid "Más acciones"
+msgstr "More actions"
+
+msgid "Ver distribución por especialidad"
+msgstr "View specialty breakdown"
+
+msgid "Debes escribir un comentario explicando los ajustes solicitados."
+msgstr "You must write a comment explaining the requested adjustments."
+
+msgid "Tema claro activo"
+msgstr "Light theme active"
+
+msgid "Tema oscuro activo"
+msgstr "Dark theme active"
+
+msgid "Cambiar a tema oscuro"
+msgstr "Switch to dark theme"
+
+msgid "Cambiar a tema claro"
+msgstr "Switch to light theme"
+
+msgid "Vista previa"
+msgstr "Preview"
+
+msgid "Cargando postulaciones y perfiles de candidatos..."
+msgstr "Loading applications and candidate profiles..."
+
+msgid "Error al consultar candidatos"
+msgstr "Error fetching candidates"
+
+msgid "No se encontraron candidatos postulados para este proyecto."
+msgstr "No applicants found for this project."
+
+msgid "No se pudo cargar la vista previa in-situ."
+msgstr "Could not load the inline preview."
+
+msgid "Definición de Términos Contractuales (Editable por la Empresa)"
+msgstr "Contract Terms Definition (Editable by Company)"
+
+msgid "Fase de Negociación"
+msgstr "Negotiation Phase"
+
+msgid "No se pudo cargar el expediente contractual. Intenta de nuevo."
+msgstr "Could not load the contract record. Please try again."
+
+msgid "esta convocatoria"
+msgstr "this listing"
+
+msgid "Limpiando..."
+msgstr "Clearing..."
+
+msgid "Notificaciones eliminadas"
+msgstr "Notifications cleared"
+
+msgid "Error al limpiar las notificaciones."
+msgstr "Error clearing notifications."
+
+msgid "Expandir menú lateral"
+msgstr "Expand sidebar"
+
+msgid "Guardando términos..."
+msgstr "Saving terms..."
+
+msgid "Error al actualizar los términos."
+msgstr "Error updating terms."
+
+msgid "Términos del contrato actualizados exitosamente"
+msgstr "Contract terms updated successfully"
+
+msgid "Error de conexión al guardar los términos del contrato."
+msgstr "Connection error while saving contract terms."
+
+msgid "Firmando..."
+msgstr "Signing..."
+
+msgid "No se pudo firmar el contrato."
+msgstr "Could not sign the contract."
+
+msgid "Contrato firmado electrónicamente."
+msgstr "Contract signed electronically."
+
+msgid "Error de red al firmar el contrato. Intenta de nuevo."
+msgstr "Network error signing the contract. Please try again."
+
+msgid "Error de red al firmar el contrato."
+msgstr "Network error signing the contract."
+
+msgid "Procesando..."
+msgstr "Processing..."
+
+msgid "Acción procesada exitosamente"
+msgstr "Action processed successfully"
+
+msgid "Error al procesar la solicitud"
+msgstr "Error processing request"
+
+msgid "Error al procesar la acción."
+msgstr "Error processing action."
+
+msgid "Error al procesar la acción. Intenta de nuevo."
+msgstr "Error processing action. Please try again."
+
+msgid "Pendiente de firma"
+msgstr "Pending signature"
+
+msgid "Firmado digitalmente"
+msgstr "Digitally signed"
+
+msgid "Contrato firmado por ambas partes. La contratación quedó formalizada."
+msgstr "Contract signed by both parties. The engagement is now formalized."
+
+msgid "Ya firmaste este contrato. Queda pendiente la firma de la otra parte."
+msgstr "You have already signed this contract. The other party's signature is still pending."
+
+msgid "Este contrato ya no está disponible para firma electrónica."
+msgstr "This contract is no longer available for electronic signature."
+
+msgid "Acepto los términos, las condiciones y el perfil profesional mostrado, y firmo electrónicamente este contrato."
+msgstr "I accept the terms, conditions, and displayed professional profile, and I electronically sign this contract."
+
+msgid "Firmar Electrónicamente"
+msgstr "Sign Electronically"
+
+msgid "Se generará con la primera firma electrónica"
+msgstr "Generated on the first electronic signature"
+
+msgid "Sin sello definitivo"
+msgstr "No final seal yet"
+
+msgid "Comentarios adicionales"
+msgstr "Additional comments"
+
+msgid "Perfil profesional de la postulación #"
+msgstr "Professional profile for application #"
+
+msgid "Datos conservados en la primera firma."
+msgstr "Snapshot preserved at first signature."
+
+msgid "Vista previa: se conservará en la primera firma."
+msgstr "Preview: will be preserved at first signature."
+
+msgid "Nombre:"
+msgstr "Name:"
+
+msgid "SENA:"
+msgstr "SENA:"
+
+msgid "Programa:"
+msgstr "Program:"
+
+msgid "Ficha:"
+msgstr "Cohort:"
+
+msgid "No registrada"
+msgstr "Not recorded"
+
+msgid "Habilidades:"
+msgstr "Skills:"
+
+msgid "No registradas"
+msgstr "Not recorded"
+
+msgid "Portafolio:"
+msgstr "Portfolio:"
+
+msgid "Mensaje de presentación:"
+msgstr "Cover message:"
+
+msgid "Sin mensaje"
+msgstr "No message"
+
+msgid "Contrato anterior sin evidencia de perfil conservada."
+msgstr "Legacy contract without preserved profile evidence."
+
+msgid "Monto del Contrato"
+msgstr "Contract Amount"
+
+msgid "Ej: 2500000"
+msgstr "e.g. 2500000"
+
+msgid "Moneda"
+msgstr "Currency"
+
+msgid "Forma de Pago (Cronograma)"
+msgstr "Payment Schedule"
+
+msgid "Medio de Pago"
+msgstr "Payment Method"
+
+msgid "Comentarios adicionales o condiciones de entrega (Opcional)"
+msgstr "Additional comments or delivery terms (Optional)"
+
+msgid "Notas sobre desembolsos, cuentas o entregas intermedias..."
+msgstr "Notes on disbursements, accounts, or intermediate deliverables..."
+
+msgid "Guardar Términos Contractuales"
+msgstr "Save Contract Terms"
+
+msgid "Términos sellados: Este contrato ya cuenta con firmas electrónicas o la negociación concluyó; los términos económicos no pueden alterarse."
+msgstr "Sealed terms: This contract already has electronic signatures or negotiation has concluded; financial terms cannot be altered."
+
+msgid "Monto acordado"
+msgstr "Agreed amount"
+
+msgid "Moneda:"
+msgstr "Currency:"
+
+msgid "Forma de pago"
+msgstr "Payment schedule"
+
+msgid "Cronograma de liquidación"
+msgstr "Settlement schedule"
+
+msgid "Medio de pago"
+msgstr "Payment method"
+
+msgid "Canal acordado"
+msgstr "Agreed channel"
+
+msgid "Expediente digital CD-"
+msgstr "Digital record CD-"
+
+msgid "Acuerdo Digital de Servicios Profesionales"
+msgstr "Digital Professional Services Agreement"
+
+msgid "SHA-256 del contenido contractual congelado en la primera firma"
+msgstr "SHA-256 of contract content frozen at first signature"
+
+msgid "Empresa contratante"
+msgstr "Hiring company"
+
+msgid "Desarrollador contratado"
+msgstr "Contracted developer"
+
+msgid "Cláusulas contractuales"
+msgstr "Contract clauses"
+
+msgid "Firma de la empresa"
+msgstr "Company signature"
+
+msgid "Firma del desarrollador"
+msgstr "Developer signature"
+
+msgid "JobDevs | Verificación de Empresa"
+msgstr "JobDevs | Company Verification"
+
+msgid "Verificación de Identidad"
+msgstr "Identity Verification"
+
+msgid "Volver a Mi Perfil"
+msgstr "Back to My Profile"
+
+msgid "Panel Principal"
+msgstr "Main Dashboard"
+
+msgid "Validación Empresarial"
+msgstr "Company Validation"
+
+msgid "Volver al Panel"
+msgstr "Back to Dashboard"
+
+msgid "Verificación Oficial de Empresa"
+msgstr "Official Company Verification"
+
+msgid "Acredita la existencia legal de tu organización mediante certificado RUES, Cámara de Comercio o RUT"
+msgstr "Verify your organization's legal status with an official RUES, Chamber of Commerce, or RUT certificate"
+
+msgid "Verificación Exitosa"
+msgstr "Verification Approved"
+
+msgid "Tu empresa <strong>%(razon)s</strong> cuenta con el aval de verificación institucional de JobDevs."
+msgstr "Your company <strong>%(razon)s</strong> holds JobDevs' institutional verification endorsement."
+
+msgid "Solicitud en Revisión"
+msgstr "Request Under Review"
+
+msgid "Tu solicitud ya se encuentra en revisión por el equipo del SENA. No es posible modificarla hasta obtener una respuesta."
+msgstr "Your request is currently under review by the SENA team. It cannot be edited until a decision is made."
+
+msgid "Motivo de rechazo:"
+msgstr "Rejection reason:"
+
+msgid "Por favor corrige la información señalada y vuelve a enviar el formulario."
+msgstr "Please correct the highlighted details and submit the form again."
+
+msgid "Verifica tu empresa adjuntando tu Cámara de Comercio o RUT en formato PDF (máx. 5 MB) para obtener el sello oficial de verificación."
+msgstr "Verify your company by attaching your Chamber of Commerce certificate or RUT in PDF format (max. 5 MB) to earn the official verification badge."
+
+msgid "Revisa los campos marcados: la solicitud no fue enviada."
+msgstr "Review the marked fields: your request was not submitted."
+
+msgid "Número de documento (sin dígito de verificación)"
+msgstr "Document number (without check digit)"
+
+msgid "Ej: Tech Innovations S.A.S."
+msgstr "e.g. Tech Innovations S.A.S."
+
+msgid "Ya hay un documento cargado; adjunta uno nuevo solo si deseas reemplazarlo."
+msgstr "A document is already uploaded; attach a new one only if you want to replace it."
+
+msgid "Enviar solicitud"
+msgstr "Submit request"
+
+msgid "Tu solicitud ya se encuentra en revisión por el equipo administrativo. No es posible modificarla hasta obtener una respuesta."
+msgstr "Your request is currently under review by the administrative team. It cannot be edited until a decision is made."
+
+msgid "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera mayor confianza y atrae a los mejores desarrolladores de la plataforma."
+msgstr "Your company does not have a corporate description yet. A complete, detailed profile builds greater trust and attracts top developers on the platform."
+
+msgid "Mostrando stack sugerido por defecto. Puedes personalizar tus tecnologías desde \"Editar página\"."
+msgstr "Showing default suggested stack. You can customize your technologies from \"Edit page\"."
+
+msgid "Buscar reseñas por desarrollador o proyecto"
+msgstr "Search reviews by developer or project"
+
+msgid "Dev"
+msgstr "Dev"
+
+msgid " hito"
+msgstr " milestone"
+
+msgid " hitos"
+msgstr " milestones"
+
+msgid "Total: "
+msgstr "Total: "
+
+msgid "Contratos digitales creados en los últimos 12 meses"
+msgstr "Digital contracts created in the last 12 months"
+
+msgid "Contratos digitales creados en los últimos 6 meses"
+msgstr "Digital contracts created in the last 6 months"
+
+msgid "Liquidaciones devengadas por hitos en los últimos 12 meses"
+msgstr "Milestone settlements accrued in the last 12 months"
+
+msgid "Liquidaciones devengadas por hitos en los últimos 6 meses"
+msgstr "Milestone settlements accrued in the last 6 months"
+
+msgid "Entregables técnicos aprobados en los últimos 12 meses"
+msgstr "Technical deliverables approved in the last 12 months"
+
+msgid "Entregables técnicos aprobados en los últimos 6 meses"
+msgstr "Technical deliverables approved in the last 6 months"
+
+msgid "Presupuesto contratado"
+msgstr "Contracted budget"
+
+msgid "Liquidado por hitos aprobados"
+msgstr "Settled by approved milestones"
+
+msgid "Hitos técnicos aprobados"
+msgstr "Approved technical milestones"
+
+msgid "Enero,Febrero,Marzo,Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre"
+msgstr "January,February,March,April,May,June,July,August,September,October,November,December"
+
+msgid "No se pudo guardar los términos."
+msgstr "Could not save the terms."
+
+msgid "Perfil y Reputación"
+msgstr "Profile & Reputation"
+
+msgid "Explorar Proyectos"
+msgstr "Explore Projects"
+
+msgid "Perfil de Empresa"
+msgstr "Company Profile"
+
+msgid "Contacto:"
+msgstr "Contact:"
+
+msgid "Empresa verificada"
+msgstr "Verified company"
+
+msgid "Validada el %(fecha)s"
+msgstr "Verified on %(fecha)s"
+
+msgid "Verificación oficial vigente"
+msgstr "Official verification active"
+
+msgid "Reputación %(score)s de 5"
+msgstr "Rating %(score)s out of 5"
+
+msgid "%(counter)s valoración"
+msgid_plural "%(counter)s valoraciones"
+msgstr[0] "%(counter)s rating"
+msgstr[1] "%(counter)s ratings"
+
+msgid "Acerca de la empresa"
+msgstr "About the company"
+
+msgid "Proyectos publicados"
+msgstr "Published projects"
+
+msgid "Con vacantes abiertas"
+msgstr "With open positions"
+
+msgid "Proyectos finalizados"
+msgstr "Completed projects"
+
+msgid "Culminados con éxito"
+msgstr "Successfully completed"
+
+msgid "Tasa de aprobación"
+msgstr "Approval rate"
+
+msgid "Nueva"
+msgstr "New"
+
+msgid "Historial de cumplimiento"
+msgstr "Delivery track record"
+
+msgid "Opiniones de desarrolladores"
+msgstr "Developer reviews"
+
+msgid "%(counter)s reseña"
+msgid_plural "%(counter)s reseñas"
+msgstr[0] "%(counter)s review"
+msgstr[1] "%(counter)s reviews"
+
+msgid "%(score)s de 5"
+msgstr "%(score)s out of 5"
+
+msgid "Sin comentario escrito."
+msgstr "No written comment."
+
+msgid "Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados."
+msgstr "This company does not have reviews from completed projects yet."
+
+msgid "Distribución de estrellas"
+msgstr "Star distribution"
+
+msgid "%(qty)s valoraciones de %(stars)s estrellas"
+msgstr "%(qty)s ratings of %(stars)s stars"
+
+msgid "Promedio %(score)s de 5"
+msgstr "Average %(score)s out of 5"
+
+msgid "Promedio sobre %(counter)s reseña de desarrolladores"
+msgid_plural "Promedio sobre %(counter)s reseñas de desarrolladores"
+msgstr[0] "Average across %(counter)s developer review"
+msgstr[1] "Average across %(counter)s developer reviews"
+
+msgid "Stack de interés"
+msgstr "Tech stack of interest"
+
+msgid "%(counter)s tecnología"
+msgid_plural "%(counter)s tecnologías"
+msgstr[0] "%(counter)s technology"
+msgstr[1] "%(counter)s technologies"
+
+msgid "Oportunidades abiertas"
+msgstr "Open opportunities"
+
+msgid "%(counter)s vacante"
+msgid_plural "%(counter)s vacantes"
+msgstr[0] "%(counter)s opening"
+msgstr[1] "%(counter)s openings"
+
+msgid "Postularme"
+msgstr "Apply"
+
+msgid "No hay convocatorias abiertas en este momento."
+msgstr "There are no open calls at this time."
+
+msgid "12 Meses"
+msgstr "12 Months"
+
+msgid "6 Meses"
+msgstr "6 Months"
+
+msgid "Acción requerida"
+msgstr "Action required"
+
+msgid "Activa"
+msgstr "Active"
+
+msgid "Activas"
+msgstr "Active"
+
+msgid "Actividad Reciente"
+msgstr "Recent Activity"
+
+msgid "Activo"
+msgstr "Active"
+
+msgid "Acuerdo mutuo o disputa, nunca las dos"
+msgstr "Mutual agreement or dispute, never both"
+
+msgid "Administrar convocatorias"
+msgstr "Manage job posts"
+
+msgid "Ampliar cierre de postulaciones"
+msgstr "Extend application deadline"
+
+msgid "Aprobar y Liberar Hito"
+msgstr "Approve & Release Milestone"
+
+msgid "Atención"
+msgstr "Attention"
+
+msgid "Atención requerida"
+msgstr "Attention required"
+
+msgid "Avance económico de entregas"
+msgstr "Financial progress of deliverables"
+
+msgid "Aún no tienes contratos formalizados. Con los contratos digitales respaldados con hash SHA-256 en JobDevs, podrás hacer seguimiento al presupuesto pactado y a los montos devengados contra cada hito técnico aprobado."
+msgstr "You have no formalized contracts yet. With SHA-256 backed digital contracts on JobDevs, you can track the agreed budget and amounts accrued against each approved technical milestone."
+
+msgid "Buscar contacto o proyecto…"
+msgstr "Search contact or project…"
+
+msgid "Búsquedas abiertas"
+msgstr "Open searches"
+
+msgid "Búsquedas y Convocatorias Abiertas"
+msgstr "Open Searches & Job Posts"
+
+msgid "Calificar"
+msgstr "Rate"
+
+msgid "Cancelaciones"
+msgstr "Cancellations"
+
+msgid "Capital Total Ejecutado"
+msgstr "Total Executed Capital"
+
+msgid "Chat"
+msgstr "Chat"
+
+msgid "Cierra en menos de 48h"
+msgstr "Closes in under 48h"
+
+msgid "Cierre de postulaciones"
+msgstr "Application deadline"
+
+msgid "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..."
+msgstr "Comment or feedback for the developer (required if requesting changes)..."
+
+msgid "Completa los datos de tu empresa y solicita tu verificación oficial DIAN / RUT."
+msgstr "Complete your company details and request official DIAN / RUT verification."
+
+msgid "Completado"
+msgstr "Completed"
+
+msgid "Compromiso contractual formalizado con el talento en proyectos activos."
+msgstr "Contractual commitment formalized with talent on active projects."
+
+msgid "Conecta con talento calificado SENA, formaliza acuerdos con contrato digital y paga de forma segura por hitos cumplidos."
+msgstr "Connect with qualified SENA talent, formalize agreements with digital contracts, and pay securely by completed milestones."
+
+msgid "Consolidado auditado de fondos ejecutados contra hitos verificados y contratos archivados"
+msgstr "Audited summary of funds executed against verified milestones and archived contracts"
+
+msgid "Contexto del Proyecto"
+msgstr "Project Context"
+
+msgid "Contratos / Firmas"
+msgstr "Contracts / Signatures"
+
+msgid "Contratos Vigentes"
+msgstr "Active Contracts"
+
+msgid "Contratos auditados con sello inmutable"
+msgstr "Audited contracts with immutable seal"
+
+msgid "Contratos vigentes"
+msgstr "Active contracts"
+
+msgid "Convocatoria abierta"
+msgstr "Open call"
+
+msgid "Convocatorias"
+msgstr "Job Posts"
+
+msgid "Cuando contrates talento y apruebes la oferta, aparecerán aquí para el seguimiento de entregas."
+msgstr "Once you hire talent and approve the offer, they will appear here to track deliverables."
+
+msgid "Cumplimiento en Cronograma"
+msgstr "On-Schedule Delivery"
+
+msgid "Cumplimiento sobre plazos acordados"
+msgstr "Adherence to agreed deadlines"
+
+msgid "Cumplimiento vencido"
+msgstr "Deadline overdue"
+
+msgid "Cumplimiento:"
+msgstr "Deadline:"
+
+msgid "Decisión:"
+msgstr "Decision:"
+
+msgid "Desarrollador SENA"
+msgstr "SENA Developer"
+
+msgid "Descargar Adjunto"
+msgstr "Download Attachment"
+
+msgid "Descargar Archivo Adjunto"
+msgstr "Download Attached File"
+
+msgid "Dictamen de la Empresa"
+msgstr "Company Review"
+
+msgid "Distribución de capital ejecutado"
+msgstr "Distribution of executed capital"
+
+msgid "Distribución de inversión por área"
+msgstr "Investment distribution by area"
+
+msgid "Distribución por Especialidad"
+msgstr "Distribution by Specialty"
+
+msgid "Editar datos básicos"
+msgstr "Edit basic details"
+
+msgid "Editar título y prioridad"
+msgstr "Edit title and priority"
+
+msgid "Empresa Registrada"
+msgstr "Registered Company"
+
+msgid "En desarrollo"
+msgstr "In development"
+
+msgid "En desarrollo activo"
+msgstr "In active development"
+
+msgid "En revisión"
+msgstr "Under review"
+
+msgid "Entregables Pendientes de Aprobación"
+msgstr "Deliverables Pending Approval"
+
+msgid "Equipo en proceso de asignación"
+msgstr "Team assignment in progress"
+
+msgid "Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución."
+msgstr "This project is under mediation; the request is paused until resolved."
+
+msgid "Evaluar"
+msgstr "Review"
+
+msgid "Evaluar postulaciones"
+msgstr "Review applications"
+
+msgid "Evalúa candidatos en el embudo y contrata talento con respaldo contractual."
+msgstr "Evaluate candidates in the pipeline and hire talent with contractual backing."
+
+msgid "Evidencia referida:"
+msgstr "Referenced evidence:"
+
+msgid "Explorar Panel"
+msgstr "Explore Dashboard"
+
+msgid "Fecha de cumplimiento"
+msgstr "Due date"
+
+msgid "Fecha de cumplimiento (opcional)"
+msgstr "Due date (optional)"
+
+msgid "Fecha de entrega técnica"
+msgstr "Technical delivery date"
+
+msgid "Filtros por estado del historial"
+msgstr "History status filters"
+
+msgid "Firmar Contrato Digital"
+msgstr "Sign Digital Contract"
+
+msgid "Fondos liberados contra hitos verificados"
+msgstr "Funds released against verified milestones"
+
+msgid "Gestionar contratos"
+msgstr "Manage contracts"
+
+msgid "Historial Financiero & Libro Mayor de Proyectos"
+msgstr "Financial History & Project Ledger"
+
+msgid "Hitos Aprobados (COP)"
+msgstr "Approved Milestones (COP)"
+
+msgid "Hitos Cumplidos (A liquidar al talento)"
+msgstr "Completed Milestones (To settle with talent)"
+
+msgid "Hitos aprobados estrictamente en cronograma"
+msgstr "Milestones approved strictly on schedule"
+
+msgid "Inicio:"
+msgstr "Start:"
+
+msgid "Inversión por Área"
+msgstr "Investment by Area"
+
+msgid "Ir a Disputas"
+msgstr "Go to Disputes"
+
+msgid "Las calificaciones se habilitan automáticamente al culminar con éxito tus proyectos en la plataforma."
+msgstr "Ratings are enabled automatically once your projects conclude successfully on the platform."
+
+msgid "Listas para publicar"
+msgstr "Ready to publish"
+
+msgid "Los pagos se realizan directamente entre la empresa y el desarrollador según los términos pactados en el contrato digital (JobDevs no retiene ni intermedia fondos)."
+msgstr "Payments are made directly between the company and the developer according to the terms agreed in the digital contract (JobDevs does not hold or intermediate funds)."
+
+msgid "Los proyectos finalizados, rechazados, inactivos o resueltos tras una disputa se archivarán automáticamente aquí para su consulta y auditoría."
+msgstr "Completed, rejected, inactive, or dispute-resolved projects are automatically archived here for review and audit."
+
+msgid "Menú de cuenta"
+msgstr "Account menu"
+
+msgid "Mis solicitudes"
+msgstr "My requests"
+
+msgid "Motivo del acuerdo propuesto"
+msgstr "Reason for proposed agreement"
+
+msgid "Motivo:"
+msgstr "Reason:"
+
+msgid "Muestra inicial de referencia"
+msgstr "Initial baseline sample"
+
+msgid "Métricas del historial"
+msgstr "History metrics"
+
+msgid "Negociando"
+msgstr "Negotiating"
+
+msgid "Nivel & Verificación"
+msgstr "Level & Verification"
+
+msgid "No hay avances pendientes de aprobación en este momento."
+msgstr "There are no deliverables pending approval right now."
+
+msgid "No hay contratos activos disponibles para solicitar terminación"
+msgstr "There are no active contracts available to request termination"
+
+msgid "No hay proyectos archivados en este momento"
+msgstr "There are no archived projects right now"
+
+msgid "No se pudo procesar la firma."
+msgstr "Could not process the signature."
+
+msgid "No tienes convocatorias publicadas en este momento."
+msgstr "You have no published job posts right now."
+
+msgid "No tienes proyectos activos en desarrollo actualmente."
+msgstr "You have no active projects in development right now."
+
+msgid "No volver a mostrar este mensaje de bienvenida"
+msgstr "Do not show this welcome message again"
+
+msgid "Nueva fecha de cierre de postulaciones"
+msgstr "New application closing date"
+
+msgid "Nuevo cierre:"
+msgstr "New deadline:"
+
+msgid "Pendiente de Ejecución (En desarrollo)"
+msgstr "Pending Execution (In development)"
+
+msgid "Período temporal"
+msgstr "Time period"
+
+msgid "Plazo vencido"
+msgstr "Overdue"
+
+msgid "Por Evaluar"
+msgstr "To Review"
+
+msgid "Por evaluar"
+msgstr "To review"
+
+msgid "Por firmar"
+msgstr "Pending signature"
+
+msgid "Presupuesto Contratado"
+msgstr "Contracted Budget"
+
+msgid "Presupuesto Contratado (COP)"
+msgstr "Contracted Budget (COP)"
+
+msgid "Presupuesto Total Acordado"
+msgstr "Total Agreed Budget"
+
+msgid "Presupuesto de Contratos Vigentes"
+msgstr "Active Contracts Budget"
+
+msgid "Proponer acuerdo (no cancela aún)"
+msgstr "Propose agreement (does not cancel yet)"
+
+msgid "Proponer terminación de mutuo acuerdo"
+msgstr "Propose mutual termination"
+
+msgid "Proyección"
+msgstr "Forecast"
+
+msgid "Proyectos Archivados"
+msgstr "Archived Projects"
+
+msgid "Proyectos en Desarrollo Activo"
+msgstr "Projects in Active Development"
+
+msgid "Prueba seleccionando otro filtro de estado para consultar tus proyectos archivados."
+msgstr "Try selecting another status filter to view your archived projects."
+
+msgid "Publica tu primera convocatoria sin costo en minutos."
+msgstr "Publish your first job post at no cost in minutes."
+
+msgid "Publicar tu primera convocatoria"
+msgstr "Publish your first job post"
+
+msgid "Puntualidad en Entregas"
+msgstr "On-Time Delivery"
+
+msgid "Reabrir postulaciones"
+msgstr "Reopen applications"
+
+msgid "Retribución Acordada"
+msgstr "Agreed Compensation"
+
+msgid "Revisar Candidatos"
+msgstr "Review Candidates"
+
+msgid "Revisar Entregables"
+msgstr "Review Deliverables"
+
+msgid "Revisar candidatos de esta convocatoria en el embudo"
+msgstr "Review candidates for this job post in the pipeline"
+
+msgid "Revisar y Calificar"
+msgstr "Review & Rate"
+
+msgid "Roadmap de Hitos del Proyecto"
+msgstr "Project Milestone Roadmap"
+
+msgid "Seguridad Contractual"
+msgstr "Contract Security"
+
+msgid "Sello hash SHA-256:"
+msgstr "SHA-256 hash seal:"
+
+msgid "Sin compromisos activos"
+msgstr "No active commitments"
+
+msgid "Sin fecha de cumplimiento"
+msgstr "No due date"
+
+msgid "Sin hitos definidos"
+msgstr "No milestones defined"
+
+msgid "Sin notificaciones pendientes."
+msgstr "No pending notifications."
+
+msgid "Sin ofertas"
+msgstr "No offers"
+
+msgid "Solicitar Ajustes"
+msgstr "Request Changes"
+
+msgid "Solicitudes de cancelación"
+msgstr "Cancellation requests"
+
+msgid "Solo aparecen contratos activos, fuera de mediación y sin una solicitud en curso."
+msgstr "Only active contracts outside mediation and without an ongoing request are shown."
+
+msgid "Supervisa la curva de entregables de cada proyecto activo"
+msgstr "Track the deliverable curve of each active project"
+
+msgid "Talento Vinculado"
+msgstr "Engaged Talent"
+
+msgid "Tasa de Cumplimiento"
+msgstr "Completion Rate"
+
+msgid "Terminación de mutuo acuerdo con causal, evidencia y dictamen auditados. El contrato sigue activo hasta que ambas partes confirmen."
+msgstr "Mutual termination with audited cause, evidence, and decision. The contract stays active until both parties confirm."
+
+msgid "Todavía no propusiste ninguna terminación"
+msgstr "You have not proposed any terminations yet"
+
+msgid "Todo revisado"
+msgstr "All reviewed"
+
+msgid "Todos los entregables técnicos están al día."
+msgstr "All technical deliverables are up to date."
+
+msgid "Total:"
+msgstr "Total:"
+
+msgid "Trayectoria de Ejecución de Hitos"
+msgstr "Milestone Execution Trajectory"
+
+msgid "Ver Contratos Digitales"
+msgstr "View Digital Contracts"
+
+msgid "Ver Documento Legal"
+msgstr "View Legal Document"
+
+msgid "Ver Enlace Externo"
+msgstr "View External Link"
+
+msgid "Ver Hitos del Proyecto"
+msgstr "View Project Milestones"
+
+msgid "Ver convocatorias"
+msgstr "View job posts"
+
+msgid "Ver proyectos"
+msgstr "View projects"
+
+msgid "Ver proyectos en desarrollo"
+msgstr "View projects in development"
+
+msgid "Ver todos los proyectos"
+msgstr "View all projects"
+
+msgid "Verificación NIT / Legal"
+msgstr "NIT / Legal Verification"
+
+msgid "Verificar NIT / Personería Jurídica"
+msgstr "Verify NIT / Legal Entity"
+
+msgid "Vista Pública para Talentos"
+msgstr "Public View for Talent"
+
+msgid "Vista operativa de proyectos en marcha, talento por evaluar y aprobaciones pendientes"
+msgstr "Operational view of ongoing projects, talent to review, and pending approvals"
+
+msgid "Vistas de historial"
+msgstr "History views"
+
+msgid "Volumen de Hitos"
+msgstr "Milestone Volume"
+
+msgid "Volver a Contratar"
+msgstr "Rehire"
+
+msgid "a tiempo"
+msgstr "on time"
+
+msgid "atrás"
+msgstr "ago"
+
+msgid "del capital asignado"
+msgstr "of allocated capital"
+
+msgid "del total"
+msgstr "of total"
+
+msgid "en curso"
+msgstr "in progress"
+
+msgid "nuevas"
+msgstr "new"
+
+msgid "proyectos"
+msgstr "projects"
+
+msgid "solicitudes"
+msgstr "requests"
+
+msgid "¡Te damos la bienvenida a JobDevs!"
+msgstr "Welcome to JobDevs!"
+
+msgid "¿Hay un incumplimiento o conflicto grave?"
+msgstr "Is there a breach or serious conflict?"
+
+msgid "Áreas"
+msgstr "Areas"
+
+msgid "Índice de recontratación de talento SENA"
+msgstr "SENA talent rehire rate"
+
+msgid "<strong>%(dev)s</strong> subió la entrega del «%(hito)s»"
+msgstr "<strong>%(dev)s</strong> uploaded the deliverable for \"%(hito)s\""
+
+msgid "%(total)s hito"
+msgid_plural "%(total)s hitos"
+msgstr[0] "%(total)s milestone"
+msgstr[1] "%(total)s milestones"
+
+msgid "%(counter)s dev"
+msgid_plural "%(counter)s devs"
+msgstr[0] "%(counter)s dev"
+msgstr[1] "%(counter)s devs"
+
+msgid "%(done)s de %(total)s hitos a tiempo"
+msgstr "%(done)s of %(total)s milestones on time"
+
+msgid "%(done)s de %(total)s hitos aprobados en plazo"
+msgstr "%(done)s of %(total)s milestones approved on schedule"
+
+msgid "Contrato de %(titulo)s"
+msgstr "Contract for %(titulo)s"
+
+msgid "Solicitud %(numero)s"
+msgstr "Request %(numero)s"
+
+msgid "Tienes <strong>%(av)s entregable técnico pendiente de revisión</strong> esperando aprobación."
+msgid_plural "Tienes <strong>%(av)s entregables técnicos pendientes de revisión</strong> esperando aprobación."
+msgstr[0] "You have <strong>%(av)s technical deliverable pending review</strong> awaiting approval."
+msgstr[1] "You have <strong>%(av)s technical deliverables pending review</strong> awaiting approval."
+
+msgid "Tienes <strong>%(post)s postulación pendiente de revisión</strong> esperando evaluación."
+msgid_plural "Tienes <strong>%(post)s postulaciones pendientes de revisión</strong> esperando evaluación."
+msgstr[0] "You have <strong>%(post)s application pending review</strong> awaiting evaluation."
+msgstr[1] "You have <strong>%(post)s applications pending review</strong> awaiting evaluation."
+
+msgid "Hay <strong>%(disp)s mediación o disputa activa</strong> que requiere seguimiento."
+msgstr "There is <strong>%(disp)s active mediation or dispute</strong> requiring follow-up."
+
+msgid "hace %(t)s"
+msgstr "%(t)s ago"
+
+msgid "Proyecto: <strong>%(proy)s</strong> · Avance: <strong>%(pct)s%%</strong>"
+msgstr "Project: <strong>%(proy)s</strong> · Progress: <strong>%(pct)s%%</strong>"
+
+msgid "Plazo vencido: %(hito)s"
+msgstr "Overdue deadline: %(hito)s"
+
+msgid "Próxima Entrega: %(hito)s (%(f)s)"
+msgstr "Next Deliverable: %(hito)s (%(f)s)"
+
+msgid "En desarrollo: %(hito)s"
+msgstr "In development: %(hito)s"
+
+msgid "%(done)s de %(total)s hitos aprobados"
+msgstr "%(done)s of %(total)s milestones approved"
+
+msgid "Entrega: %(f)s"
+msgstr "Due: %(f)s"
+
+msgid "Equipo: <strong>%(devs)s</strong>"
+msgstr "Team: <strong>%(devs)s</strong>"
+
+msgid "Hitos: <strong>%(done)s de %(total)s</strong> completados"
+msgstr "Milestones: <strong>%(done)s of %(total)s</strong> completed"
+
+msgid "Cierra el %(f)s"
+msgstr "Closes on %(f)s"
+
+msgid "%(total)s candidato"
+msgid_plural "%(total)s candidatos"
+msgstr[0] "%(total)s candidate"
+msgstr[1] "%(total)s candidates"
+
+msgid "Basado en %(total)s valoración verificada de talento contratado."
+msgid_plural "Basado en %(total)s valoraciones verificadas de talento contratado."
+msgstr[0] "Based on %(total)s verified rating from hired talent."
+msgstr[1] "Based on %(total)s verified ratings from hired talent."
+
+msgid "Ver todas las valoraciones (%(total)s) &rarr;"
+msgstr "View all ratings (%(total)s) &rarr;"
+
+msgid "Centro de Mediación y Resolución de Disputas"
+msgstr "Mediation & Dispute Resolution Center"
+
+msgid "Resolución formal de controversias contractuales, mediación técnica neutral y emisión de dictámenes vinculantes auditados."
+msgstr "Formal resolution of contractual disputes, neutral technical mediation, and issuance of audited binding rulings."
+
+msgid "Iniciar Nueva Disputa"
+msgstr "Start New Dispute"
+
+msgid "Protocolo de Arbitraje Oficial JobDevs"
+msgstr "Official JobDevs Arbitration Protocol"
+
+msgid "Las disputas son atendidas por un mediador administrativo neutral designado por la plataforma. Al abrirse el caso, las entregas de ese hito quedan en pausa temporal y ambas partes disponen de una Sala Virtual privada de deliberación hasta la emisión del dictamen final vinculante."
+msgstr "Disputes are handled by a neutral administrative mediator appointed by the platform. Once a case is opened, milestone deliveries are temporarily paused and both parties have access to a private Virtual Deliberation Room until the final binding ruling is issued."
+
+msgid "En Mediación Activa"
+msgstr "In Active Mediation"
+
+msgid "Audiencias en deliberación en sala virtual"
+msgstr "Hearings in deliberation in the virtual room"
+
+msgid "Casos Abiertos"
+msgstr "Open Cases"
+
+msgid "Reportes en espera de asignación de mediador"
+msgstr "Reports awaiting mediator assignment"
+
+msgid "Dictámenes Resueltos"
+msgstr "Resolved Rulings"
+
+msgid "Controversias con resolución vinculante emitida"
+msgstr "Disputes with a binding resolution issued"
+
+msgid "Total Registrado"
+msgstr "Total Recorded"
+
+msgid "Historial consolidado en la plataforma"
+msgstr "Consolidated history on the platform"
+
+msgid "Vistas del Centro de Mediación"
+msgstr "Mediation Center Views"
+
+msgid "Casos Activos & En Mediación"
+msgstr "Active Cases & In Mediation"
+
+msgid "Expedientes Resueltos"
+msgstr "Resolved Case Files"
+
+msgid "Trazabilidad formal respaldada con SHA-256"
+msgstr "Formal traceability backed by SHA-256"
+
+msgid "Abiertas"
+msgstr "Open"
+
+msgid "En mediación"
+msgstr "In mediation"
+
+msgid "Resueltas"
+msgstr "Resolved"
+
+msgid "Canceladas"
+msgstr "Cancelled"
+
+msgid "Disputas Filtradas"
+msgstr "Filtered Disputes"
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Fecha Registro"
+msgstr "Registration Date"
+
+msgid "En deliberación"
+msgstr "In deliberation"
+
+msgid "No hay disputas en este estado."
+msgstr "There are no disputes in this status."
+
+msgid "Apertura:"
+msgstr "Opened:"
+
+msgid "Audiencia virtual en curso"
+msgstr "Virtual hearing in progress"
+
+msgid "Pendiente de asignación"
+msgstr "Pending assignment"
+
+msgid "Contraparte:"
+msgstr "Counterparty:"
+
+msgid "Iniciada por:"
+msgstr "Initiated by:"
+
+msgid "Causal invocada:"
+msgstr "Invoked ground:"
+
+msgid "Motivo reportado:"
+msgstr "Reported reason:"
+
+msgid "Mediador Administrativo Designado"
+msgstr "Designated Administrative Mediator"
+
+msgid "Asignando mediador neutral..."
+msgstr "Assigning neutral mediator..."
+
+msgid "Arbitraje Oficial JobDevs"
+msgstr "Official JobDevs Arbitration"
+
+msgid "Ingresar a Sala Virtual"
+msgstr "Enter Virtual Room"
+
+msgid "No hay disputas activas. Tus proyectos se desarrollan con normalidad."
+msgstr "There are no active disputes. Your projects are progressing normally."
+
+msgid "Expedientes Resueltos y Auditoría Legal"
+msgstr "Resolved Case Files & Legal Audit"
+
+msgid "Causal"
+msgstr "Ground"
+
+msgid "Dictamen Vinculante"
+msgstr "Binding Ruling"
+
+msgid "Expediente / Acta"
+msgstr "Case File / Record"
+
+msgid "Ver Expediente / Acta"
+msgstr "View Case File / Record"
+
+msgid "Aún no hay expedientes resueltos registrados."
+msgstr "There are no resolved case files recorded yet."
+
+msgid "No se encontraron disputas para el estado seleccionado."
+msgstr "No disputes found for the selected status."
+
+msgid "Iniciar Mediación Formal"
+msgstr "Start Formal Mediation"
+
+msgid "Apertura de arbitraje sobre proyectos con anomalías"
+msgstr "Arbitration filing for projects with anomalies"
+
+msgid "Selecciona el proyecto en controversia:"
+msgstr "Select the disputed project:"
+
+msgid "Iniciar"
+msgstr "Start"
+
+msgid "Abrir una disputa <strong>congela de inmediato</strong> el proyecto y la contratación. Solo corresponde ante faltas contractuales graves."
+msgstr "Opening a dispute <strong>immediately freezes</strong> the project and contract. Only applicable in cases of serious contractual breach."
+
+msgid "No tienes proyectos elegibles. Solo se puede disputar un proyecto <em>en desarrollo</em> o <em>en revisión</em> con contratación activa."
+msgstr "You have no eligible projects. Only a project <em>in development</em> or <em>in review</em> with an active contract can be disputed."
+
+msgid "Actividad Operativa Diaria"
+msgstr "Daily Operational Activity"
+
+msgid "Entregables enviados"
+msgstr "Submitted deliverables"
+
+msgid "Actualización automática con datos reales"
+msgstr "Live updates with real data"
+
+msgid "En vivo"
+msgstr "Live"
+
+msgid "Métricas operativas"
+msgstr "Operational metrics"
+
+msgid "Entregables"
+msgstr "Deliverables"
+
+msgid "Postulaciones"
+msgstr "Applications"
+
+msgid "Hitos aprobados"
+msgstr "Approved milestones"
+
+msgid "Ventana de tiempo"
+msgstr "Time window"
+
+msgid "14 Días"
+msgstr "14 Days"
+
+msgid "30 Días"
+msgstr "30 Days"
+
+msgid "Próxima Entrega Técnica"
+msgstr "Next Technical Delivery"
+
+msgid "Sin entregas"
+msgstr "No deliveries"
+
+msgid "Ir a seguimiento de hitos"
+msgstr "Go to milestone tracking"
+
+msgid "No hay entregas técnicas programadas por ahora."
+msgstr "No technical deliveries scheduled at the moment."
+
+msgid "Talento SENA Activo"
+msgstr "Active SENA Talent"
+
+msgid "Aún no tienes desarrolladores asignados a proyectos activos."
+msgstr "You don't have developers assigned to active projects yet."
+
+msgid "Cambiar a Español (ES)"
+msgstr "Cambiar a Español (ES)"
+
+msgid "Switch to English (EN)"
+msgstr "Switch to English (EN)"
+
+msgid "En %(d)s días"
+msgstr "In %(d)s days"
+
+msgid "Hitos: %(done)s/%(total)s"
+msgstr "Milestones: %(done)s/%(total)s"
+
+msgid "%(m)s sin leer"
+msgstr "%(m)s unread"
+
+msgid "Comunicación directa con soporte y talento SENA en tus proyectos activos"
+msgstr "Direct communication with support and SENA talent in your active projects"

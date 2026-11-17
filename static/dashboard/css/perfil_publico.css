@@ -7,21 +7,42 @@
  */
 
 .pp-page {
-  --pp-ink: #111318;
-  --pp-muted: #6b7280;
-  --pp-soft: #f6f7fb;
-  --pp-line: #e6e8f0;
+  --pp-ink: #0b0f0c;
+  --pp-muted: #5f6673;
+  --pp-soft: #f7f8f7;
+  --pp-line: #e4e7e5;
   --pp-surface: #ffffff;
-  --pp-accent: #4f46e5;
-  --pp-accent-soft: #eef2ff;
-  --pp-success: #15803d;
-  --pp-success-soft: #ecfdf3;
+  --pp-accent: #00713f;
+  --pp-accent-soft: #e6faf0;
+  --pp-success: #00713f;
+  --pp-success-soft: #e6faf0;
   --pp-success-line: #bbf7d0;
-  --pp-warning: #b45309;
-  --pp-warning-soft: #fff7e6;
-  --pp-danger: #b91c1c;
+  --pp-warning: #d97706;
+  --pp-warning-soft: #fffbeb;
+  --pp-danger: #dc2626;
   --pp-danger-soft: #fef2f2;
-  --pp-radius: 18px;
+  --pp-radius: 14px;
+  color: var(--pp-ink);
+}
+
+[data-theme="dark"] .pp-page,
+[data-theme="dark"] .pp-hero,
+[data-theme="dark"] .pp-card,
+[data-theme="dark"] .pp-stat {
+  --pp-ink: #ffffff;
+  --pp-muted: #8d9890;
+  --pp-soft: #141414;
+  --pp-line: #1a1a1a;
+  --pp-surface: #0a0a0a;
+  --pp-accent: #00e676;
+  --pp-accent-soft: rgba(0, 230, 118, 0.15);
+  --pp-success: #00e676;
+  --pp-success-soft: rgba(0, 230, 118, 0.15);
+  --pp-success-line: #00713f;
+  --pp-warning: #f59e0b;
+  --pp-warning-soft: rgba(245, 158, 11, 0.15);
+  --pp-danger: #ef4444;
+  --pp-danger-soft: rgba(239, 68, 68, 0.15);
   color: var(--pp-ink);
 }
 
@@ -36,7 +57,7 @@
   padding: 28px;
   margin-bottom: 20px;
   background:
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.08), transparent 42%),
+    radial-gradient(circle at top right, rgba(0, 230, 118, 0.08), transparent 42%),
     var(--pp-surface);
   border: 1px solid var(--pp-line);
   border-radius: var(--pp-radius);
@@ -748,4 +769,118 @@
   .pp-portfolio-card {
     flex-wrap: wrap;
   }
+}
+
+/* ============================================================
+   PERFIL PÚBLICO DE EMPRESA (.pp-page--empresa) — SOBRIO Y ORDENADO
+   ============================================================ */
+.pp-page--empresa .pp-hero {
+  background: var(--pp-surface);
+  border: 1px solid var(--pp-line);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 24px;
+}
+
+.pp-page--empresa .pp-avatar--empresa {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 6px;
+  background: var(--pp-soft);
+  border: 1px solid var(--pp-line);
+  color: var(--pp-ink);
+  box-shadow: none;
+  font-size: 24px;
+}
+
+.pp-page--empresa .pp-stat,
+.pp-page--empresa .pp-card {
+  background: var(--pp-surface);
+  border: 1px solid var(--pp-line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.pp-page--empresa .pp-stat {
+  height: 100%;
+  padding: 18px 20px;
+}
+
+.pp-page--empresa .pp-card {
+  padding: 20px 22px;
+}
+
+.pp-page--empresa .pp-badge,
+.pp-page--empresa .pp-count-pill,
+.pp-page--empresa .pp-project-tag,
+.pp-page--empresa .pp-chip {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.pp-page--empresa .pp-badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pp-page--empresa .pp-count-pill,
+.pp-page--empresa .pp-project-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pp-muted);
+}
+
+.pp-page--empresa .pp-chip-list {
+  gap: 8px 16px;
+}
+
+.pp-page--empresa .pp-chip {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pp-ink);
+}
+
+.pp-page--empresa .pp-review,
+.pp-page--empresa .pp-project {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--pp-line);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 14px 0;
+}
+
+.pp-page--empresa .pp-review:first-child,
+.pp-page--empresa .pp-project:first-child {
+  padding-top: 0;
+}
+
+.pp-page--empresa .pp-review:last-child,
+.pp-page--empresa .pp-project:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.pp-page--empresa .pp-empty {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 24px 0;
+}
+
+.pp-page--empresa .pp-btn-soft {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.pp-page--empresa svg.lucide {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }

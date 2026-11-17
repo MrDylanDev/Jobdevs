@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -40,17 +40,29 @@ def abrir_disputa_view(request, proyecto_id):
     proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
     user = request.user
 
-    contratacion = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
+    contrataciones_activas = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
+    contrato_id = request.GET.get('contratacion_id')
+    if contrato_id and not contrato_id.isdigit():
+        raise Http404('Contrato no válido.')
     if user.pk == proyecto.empresa_id:
-        contratacion = contratacion.order_by('pk').first()
+        contratacion = (
+            get_object_or_404(contrataciones_activas, pk=contrato_id)
+            if contrato_id else contrataciones_activas.order_by('pk').first()
+        )
         categorias = Disputa.CATEGORIAS_EMPRESA
         categoria_default = 'incumplimiento_contractual'
     else:
-        contratacion = contratacion.filter(desarrollador=user).first()
+        contratacion = contrataciones_activas.filter(desarrollador=user).first()
         if contratacion is None:
             raise PermissionDenied('No participas en este proyecto.')
+        if contrato_id and str(contratacion.pk) != contrato_id:
+            raise PermissionDenied('No participas en este contrato.')
         categorias = Disputa.CATEGORIAS_DESARROLLADOR
         categoria_default = 'retencion_fondos'
+
+    categoria_solicitada = request.GET.get('categoria', '')
+    if categoria_solicitada in dict(categorias):
+        categoria_default = categoria_solicitada
 
     es_ajax = (
         request.headers.get('x-requested-with') == 'XMLHttpRequest'
@@ -65,8 +77,12 @@ def abrir_disputa_view(request, proyecto_id):
                 'titulo': proyecto.titulo,
                 'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
             },
-            'categorias': [{'codigo': c[0], 'label': str(c[1])} for c in Disputa.CATEGORIAS],
-            'url_abrir': reverse('disputas:abrir_disputa', args=[proyecto.id]),
+            'categorias': [{'codigo': c[0], 'label': str(c[1])} for c in categorias],
+            'categoria': categoria_default,
+            'url_abrir': (
+                f"{reverse('disputas:abrir_disputa', args=[proyecto.id])}?contratacion_id={contratacion.pk}"
+                if contratacion else reverse('disputas:abrir_disputa', args=[proyecto.id])
+            ),
         })
 
     context = {
@@ -75,6 +91,7 @@ def abrir_disputa_view(request, proyecto_id):
         'motivo': '',
         'categoria': categoria_default,
         'evidencia_url': '',
+        'declara_evidencia_no_disponible': False,
         'categorias': categorias,
         'confirma_intento_previo': False,
         'confirma_gravedad': False,
@@ -85,6 +102,10 @@ def abrir_disputa_view(request, proyecto_id):
         motivo = request.POST.get('motivo', '').strip()
         categoria = request.POST.get('categoria', '').strip() or categoria_default
         evidencia_url = request.POST.get('evidencia_url', '').strip()
+        evidencia_archivo = request.FILES.get('evidencia_archivo')
+        declara_evidencia_no_disponible = bool(
+            request.POST.get('declara_evidencia_no_disponible')
+        )
         confirma_intento_previo = bool(request.POST.get('confirma_intento_previo'))
         confirma_gravedad = bool(request.POST.get('confirma_gravedad'))
         acepta_sanciones = bool(request.POST.get('acepta_sanciones'))
@@ -93,6 +114,7 @@ def abrir_disputa_view(request, proyecto_id):
             'motivo': motivo,
             'categoria': categoria,
             'evidencia_url': evidencia_url,
+            'declara_evidencia_no_disponible': declara_evidencia_no_disponible,
             'confirma_intento_previo': confirma_intento_previo,
             'confirma_gravedad': confirma_gravedad,
             'acepta_sanciones': acepta_sanciones,
@@ -116,6 +138,8 @@ def abrir_disputa_view(request, proyecto_id):
                 contratacion=contratacion,
                 categoria=categoria,
                 evidencia_url=evidencia_url,
+                evidencia_archivo=evidencia_archivo,
+                declara_evidencia_no_disponible=declara_evidencia_no_disponible,
                 confirma_intento_previo=confirma_intento_previo,
                 confirma_gravedad=confirma_gravedad,
                 acepta_sanciones=acepta_sanciones,
@@ -154,6 +178,21 @@ def _es_participante(user, disputa):
         user.pk in (disputa.proyecto.empresa_id, disputa.iniciado_por_id)
         or (disputa.contratacion_id is not None and user.pk == disputa.contratacion.desarrollador_id)
         or user.rol == 'administrador'
+    )
+
+
+@login_required
+def descargar_evidencia_view(request, disputa_id):
+    disputa = _get_disputa(disputa_id)
+    if not _es_participante(request.user, disputa):
+        raise PermissionDenied('No tienes acceso a esta evidencia.')
+    if not disputa.evidencia_archivo:
+        raise Http404('La disputa no tiene un archivo de evidencia.')
+    nombre = disputa.evidencia_archivo.name.rsplit('/', 1)[-1]
+    return FileResponse(
+        disputa.evidencia_archivo.open('rb'),
+        as_attachment=True,
+        filename=nombre,
     )
 
 
