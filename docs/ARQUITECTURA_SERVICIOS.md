@@ -130,5 +130,10 @@ Toda vista Django debe actuar exclusivamente como **controlador delgado (Thin Co
 - Lógica de negocio (> ~40 líneas de reglas condicionales o cálculos de dominio): debe extraerse a `<app>/services.py`.
 
 ### 2. Criterio de Registro en `admin.py`
-Los nuevos modelos de dominio y las apps cubiertas por el estándar (`avances`, `favoritos`, `contrataciones`, `postulaciones`, `notificaciones`) se registran en `<app>/admin.py` con `list_display`, `list_filter` y `search_fields` para inspección y soporte operativo en `/admin/` (por ejemplo: `Avance`, `Favorito`, `ContratoDigital`, `SolicitudCancelacion`, `Postulacion`, `Notificacion`, `AvisoCumplimiento`).
-Si un modelo se excluye intencionalmente del admin (p. ej. tablas efímeras o de solo lectura externa), debe documentarse explícitamente con un comentario en `<app>/admin.py`. Los modelos legados pendientes de migración se incorporan de forma incremental bajo este mismo estándar.
+Los modelos de dominio de las apps cubiertas por el estándar (`avances`, `favoritos`, `contrataciones`, `postulaciones`, `notificaciones`) se registran en `<app>/admin.py` con `list_display` y, cuando el modelo lo permite, `list_filter` y `search_fields`, para inspección y soporte operativo en `/admin/` (por ejemplo: `Avance`, `Favorito`, `ContratoDigital`, `SolicitudCancelacion`, `Postulacion`, `Notificacion`, `AvisoCumplimiento`). Hoy los nueve modelos de esas cinco apps están registrados y exponen `list_display`.
+
+Los modelos nuevos que se creen en esas apps —y los de cualquier app que se incorpore al estándar— nacen ya registrados con esos atributos. Los modelos de configuración que se publican en modo solo lectura (por ejemplo `ConfiguracionNegociacion`) se registran sin `list_filter` ni `search_fields`, porque no admiten edición.
+
+Si un modelo del estándar se excluye intencionalmente del admin (tablas efímeras o de solo lectura externa), se documenta con un comentario explicativo en `<app>/admin.py`. Hoy no hay ningún modelo excluido.
+
+Las apps fuera del estándar (`disputas`, `mensajes`, `logs`, `proyectos`, `usuarios`) son legado pendiente de migración incremental: no están obligadas a este criterio hasta que se incorporen.

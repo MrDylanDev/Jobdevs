@@ -841,7 +841,7 @@ ul { list-style: none; }
   }
   .app-layout > .sidebar .sidebar-brand-text,
   .app-layout > .sidebar .sidebar-brand-sub,
-  .app-layout > .sidebar .nav-item span,
+  .app-layout > .sidebar .nav-item span:not(.nav-badge):not([hidden]),
   .app-layout > .sidebar .sidebar-group-label {
     display: initial !important;
   }

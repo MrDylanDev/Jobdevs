@@ -59,6 +59,70 @@ def test_scrum_411_drawer_movil_en_los_tres_dashboards():
         )
 
 
+def test_scrum_411_badge_cero_no_se_revela_en_drawer_movil():
+    """SCRUM-411: la regla móvil restaura las etiquetas sin forzar visible el badge `hidden`."""
+    base = Path(settings.BASE_DIR)
+    css = (base / 'static/dashboard/css/dashboard.css').read_text(encoding='utf-8')
+
+    # Sigue restaurando las etiquetas de texto del drawer por debajo de 768px.
+    assert 'display: initial !important;' in css
+
+    # ...pero no debe alcanzar a los badges, que el template oculta con el atributo `hidden`
+    # cuando el contador es 0: con `!important` la regla le ganaba al `display: none` del UA.
+    label_rule = next(
+        line.strip()
+        for line in css.splitlines()
+        if line.strip().startswith('.app-layout > .sidebar .nav-item span')
+    )
+    assert '.nav-badge' in label_rule, 'la regla móvil no debe forzar visible el badge de notificaciones'
+    assert 'hidden' in label_rule, 'la regla móvil no debe pisar el atributo hidden del badge'
+
+    for tpl in (
+        'templates/Desarrollador/Desarrollador.html',
+        'templates/empresa/empresa.html',
+        'templates/administrador/Administrador.html',
+    ):
+        content = (base / tpl).read_text(encoding='utf-8')
+        assert 'data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}' in content, (
+            f'{tpl} debe ocultar el badge con el atributo hidden cuando el contador es 0'
+        )
+
+
+@pytest.mark.django_db
+def test_scrum_449_criterio_admin_documentado_coincide_con_el_codigo():
+    """SCRUM-449: el criterio de registro en admin.py describe el alcance real del estándar."""
+    arch_doc = (Path(settings.BASE_DIR) / 'docs/ARQUITECTURA_SERVICIOS.md').read_text(encoding='utf-8')
+    seccion = arch_doc.split('### 2. Criterio de Registro en `admin.py`', 1)[1]
+
+    # El estándar nombra las apps cubiertas y deja explícito qué queda como legado.
+    for app in ('avances', 'favoritos', 'contrataciones', 'postulaciones', 'notificaciones'):
+        assert app in seccion, f'el criterio debe nombrar la app {app}'
+    assert 'legado' in seccion, 'las apps fuera del estándar deben declararse como legado pendiente'
+    assert 'no están obligadas a este criterio hasta que se incorporen' in seccion, (
+        'el criterio debe acotar la obligación a las apps del estándar'
+    )
+    assert 'solo lectura' in seccion, 'el criterio debe declarar la excepción de los modelos de solo lectura'
+
+    # La excepción documentada existe en el código: la configuración se publica como solo lectura.
+    config_admin = admin.site._registry[ConfiguracionNegociacion]
+    assert not config_admin.has_change_permission(None)
+    assert not config_admin.has_add_permission(None)
+
+    # Y todo modelo registrado del estándar expone al menos list_display.
+    for model in (
+        Avance,
+        Favorito,
+        Contratacion,
+        ContratoDigital,
+        SolicitudCancelacion,
+        Postulacion,
+        ConfiguracionNegociacion,
+        Notificacion,
+        AvisoCumplimiento,
+    ):
+        assert admin.site._registry[model].list_display, f'{model.__name__} no declara list_display'
+
+
 def test_scrum_455_456_457_variables_semanticas_y_tema_claro():
     """SCRUM-455/456/457: Variables semánticas y reglas [data-theme='light'] en CSS y templates."""
     base = Path(settings.BASE_DIR)
