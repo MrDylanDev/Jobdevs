@@ -357,18 +357,13 @@ function mostrarFeedbackPostulacion(mensaje, esError) {
 }
 
 function mostrarToast(mensaje) {
-  let toast = document.getElementById('jdToast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'jdToast';
-    toast.className = 'jd-toast';
-    toast.setAttribute('role', 'status');
-    document.body.appendChild(toast);
+  if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
+    window.JobDevsToast.mostrar({
+      tipo: 'success',
+      mensaje: mensaje,
+      duracion: 4200,
+    });
   }
-  toast.textContent = mensaje;
-  toast.classList.add('is-visible');
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.classList.remove('is-visible'), 4200);
 }
 
 function actualizarContadorExplorar() {
