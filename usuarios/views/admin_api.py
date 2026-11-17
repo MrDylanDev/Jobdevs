@@ -157,7 +157,11 @@ def api_actualizar_usuario(request, usuario_id):
             user.estado = data['estado']
             user.is_active = (user.estado == 'activo')
             if not user.is_active or user.estado in ('inactivo', 'suspendido'):
+                user.bloqueado_por_intentos = False
                 invalidar_sesiones_activas_usuario(user.id)
+            elif user.is_active and user.estado == 'activo':
+                user.intentos_fallidos = 0
+                user.bloqueado_por_intentos = False
         
         user.save()
 
@@ -221,7 +225,7 @@ def api_bulk_toggle(request):
         Usuario.objects.filter(id__in=ids).update(estado='activo', is_active=True, intentos_fallidos=0, bloqueado_por_intentos=False)
     else:
         afectados = list(Usuario.objects.filter(id__in=ids).exclude(id=request.user.id).values_list('id', flat=True))
-        Usuario.objects.filter(id__in=afectados).update(estado='suspendido', is_active=False)
+        Usuario.objects.filter(id__in=afectados).update(estado='suspendido', is_active=False, bloqueado_por_intentos=False)
         invalidar_sesiones_activas_usuario(afectados)
 
     return JsonResponse({'status': 'ok', 'count': len(ids)})

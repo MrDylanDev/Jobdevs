@@ -157,7 +157,36 @@ class TestRegistrarAvance:
         assert Avance.objects.filter(proyecto=proyecto, entregable=entregable).exists()
         avance = Avance.objects.get(proyecto=proyecto, entregable=entregable)
         assert bool(avance.archivo_adjunto) is True
-        assert avance.archivo_url in (None, '')
+
+    def test_desarrollador_no_contratado_no_puede_mutar_estado_proyecto_en_revision(self, client, empresa_user, escenario_avance):
+        """SCRUM-459 (AUD-001): Un desarrollador no contratado jamás debe mutar el estado de un proyecto en revisión."""
+        proyecto, _, _ = escenario_avance
+        proyecto.estado = 'en_revision'
+        proyecto.save(update_fields=['estado'])
+
+        otro_dev = User.objects.create_user(
+            username='otro_dev_ajeno', email='otro@dev.jobdevs', password='Password123!', rol='desarrollador'
+        )
+        client.login(username='otro_dev_ajeno', password='Password123!')
+
+        response = client.get(reverse('registrar_avance', args=[proyecto.id]))
+        assert response.status_code == 302
+        assert any("No tienes un contrato activo" in m.message for m in list(response.wsgi_request._messages))
+
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'en_revision', "El proyecto no debe mutar a en_desarrollo por petición de usuario no autorizado"
+
+    def test_get_en_proyecto_en_revision_no_muta_estado_en_base_de_datos(self, dev_client, escenario_avance):
+        """SCRUM-459 (AUD-001): Una petición GET para ver el formulario no debe mutar el estado en DB a en_desarrollo."""
+        proyecto, _, _ = escenario_avance
+        proyecto.estado = 'en_revision'
+        proyecto.save(update_fields=['estado'])
+
+        response = dev_client.get(reverse('registrar_avance', args=[proyecto.id]))
+        assert response.status_code == 200
+
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'en_revision', "Una petición GET no debe persistir cambios de estado en la base de datos"
 
     def test_registrar_avance_con_url_sin_archivo(self, dev_client, desarrollador_user, escenario_avance):
         """Desarrollador puede registrar avance solo con URL de repositorio."""

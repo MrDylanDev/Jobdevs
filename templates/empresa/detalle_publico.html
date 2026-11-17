@@ -1,10 +1,14 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}JobDevs | {{ empresa.nombre|default:empresa.username }} - Perfil y Reputación{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/perfil_publico.css' %}?v=1">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4" style="max-width: 980px;">
+<div class="container py-4 pp-page" style="max-width: 1080px;">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
@@ -13,187 +17,237 @@
     </ol>
   </nav>
 
-  <!-- Tarjeta Principal de la Empresa -->
-  <div class="card shadow-sm border-0 mb-4 p-4" style="border-radius: 12px; background: #fff;">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-      <div class="d-flex align-items-center gap-3">
-        <div style="width: 72px; height: 72px; border-radius: 12px; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; overflow: hidden; flex-shrink: 0;">
-          {% if perfil.logo %}
-            <img src="{{ perfil.logo.url }}" alt="{{ empresa.nombre }}" style="width: 100%; height: 100%; object-fit: cover;">
-          {% else %}
-            {{ empresa.nombre|default:empresa.username|slice:":1"|upper }}
-          {% endif %}
-        </div>
-        <div>
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h1 class="h3 mb-0 fw-bold text-dark">{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}</h1>
-            {% with badge=perfil.badge_info %}
-              <span class="badge {{ badge.css_class }}" data-testid="badge-empresa" style="font-size: 12px; padding: 4px 10px;">
-                <i data-lucide="{% if perfil.es_verificada %}check-circle{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}" class="me-1"></i>
-                {{ badge.label }}
-              </span>
-            {% endwith %}
-          </div>
-          <div class="text-muted mt-1" style="font-size: 14px;">
-            {% if perfil.sector %}<i data-lucide="briefcase"></i> {{ perfil.sector }} &nbsp;·&nbsp; {% endif %}
-            {% if perfil.ciudad %}<i data-lucide="location-dot"></i> {{ perfil.ciudad }} &nbsp;·&nbsp; {% endif %}
-            <i data-lucide="user"></i> Contacto: {{ empresa.nombre|default:empresa.username }}
-          </div>
-        </div>
+  <!-- Hero: identidad corporativa y verificación -->
+  <section class="pp-hero">
+    <div class="pp-hero-main">
+      <div class="pp-avatar pp-avatar--empresa">
+        {% if perfil.logo %}
+          <img src="{{ perfil.logo.url }}" alt="{{ empresa.nombre }}">
+        {% else %}
+          {{ empresa.nombre|default:empresa.username|slice:":1"|upper }}
+        {% endif %}
       </div>
-      
-      <!-- Resumen rápido de estrellas -->
-      <div class="text-end text-sm-start d-flex flex-column align-items-sm-end">
-        <div class="d-flex align-items-center gap-2">
-          <span class="display-6 fw-bold text-dark">{{ promedio_reputacion }}</span>
-          <div>
-            <div class="text-warning fs-5">
-              {% for i in "12345" %}
-                {% if forloop.counter <= promedio_reputacion %}
-                  <i data-lucide="star"></i>
-                {% else %}
-                  <i data-lucide="star"></i>
-                {% endif %}
-              {% endfor %}
-            </div>
-            <small class="text-muted">({{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }})</small>
-          </div>
+
+      <div class="pp-identity">
+        <div class="pp-name-row">
+          <h1 class="pp-title">{{ perfil.razon_social|default:empresa.nombre|default:empresa.username }}</h1>
+          {% with badge=perfil.badge_info %}
+            <span class="pp-badge {{ badge.css_class }}" data-testid="badge-empresa">
+              <i data-lucide="{% if perfil.es_verificada %}check-circle{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}alert-triangle{% endif %}"></i>
+              {{ badge.label }}
+            </span>
+          {% endwith %}
         </div>
+
+        <div class="pp-meta">
+          {% if perfil.sector %}<span><i data-lucide="briefcase"></i>{{ perfil.sector }}</span>{% endif %}
+          {% if perfil.ciudad %}<span><i data-lucide="location-dot"></i>{{ perfil.ciudad }}</span>{% endif %}
+          <span><i data-lucide="user"></i>Contacto: {{ empresa.nombre|default:empresa.username }}</span>
+        </div>
+
+        {% if perfil.es_verificada %}
+          <div class="pp-verified-banner">
+            <span class="pp-verified-icon"><i data-lucide="shield-check"></i></span>
+            <div class="pp-verified-copy">
+              <strong>Empresa verificada</strong>
+              <span>
+                {% if perfil.fecha_verificacion %}
+                  Validada el {{ perfil.fecha_verificacion|date:"d/m/Y" }}
+                {% else %}
+                  Verificación oficial vigente
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
 
-    {% if perfil.descripcion %}
-      <hr class="my-3">
-      <div>
-        <h2 class="h6 text-uppercase text-muted fw-bold mb-2" style="letter-spacing: 0.5px;">Acerca de la Empresa</h2>
-        <p class="mb-0 text-secondary" style="line-height: 1.6; font-size: 14.5px;">{{ perfil.descripcion }}</p>
-      </div>
-    {% endif %}
-  </div>
+    <div class="pp-score">
+      <span class="pp-score-value">{{ promedio_reputacion|unlocalize }}</span>
+      <span class="pp-stars" aria-label="Reputación {{ promedio_reputacion|unlocalize }} de 5">
+        {% for i in "12345" %}
+          <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
+        {% endfor %}
+      </span>
+      <span class="pp-score-caption">{{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }}</span>
+    </div>
+  </section>
 
-  <!-- Métricas de Cumplimiento -->
+  {% if perfil.descripcion %}
+    <section class="pp-card mb-4">
+      <h2 class="pp-card-title mb-2"><i data-lucide="building-2"></i>Acerca de la empresa</h2>
+      <p class="mb-0" style="font-size:14px;line-height:1.6;color:#374151;">{{ perfil.descripcion }}</p>
+    </section>
+  {% endif %}
+
+  <!-- Métricas de cumplimiento -->
   <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Proyectos Publicados</div>
-        <div class="fs-3 fw-bold text-primary mt-1">{{ total_proyectos_abiertos }}</div>
-        <div class="small text-muted">Con vacantes abiertas</div>
+      <div class="pp-stat">
+        <div class="pp-stat-label">Proyectos publicados</div>
+        <div class="pp-stat-value is-accent">{{ total_proyectos_abiertos }}</div>
+        <div class="pp-stat-hint">Con vacantes abiertas</div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Proyectos Finalizados</div>
-        <div class="fs-3 fw-bold text-success mt-1">{{ proyectos_finalizados_count }}</div>
-        <div class="small text-muted">Culminados con éxito</div>
+      <div class="pp-stat">
+        <div class="pp-stat-label">Proyectos finalizados</div>
+        <div class="pp-stat-value is-success">{{ proyectos_finalizados_count }}</div>
+        <div class="pp-stat-hint">Culminados con éxito</div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Tasa de Aprobación</div>
-        <div class="fs-3 fw-bold text-dark mt-1">
+      <div class="pp-stat">
+        <div class="pp-stat-label">Tasa de aprobación</div>
+        <div class="pp-stat-value">
           {% if total_resenas > 0 %}
-            {{ promedio_reputacion|floatformat:1 }} / 5.0
+            {{ promedio_reputacion|unlocalize }} / 5.0
           {% else %}
             Nueva
           {% endif %}
         </div>
-        <div class="small text-muted">Historial de cumplimiento</div>
+        <div class="pp-stat-hint">Historial de cumplimiento</div>
       </div>
     </div>
   </div>
 
   <div class="row g-4">
-    <!-- Columna de Reseñas y Comentarios Previos -->
+    <!-- Testimonios de desarrolladores -->
     <div class="col-lg-7">
-      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <h2 class="h5 fw-bold mb-0 text-dark"><i data-lucide="comments"></i>Opiniones de Desarrolladores</h2>
-          <span class="badge bg-light text-dark border">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
+      <section class="pp-card h-100">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="messages-square"></i>Opiniones de desarrolladores</h2>
+          <span class="pp-count-pill">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
         </div>
 
         {% if resenas %}
-          <div class="d-flex flex-column gap-3" data-testid="lista-resenas">
+          <div class="pp-review-list" data-testid="lista-resenas">
             {% for r in resenas %}
-              <div class="p-3 border rounded bg-light" style="border-radius: 8px;">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+              <article class="pp-review">
+                <div class="pp-review-head">
+                  <div class="pp-review-author">
+                    <div class="pp-review-avatar">
                       {{ r.desarrollador.nombre|default:r.desarrollador.username|slice:":1"|upper }}
                     </div>
                     <div>
-                      <div class="fw-bold text-dark" style="font-size: 14px;">{{ r.desarrollador.nombre|default:r.desarrollador.username }}</div>
-                      {% if r.desarrollador.perfil_desarrollador %}
-                        {% with b=r.desarrollador.perfil_desarrollador.badge_info %}
-                          <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 10px;">{{ b.label }}</span>
-                        {% endwith %}
-                      {% endif %}
+                      <div class="pp-review-name">{{ r.desarrollador.nombre|default:r.desarrollador.username }}</div>
+                      <div class="pp-review-role">
+                        {% if r.desarrollador.perfil_desarrollador %}
+                          {% with b=r.desarrollador.perfil_desarrollador.badge_info %}
+                            {{ b.label }}
+                          {% endwith %}
+                        {% else %}
+                          Desarrollador
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
-                  <div class="text-end">
-                    <div class="text-warning" style="font-size: 13px;">
+                  <div class="pp-review-side">
+                    <span class="pp-stars pp-stars--sm" aria-label="{{ r.puntuacion }} de 5">
                       {% for i in "12345" %}
-                        {% if forloop.counter <= r.puntuacion %}
-                          <i data-lucide="star"></i>
-                        {% else %}
-                          <i data-lucide="star"></i>
-                        {% endif %}
+                        <span class="pp-star {% if forloop.counter <= r.puntuacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
                       {% endfor %}
-                    </div>
-                    <small class="text-muted" style="font-size: 11px;">{{ r.fecha|date:"d M Y" }}</small>
+                    </span>
+                    <time class="pp-review-date">{{ r.fecha|date:"d M Y" }}</time>
                   </div>
                 </div>
 
                 {% if r.proyecto %}
-                  <div class="small text-muted mb-2">
-                    <i data-lucide="folder"></i> Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
+                  <div class="pp-review-project">
+                    <i data-lucide="folder"></i>Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
                   </div>
                 {% endif %}
 
-                <p class="mb-0 text-secondary" style="font-size: 13.5px; line-height: 1.5;">
-                  {{ r.comentario|default:"Sin comentario escrito." }}
-                </p>
-              </div>
+                <p class="pp-review-text">{{ r.comentario|default:"Sin comentario escrito." }}</p>
+              </article>
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-center py-5 text-muted">
+          <div class="pp-empty">
             <i data-lucide="comment-slash"></i>
-            <p class="mb-0">Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados.</p>
+            <p>Esta empresa aún no cuenta con comentarios o reseñas de proyectos finalizados.</p>
           </div>
         {% endif %}
-      </div>
+      </section>
     </div>
 
-    <!-- Columna de Proyectos Abiertos para Postularse -->
+    <!-- Distribución, stack y oportunidades -->
     <div class="col-lg-5">
-      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
-        <h2 class="h5 fw-bold mb-3 text-dark"><i data-lucide="briefcase"></i>Oportunidades Abiertas</h2>
-        
+      <section class="pp-card mb-4">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="bar-chart-3"></i>Distribución de estrellas</h2>
+        </div>
+
+        <div class="pp-rating-list">
+          {% for estrellas, cantidad in conteo_estrellas.items %}
+            <div class="pp-rating-row">
+              <span class="pp-rating-label">{{ estrellas }} <i data-lucide="star"></i></span>
+              <div class="pp-rating-track" role="img" aria-label="{{ cantidad }} valoraciones de {{ estrellas }} estrellas">
+                <div class="pp-rating-fill" style="width: {% if total_resenas %}{% widthratio cantidad total_resenas 100 %}{% else %}0{% endif %}%;"></div>
+              </div>
+              <span class="pp-rating-count">{{ cantidad }}</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="pp-rating-summary">
+          <div class="pp-score-value">{{ promedio_reputacion|unlocalize }}</div>
+          <span class="pp-stars" aria-label="Promedio {{ promedio_reputacion|unlocalize }} de 5">
+            {% for i in "12345" %}
+              <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
+            {% endfor %}
+          </span>
+          <div class="pp-score-caption">Promedio sobre {{ total_resenas }} reseña{{ total_resenas|pluralize }} de desarrolladores</div>
+        </div>
+      </section>
+
+      {% with stack=perfil.lista_stack_interes %}
+        {% if stack %}
+          <section class="pp-card mb-4">
+            <div class="pp-card-head">
+              <h2 class="pp-card-title"><i data-lucide="layers"></i>Stack de interés</h2>
+              <span class="pp-count-pill">{{ stack|length }} tecnologías</span>
+            </div>
+            <div class="pp-chip-list">
+              {% for tecnologia in stack %}
+                <span class="pp-chip">{{ tecnologia }}</span>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      <section class="pp-card">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="briefcase"></i>Oportunidades abiertas</h2>
+        </div>
+
         {% if proyectos_abiertos %}
-          <div class="d-flex flex-column gap-3">
+          <div class="pp-project-list">
             {% for p in proyectos_abiertos %}
-              <div class="p-3 border rounded" style="border-radius: 8px;">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                  <h3 class="h6 fw-bold mb-0 text-dark">{{ p.titulo }}</h3>
-                  <span class="badge bg-info-subtle text-info border" style="font-size: 11px;">{{ p.get_tipo_solucion_display }}</span>
+              <article class="pp-project">
+                <div class="pp-project-head">
+                  <h3 class="pp-project-title">{{ p.titulo }}</h3>
+                  <span class="pp-project-tag">{{ p.get_tipo_solucion_display }}</span>
                 </div>
-                <p class="text-muted small mb-2" style="line-height: 1.4;">{{ p.descripcion|truncatewords:18 }}</p>
-                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                  <small class="text-muted"><i data-lucide="users"></i> {{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</small>
-                  <a href="{% url 'postularse_a_proyecto' p.id %}" class="btn btn-sm btn-outline-primary" style="font-size: 12px; padding: 4px 10px;">
+                <p class="pp-project-desc">{{ p.descripcion|truncatewords:18 }}</p>
+                <div class="pp-project-foot">
+                  <span class="pp-project-vacancies"><i data-lucide="users"></i>{{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</span>
+                  <a href="{% url 'postularse_a_proyecto' p.id %}" class="pp-btn-soft">
                     Postularme <i data-lucide="chevron-right"></i>
                   </a>
                 </div>
-              </div>
+              </article>
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-center py-5 text-muted">
+          <div class="pp-empty">
             <i data-lucide="folder-open"></i>
-            <p class="mb-0">No hay convocatorias abiertas en este momento.</p>
+            <p>No hay convocatorias abiertas en este momento.</p>
           </div>
         {% endif %}
-      </div>
+      </section>
     </div>
   </div>
 </div>

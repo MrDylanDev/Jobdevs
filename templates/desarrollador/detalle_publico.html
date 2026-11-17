@@ -1,10 +1,14 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}JobDevs | {{ desarrollador.nombre|default:desarrollador.username }} - Perfil y Reputación{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/perfil_publico.css' %}?v=1">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4" style="max-width: 980px;">
+<div class="container py-4 pp-page" style="max-width: 1080px;">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
@@ -13,200 +17,210 @@
     </ol>
   </nav>
 
-  <!-- Tarjeta Principal del Desarrollador -->
-  <div class="card shadow-sm border-0 mb-4 p-4" style="border-radius: 12px; background: #fff;">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-      <div class="d-flex align-items-center gap-3">
-        <div style="width: 72px; height: 72px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; overflow: hidden; flex-shrink: 0;">
-          {% if perfil.foto_perfil %}
-            <img src="{{ perfil.foto_perfil.url }}" alt="{{ desarrollador.nombre }}" style="width: 100%; height: 100%; object-fit: cover;">
-          {% else %}
-            {{ desarrollador.nombre|default:desarrollador.username|slice:":1"|upper }}
-          {% endif %}
-        </div>
-        <div>
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h1 class="h3 mb-0 fw-bold text-dark">{{ desarrollador.nombre|default:desarrollador.username }}</h1>
-            {% with badge=perfil.badge_info %}
-              <span class="badge {{ badge.css_class }}" data-testid="badge-desarrollador" style="font-size: 12px; padding: 4px 10px;"
-                    {% if perfil.fecha_verificacion %}title="Verificado el {{ perfil.fecha_verificacion|date:'d/m/Y' }}"{% endif %}>
-                <i data-lucide="{% if perfil.es_verificado_sena %}check-circle{% elif perfil.estado_verificacion == 'rechazado' %}x-circle{% else %}alert-triangle{% endif %}" class="me-1"></i>
-                {{ badge.label }}
-              </span>
-            {% endwith %}
-          </div>
-          <div class="text-muted mt-1" style="font-size: 14px;">
-            {% if perfil.programa_formacion %}<i data-lucide="graduation-cap"></i> {{ perfil.programa_formacion }} &nbsp;·&nbsp; {% endif %}
-            {% if perfil.ficha %}<i data-lucide="id-card"></i> Ficha {{ perfil.ficha }} &nbsp;·&nbsp; {% endif %}
-            {% if perfil.fecha_verificacion %}
-              <i data-lucide="shield-halved"></i> Verificado el {{ perfil.fecha_verificacion|date:"d M Y" }}
-            {% else %}
-              <i data-lucide="user"></i> {{ desarrollador.username }}
-            {% endif %}
-          </div>
-          {% if perfil.portafolio_url %}
-            <div class="mt-2" style="font-size: 13.5px;">
-              <a href="{{ perfil.portafolio_url }}" target="_blank" rel="noopener" class="text-decoration-none" style="word-break: break-all;">
-                <i data-lucide="link"></i> {{ perfil.portafolio_url }}
-              </a>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Resumen rápido de estrellas -->
-      <div class="text-end text-sm-start d-flex flex-column align-items-sm-end">
-        <div class="d-flex align-items-center gap-2">
-          <span class="display-6 fw-bold text-dark">{{ promedio_reputacion }}</span>
-          <div>
-            <div class="text-warning fs-5">
-              {% for i in "12345" %}
-                {% if forloop.counter <= promedio_reputacion %}
-                  <i data-lucide="star"></i>
-                {% else %}
-                  <i data-lucide="star"></i>
-                {% endif %}
-              {% endfor %}
-            </div>
-            <small class="text-muted">({{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }})</small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {% if habilidades_lista %}
-      <hr class="my-3">
-      <div data-testid="habilidades-dev">
-        <h2 class="h6 text-uppercase text-muted fw-bold mb-2" style="letter-spacing: 0.5px;">Habilidades Técnicas</h2>
-        <div class="d-flex flex-wrap gap-2">
-          {% for habilidad in habilidades_lista %}
-            <span class="badge bg-light text-dark border" style="font-size: 12.5px; padding: 5px 10px; font-weight: 500;">{{ habilidad }}</span>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- Métricas de Trayectoria -->
-  <div class="row g-3 mb-4" data-testid="metricas-dev">
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Reputación</div>
-        <div class="fs-3 fw-bold text-warning mt-1">{{ promedio_reputacion }} / 5.0</div>
-        <div class="small text-muted">{{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }} de empresas</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Proyectos Finalizados</div>
-        <div class="fs-3 fw-bold text-success mt-1">{{ proyectos_finalizados_count }}</div>
-        <div class="small text-muted">Completados con éxito</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 text-center h-100" style="border-radius: 10px; background: #fff;">
-        <div class="text-muted small fw-semibold text-uppercase">Formación SENA</div>
-        <div class="fs-6 fw-bold text-dark mt-1">{{ perfil.get_condicion_sena_display }}</div>
-        <div class="small text-muted">{% if perfil.ficha %}Ficha {{ perfil.ficha }}{% else %}Sin ficha registrada{% endif %}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <!-- Columna de Valoraciones y Testimonios -->
-    <div class="col-lg-7">
-      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <h2 class="h5 fw-bold mb-0 text-dark"><i data-lucide="comments"></i>Valoraciones de Empresas</h2>
-          <span class="badge bg-light text-dark border">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
-        </div>
-
-        {% if resenas %}
-          <div class="d-flex flex-column gap-3" data-testid="lista-resenas">
-            {% for r in resenas %}
-              <div class="p-3 border rounded bg-light" style="border-radius: 8px;">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    <div class="fw-bold text-dark" style="font-size: 14px;">
-                      {% if r.empresa.perfil_empresa %}
-                        {{ r.empresa.perfil_empresa.razon_social|default:r.empresa.nombre|default:r.empresa.username }}
-                      {% else %}
-                        {{ r.empresa.nombre|default:r.empresa.username }}
-                      {% endif %}
-                    </div>
-                    <small class="text-muted" style="font-size: 11.5px;">
-                      <i data-lucide="building"></i> Empresa que evaluó
-                    </small>
-                  </div>
-                  <div class="text-end">
-                    <div class="text-warning" style="font-size: 13px;">
-                      {% for i in "12345" %}
-                        {% if forloop.counter <= r.puntuacion %}
-                          <i data-lucide="star"></i>
-                        {% else %}
-                          <i data-lucide="star"></i>
-                        {% endif %}
-                      {% endfor %}
-                    </div>
-                    <small class="text-muted" style="font-size: 11px;">{{ r.fecha|date:"d M Y" }}</small>
-                  </div>
-                </div>
-
-                {% if r.proyecto %}
-                  <div class="small text-muted mb-2">
-                    <i data-lucide="folder"></i> Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
-                  </div>
-                {% endif %}
-
-                <p class="mb-0 text-secondary" style="font-size: 13.5px; line-height: 1.5;">
-                  {{ r.comentario|default:"Sin comentario escrito." }}
-                </p>
-              </div>
-            {% endfor %}
-          </div>
+  <!-- Hero: identidad y verificación SENA -->
+  <section class="pp-hero">
+    <div class="pp-hero-main">
+      <div class="pp-avatar">
+        {% if perfil.foto_perfil %}
+          <img src="{{ perfil.foto_perfil.url }}" alt="{{ desarrollador.nombre }}">
         {% else %}
-          <div class="text-center py-5 text-muted">
-            <i data-lucide="comment-slash"></i>
-            <p class="mb-0">Este desarrollador aún no cuenta con valoraciones de empresas en proyectos finalizados.</p>
+          {{ desarrollador.nombre|default:desarrollador.username|slice:":1"|upper }}
+        {% endif %}
+      </div>
+
+      <div class="pp-identity">
+        <div class="pp-name-row">
+          <h1 class="pp-title">{{ desarrollador.nombre|default:desarrollador.username }}</h1>
+          {% with badge=perfil.badge_info %}
+            <span class="pp-badge {{ badge.css_class }}" data-testid="badge-desarrollador">
+              <i data-lucide="{% if perfil.es_verificado_sena %}check-circle{% elif perfil.estado_verificacion == 'rechazado' %}x-circle{% else %}alert-triangle{% endif %}"></i>
+              {{ badge.label }}
+            </span>
+          {% endwith %}
+        </div>
+
+        <div class="pp-meta">
+          {% if perfil.programa_formacion %}
+            <span><i data-lucide="graduation-cap"></i>{{ perfil.programa_formacion }}</span>
+          {% endif %}
+          {% if perfil.ficha %}
+            <span><i data-lucide="id-card"></i>Ficha {{ perfil.ficha }}</span>
+          {% endif %}
+          <span><i data-lucide="user"></i>{{ desarrollador.username }}</span>
+        </div>
+
+        {% if perfil.es_verificado_sena %}
+          <div class="pp-verified-banner">
+            <span class="pp-verified-icon"><i data-lucide="shield-check"></i></span>
+            <div class="pp-verified-copy">
+              <strong>Identidad verificada por SENA</strong>
+              <span>
+                {% if perfil.fecha_verificacion %}
+                  Validada el {{ perfil.fecha_verificacion|date:"d/m/Y" }}
+                {% else %}
+                  Verificación oficial vigente
+                {% endif %}
+              </span>
+            </div>
           </div>
         {% endif %}
       </div>
     </div>
 
-    <!-- Columna de Distribución de Estrellas -->
-    <div class="col-lg-5">
-      <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; background: #fff;">
-        <h2 class="h5 fw-bold mb-3 text-dark"><i data-lucide="bar-chart"></i>Distribución de Estrellas</h2>
+    <div class="pp-score">
+      <span class="pp-score-value">{{ promedio_reputacion|unlocalize }}</span>
+      <span class="pp-stars" aria-label="Reputación {{ promedio_reputacion|unlocalize }} de 5">
+        {% for i in "12345" %}
+          <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
+        {% endfor %}
+      </span>
+      <span class="pp-score-caption">{{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }}</span>
+    </div>
+  </section>
 
-        <div class="d-flex flex-column gap-2">
+  <!-- Métricas de trayectoria -->
+  <div class="row g-3 mb-4" data-testid="metricas-dev">
+    <div class="col-md-4">
+      <div class="pp-stat">
+        <div class="pp-stat-label">Reputación</div>
+        <div class="pp-stat-value is-warning">{{ promedio_reputacion|unlocalize }} / 5.0</div>
+        <div class="pp-stat-hint">{{ total_resenas }} valoraci{{ total_resenas|pluralize:"ón,ones" }} de empresas</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="pp-stat">
+        <div class="pp-stat-label">Proyectos finalizados</div>
+        <div class="pp-stat-value is-success">{{ proyectos_finalizados_count }}</div>
+        <div class="pp-stat-hint">Completados con éxito</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="pp-stat">
+        <div class="pp-stat-label">Formación SENA</div>
+        <div class="pp-stat-value">{{ perfil.get_condicion_sena_display }}</div>
+        <div class="pp-stat-hint">{% if perfil.ficha %}Ficha {{ perfil.ficha }}{% else %}Sin ficha registrada{% endif %}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Testimonios de proyectos finalizados -->
+    <div class="col-lg-7">
+      <section class="pp-card h-100">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="messages-square"></i>Valoraciones de empresas</h2>
+          <span class="pp-count-pill">{{ total_resenas }} reseña{{ total_resenas|pluralize }}</span>
+        </div>
+
+        {% if resenas %}
+          <div class="pp-review-list" data-testid="lista-resenas">
+            {% for r in resenas %}
+              <article class="pp-review">
+                <div class="pp-review-head">
+                  <div class="pp-review-author">
+                    <div class="pp-review-avatar">
+                      {% if r.empresa.perfil_empresa.logo %}
+                        <img src="{{ r.empresa.perfil_empresa.logo.url }}" alt="{{ r.empresa.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                      {% else %}
+                        {{ r.empresa.nombre|default:r.empresa.username|slice:":1"|upper }}
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div class="pp-review-name">
+                        {% if r.empresa.perfil_empresa %}
+                          {{ r.empresa.perfil_empresa.razon_social|default:r.empresa.nombre|default:r.empresa.username }}
+                        {% else %}
+                          {{ r.empresa.nombre|default:r.empresa.username }}
+                        {% endif %}
+                      </div>
+                      <div class="pp-review-role">Empresa que evaluó</div>
+                    </div>
+                  </div>
+                  <div class="pp-review-side">
+                    <span class="pp-stars pp-stars--sm" aria-label="{{ r.puntuacion }} de 5">
+                      {% for i in "12345" %}
+                        <span class="pp-star {% if forloop.counter <= r.puntuacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
+                      {% endfor %}
+                    </span>
+                    <time class="pp-review-date">{{ r.fecha|date:"d M Y" }}</time>
+                  </div>
+                </div>
+
+                {% if r.proyecto %}
+                  <div class="pp-review-project">
+                    <i data-lucide="folder"></i>Proyecto: <strong>{{ r.proyecto.titulo }}</strong>
+                  </div>
+                {% endif %}
+
+                <p class="pp-review-text">{{ r.comentario|default:"Sin comentario escrito." }}</p>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="pp-empty">
+            <i data-lucide="comment-slash"></i>
+            <p>Este desarrollador aún no cuenta con valoraciones de empresas en proyectos finalizados.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+
+    <!-- Distribución, stack y portafolio -->
+    <div class="col-lg-5">
+      <section class="pp-card mb-4">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="bar-chart-3"></i>Distribución de estrellas</h2>
+        </div>
+
+        <div class="pp-rating-list">
           {% for estrellas, cantidad in conteo_estrellas.items %}
-            <div class="d-flex align-items-center gap-2">
-              <span class="text-muted" style="font-size: 12.5px; width: 46px;">{{ estrellas }} <i data-lucide="star"></i></span>
-              <div class="progress flex-grow-1" style="height: 8px;">
-                <div class="progress-bar bg-warning" role="progressbar"
-                     style="width: {% if total_resenas %}{% widthratio cantidad total_resenas 100 %}%{% else %}0%{% endif %};"
-                     aria-valuenow="{{ cantidad }}" aria-valuemin="0" aria-valuemax="{{ total_resenas }}"></div>
+            <div class="pp-rating-row">
+              <span class="pp-rating-label">{{ estrellas }} <i data-lucide="star"></i></span>
+              <div class="pp-rating-track" role="img" aria-label="{{ cantidad }} valoraciones de {{ estrellas }} estrellas">
+                <div class="pp-rating-fill" style="width: {% if total_resenas %}{% widthratio cantidad total_resenas 100 %}{% else %}0{% endif %}%;"></div>
               </div>
-              <span class="text-muted" style="font-size: 12.5px; width: 24px; text-align: right;">{{ cantidad }}</span>
+              <span class="pp-rating-count">{{ cantidad }}</span>
             </div>
           {% endfor %}
         </div>
 
-        <hr class="my-3">
-        <div class="text-center">
-          <div class="display-6 fw-bold text-dark mb-1">{{ promedio_reputacion }}</div>
-          <div class="text-warning fs-5 mb-1">
+        <div class="pp-rating-summary">
+          <div class="pp-score-value">{{ promedio_reputacion|unlocalize }}</div>
+          <span class="pp-stars" aria-label="Promedio {{ promedio_reputacion|unlocalize }} de 5">
             {% for i in "12345" %}
-              {% if forloop.counter <= promedio_reputacion %}
-                <i data-lucide="star"></i>
-              {% else %}
-                <i data-lucide="star"></i>
-              {% endif %}
+              <span class="pp-star {% if forloop.counter <= promedio_reputacion %}is-on{% else %}is-off{% endif %}"><i data-lucide="star"></i></span>
+            {% endfor %}
+          </span>
+          <div class="pp-score-caption">Promedio sobre {{ total_resenas }} reseña{{ total_resenas|pluralize }} de empresas</div>
+        </div>
+      </section>
+
+      <section class="pp-card mb-4" data-testid="habilidades-dev">
+        <div class="pp-card-head">
+          <h2 class="pp-card-title"><i data-lucide="layers"></i>Stack tecnológico</h2>
+          {% if habilidades_lista %}<span class="pp-count-pill">{{ habilidades_lista|length }} skills</span>{% endif %}
+        </div>
+        {% if habilidades_lista %}
+          <div class="pp-chip-list">
+            {% for habilidad in habilidades_lista %}
+              <span class="pp-chip">{{ habilidad }}</span>
             {% endfor %}
           </div>
-          <small class="text-muted">Promedio sobre {{ total_resenas }} reseña{{ total_resenas|pluralize }} de empresas</small>
-        </div>
-      </div>
+        {% else %}
+          <p class="pp-empty-inline">Sin habilidades técnicas registradas.</p>
+        {% endif %}
+      </section>
+
+      {% if perfil.portafolio_url %}
+        <section class="pp-card pp-portfolio-card">
+          <span class="pp-portfolio-icon"><i data-lucide="globe"></i></span>
+          <div class="pp-portfolio-body">
+            <div class="pp-card-title" style="margin-bottom:4px;">Portafolio</div>
+            <a class="pp-portfolio-url" href="{{ perfil.portafolio_url }}" target="_blank" rel="noopener">{{ perfil.portafolio_url }}</a>
+          </div>
+          <a class="pp-cta" href="{{ perfil.portafolio_url }}" target="_blank" rel="noopener">Abrir <i data-lucide="arrow-up-right"></i></a>
+        </section>
+      {% endif %}
     </div>
   </div>
 </div>

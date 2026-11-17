@@ -10,7 +10,6 @@ dependencies = [
     "python-dotenv",
     "pillow",
     "gunicorn>=22.0.0",
-    "django-tailwind>=4.6.0",
     "channels>=4.1.0",
     "channels-redis>=4.2.0",
     "django-redis>=5.4.0",
@@ -31,7 +30,6 @@ dev = [
     "playwright",
     "ruff",
     "django-browser-reload>=1.21.0",
-    "django-tailwind[cookiecutter,honcho,reload]>=4.6.0",
 ]
 
 [build-system]
@@ -60,7 +58,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["config", "usuarios", "proyectos", "postulaciones", "contrataciones", "disputas", "mensajes", "notificaciones", "avances", "logs", "favoritos", "theme"]
+source = ["config", "usuarios", "proyectos", "postulaciones", "contrataciones", "disputas", "mensajes", "notificaciones", "avances", "logs", "favoritos"]
 omit = [
     "*/migrations/*",
     "*/tests/*",

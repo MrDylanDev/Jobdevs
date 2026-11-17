@@ -111,15 +111,20 @@
   border-bottom: none;
 }
 
-.notif-popover-item > i {
+.notif-popover-item > i,
+.notif-popover-item > svg {
+  width: 8px;
+  height: 8px;
   color: var(--border-high, rgba(255, 255, 255, 0.15));
-  font-size: 8px;
+  fill: none;
   margin-top: 5px;
   flex-shrink: 0;
 }
 
-.notif-popover-item.is-unread > i {
+.notif-popover-item.is-unread > i,
+.notif-popover-item.is-unread > svg {
   color: var(--accent, #00e676);
+  fill: currentColor;
   filter: drop-shadow(0 0 4px var(--accent-glow, rgba(0, 230, 118, 0.35)));
 }
 
@@ -156,8 +161,10 @@
   font-size: 12px;
 }
 
-.notif-popover-empty > i {
-  font-size: 20px;
+.notif-popover-empty > i,
+.notif-popover-empty > svg {
+  width: 20px;
+  height: 20px;
   opacity: 0.6;
 }
 
