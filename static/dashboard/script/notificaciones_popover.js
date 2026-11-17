@@ -256,7 +256,7 @@
         } catch (error) {
             if (error.name === 'AbortError') return;
             console.error('JobDevs notificaciones: error al cargar el historial', error);
-            mostrarToast('No se pudieron cargar las notificaciones.');
+            mostrarToast('No se pudieron cargar las notificaciones.', 'error');
             btnVerTodas.textContent = expandido ? 'Ver menos' : textoOriginal;
         } finally {
             if (peticionHistorial === controlador) {

@@ -413,6 +413,7 @@
         titulo: msg.remitente_nombre || 'Nuevo mensaje',
         mensaje: msg.contenido,
         duracion: 5000,
+        origen: 'ws',
         onClick: function () {
           if (root.scrollIntoView) {
             root.scrollIntoView({ behavior: 'smooth', block: 'center' });

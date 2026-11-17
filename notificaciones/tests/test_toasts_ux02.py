@@ -49,7 +49,11 @@ class TestToastJS:
         assert 'TOAST_DURACION_MS = 5000' in js
         assert 'const pausar' in js
         assert 'const reanudar' in js
-        assert 'TOAST_MAX_VISIBLES' in js
+        assert 'TOAST_MAX_VISIBLES = 4' in js
+        assert 'enHover' in js
+        assert 'enFoco' in js
+        assert 'hasOwnProperty.call(TOAST_ALIAS' in js
+        assert '_jdLimpiar' in js
 
     def test_expone_api_unificada(self):
         js = _leer(SSE_JS)
@@ -84,6 +88,15 @@ class TestIntegracionWebSocket:
         assert 'window.JobDevsToast' in js
         assert "tipo: 'mensaje'" in js
         assert 'duracion: 5000' in js
+        assert "origen: 'ws'" in js
+
+    def test_sin_toasts_legados_en_modales_ni_desarrollador(self):
+        modals_js = _leer(BASE / 'static' / 'dashboard' / 'script' / 'dashboard_modals.js')
+        dev_js = _leer(BASE / 'static' / 'Desarrollador' / 'script' / 'desarrollador.js')
+        assert 'jdm-toast' not in modals_js
+        assert 'jd-toast' not in dev_js
+        assert 'window.JobDevsToast' in modals_js
+        assert 'window.JobDevsToast' in dev_js
 
     def test_popover_reporta_errores_como_error(self):
         js = _leer(POPOVER_JS)
@@ -97,6 +110,8 @@ class TestCacheBusting:
             html = _leer(path)
             assert "static 'dashboard/css/dashboard.css' %}?v=3" in html, rol
             assert "static 'dashboard/script/notificaciones_sse.js' %}?v=2" in html, rol
+        assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['admin'])
+        assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['dev'])
 
     def test_chat_actualizado_en_los_tres_roles(self):
         assert "static 'mensajes/script/chat_inline.js' %}?v=5" in _leer(TEMPLATES['admin'])

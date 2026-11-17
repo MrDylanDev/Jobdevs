@@ -12,6 +12,8 @@
     const TOAST_DURACION_MS = 5000;
     const TOAST_MAX_VISIBLES = 4;
     const TOAST_SALIDA_MS = 320;
+    const MENSAJE_WS_TTL_MS = 15000;
+    const mensajesRecientesWS = new Map();
 
     const TOAST_TIPOS = {
         success: { etiqueta: 'Éxito', icono: 'check-circle-2' },
@@ -56,7 +58,29 @@
 
     function normalizarTipoToast(tipo) {
         const clave = String(tipo || '').trim().toLowerCase();
-        return TOAST_ALIAS[clave] || 'info';
+        return Object.prototype.hasOwnProperty.call(TOAST_ALIAS, clave) ? TOAST_ALIAS[clave] : 'info';
+    }
+
+    function registrarMensajeWS(mensaje) {
+        const texto = String(mensaje || '').trim();
+        if (!texto) return;
+        const ahora = Date.now();
+        mensajesRecientesWS.forEach((expira, key) => {
+            if (expira <= ahora) mensajesRecientesWS.delete(key);
+        });
+        mensajesRecientesWS.set(texto, ahora + MENSAJE_WS_TTL_MS);
+    }
+
+    function esMensajeRecienteWS(mensaje) {
+        const texto = String(mensaje || '').trim();
+        if (!texto || !mensajesRecientesWS.has(texto)) return false;
+        const expira = mensajesRecientesWS.get(texto);
+        if (expira <= Date.now()) {
+            mensajesRecientesWS.delete(texto);
+            return false;
+        }
+        mensajesRecientesWS.delete(texto);
+        return true;
     }
 
     function actualizarBadges(count) {
@@ -155,22 +179,44 @@
             data = { mensaje: data };
         }
         data = data || {};
+        if (data.origen === 'ws' && String(data.tipo || '').trim().toLowerCase() === 'mensaje') {
+            registrarMensajeWS(data.mensaje);
+        }
 
         const container = getToastContainer();
         const { toast, cerrarBtn, tipo, duracion } = crearToast(data);
 
         let timer = null;
+        let exitTimer = null;
         let restante = duracion;
         let inicio = 0;
         let cerrado = false;
+        let enHover = false;
+        let enFoco = false;
+
+        const limpiarTimers = () => {
+            cerrado = true;
+            if (timer) {
+                window.clearTimeout(timer);
+                timer = null;
+            }
+            if (exitTimer) {
+                window.clearTimeout(exitTimer);
+                exitTimer = null;
+            }
+        };
+
+        toast._jdLimpiar = limpiarTimers;
 
         const cerrar = () => {
             if (cerrado) return;
-            cerrado = true;
-            if (timer) window.clearTimeout(timer);
+            limpiarTimers();
             toast.classList.remove('is-visible');
             toast.classList.add('is-leaving');
-            window.setTimeout(() => toast.remove(), TOAST_SALIDA_MS);
+            exitTimer = window.setTimeout(() => {
+                exitTimer = null;
+                toast.remove();
+            }, TOAST_SALIDA_MS);
         };
 
         const programar = () => {
@@ -187,7 +233,7 @@
         };
 
         const reanudar = () => {
-            if (cerrado || timer) return;
+            if (cerrado || timer || enHover || enFoco) return;
             if (restante <= 0) {
                 cerrar();
                 return;
@@ -235,11 +281,23 @@
             window.location.href = '/notificaciones/';
         });
 
-        toast.addEventListener('mouseenter', pausar);
-        toast.addEventListener('mouseleave', reanudar);
-        toast.addEventListener('focusin', pausar);
+        toast.addEventListener('mouseenter', () => {
+            enHover = true;
+            pausar();
+        });
+        toast.addEventListener('mouseleave', () => {
+            enHover = false;
+            reanudar();
+        });
+        toast.addEventListener('focusin', () => {
+            enFoco = true;
+            pausar();
+        });
         toast.addEventListener('focusout', (event) => {
-            if (!toast.contains(event.relatedTarget)) reanudar();
+            if (!toast.contains(event.relatedTarget)) {
+                enFoco = false;
+                reanudar();
+            }
         });
         toast.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
@@ -255,7 +313,11 @@
         container.appendChild(toast);
 
         while (container.children.length > TOAST_MAX_VISIBLES) {
-            container.firstElementChild.remove();
+            const expulsado = container.firstElementChild;
+            if (typeof expulsado._jdLimpiar === 'function') {
+                expulsado._jdLimpiar();
+            }
+            expulsado.remove();
         }
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -453,7 +515,13 @@
                     if (data.unread_count !== undefined) {
                         actualizarBadges(data.unread_count);
                     }
-                    mostrarToast(data);
+                    const esMensajeDuplicadoWS = (
+                        String(data.tipo || '').trim().toLowerCase() === 'mensaje'
+                        && esMensajeRecienteWS(data.mensaje)
+                    );
+                    if (!esMensajeDuplicadoWS) {
+                        mostrarToast(data);
+                    }
                     document.dispatchEvent(new CustomEvent('jobdevs:notificacion', { detail: data }));
                 } catch (err) {
                     console.error('Error procesando evento notificacion SSE:', err);
