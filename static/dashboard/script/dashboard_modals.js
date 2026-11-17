@@ -29,22 +29,13 @@
   }
 
   function mostrarToast(mensaje, esError) {
-    var toast = document.getElementById('jdmToast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'jdmToast';
-      toast.className = 'jdm-toast';
-      toast.setAttribute('role', 'status');
-      document.body.appendChild(toast);
+    if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
+      window.JobDevsToast.mostrar({
+        tipo: esError ? 'error' : 'success',
+        mensaje: mensaje,
+        duracion: 4500,
+      });
     }
-    toast.innerHTML = '<i data-lucide="' + (esError ? 'alert-circle' : 'check-circle') + '"></i><span>' + escapeHtml(mensaje) + '</span>';
-    toast.style.borderColor = esError ? '#ef4444' : '#00e676';
-    toast.style.color = esError ? '#f87171' : '#69f0ae';
-    toast.classList.add('is-visible');
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () {
-      toast.classList.remove('is-visible');
-    }, 4500);
   }
 
   // ─────────────────────────────────────────────────────────────
