@@ -40,12 +40,13 @@
 
     function actualizarBadges(count) {
         const parsedCount = parseInt(count, 10) || 0;
-        const badges = document.querySelectorAll('.notif-badge, .nav-badge');
+        // Solo notificaciones: .nav-badge es genérico (mensajes, postulaciones...).
+        const badges = document.querySelectorAll('.notif-badge, [data-notif-badge]');
 
         if (parsedCount > 0) {
             badges.forEach(badge => {
                 badge.textContent = parsedCount;
-                badge.style.display = 'inline-flex';
+                badge.style.setProperty('display', 'inline-flex', 'important');
             });
 
             const notifBtn = document.querySelector('.notif-btn');
@@ -58,7 +59,7 @@
         } else {
             badges.forEach(badge => {
                 badge.textContent = '0';
-                badge.style.display = 'none';
+                badge.style.setProperty('display', 'none', 'important');
             });
         }
     }
@@ -148,9 +149,28 @@
         closeBtn.addEventListener('click', cerrar);
 
         toast.addEventListener('click', (e) => {
-            if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
-                window.location.href = '/notificaciones/';
+            if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+            // Evita que el mismo click cierre el popover recién abierto.
+            e.stopPropagation();
+
+            // En dashboards con campana, abrir el popover en la misma página
+            // en lugar de navegar al listado de notificaciones.
+            const popover = document.getElementById('notifPopover');
+            if (popover) {
+                if (!popover.classList.contains('is-open')) {
+                    if (window.JobDevsNotificaciones && typeof window.JobDevsNotificaciones.abrir === 'function') {
+                        window.JobDevsNotificaciones.abrir();
+                    } else if (typeof window.toggleNotifPopover === 'function') {
+                        window.toggleNotifPopover();
+                    } else {
+                        popover.classList.add('is-open');
+                    }
+                }
+                cerrar();
+                return;
             }
+
+            window.location.href = '/notificaciones/';
         });
 
         container.appendChild(toast);
@@ -346,6 +366,7 @@
                         actualizarBadges(data.unread_count);
                     }
                     mostrarToast(data);
+                    document.dispatchEvent(new CustomEvent('jobdevs:notificacion', { detail: data }));
                 } catch (err) {
                     console.error('Error procesando evento notificacion SSE:', err);
                 }
