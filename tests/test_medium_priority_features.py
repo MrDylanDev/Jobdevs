@@ -47,6 +47,16 @@ def test_scrum_411_drawer_movil_en_los_tres_dashboards():
     css = (base / 'static/dashboard/css/dashboard.css').read_text(encoding='utf-8')
     assert '.sidebar.is-open' in css
     assert '.sidebar-backdrop.is-open' in css
+    assert 'width: 260px !important;' in css
+
+    for role_css in (
+        'static/administrador/css/admin.css',
+        'static/Desarrollador/css/desarrollador.css',
+    ):
+        role_content = (base / role_css).read_text(encoding='utf-8')
+        assert '@media (min-width: 769px) and (max-width: 900px)' in role_content, (
+            f"{role_css} no debe colapsar el drawer móvil a 68px por debajo de 768px"
+        )
 
 
 def test_scrum_455_456_457_variables_semanticas_y_tema_claro():

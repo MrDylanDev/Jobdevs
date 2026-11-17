@@ -828,7 +828,7 @@ ul { list-style: none; }
     left: 0;
     top: 0;
     bottom: 0;
-    width: 260px;
+    width: 260px !important;
     z-index: 1100;
     visibility: hidden;
     transform: translateX(-100%);
@@ -843,11 +843,11 @@ ul { list-style: none; }
   .app-layout > .sidebar .sidebar-brand-sub,
   .app-layout > .sidebar .nav-item span,
   .app-layout > .sidebar .sidebar-group-label {
-    display: initial;
+    display: initial !important;
   }
   .app-layout > .sidebar .nav-item {
-    justify-content: flex-start;
-    padding: 10px 14px;
+    justify-content: flex-start !important;
+    padding: 10px 14px !important;
   }
   .metrics-grid { grid-template-columns: 1fr 1fr; }
   .main-content { padding: 16px; }
