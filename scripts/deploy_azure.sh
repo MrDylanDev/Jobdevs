@@ -34,10 +34,10 @@ CONTAINERAPPS_ENV="${AZURE_CONTAINERAPPS_ENV:-cae-jobdevs-prod}"
 APP_NAME="${AZURE_APP_NAME:-jobdevs-web}"
 GITHUB_REPO="${GITHUB_REPOSITORY:-MrDylanDev/Jobdevs}"
 
-# Generador de sufijo aleatorio basado en el ID de suscripción si no se define nombre único
+# Generador de sufijo aleatorio si no se define nombre único
 DEFAULT_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 6 || echo "100")
-ACR_NAME="${AZURE_ACR_NAME:-acrjobdevs${DEFAULT_SUFFIX}}"
-DB_SERVER_NAME="${AZURE_DB_SERVER_NAME:-psql-jobdevs-${DEFAULT_SUFFIX}}"
+ACR_NAME="${AZURE_ACR_NAME:-}"
+DB_SERVER_NAME="${AZURE_DB_SERVER_NAME:-}"
 DB_NAME="${AZURE_DB_NAME:-jobdevs_db}"
 DB_USER="${AZURE_DB_USER:-jobdevs_admin}"
 DB_SKU="${AZURE_DB_SKU:-Standard_B1ms}" # Tier inicial económico y escalable
@@ -87,6 +87,17 @@ create_resource_group() {
 # 2. Azure Container Registry (ACR)
 # ------------------------------------------------------------------------------
 create_acr() {
+    # Reutilizar ACR existente en el Resource Group si existe
+    if [ -z "${ACR_NAME}" ]; then
+        local existing_acr
+        existing_acr=$(az acr list --resource-group "${RESOURCE_GROUP}" --query "[0].name" -o tsv 2>/dev/null || true)
+        if [ -n "${existing_acr}" ] && [ "${existing_acr}" != "None" ]; then
+            ACR_NAME="${existing_acr}"
+        else
+            ACR_NAME="acrjobdevs${DEFAULT_SUFFIX}"
+        fi
+    fi
+
     log_header "2. Azure Container Registry (ACR): ${ACR_NAME}"
     if az acr show --name "${ACR_NAME}" --resource-group "${RESOURCE_GROUP}" &>/dev/null; then
         log_ok "El ACR '${ACR_NAME}' ya existe."
@@ -110,6 +121,17 @@ create_acr() {
 # 3. Azure Database for PostgreSQL 16 Flexible Server
 # ------------------------------------------------------------------------------
 create_database() {
+    # Reutilizar servidor PostgreSQL existente en el Resource Group si existe
+    if [ -z "${DB_SERVER_NAME}" ]; then
+        local existing_db
+        existing_db=$(az postgres flexible-server list --resource-group "${RESOURCE_GROUP}" --query "[0].name" -o tsv 2>/dev/null || true)
+        if [ -n "${existing_db}" ] && [ "${existing_db}" != "None" ]; then
+            DB_SERVER_NAME="${existing_db}"
+        else
+            DB_SERVER_NAME="psql-jobdevs-${DEFAULT_SUFFIX}"
+        fi
+    fi
+
     log_header "3. PostgreSQL 16 Flexible Server: ${DB_SERVER_NAME}"
 
     if [ -z "${DB_PASSWORD:-}" ]; then
@@ -142,27 +164,27 @@ create_database() {
             --yes \
             --output none
         log_ok "Servidor PostgreSQL 16 aprovisionado correctamente."
-
-        # Regla de firewall: permitir acceso desde servicios internos de Azure (Container Apps)
-        log_info "Configurando regla de firewall para permitir tráfico desde Azure Container Apps..."
-        az postgres flexible-server firewall-rule create \
-            --resource-group "${RESOURCE_GROUP}" \
-            --name "${DB_SERVER_NAME}" \
-            --rule-name AllowAllAzureServices \
-            --start-ip-address 0.0.0.0 \
-            --end-ip-address 0.0.0.0 \
-            --output none
-        log_ok "Regla de firewall aplicada (0.0.0.0)."
-
-        # Crear base de datos para la aplicación
-        log_info "Creando base de datos '${DB_NAME}'..."
-        az postgres flexible-server db create \
-            --resource-group "${RESOURCE_GROUP}" \
-            --server-name "${DB_SERVER_NAME}" \
-            --database-name "${DB_NAME}" \
-            --output none || true
-        log_ok "Base de datos '${DB_NAME}' lista."
     fi
+
+    # Regla de firewall: permitir acceso desde servicios internos de Azure (Container Apps)
+    log_info "Configurando regla de firewall para permitir tráfico desde Azure Container Apps..."
+    az postgres flexible-server firewall-rule create \
+        --resource-group "${RESOURCE_GROUP}" \
+        --server-name "${DB_SERVER_NAME}" \
+        --rule-name AllowAllAzureServices \
+        --start-ip-address 0.0.0.0 \
+        --end-ip-address 0.0.0.0 \
+        --output none 2>/dev/null || true
+    log_ok "Regla de firewall verificada (0.0.0.0)."
+
+    # Crear base de datos para la aplicación
+    log_info "Asegurando base de datos '${DB_NAME}'..."
+    az postgres flexible-server db create \
+        --resource-group "${RESOURCE_GROUP}" \
+        --server-name "${DB_SERVER_NAME}" \
+        --database-name "${DB_NAME}" \
+        --output none 2>/dev/null || true
+    log_ok "Base de datos '${DB_NAME}' lista."
 
     DB_FQDN=$(az postgres flexible-server show --resource-group "${RESOURCE_GROUP}" --name "${DB_SERVER_NAME}" --query fullyQualifiedDomainName -o tsv)
     log_ok "Host PostgreSQL: ${C_BOLD}${DB_FQDN}${C_RESET}"
