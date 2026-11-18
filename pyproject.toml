@@ -20,6 +20,8 @@ dependencies = [
     "pymupdf>=1.24.0",
     "pytesseract>=0.3.10",
     "opencv-python-headless>=4.9.0",
+    "whitenoise>=6.12.0",
+    "ddtrace>=4.17.1",
 ]
 
 [project.optional-dependencies]

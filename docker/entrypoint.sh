@@ -83,15 +83,25 @@ if [ $# -gt 0 ]; then
     exec "$@"
 fi
 
+# Detectar DataDog APM
+DD_RUNNER=""
+if [ "${DATADOG_ENABLED:-false}" = "true" ] || [ "${DATADOG_ENABLED:-0}" = "1" ] || [ -n "${DD_API_KEY:-}" ]; then
+    echo "[INFO] DataDog APM habilitado (ddtrace-run)"
+    DD_RUNNER="ddtrace-run"
+fi
+
 echo ""
 echo "============================================"
 echo "  JobDevs listo - Iniciando ASGI (Gunicorn + Uvicorn Workers)"
 echo "  Escuchando en 0.0.0.0:8000"
 echo "  Workers: 3 (Uvicorn)"
+if [ -n "$DD_RUNNER" ]; then
+    echo "  Observabilidad: DataDog APM activo"
+fi
 echo "============================================"
 echo ""
 
-exec gunicorn config.asgi:application \
+exec $DD_RUNNER gunicorn config.asgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
     --worker-class uvicorn.workers.UvicornWorker \
