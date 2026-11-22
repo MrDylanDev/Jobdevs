@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=3">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=20261115_v11">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261116_v88">
-  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261115_v10">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261121_v1">
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261121_v2">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261117_v1">
   <script>
     (function() {
@@ -232,7 +232,9 @@
               <button type="button" class="jd-chat-item"
                       data-url="{% url 'api_conversacion' admin_id %}"
                       data-receptor="{{ admin_id }}" data-proyecto="0">
-                <span class="jd-chat-avatar"><i data-lucide="shield" style="width:16px; height:16px;"></i></span>
+                <span class="jd-chat-avatar" style="overflow:hidden; padding:0;">
+                  <img src="{% static 'IMG/admin_soporte.svg' %}" alt="{% trans "Soporte JobDevs" %}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                </span>
                 <span class="jd-chat-item-body">
                   <span class="jd-chat-item-top">
                     <span class="jd-chat-name">{% trans "Soporte JobDevs" %}</span>
@@ -248,7 +250,9 @@
                       data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
                 <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}">
+                  {% elif colaboracion.desarrollador.perfil_desarrollador.foto %}
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}
@@ -1110,25 +1114,6 @@
                       <span>{% trans "Volver a Contratar" %}</span>
                     </button>
                   {% endif %}
-                  {% if proyecto.num_desarrolladores >= 2 %}
-                    <a href="{% url 'sala_chat_grupal' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
-                      <i data-lucide="users"></i>
-                      <span>{% trans "Chat Grupal" %}</span>
-                    </a>
-                  {% endif %}
-                  {% if proyecto.contrataciones.all %}
-                    <div class="history-collaborators-grid">
-                      {% for contratacion in proyecto.contrataciones.all %}
-                        <a href="{% url 'sala_chat' contratacion.desarrollador.id proyecto.id %}"
-                           onclick="abrirChatEnCentro(event, '{{ contratacion.desarrollador.id }}', '{{ proyecto.id }}'); return false;"
-                           class="btn-history-dev"
-                           title="{% blocktrans with user=contratacion.desarrollador.username %}Chatear con {{ user }}{% endblocktrans %}">
-                          <i data-lucide="message-square"></i>
-                          <span>{{ contratacion.desarrollador.username }}</span>
-                        </a>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
                 </div>
               </div>
             {% empty %}
@@ -1502,7 +1487,7 @@
         <i data-lucide="x"></i>
       </button>
     </div>
-    <form method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
+    <form id="formCrearProyecto" method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
         <label class="form-label-corp" for="crear_titulo">{% trans "Título del Proyecto" %}</label>
@@ -1554,55 +1539,23 @@
       </div>
       <div class="form-grid-2-corp">
         <div class="form-group-corp">
-          <label class="form-label-corp" for="crear_fecha_limite_display">{% trans "Cierre de postulaciones" %}</label>
-          <div class="corp-datepicker" id="datepicker-crear">
-            <div class="datepicker-input-wrap">
-              <i data-lucide="calendar" class="datepicker-icon"></i>
-              <input type="text"
-                     class="form-input-corp datepicker-display"
-                     id="crear_fecha_limite_display"
-                     placeholder="{% trans "Seleccionar fecha límite..." %}"
-                     readonly
-                     onclick="toggleCorpDatepicker('datepicker-crear')">
-              <input type="hidden"
-                     name="fecha_limite"
-                     id="crear_fecha_limite"
-                     required>
-              <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-crear')" aria-label="{% trans "Abrir calendario" %}">
-                <i data-lucide="calendar-days"></i>
-              </button>
-            </div>
-
-            <div class="datepicker-popover" id="datepicker-crear-popover">
-              <div class="datepicker-presets">
-                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 14)">{% trans "+2 Semanas" %}</button>
-                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 30)">{% trans "+1 Mes" %}</button>
-                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 60)">{% trans "+2 Meses" %}</button>
-                <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-crear', 90)">{% trans "+3 Meses" %}</button>
-              </div>
-              <div class="datepicker-header">
-                <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', -1)" aria-label="{% trans "Mes anterior" %}">
-                  <i data-lucide="chevron-left"></i>
-                </button>
-                <div class="datepicker-month-year" id="datepicker-crear-monthyear">{% trans "Mes Año" %}</div>
-                <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-crear', 1)" aria-label="{% trans "Mes siguiente" %}">
-                  <i data-lucide="chevron-right"></i>
-                </button>
-              </div>
-              <div class="datepicker-weekdays">
-                <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
-              </div>
-              <div class="datepicker-days" id="datepicker-crear-days"></div>
-              <div class="datepicker-footer">
-                <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-crear')">{% trans "Cerrar" %}</button>
-                <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-crear')">{% trans "Hoy" %}</button>
-              </div>
-            </div>
-          </div>
+          <label class="form-label-corp" for="crear_fecha_limite">
+            <i data-lucide="calendar" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Cierre de postulaciones" %}
+          </label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="crear_fecha_limite"
+                 class="form-input-corp"
+                 min="{{ fecha_minima_reapertura }}"
+                 title="{% trans "Fecha límite hasta cuándo los desarrolladores pueden postularse" %}">
         </div>
         <div class="form-group-corp">
-          <label class="form-label-corp" for="crear_fecha_cumplimiento">{% trans "Fecha de cumplimiento" %}</label>
-          <input type="date" name="fecha_cumplimiento" id="crear_fecha_cumplimiento" class="form-input-corp" required>
+          <label class="form-label-corp" for="crear_fecha_cumplimiento">
+            <i data-lucide="calendar-check" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Fecha de cumplimiento" %}
+          </label>
+          <input type="date" name="fecha_cumplimiento" id="crear_fecha_cumplimiento" class="form-input-corp" required min="{{ fecha_minima_reapertura }}" title="{% trans "Fecha límite pactada para la entrega técnica final" %}">
         </div>
       </div>
       <div class="modal-footer-corp">
@@ -1776,55 +1729,24 @@
         <label class="form-label-corp" for="edit_ciudad">{% trans "Ciudad o Sede Presencial" %}</label>
         <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
       </div>
-      <div class="form-group-corp">
-        <label class="form-label-corp" for="edit_fecha_limite_display">{% trans "Cierre de postulaciones" %}</label>
-        <div class="corp-datepicker" id="datepicker-editar">
-          <div class="datepicker-input-wrap">
-            <i data-lucide="calendar" class="datepicker-icon"></i>
-            <input type="text"
-                   class="form-input-corp datepicker-display"
-                   id="edit_fecha_limite_display"
-                   placeholder="{% trans "Seleccionar fecha límite..." %}"
-                   readonly
-                   onclick="toggleCorpDatepicker('datepicker-editar')">
-            <input type="hidden"
-                   name="fecha_limite"
-                   id="edit_fecha_limite">
-            <button type="button" class="datepicker-trigger-btn" onclick="toggleCorpDatepicker('datepicker-editar')" aria-label="{% trans "Abrir calendario" %}">
-              <i data-lucide="calendar-days"></i>
-            </button>
-          </div>
-
-          <div class="datepicker-popover" id="datepicker-editar-popover">
-            <div class="datepicker-presets">
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 14)">{% trans "+2 Semanas" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 30)">{% trans "+1 Mes" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 60)">{% trans "+2 Meses" %}</button>
-              <button type="button" class="datepicker-preset-pill" onclick="aplicarPresetFecha('datepicker-editar', 90)">{% trans "+3 Meses" %}</button>
-            </div>
-            <div class="datepicker-header">
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', -1)" aria-label="{% trans "Mes anterior" %}">
-                <i data-lucide="chevron-left"></i>
-              </button>
-              <div class="datepicker-month-year" id="datepicker-editar-monthyear">{% trans "Mes Año" %}</div>
-              <button type="button" class="datepicker-nav-btn" onclick="navegarMesDatepicker('datepicker-editar', 1)" aria-label="{% trans "Mes siguiente" %}">
-                <i data-lucide="chevron-right"></i>
-              </button>
-            </div>
-            <div class="datepicker-weekdays">
-              <span>{% trans "Lu" %}</span><span>{% trans "Ma" %}</span><span>{% trans "Mi" %}</span><span>{% trans "Ju" %}</span><span>{% trans "Vi" %}</span><span>{% trans "Sá" %}</span><span>{% trans "Do" %}</span>
-            </div>
-            <div class="datepicker-days" id="datepicker-editar-days"></div>
-            <div class="datepicker-footer">
-              <button type="button" class="btn-corp-action secondary btn-sm" onclick="cerrarCorpDatepicker('datepicker-editar')">{% trans "Cerrar" %}</button>
-              <button type="button" class="btn-corp-action primary btn-sm" onclick="seleccionarHoyDatepicker('datepicker-editar')">{% trans "Hoy" %}</button>
-            </div>
-          </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_fecha_limite">
+            <i data-lucide="calendar" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Cierre de postulaciones" %}
+          </label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="edit_fecha_limite"
+                 class="form-input-corp">
         </div>
-      </div>
-      <div class="form-group-corp">
-        <label class="form-label-corp" for="edit_fecha_cumplimiento">{% trans "Fecha de cumplimiento (opcional)" %}</label>
-        <input type="date" name="fecha_cumplimiento" id="edit_fecha_cumplimiento" class="form-input-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_fecha_cumplimiento">
+            <i data-lucide="calendar-check" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Fecha de cumplimiento (opcional)" %}
+          </label>
+          <input type="date" name="fecha_cumplimiento" id="edit_fecha_cumplimiento" class="form-input-corp">
+        </div>
       </div>
       <div class="modal-footer-corp">
         <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
@@ -2665,8 +2587,8 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
   </div>
 </div>
 
-<script src="{% static 'empresa/script/empresa.js' %}?v=20261116_v29"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261115_v6"></script>
+<script src="{% static 'empresa/script/empresa.js' %}?v=20261121_v1"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v8"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261117_v1"></script>

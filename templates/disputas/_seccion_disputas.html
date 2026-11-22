@@ -12,19 +12,6 @@
   {% endif %}
 </div>
 
-<!-- Banner de protocolo de arbitraje oficial JobDevs -->
-<div class="disputas-protocol-card" data-testid="protocolo-arbitraje-banner">
-  <div class="disputas-protocol-icon">
-    <i data-lucide="shield-check"></i>
-  </div>
-  <div class="disputas-protocol-body">
-    <h2>{% trans "Protocolo de Arbitraje Oficial JobDevs" %}</h2>
-    <p>
-      {% trans "Las disputas son atendidas por un mediador administrativo neutral designado por la plataforma. Al abrirse el caso, las entregas de ese hito quedan en pausa temporal y ambas partes disponen de una Sala Virtual privada de deliberación hasta la emisión del dictamen final vinculante." %}
-    </p>
-  </div>
-</div>
-
 <!-- 4 KPIs Reales de Arbitraje (Calculados desde la base de datos) -->
 <div class="disputas-kpi-grid" data-testid="disputas-kpis">
   <div class="disputas-kpi-card">
@@ -70,17 +57,16 @@
       <span>{% trans "Casos Activos & En Mediación" %}</span>
       <span class="disputas-pill-badge{% if disputas_activas|length > 0 %} is-warning{% endif %}">{{ disputas_activas|length }}</span>
     </button>
+    {% if request.user.rol != 'desarrollador' %}
     <button type="button" class="disputas-tab-pill" id="tab-disputas-resueltas" role="tab" aria-selected="false" onclick="switchDisputasSubTab('resueltas', this)">
       <i data-lucide="folder-check"></i>
       <span>{% trans "Expedientes Resueltos" %}</span>
       <span class="disputas-pill-badge">{{ disputas_resueltas|length }}</span>
     </button>
+    {% endif %}
   </div>
 
-  <div class="disputas-toolbar-note">
-    <i data-lucide="shield-check"></i>
-    <span>{% trans "Trazabilidad formal respaldada con SHA-256" %}</span>
-  </div>
+  <div class="disputas-toolbar-note" style="display:none;"></div>
 </div>
 
 {# SCRUM-232 (RF 10.1.2): filtro fino por estado con conteos. #}
@@ -89,7 +75,7 @@
   <a href="?{% if seccion %}section={{ seccion }}{% endif %}"
      class="btn btn-sm {% if not filtro_estado_actual %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'todos', this); }">
-    <span>{% trans "Todos" %} ({{ total_disputas }})</span>
+    <span>{% trans "Todos" %} ({% if request.user.rol == 'desarrollador' %}{{ disputas_activas|length }}{% else %}{{ total_disputas }}{% endif %})</span>
   </a>
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=abierta"
      class="btn btn-sm {% if filtro_estado_actual == 'abierta' %}btn-primary{% else %}btn-secondary{% endif %}"
@@ -101,6 +87,7 @@
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'en_mediacion', this); }">
     <span>{% trans "En mediación" %} ({{ disputas_por_estado.en_mediacion }})</span>
   </a>
+  {% if request.user.rol != 'desarrollador' %}
   <a href="?{% if seccion %}section={{ seccion }}&amp;{% endif %}estado=resuelta"
      class="btn btn-sm {% if filtro_estado_actual == 'resuelta' %}btn-primary{% else %}btn-secondary{% endif %}"
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'resuelta', this); }">
@@ -111,6 +98,7 @@
      onclick="if (typeof window.filtrarDisputasEnTiempoReal === 'function') { return window.filtrarDisputasEnTiempoReal(event, 'cancelada', this); }">
     <span>{% trans "Canceladas" %} ({{ disputas_por_estado.cancelada }})</span>
   </a>
+  {% endif %}
 </div>
 {% endwith %}
 
@@ -315,7 +303,7 @@
 </div>
 
 <!-- Empty state reactivo para filtrado en cliente -->
-<div id="disputasClienteVacio" class="activity-empty" style="display:none; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg); padding: 36px 20px; margin-bottom: 22px;">
+<div id="disputasClienteVacio" class="activity-empty" style="display:none; padding: 48px 20px;">
   <i data-lucide="scale"></i>
   <p>{% trans "No se encontraron disputas para el estado seleccionado." %}</p>
 </div>
@@ -345,52 +333,80 @@
 
 {% if request.user.rol != 'administrador' %}
 <div id="modalNuevaDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalNuevaDisputaTitulo" onclick="if(event.target===this)cerrarModalDisputa()">
-  <div class="modal-box-corp" style="max-width:540px;">
-    <div class="modal-header-corp">
+  <div class="modal-box-corp modal-box-disp" style="max-width:620px; border-radius:14px; background:#0a0a0a; border:1px solid rgba(255, 255, 255, 0.1); box-shadow:0 25px 70px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 230, 118, 0.15); overflow:hidden; padding:0; display:flex; flex-direction:column;">
+    <div class="jdm-header" style="background:#0f0f0f; border-bottom:1px solid rgba(255, 255, 255, 0.08); padding:22px 26px 18px; display:flex; justify-content:space-between; align-items:flex-start;">
       <div>
-        <h2 id="modalNuevaDisputaTitulo" class="modal-title-corp" style="display:flex; align-items:center; gap:8px;">
-          <i data-lucide="gavel" style="color:var(--corp-slate-500);"></i>
-          <span>{% trans "Iniciar Mediación Formal" %}</span>
+        <div style="font-family:var(--font-mono, monospace); font-size:11px; font-weight:600; color:var(--accent, #00e676); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">
+          {% trans "ARBITRAJE CONTRACTUAL" %}
+        </div>
+        <h2 id="modalNuevaDisputaTitulo" style="font-size:19px; font-weight:700; color:#ffffff; margin:0; line-height:1.3; letter-spacing:-0.01em;">
+          {% trans "Iniciar Mediación Formal" %}
         </h2>
+        <div style="font-size:13px; color:#94a3b8; margin-top:6px;">
+          {% trans "Resolución arbitral neutral y vinculante para proyectos en controversia" %}
+        </div>
       </div>
-      <button onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button type="button" onclick="cerrarModalDisputa()" class="jdm-close" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
 
-    {% if proyectos_disputables %}
-      <div class="disp-notice disp-notice-danger">
-        <i data-lucide="alert-triangle" style="margin-top:2px;"></i>
-        <span>{% blocktrans %}Abrir una disputa <strong>congela de inmediato</strong> el proyecto y la contratación. Solo corresponde ante faltas contractuales graves.{% endblocktrans %}</span>
+    <div class="jdm-body" style="padding:22px 26px;">
+      <!-- Protocolo de Arbitraje (Card de respaldo técnico) -->
+      <div data-testid="protocolo-arbitraje-banner" style="background:rgba(255, 255, 255, 0.015); border:1px solid rgba(255, 255, 255, 0.08); border-radius:10px; padding:16px 18px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#cbd5e1; margin-bottom:6px;">
+          <i data-lucide="shield-alert" style="width:14px; height:14px; color:#f87171;"></i>
+          <span>{% trans "Protocolo de Arbitraje Oficial" %}</span>
+        </div>
+        <p style="font-size:12.5px; line-height:1.6; color:#94a3b8; margin:0;">
+          {% trans "Las disputas son atendidas por un mediador administrativo neutral designado por la plataforma. Al abrirse el caso, las entregas de ese hito quedan en pausa temporal y ambas partes disponen de una Sala Virtual privada de deliberación hasta la emisión del dictamen final vinculante." %}
+        </p>
       </div>
 
-      <div class="form-label-corp" style="margin-bottom:8px;">{% trans "Selecciona el proyecto en controversia:" %}</div>
-      <div style="display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; padding-right:4px;">
-        {% for p in proyectos_disputables %}
-          <a href="{% url 'disputas:abrir_disputa' p.id %}"
-             data-abrir-formulario-disputa
-             data-url="{% url 'disputas:abrir_disputa' p.id %}"
-             onclick="if (document.getElementById('modalReportarDisputa') && typeof window.abrirModalDisputa === 'function') { cerrarModalDisputa(); window.abrirModalDisputa(event, this.getAttribute('data-url'), '{{ p.titulo|escapejs }}'); return false; }"
-             class="disp-proyecto-item-corp disp-proyecto-item">
-            <div>
-              <strong>{{ p.titulo }}</strong>
-              <small>{% if request.user.rol == 'empresa' %}{{ p.get_estado_display }}{% else %}{% trans "Empresa:" %} {{ p.empresa.nombre|default:p.empresa.username }}{% endif %}</small>
-            </div>
-            <span class="btn-corp-action secondary" style="font-size:12px; padding:5px 10px;">
-              <span>{% trans "Seleccionar" %}</span> <i data-lucide="arrow-right"></i>
-            </span>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="activity-empty" style="padding:24px 10px;">
-        <i data-lucide="folder-open"></i>
-        <p>{% blocktrans %}No tienes proyectos elegibles. Solo se puede disputar un proyecto <em>en desarrollo</em> o <em>en revisión</em> con contratación activa.{% endblocktrans %}</p>
-      </div>
-    {% endif %}
+      {% if proyectos_disputables %}
+        <div style="display:flex; align-items:center; justify-content:space-between; font-family:var(--font-mono); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#71717a; margin-bottom:12px;">
+          <span>{% trans "Selecciona el proyecto en controversia" %}</span>
+          <span>{{ proyectos_disputables|length }} disponible{{ proyectos_disputables|length|pluralize }}</span>
+        </div>
 
-    <div class="modal-footer-corp" style="margin-top:20px;">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">{% trans "Cerrar" %}</button>
+        <div style="display:flex; flex-direction:column; gap:10px; max-height:260px; overflow-y:auto; padding-right:2px;">
+          {% for p in proyectos_disputables %}
+            <a href="{% url 'disputas:abrir_disputa' p.id %}"
+               data-abrir-formulario-disputa
+               data-url="{% url 'disputas:abrir_disputa' p.id %}"
+               onclick="if (document.getElementById('modalReportarDisputa') && typeof window.abrirModalDisputa === 'function') { cerrarModalDisputa(); window.abrirModalDisputa(event, this.getAttribute('data-url'), '{{ p.titulo|escapejs }}'); return false; }"
+               class="disp-proyecto-item-corp disp-proyecto-item"
+               style="background:rgba(255, 255, 255, 0.02); border:1px solid rgba(255, 255, 255, 0.08); border-radius:8px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:14px; text-decoration:none; transition:all 0.15s ease;">
+              <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                <div style="width:36px; height:36px; border-radius:8px; background:#14171f; border:1px solid rgba(255, 255, 255, 0.08); display:flex; align-items:center; justify-content:center; color:#94a3b8; flex-shrink:0;">
+                  <i data-lucide="folder-kanban" style="width:16px; height:16px;"></i>
+                </div>
+                <div style="min-width:0; flex:1;">
+                  <strong style="display:block; font-size:14.5px; font-weight:700; color:#ffffff; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ p.titulo }}</strong>
+                  <div style="font-size:12px; color:#94a3b8; display:flex; align-items:center; gap:6px; margin-top:3px;">
+                    <i data-lucide="building" style="width:12px; height:12px; color:#64748b;"></i>
+                    <span>{% if request.user.rol == 'empresa' %}{{ p.get_estado_display }}{% else %}{% trans "Empresa:" %} <strong style="color:#ffffff;">{{ p.empresa.nombre|default:p.empresa.username }}</strong>{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="btn-cockpit" style="font-size:12px; padding:7px 14px; border-radius:8px; color:#ffffff; background:rgba(255, 255, 255, 0.04); border:1px solid rgba(255, 255, 255, 0.12); flex-shrink:0; display:inline-flex; align-items:center; gap:6px;">
+                <span>{% trans "Seleccionar" %}</span>
+                <i data-lucide="arrow-right" style="width:13px; height:13px;"></i>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="cockpit-empty-state empty-state" style="padding:28px 20px; border-radius:8px;">
+          <i data-lucide="folder-open" style="width:36px; height:36px; opacity:0.4; margin-bottom:10px;"></i>
+          <p style="font-weight:600; font-size:14px; margin-bottom:4px;">{% trans "No tienes proyectos elegibles" %}</p>
+          <p style="font-size:12.5px; color:#94a3b8; margin:0; line-height:1.5;">{% blocktrans %}Solo se puede disputar un proyecto <em>en desarrollo</em> o <em>en revisión</em> con contratación activa.{% endblocktrans %}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="jdm-footer" style="padding:16px 26px; border-top:1px solid rgba(255, 255, 255, 0.08); background:#0d0d0d; display:flex; justify-content:flex-end;">
+      <button type="button" class="jdm-btn jdm-btn-secondary" onclick="cerrarModalDisputa()">{% trans "Cerrar" %}</button>
     </div>
   </div>
 </div>

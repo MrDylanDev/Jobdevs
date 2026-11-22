@@ -6,7 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobDevs | Explorar Proyectos</title>
   <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
-    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <script>
+    (function () {
+      try {
+        var rol = '{{ request.user.rol }}';
+        if (rol === 'desarrollador') {
+          window.location.replace("{% url 'dashboard_desarrollador' %}?seccion=explorar");
+        } else if (rol === 'empresa') {
+          window.location.replace("{% url 'dashboard_empresa' %}");
+        } else if (rol === 'administrador') {
+          window.location.replace("{% url 'dashboard_admin' %}");
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/listar.css' %}">
 </head>
 <body data-user-rol="{{ request.user.rol }}">
@@ -108,13 +122,22 @@
       <div class="cards-grid">
           {% for proyecto in proyectos %}
             <div class="project-card">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <span class="tag-solucion">{{ proyecto.tipo_solucion }}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                      <span class="tag-solucion" style="background: transparent; border: none; padding: 0; font-family: var(--font-mono, monospace); font-size: 11px; text-transform: uppercase; color: var(--accent, #00e676); font-weight: 600; letter-spacing: 0.06em;">{{ proyecto.tipo_solucion }}</span>
+                      {% if proyecto.ubicacion_display %}
+                        <span style="color: #52525b; font-size: 12px; margin: 0 2px; user-select: none;">·</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono, monospace); font-size: 11px; color: #94a3b8;" title="{{ proyecto.ubicacion_display }}">
+                          <i data-lucide="{% if proyecto.modalidad == 'remoto' %}wifi{% elif proyecto.modalidad == 'presencial' %}map-pin{% else %}split{% endif %}" style="width:12px; height:12px;"></i>
+                          {{ proyecto.ubicacion_display }}
+                        </span>
+                      {% endif %}
+                    </div>
                     {% if request.user.rol == 'desarrollador' %}
                     <form method="post" action="{% url 'toggle_favorito' proyecto.id %}" style="display:inline; margin:0; padding:0;">
                         {% csrf_token %}
-                        <button type="submit" aria-label="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" title="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" style="background:none; border:none; padding:0; cursor:pointer; font-size:18px; line-height:1; transition:transform 0.2s;">
-                            {% if proyecto.id in favoritos_ids %}<i style="color:var(--danger)" data-lucide="heart"></i>{% else %}<i style="color:var(--text-muted)" data-lucide="heart"></i>{% endif %}
+                        <button type="submit" aria-label="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" title="{% if proyecto.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}" class="fav-toggle-btn {% if proyecto.id in favoritos_ids %}is-favorito{% endif %}">
+                            {% if proyecto.id in favoritos_ids %}<i style="color:var(--danger, #ef4444); fill:var(--danger, #ef4444);" data-lucide="heart"></i>{% else %}<i style="color:var(--text-muted); fill:none;" data-lucide="heart"></i>{% endif %}
                         </button>
                     </form>
                     {% endif %}
@@ -122,17 +145,15 @@
                 
                 <h3 class="project-card-title">{{ proyecto.titulo }}</h3>
                 
-                <div style="margin: 8px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
-                    <span class="badge badge-{% if proyecto.prioridad == 'alta' %}danger{% elif proyecto.prioridad == 'media' %}warning{% else %}info{% endif %}">{{ proyecto.prioridad }}</span>
-                    <span class="badge badge-{% if proyecto.modalidad == 'remoto' %}success{% elif proyecto.modalidad == 'presencial' %}info{% else %}warning{% endif %}" title="{{ proyecto.ubicacion_display }}" style="display:inline-flex; align-items:center; gap:4px;">
-                      <i data-lucide="{% if proyecto.modalidad == 'remoto' %}globe{% elif proyecto.modalidad == 'presencial' %}map-pin{% else %}laptop{% endif %}"></i>
-                      {{ proyecto.ubicacion_display }}
+                <div style="margin: 8px 0 12px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; font-family: var(--font-mono, monospace); font-size: 11px; color: #94a3b8;">
+                    <span style="font-weight: {% if proyecto.prioridad == 'alta' %}600{% else %}500{% endif %}; color: {% if proyecto.prioridad == 'alta' %}#f87171{% else %}#94a3b8{% endif %};">Prioridad {{ proyecto.prioridad }}</span>
+                    <span style="color: #52525b; font-size: 12px; margin: 0 4px; user-select: none;">·</span>
+                    <span style="display:inline-flex; align-items:center; gap:4px; color: #94a3b8;">
+                        <i style="width:12px; height:12px; color:#64748b;" data-lucide="users"></i>{{ proyecto.num_postulaciones }} postulantes
                     </span>
-                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i style="margin-right:4px;" data-lucide="users"></i>{{ proyecto.num_postulaciones }} postulantes
-                    </span>
-                    <span style="font-size: 12px; color: var(--text-muted); margin-left: 4px;">
-                        <i style="margin-right:4px;" data-lucide="door-open"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
+                    <span style="color: #52525b; font-size: 12px; margin: 0 4px; user-select: none;">·</span>
+                    <span style="display:inline-flex; align-items:center; gap:4px; color: #94a3b8;">
+                        <i style="width:12px; height:12px; color:#64748b;" data-lucide="door-open"></i>{{ proyecto.vacantes_disponibles }} de {{ proyecto.vacantes }} cupos libres
                     </span>
                 </div>
                 
@@ -219,7 +240,7 @@
   </div>
 </div>
 
-<script src="{% static 'dashboard/script/favoritos_async.js' %}"></script>
+<script src="{% static 'dashboard/script/favoritos_async.js' %}?v=20261121_v5"></script>
 <script src="{% static 'dashboard/script/catalogo_async.js' %}"></script>
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script>

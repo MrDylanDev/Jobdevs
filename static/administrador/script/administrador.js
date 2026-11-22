@@ -35,6 +35,71 @@ function showSection(id, btn) {
       rol: document.getElementById('create-rol').value
     };
 
+  function adminNotify(msg, isError) {
+    if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+      window.JobDevsSSE.mostrarToast({ tipo: isError !== false ? 'alerta' : 'info', mensaje: msg });
+      return;
+    }
+    if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
+      window.JobDevsToast.mostrar({ tipo: isError !== false ? 'error' : 'success', mensaje: msg });
+      return;
+    }
+    if (typeof window.jdToast === 'function') {
+      window.jdToast(msg, isError !== false);
+      return;
+    }
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#0a0a0a;color:#fff;border:1px solid rgba(255,255,255,0.15);border-left:3px solid ' + (isError !== false ? '#ef4444' : '#00e676') + ';padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.5);transition:opacity 0.3s;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 4000);
+  }
+  window.adminNotify = adminNotify;
+
+  function adminConfirm(opts) {
+    return new Promise((resolve) => {
+      if (typeof window.JdConfirm === 'function') {
+        window.JdConfirm(opts).then(resolve);
+        return;
+      }
+      let modal = document.getElementById('adminGenericConfirmModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'adminGenericConfirmModal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML =
+          '<div class="modal-box" style="max-width:440px;">' +
+            '<h3 id="admConfTitle" style="margin-bottom:10px; font-size:18px;">Confirmar acción</h3>' +
+            '<p id="admConfMsg" style="font-size:13.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:18px;"></p>' +
+            '<div style="display:flex; gap:10px; justify-content:flex-end;">' +
+              '<button type="button" class="btn btn-secondary" id="admConfCancel">Cancelar</button>' +
+              '<button type="button" class="btn btn-danger" id="admConfOk">Confirmar</button>' +
+            '</div>' +
+          '</div>';
+        document.body.appendChild(modal);
+      }
+      document.getElementById('admConfTitle').textContent = opts.titulo || 'Confirmar acción';
+      document.getElementById('admConfMsg').textContent = opts.mensaje || '¿Deseas continuar?';
+      const btnOk = document.getElementById('admConfOk');
+      const btnCancel = document.getElementById('admConfCancel');
+      btnOk.textContent = opts.textoConfirmar || 'Confirmar';
+      btnOk.className = 'btn ' + (opts.peligro === false ? 'btn-primary' : 'btn-danger');
+      modal.classList.add('open');
+
+      function cleanup(res) {
+        modal.classList.remove('open');
+        btnOk.onclick = null;
+        btnCancel.onclick = null;
+        modal.onclick = null;
+        resolve(res);
+      }
+      btnOk.onclick = () => cleanup(true);
+      btnCancel.onclick = () => cleanup(false);
+      modal.onclick = (e) => { if (e.target === modal) cleanup(false); };
+    });
+  }
+  window.adminConfirm = adminConfirm;
+
     try {
       const response = await fetch('/api/crear/', {
         method: 'POST',
@@ -43,8 +108,8 @@ function showSection(id, btn) {
       });
       const result = await response.json();
       if (response.ok) { window.location.href = '?section=usersSection'; }
-      else { alert(result.error); }
-    } catch (e) { alert("Error de red."); }
+      else { adminNotify(result.error || 'Error al crear usuario.'); }
+    } catch (e) { adminNotify("Error de red."); }
   });
 
   async function openEditUserModal(id) {
@@ -57,8 +122,8 @@ function showSection(id, btn) {
         document.getElementById('edit-nombre').value = user.nombre || '';
         document.getElementById('edit-rol').value = user.rol;
         document.getElementById('editUserModal').classList.add('open');
-      } else { alert(user.error || "No se pudo cargar el usuario."); }
-    } catch (e) { alert("Error de conexión."); }
+      } else { adminNotify(user.error || "No se pudo cargar el usuario."); }
+    } catch (e) { adminNotify("Error de conexión."); }
   }
 
   document.getElementById('editUserForm').addEventListener('submit', async function(e) {
@@ -77,20 +142,26 @@ function showSection(id, btn) {
         body: JSON.stringify(data)
       });
       if (response.ok) { window.location.href = '?section=usersSection'; }
-      else { const result = await response.json(); alert(result.error); }
-    } catch (e) { alert("Error de red."); }
+      else { const result = await response.json(); adminNotify(result.error || 'Error al actualizar.'); }
+    } catch (e) { adminNotify("Error de red."); }
   });
 
   async function deleteUser(id, username) {
-    if (confirm(`¿Estás SEGURO de que deseas eliminar permanentemente al usuario ${username}? Esta acción no se puede deshacer.`)) {
+    const ok = await adminConfirm({
+      titulo: 'Eliminar usuario permanentemente',
+      mensaje: `¿Estás SEGURO de que deseas eliminar permanentemente al usuario ${username}? Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Eliminar usuario',
+      peligro: true
+    });
+    if (ok) {
       try {
         const response = await fetch(`/api/${id}/eliminar/`, {
           method: 'DELETE',
           headers: { 'X-CSRFToken': getCSRFToken() }
         });
         if (response.ok) { window.location.href = '?section=usersSection'; }
-        else { const result = await response.json(); alert(result.error); }
-      } catch (e) { alert("Error de red."); }
+        else { const result = await response.json(); adminNotify(result.error || 'No se pudo eliminar.'); }
+      } catch (e) { adminNotify("Error de red."); }
     }
   }
 
@@ -267,7 +338,13 @@ async function bulkToggleUsers(action) {
   const ids = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
   if (!ids.length) return;
   const verb = action === 'activate' ? 'activar' : 'suspender';
-  if (!confirm(`¿${verb.charAt(0).toUpperCase() + verb.slice(1)} ${ids.length} usuario(s)?`)) return;
+  const ok = await window.adminConfirm({
+    titulo: `${verb.charAt(0).toUpperCase() + verb.slice(1)} usuarios`,
+    mensaje: `¿Confirmas que deseas ${verb} ${ids.length} usuario(s) seleccionado(s)?`,
+    textoConfirmar: `${verb.charAt(0).toUpperCase() + verb.slice(1)} (${ids.length})`,
+    peligro: action !== 'activate'
+  });
+  if (!ok) return;
 
   try {
     const response = await fetch('/api/bulk-toggle/', {
@@ -276,8 +353,8 @@ async function bulkToggleUsers(action) {
       body: JSON.stringify({ ids: ids, action: action })
     });
     if (response.ok) { window.location.reload(); }
-    else { const r = await response.json(); alert(r.error || 'Error'); }
-  } catch (e) { alert('Error de red'); }
+    else { const r = await response.json(); window.adminNotify(r.error || 'Error'); }
+  } catch (e) { window.adminNotify('Error de red'); }
 }
 
 // ═══════════════════════════════════════════════

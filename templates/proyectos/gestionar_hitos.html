@@ -215,7 +215,7 @@
                 </div>
               </div>
               {% if hito.estado == 'pendiente' %}
-                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de eliminar este hito?');">
+                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" data-confirm-title="Eliminar hito" data-confirm="¿Estás seguro de eliminar este hito?">
                   {% csrf_token %}
                   <button type="submit" class="btn-corp-action danger-subtle" title="Eliminar hito" style="padding:6px 10px;">
                     <i data-lucide="trash-2"></i>

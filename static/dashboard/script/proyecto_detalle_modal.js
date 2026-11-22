@@ -1,7 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    Modal compartido "Ver proyecto" — admin, empresa y desarrollador.
-   Intercepta enlaces [data-ver-proyecto], consulta la ficha JSON y la
-   pinta sin abandonar el dashboard. Sin dependencias externas.
+   Consulta la ficha JSON y la pinta con diseño Cockpit de alta fidelidad.
    ───────────────────────────────────────────────────────────── */
 (function () {
   'use strict';
@@ -19,13 +18,15 @@
       .replace(/'/g, '&#39;');
   }
 
-  function safeIcon(name) {
-    return /^[a-z0-9- ]+$/i.test(name || '') ? name : 'info';
-  }
-
   function estadoClass(estado) {
     var permitidos = ['publicado', 'en_desarrollo', 'en_revision', 'finalizado', 'rechazado', 'inactivo', 'en_disputa', 'pendiente', 'completado', 'cancelada'];
     return permitidos.indexOf(estado) !== -1 ? 'is-' + estado : '';
+  }
+
+  function refrescarIconos() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
 
   function ensureModal() {
@@ -40,14 +41,14 @@
       '<div class="jdp-card" role="dialog" aria-modal="true" aria-labelledby="jdpTitulo">' +
         '<header class="jdp-header">' +
           '<div style="min-width:0;">' +
-            '<div class="jdp-kicker">// Ficha del proyecto</div>' +
+            '<div class="jdp-kicker">Ficha Técnica de Convocatoria</div>' +
             '<h2 class="jdp-title" id="jdpTitulo">Cargando proyecto…</h2>' +
             '<div class="jdp-sub" data-jdp-sub></div>' +
           '</div>' +
           '<button type="button" class="jdp-close" data-jdp-close aria-label="Cerrar">&times;</button>' +
         '</header>' +
         '<div class="jdp-body" data-jdp-body aria-live="polite">' +
-          '<div class="jdp-loading"><i class="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>' +
+          '<div class="jdp-loading"><i data-lucide="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>' +
         '</div>' +
         '<footer class="jdp-footer" data-jdp-footer hidden></footer>' +
       '</div>';
@@ -98,11 +99,13 @@
     var titulo = modal.querySelector('#jdpTitulo');
     var sub = modal.querySelector('[data-jdp-sub]');
     body.scrollTop = 0;
-    body.innerHTML = '<div class="jdp-loading"><i class="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>';
+    body.innerHTML = '<div class="jdp-loading"><i data-lucide="loader-2"></i><span>Consultando la ficha del proyecto…</span></div>';
     footer.hidden = true;
     footer.innerHTML = '';
     titulo.textContent = 'Cargando proyecto…';
     sub.textContent = '';
+    refrescarIconos();
+
     setTimeout(function () {
       var close = modal.querySelector('.jdp-close');
       if (close) close.focus({ preventScroll: true });
@@ -145,11 +148,12 @@
     modal.querySelector('[data-jdp-sub]').textContent = '';
     var body = modal.querySelector('[data-jdp-body]');
     body.innerHTML =
-      '<div class="jdp-error"><i data-lucide="triangle-exclamation"></i>' +
+      '<div class="jdp-error"><i data-lucide="alert-triangle"></i>' +
       '<p>' + escapeHtml(mensaje) + '</p>' +
       '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button></div>';
     var footer = modal.querySelector('[data-jdp-footer]');
     footer.hidden = true;
+    refrescarIconos();
   }
 
   function render(data) {
@@ -158,92 +162,159 @@
     var sub = modal.querySelector('[data-jdp-sub]');
     modal.querySelector('#jdpTitulo').textContent = p.titulo || 'Proyecto';
 
-    sub.innerHTML =
-      '<span><i class="building" style="color:#00e676;margin-right:5px;"></i>' + escapeHtml(empresa.nombre || '') + '</span>' +
-      (empresa.verificada
-        ? '<span class="jdp-verified"><i class="check-circle"></i>' + escapeHtml(empresa.badge || 'Verificada') + '</span>'
-        : '') +
-      (Number(empresa.calificacion) > 0
-        ? '<span><i class="star" style="color:#ffc107;margin-right:4px;"></i>' + Number(empresa.calificacion).toFixed(1) + '</span>'
-        : '');
+    // 1. Subtítulo con Empresa, Verificación, Calificación y Modalidad
+    var subHtml = '<div class="jdp-company-row">';
+    subHtml += '<span class="jdp-company-name"><i data-lucide="building"></i> ' + escapeHtml(empresa.nombre || '') + '</span>';
+    if (empresa.verificada) {
+      subHtml += '<span class="jdp-verified"><i data-lucide="badge-check"></i> ' + escapeHtml(empresa.badge || 'Verificada') + '</span>';
+    }
+    if (Number(empresa.calificacion) > 0) {
+      subHtml += '<span class="jdp-rating"><i data-lucide="star"></i> ' + Number(empresa.calificacion).toFixed(1) + '</span>';
+    }
+    if (p.modalidad) {
+      var modIcon = p.modalidad === 'remoto' ? 'wifi' : (p.modalidad === 'hibrido' ? 'split' : 'map-pin');
+      var ubicacionTexto = p.ubicacion_display || (escapeHtml(p.modalidad_label || p.modalidad) + (p.ciudad && p.modalidad !== 'remoto' ? ' · ' + escapeHtml(p.ciudad) : ''));
+      subHtml += '<span class="jdp-modality"><i data-lucide="' + modIcon + '"></i> ' + ubicacionTexto + '</span>';
+    }
+    subHtml += '</div>';
+    sub.innerHTML = subHtml;
 
     var html = '';
+
+    // 2. Fila de Badges de Estado
     html += '<div class="jdp-status-row">';
-    html += '<span class="jdp-badge ' + estadoClass(p.estado) + '">' + escapeHtml(p.estado_label || '') + '</span>';
-    html += '<span class="jdp-badge">' + escapeHtml(p.tipo || 'Proyecto') + '</span>';
-    html += '<span class="jdp-badge ' + (p.prioridad === 'alta' ? 'is-en_disputa' : (p.prioridad === 'media' ? 'is-pendiente' : '')) + '">Prioridad ' + escapeHtml(p.prioridad_label || p.prioridad || '') + '</span>';
-    if (p.acepta_postulaciones) {
-      html += '<span class="jdp-badge is-publicado"><i class="door-open"></i> Recibe postulaciones</span>';
+    html += '<span class="jdp-badge ' + estadoClass(p.estado) + '"><i data-lucide="check-circle-2"></i> ' + escapeHtml(p.estado_label || '') + '</span>';
+    if (p.tipo) {
+      html += '<span class="jdp-badge"><i data-lucide="layers"></i> ' + escapeHtml(p.tipo) + '</span>';
+    }
+    if (p.prioridad) {
+      var prioClass = p.prioridad === 'alta' ? 'is-alta' : (p.prioridad === 'media' ? 'is-media' : 'is-baja');
+      html += '<span class="jdp-badge ' + prioClass + '"><i data-lucide="alert-circle"></i> Prioridad ' + escapeHtml(p.prioridad_label || p.prioridad) + '</span>';
+    }
+    if (p.acepta_postulaciones && (p.vacantes_disponibles > 0 || p.vacantes_disponibles == null)) {
+      html += '<span class="jdp-badge is-open"><i data-lucide="door-open"></i> Convocatoria abierta</span>';
     }
     html += '</div>';
 
-    html += '<p class="jdp-desc">' + escapeHtml(p.descripcion || 'Sin descripción registrada.') + '</p>';
-
-    html += '<div class="jdp-meta">';
-    html += metaItem('Tipo de solución', p.tipo);
-    html += metaItem('Categoría', p.categoria || 'Sin categoría');
-    html += metaItem('Vacantes', (p.vacantes_disponibles != null ? p.vacantes_disponibles : 0) + ' de ' + (p.vacantes || 0) + ' libres');
-    html += metaItem('Cierre', p.fecha_limite || 'Sin límite');
-    html += metaItem('Publicado', p.fecha_publicacion || '—');
-    html += metaItem('Equipo', (p.num_desarrolladores || 0) + ' desarrollador' + ((p.num_desarrolladores || 0) === 1 ? '' : 'es'));
+    // 3. Grid de Especificaciones Clave (Sin redundancias)
+    html += '<div class="jdp-meta-grid">';
+    html += '<div class="jdp-meta-card">' +
+              '<span class="jdp-meta-label"><i data-lucide="users"></i> Vacantes</span>' +
+              '<span class="jdp-meta-value">' + (p.vacantes_disponibles != null ? p.vacantes_disponibles : 0) + ' de ' + (p.vacantes || 0) + ' libres</span>' +
+            '</div>';
+    html += '<div class="jdp-meta-card">' +
+              '<span class="jdp-meta-label"><i data-lucide="calendar"></i> Cierre</span>' +
+              '<span class="jdp-meta-value">' + escapeHtml(p.fecha_limite || 'Sin límite') + '</span>' +
+            '</div>';
+    html += '<div class="jdp-meta-card">' +
+              '<span class="jdp-meta-label"><i data-lucide="clock"></i> Publicado</span>' +
+              '<span class="jdp-meta-value">' + escapeHtml(p.fecha_publicacion || '—') + '</span>' +
+            '</div>';
+    html += '<div class="jdp-meta-card">' +
+              '<span class="jdp-meta-label"><i data-lucide="map-pin"></i> Modalidad</span>' +
+              '<span class="jdp-meta-value">' + escapeHtml(p.ubicacion_display || p.modalidad_label || 'Remoto') + '</span>' +
+            '</div>';
     html += '</div>';
 
-    var total = p.hitos_totales || 0;
-    var hechos = p.hitos_completados || 0;
-    html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="bars-progress"></i>Progreso de hitos</span><span class="jdp-section-count">' + hechos + '/' + total + '</span></div>';
-    html += '<div class="jdp-progress-bar"><div class="jdp-progress-fill" style="width:' + Math.max(0, Math.min(100, Number(p.progreso) || 0)) + '%"></div></div>';
-    html += '</section>';
+    // 4. Descripción del Proyecto
+    html += '<div class="jdp-desc-card">';
+    html += '<h4 class="jdp-section-header"><i data-lucide="file-text"></i> Descripción de la Convocatoria</h4>';
+    html += '<div class="jdp-desc-text">' + escapeHtml(p.descripcion || 'Sin descripción detallada registrada.') + '</div>';
+    html += '</div>';
 
-    html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="list-checks"></i>Hitos del proyecto</span><span class="jdp-section-count">' + total + '</span></div>';
-    if (p.hitos && p.hitos.length) {
+    // 5. Hitos del Proyecto (Solo si la empresa definió hitos)
+    var totalHitos = p.hitos_totales || 0;
+    var hechosHitos = p.hitos_completados || 0;
+    if (totalHitos > 0 && p.hitos && p.hitos.length) {
+      html += '<section class="jdp-section">';
+      html += '<div class="jdp-section-title">' +
+                '<span><i data-lucide="list-checks"></i> Plan de Hitos del Proyecto</span>' +
+                '<span class="jdp-section-count">' + hechosHitos + '/' + totalHitos + ' completados (' + (Number(p.progreso) || 0) + '%)</span>' +
+              '</div>';
+      html += '<div class="jdp-progress-bar"><div class="jdp-progress-fill" style="width:' + Math.max(0, Math.min(100, Number(p.progreso) || 0)) + '%"></div></div>';
       html += '<ul class="jdp-list">';
-      p.hitos.forEach(function (h) {
+      p.hitos.forEach(function (h, idx) {
+        var isDone = h.estado === 'completado';
+        var isRev = h.estado === 'en_revision';
+        var iconName = isDone ? 'check-circle-2' : (isRev ? 'clock' : 'circle');
         html += '<li class="jdp-list-item ' + estadoClass(h.estado) + '">' +
-          '<i data-lucide="' + (h.estado === 'completado' ? 'check-circle' : (h.estado === 'en_revision' ? 'clock' : 'circle')) + '"></i>' +
-          '<div class="jdp-list-main"><span class="jdp-list-title">' + escapeHtml(h.titulo) + '</span>' +
-          (h.descripcion ? '<span class="jdp-list-sub">' + escapeHtml(h.descripcion) + '</span>' : '') +
-          '</div><span class="jdp-list-state">' + escapeHtml(h.estado_label || '') + '</span></li>';
+                  '<i data-lucide="' + iconName + '" class="jdp-list-icon"></i>' +
+                  '<div class="jdp-list-main">' +
+                    '<span class="jdp-list-title">' + (idx + 1) + '. ' + escapeHtml(h.titulo) + '</span>' +
+                    (h.descripcion ? '<span class="jdp-list-sub">' + escapeHtml(h.descripcion) + '</span>' : '') +
+                  '</div>' +
+                  '<span class="jdp-list-state">' + escapeHtml(h.estado_label || '') + '</span>' +
+                '</li>';
       });
       html += '</ul>';
-    } else {
-      html += '<div class="jdp-empty">La empresa aún no ha definido hitos para este proyecto.</div>';
+      html += '</section>';
     }
-    html += '</section>';
 
-    html += '<section class="jdp-section">';
-    html += '<div class="jdp-section-title"><span><i class="users"></i>Equipo vinculado</span><span class="jdp-section-count">' + (p.num_desarrolladores || 0) + '</span></div>';
-    if (p.contrataciones && p.contrataciones.length) {
+    // 6. Desarrolladores Contratados (Solo si hay contratados)
+    if (p.contrataciones && p.contrataciones.length > 0) {
+      html += '<section class="jdp-section">';
+      html += '<div class="jdp-section-title">' +
+                '<span><i data-lucide="users"></i> Desarrolladores Asignados</span>' +
+                '<span class="jdp-section-count">' + p.contrataciones.length + '</span>' +
+              '</div>';
       html += '<div class="jdp-team">';
       p.contrataciones.forEach(function (c) {
-        html += '<span class="jdp-chip"><i data-lucide="user-gear"></i>' + escapeHtml(c.desarrollador || c.username || '') +
-          ' <span class="jdp-list-state">' + escapeHtml(c.estado_label || '') + '</span></span>';
+        html += '<span class="jdp-chip"><i data-lucide="code-2"></i> ' + escapeHtml(c.desarrollador || c.username || '') +
+                ' <span class="jdp-list-state">' + escapeHtml(c.estado_label || '') + '</span></span>';
       });
       html += '</div>';
-    } else {
-      html += '<div class="jdp-empty">Todavía no hay desarrolladores contratados.</div>';
+      html += '</section>';
     }
-    html += '</section>';
 
     modal.querySelector('[data-jdp-body]').innerHTML = html;
 
+    // 7. Footer de Acciones
     var footer = modal.querySelector('[data-jdp-footer]');
     var acciones = data.acciones || [];
     var footerHtml = '';
     acciones.forEach(function (a) {
       var clase = a.estilo === 'primary' ? 'jdp-btn is-primary' : 'jdp-btn';
-      footerHtml += '<a class="' + clase + '" href="' + escapeHtml(a.url || '#') + '">' +
-        '<i data-lucide="' + safeIcon(a.icono) + '"></i>' + escapeHtml(a.label || 'Abrir') + '</a>';
+      var esPostularse = a.label === 'Postularme';
+      var iconName = esPostularse ? 'rocket' : (a.icono || 'arrow-right');
+
+      if (esPostularse && typeof window.abrirModalPostulacion === 'function') {
+        footerHtml += '<button type="button" class="' + clase + '" data-jdp-postular-inline>' +
+          '<i data-lucide="' + iconName + '"></i> ' + escapeHtml(a.label) + '</button>';
+      } else {
+        footerHtml += '<a class="' + clase + '" href="' + escapeHtml(a.url || '#') + '">' +
+          '<i data-lucide="' + iconName + '"></i> ' + escapeHtml(a.label || 'Abrir') + '</a>';
+      }
     });
-    footerHtml += '<button type="button" class="jdp-btn" data-jdp-close>Cerrar</button>';
+    footerHtml += '<button type="button" class="jdp-btn" data-jdp-close><i data-lucide="x"></i> Cerrar</button>';
     footer.innerHTML = footerHtml;
     footer.hidden = false;
+
+    // Conectar botón inline de postulación si existe
+    var postularBtn = footer.querySelector('[data-jdp-postular-inline]');
+    if (postularBtn) {
+      postularBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        cerrar();
+        if (typeof window.abrirModalPostulacion === 'function') {
+          window.abrirModalPostulacion({
+            url: aPostulacionUrl(p.id),
+            titulo: p.titulo,
+            empresa: empresa.nombre || '',
+            tipo: p.tipo || '',
+            prioridad: (p.prioridad || '').toUpperCase(),
+            vacantes: p.vacantes_disponibles,
+            cierre: p.fecha_limite || '',
+            descripcion: p.descripcion || ''
+          });
+        }
+      });
+    }
+
+    refrescarIconos();
   }
 
-  function metaItem(label, value) {
-    return '<div class="jdp-meta-item"><span class="jdp-meta-label">' + escapeHtml(label) + '</span>' +
-      '<span class="jdp-meta-value">' + escapeHtml(value == null || value === '' ? '—' : value) + '</span></div>';
+  function aPostulacionUrl(proyectoId) {
+    return '/postulaciones/postularse/' + proyectoId + '/';
   }
 
   function cerrar() {
