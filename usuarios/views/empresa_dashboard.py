@@ -834,6 +834,13 @@ def detalle_empresa(request, empresa_id):
             }
             for r in resenas[:5]
         ]
+        logo_url = None
+        if perfil.logo:
+            try:
+                logo_url = perfil.logo.url
+            except Exception:
+                logo_url = None
+
         return JsonResponse({
             'ok': True,
             'empresa': {
@@ -849,6 +856,7 @@ def detalle_empresa(request, empresa_id):
                 'total_resenas': total_resenas,
                 'proyectos_activos': proyectos_activos_count,
                 'proyectos_finalizados': proyectos_finalizados_count,
+                'logo_url': logo_url,
                 'resenas': resenas_data,
             }
         })

@@ -770,3 +770,77 @@ class TestGuardasHitosIndividuales:
             proyecto=proyecto, entregable=hito_equipo
         ).exists()
         assert 'No eres miembro del equipo' in response.content.decode('utf-8')
+
+
+class TestAvancesAjaxJsonErrors:
+    """Regresión: endpoints AJAX de avances deben devolver JSON y no redirects HTML."""
+
+    def test_ver_avances_ajax_sin_permiso_devuelve_json(
+        self, db, empresa_user, dev_client
+    ):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Ajeno',
+            descripcion='Desc',
+            estado='en_desarrollo',
+        )
+
+        response = dev_client.get(
+            reverse('ver_avances', args=[proyecto.id]),
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+
+        assert response.status_code == 403
+        data = response.json()
+        assert data['ok'] is False
+        assert data.get('error')
+
+    def test_ver_avances_ajax_proyecto_inexistente_devuelve_json(
+        self, db, dev_client
+    ):
+        response = dev_client.get(
+            reverse('ver_avances', args=[999999]),
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+
+        assert response.status_code == 404
+        data = response.json()
+        assert data['ok'] is False
+        assert data.get('error')
+
+    def test_registrar_avance_ajax_sin_hitos_pendientes_devuelve_json(
+        self, db, empresa_user, desarrollador_user, dev_client
+    ):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Sin Hitos Pendientes',
+            descripcion='Desc',
+            estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='activa',
+        )
+        Entregable.objects.create(
+            proyecto=proyecto,
+            titulo='Hito Completado',
+            descripcion='Done',
+            estado='completado',
+            desarrollador=desarrollador_user,
+        )
+
+        response = dev_client.get(
+            reverse('registrar_avance', args=[proyecto.id]),
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data['ok'] is False
+        assert data.get('error')
+

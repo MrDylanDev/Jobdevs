@@ -34,8 +34,8 @@ def _dashboard(dev_client, query=''):
 class TestPerfilIntegradoEnDashboard:
     def test_perfil_es_seccion_del_dashboard(self, dev_client):
         html = _dashboard(dev_client).content.decode()
-        assert 'id="perfil" class="seccion-v"' in html
-        assert "verSeccion('perfil'" in html
+        assert 'id="modalEditarPerfilDev"' in html
+        assert "abrirModalPerfilDev()" in html
         # El acceso ya no debe ser un enlace a la página independiente.
         assert f'href="{reverse("editar_perfil")}"' not in html
 
@@ -74,13 +74,46 @@ class TestPostPerfilDesdeDashboard:
             },
         )
         assert response.status_code == 302
-        assert response['Location'].endswith('?seccion=perfil')
+        assert response['Location'] == reverse('dashboard_desarrollador')
         perfil = PerfilDesarrollador.objects.get(usuario=dev)
         assert perfil.telefono == '3109998877'
         assert perfil.habilidades == 'Python, Django'
         assert LogAuditoria.objects.filter(
             usuario=dev, tabla_afectada='perfil_desarrollador'
         ).exists()
+
+    def test_perfil_guardado_ajax_responde_json_y_actualiza(self, dev_client, dev):
+        response = dev_client.post(
+            reverse('dashboard_desarrollador'),
+            {
+                'accion': 'perfil',
+                'telefono': '3201112233',
+                'habilidades': 'FastAPI, Docker',
+                'portafolio_url': 'https://github.com/dev-ajax',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data['ok'] is True
+        assert 'Perfil actualizado' in data['mensaje']
+        perfil = PerfilDesarrollador.objects.get(usuario=dev)
+        assert perfil.telefono == '3201112233'
+        assert perfil.habilidades == 'FastAPI, Docker'
+
+    def test_perfil_guardado_ajax_error_responde_400(self, dev_client, dev):
+        response = dev_client.post(
+            reverse('dashboard_desarrollador'),
+            {
+                'accion': 'perfil',
+                'portafolio_url': 'invalido-sin-http',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert data['ok'] is False
+        assert 'portafolio_url' in data['errores']
 
     def test_datos_invalidos_conservan_seccion_y_muestran_error(self, dev_client, dev):
         response = dev_client.post(

@@ -367,6 +367,30 @@ def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_
     assert contrato_url in content
     assert "Firmar Contrato" in content
 
+
+def test_dev_dashboard_muestra_esperando_contrato_si_no_hay_contrato_digital(dev_client, desarrollador_user, db):
+    """Muestra 'Esperando contrato' en la postulación cuando la empresa aún no ha emitido el contrato digital."""
+    from django.urls import reverse
+    from usuarios.models import Usuario
+    from proyectos.models import Proyecto
+    from postulaciones.models import Postulacion
+
+    empresa = Usuario.objects.create_user(
+        username="emp_sin_contrato", email="emp_sin_c@test.local", rol="empresa", estado="activo"
+    )
+    proyecto = Proyecto.objects.create(
+        empresa=empresa, titulo="Proyecto Esperando Contrato Test", estado="publicado"
+    )
+    Postulacion.objects.create(
+        proyecto=proyecto, desarrollador=desarrollador_user, estado="pendiente"
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    content = response.content.decode()
+
+    assert "Esperando contrato" in content
+
 def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarrollador_user, db):
     """SCRUM-204: El dashboard incluye la sección dedicada #contratos y el ítem de menú en sidebar."""
     from django.urls import reverse
@@ -447,6 +471,53 @@ def test_dev_dashboard_separa_postulaciones_vigentes_e_historial(dev_client, des
     assert 'mis_proyectos_activos_v' in response.context
     assert 'mis_proyectos_finalizados' in response.context
     assert post_rechazada.id in {p.id for p in response.context['mis_postulaciones']}
+
+
+def test_postulacion_de_proyecto_finalizado_no_aparece_en_vigentes(dev_client, desarrollador_user, empresa_user, db):
+    """Las postulaciones de proyectos que ya finalizaron no deben figurar como activas/vigentes."""
+    from django.urls import reverse
+    from postulaciones.models import Postulacion
+
+    proyecto_finalizado = _crear_proyecto(empresa_user, 'Proyecto Ya Concluido', estado='finalizado')
+    post = Postulacion.objects.create(
+        proyecto=proyecto_finalizado, desarrollador=desarrollador_user, estado='aceptada'
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+
+    vigentes_ids = {p.id for p in response.context['postulaciones_vigentes']}
+    historial_ids = {p.id for p in response.context['postulaciones_historial']}
+
+    assert post.id not in vigentes_ids
+    assert post.id not in historial_ids
+
+
+def test_dev_dashboard_detecta_y_alerta_calificacion_pendiente_empresa(dev_client, desarrollador_user, empresa_user, db):
+    """El dashboard del desarrollador detecta proyectos finalizados sin calificar a la empresa."""
+    from django.urls import reverse
+    from contrataciones.models import Contratacion
+    from proyectos.models import Valoracion
+
+    proyecto_fin = _crear_proyecto(empresa_user, 'Proyecto Pendiente Calificar Empresa', estado='finalizado')
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto_fin, desarrollador=desarrollador_user, empresa=empresa_user, estado='finalizada'
+    )
+
+    response = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response.status_code == 200
+    assert response.context['pendientes_calificar_empresa_count'] == 1
+    assert contratacion.id in {c.id for c in response.context['contrataciones_pendientes_calificar']}
+    assert 'abrirCalificacionObligatoria' in response.content.decode()
+    assert reverse('calificar_empresa', args=[proyecto_fin.id]) in response.content.decode()
+
+    # Tras calificar, ya no debe quedar pendiente
+    Valoracion.objects.create(
+        proyecto=proyecto_fin, empresa=empresa_user, desarrollador=desarrollador_user,
+        rol_evaluador='desarrollador', puntuacion=5, comentario='Excelente empresa para colaborar'
+    )
+    response_despues = dev_client.get(reverse('dashboard_desarrollador'))
+    assert response_despues.context['pendientes_calificar_empresa_count'] == 0
 
 
 def test_dev_dashboard_ui_muestra_bloques_vigente_e_historial_postulaciones(dev_client, desarrollador_user, empresa_user, db):
@@ -657,6 +728,39 @@ def test_dev_dashboard_incluye_seccion_explorar_integrada(client, desarrollador_
     assert 'data-abrir-postulacion' in content
     assert 'id="modalPostulacion"' in content
     assert 'data-postulacion-form' in content
+
+
+def test_dev_dashboard_explorar_paginacion_15_por_pagina(client, desarrollador_user, empresa_user, db):
+    """El catálogo de explorar pagina a 15 proyectos y expone controles numéricos."""
+    from proyectos.models import Proyecto
+
+    # Crear 17 proyectos disponibles
+    for i in range(1, 18):
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo=f'Proyecto Paginado {i}',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+            vacantes=2,
+        )
+
+    client.force_login(desarrollador_user)
+    response = client.get(reverse('dashboard_desarrollador'), {'seccion': 'explorar', 'page': 1})
+    assert response.status_code == 200
+    assert len(response.context['proyectos_explorar']) == 15
+    assert response.context['proyectos_explorar_page'].paginator.num_pages == 2
+    assert response.context['proyectos_explorar_total'] >= 17
+
+    content = response.content.decode()
+    assert 'dev-pagination-wrap' in content
+    assert 'Página 1 de 2' in content
+    assert '?seccion=explorar&amp;page=2#explorar' in content
+
+    # Página 2 contiene los restantes
+    response_p2 = client.get(reverse('dashboard_desarrollador'), {'seccion': 'explorar', 'page': 2})
+    assert len(response_p2.context['proyectos_explorar']) >= 2
+    assert response_p2.context['proyectos_explorar_page'].number == 2
 
 
 def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_client, empresa_user, desarrollador_user, db):
