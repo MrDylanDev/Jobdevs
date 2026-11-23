@@ -1,0 +1,1009 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="jobdevs-navigation-generator" agent="scripts/generate_navigation_map_drawio.py" version="24.0.0" type="device">
+  <diagram id="navigation-1" name="01 - Acceso público y entrada por rol">
+    <mxGraphModel dx="1800" dy="1650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-1" value="&lt;b&gt;JobDevs · Mapa de navegación&lt;/b&gt;&lt;br&gt;01 - Acceso público y entrada por rol" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="1520" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1" value="Rectángulo: pantalla o módulo · Hexágono: estado, guarda o transición de negocio · Flecha: navegación/avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1520" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-1" value="Visitante" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=16;fontStyle=1;strokeColor=#34465B;" vertex="1" parent="1">
+          <mxGeometry x="62" y="755" width="80" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-1" value="&lt;b&gt;JobDevs&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=18;fontSize=16;fontColor=#506176;fillColor=#FFFFFF;strokeColor=#718499;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="145" width="1550" height="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-1-0" value="DESCUBRIMIENTO" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="195" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-0" value="Inicio público" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-1-0" edge="1" parent="1" source="actor-1" target="node-1-0" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-1" value="Catálogo de proyectos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-1" edge="1" parent="1" source="node-1-0" target="node-1-1" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-2" value="Detalle de proyecto / empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-2" edge="1" parent="1" source="node-1-1" target="node-1-2" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-1-3" value="CUENTA" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="385" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-3" value="Inicio público" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-1-3" edge="1" parent="1" source="actor-1" target="node-1-3" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-4" value="Registro" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-4" edge="1" parent="1" source="node-1-3" target="node-1-4" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-5" value="Elegir empresa o desarrollador" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-5" edge="1" parent="1" source="node-1-4" target="node-1-5" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-6" value="Crear cuenta y perfil inicial" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-6" edge="1" parent="1" source="node-1-5" target="node-1-6" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-7" value="Dashboard del rol" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-7" edge="1" parent="1" source="node-1-6" target="node-1-7" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-8" value="Inicio de sesión" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-1-8" edge="1" parent="1" source="actor-1" target="node-1-8" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-9" value="Validar cuenta activa" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-9" edge="1" parent="1" source="node-1-8" target="node-1-9" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-10" value="Dashboard según rol" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-10" edge="1" parent="1" source="node-1-9" target="node-1-10" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-11" value="Recuperar contraseña" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="615" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-1-11" edge="1" parent="1" source="actor-1" target="node-1-11" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-12" value="Restablecer con token" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="615" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-12" edge="1" parent="1" source="node-1-11" target="node-1-12" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-1-13" value="Inicio de sesión" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="615" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-1-13" edge="1" parent="1" source="node-1-12" target="node-1-13" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="navigation-2" name="02 - Navegación de Empresa">
+    <mxGraphModel dx="1940" dy="1650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1940" pageHeight="1650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-2" value="&lt;b&gt;JobDevs · Mapa de navegación&lt;/b&gt;&lt;br&gt;02 - Navegación de Empresa" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="1660" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-2" value="Rectángulo: pantalla o módulo · Hexágono: estado, guarda o transición de negocio · Flecha: navegación/avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1660" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-2" value="Empresa" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=16;fontStyle=1;strokeColor=#34465B;" vertex="1" parent="1">
+          <mxGeometry x="62" y="755" width="80" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-2" value="&lt;b&gt;JobDevs&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=18;fontSize=16;fontColor=#506176;fillColor=#FFFFFF;strokeColor=#718499;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="145" width="1690" height="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2-0" value="PERFIL Y VERIFICACIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="195" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-0" value="Dashboard empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-0" edge="1" parent="1" source="actor-2" target="node-2-0" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-1" value="Perfil de empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-1" edge="1" parent="1" source="node-2-0" target="node-2-1" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-2" value="Solicitar verificación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-2" edge="1" parent="1" source="node-2-1" target="node-2-2" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-3" value="Volver al dashboard" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-3" edge="1" parent="1" source="node-2-2" target="node-2-3" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2-4" value="OFERTAS Y CANDIDATOS" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="385" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-4" value="Dashboard: Mis ofertas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-4" edge="1" parent="1" source="actor-2" target="node-2-4" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-5" value="Crear / editar proyecto" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-5" edge="1" parent="1" source="node-2-4" target="node-2-5" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-6" value="Publicar o reabrir postulaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-6" edge="1" parent="1" source="node-2-5" target="node-2-6" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-7" value="Postulaciones recibidas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-7" edge="1" parent="1" source="node-2-6" target="node-2-7" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-8" value="Comparar 2–4 candidatos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-8" edge="1" parent="1" source="node-2-7" target="node-2-8" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-9" value="Iniciar negociación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-9" edge="1" parent="1" source="node-2-8" target="node-2-9" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-10" value="Dashboard: Mis ofertas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-10" edge="1" parent="1" source="actor-2" target="node-2-10" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-11" value="Desactivar oferta" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-11" edge="1" parent="1" source="node-2-10" target="node-2-11" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-12" value="Historial" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-12" edge="1" parent="1" source="node-2-11" target="node-2-12" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2-13" value="CONTRATO Y EJECUCIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="720" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-13" value="Negociación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-13" edge="1" parent="1" source="actor-2" target="node-2-13" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-14" value="Contrato digital" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-14" edge="1" parent="1" source="node-2-13" target="node-2-14" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-15" value="Firma de empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-15" edge="1" parent="1" source="node-2-14" target="node-2-15" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-16" value="Esperar / verificar firma del desarrollador" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-16" edge="1" parent="1" source="node-2-15" target="node-2-16" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-17" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-17" edge="1" parent="1" source="node-2-16" target="node-2-17" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-18" value="Dashboard: En desarrollo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-18" edge="1" parent="1" source="actor-2" target="node-2-18" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-19" value="Hitos y equipos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-19" edge="1" parent="1" source="node-2-18" target="node-2-19" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-20" value="Avances pendientes" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-20" edge="1" parent="1" source="node-2-19" target="node-2-20" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-21" value="Aprobar o rechazar avance" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-21" edge="1" parent="1" source="node-2-20" target="node-2-21" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-22" value="Finalización y valoración" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-22" edge="1" parent="1" source="node-2-21" target="node-2-22" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-23" value="Proyecto sucesor si continúa el trabajo" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-23" edge="1" parent="1" source="node-2-22" target="node-2-23" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-2-24" value="SOPORTE Y EXCEPCIONES" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1055" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-24" value="Centro de chat / mensajes" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E4F3EB;strokeColor=#639D7B;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-24" edge="1" parent="1" source="actor-2" target="node-2-24" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-25" value="Chat directo o grupal" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-25" edge="1" parent="1" source="node-2-24" target="node-2-25" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-26" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-26" edge="1" parent="1" source="node-2-25" target="node-2-26" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-27" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-2-27" edge="1" parent="1" source="actor-2" target="node-2-27" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-28" value="Proponer o responder cancelación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-28" edge="1" parent="1" source="node-2-27" target="node-2-28" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-29" value="Confirmación bilateral o mediación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-29" edge="1" parent="1" source="node-2-28" target="node-2-29" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-2-30" value="Disputa y evidencia privada" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-2-30" edge="1" parent="1" source="node-2-29" target="node-2-30" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="navigation-3" name="03 - Navegación de Desarrollador">
+    <mxGraphModel dx="1940" dy="1700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1940" pageHeight="1700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-3" value="&lt;b&gt;JobDevs · Mapa de navegación&lt;/b&gt;&lt;br&gt;03 - Navegación de Desarrollador" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="1660" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3" value="Rectángulo: pantalla o módulo · Hexágono: estado, guarda o transición de negocio · Flecha: navegación/avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1660" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-3" value="Desarrollador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=16;fontStyle=1;strokeColor=#34465B;" vertex="1" parent="1">
+          <mxGeometry x="62" y="780" width="80" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-3" value="&lt;b&gt;JobDevs&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=18;fontSize=16;fontColor=#506176;fillColor=#FFFFFF;strokeColor=#718499;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="145" width="1690" height="1510" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3-0" value="PERFIL Y DESCUBRIMIENTO" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="195" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-0" value="Dashboard desarrollador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-0" edge="1" parent="1" source="actor-3" target="node-3-0" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-1" value="Perfil profesional" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-1" edge="1" parent="1" source="node-3-0" target="node-3-1" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-2" value="Solicitar verificación SENA" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-2" edge="1" parent="1" source="node-3-1" target="node-3-2" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-3" value="Volver al dashboard" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-3" edge="1" parent="1" source="node-3-2" target="node-3-3" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-4" value="Dashboard: Explorar" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-4" edge="1" parent="1" source="actor-3" target="node-3-4" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-5" value="Buscar y filtrar proyectos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-5" edge="1" parent="1" source="node-3-4" target="node-3-5" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-6" value="Detalle de proyecto y empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-6" edge="1" parent="1" source="node-3-5" target="node-3-6" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-7" value="Guardar favorito o postularse" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-7" edge="1" parent="1" source="node-3-6" target="node-3-7" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3-8" value="POSTULACIÓN Y CONTRATO" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="530" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-8" value="Postulación enviada" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-8" edge="1" parent="1" source="actor-3" target="node-3-8" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-9" value="Ver postulaciones vigentes" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-9" edge="1" parent="1" source="node-3-8" target="node-3-9" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-10" value="Negociación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-10" edge="1" parent="1" source="node-3-9" target="node-3-10" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-11" value="Contrato digital" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-11" edge="1" parent="1" source="node-3-10" target="node-3-11" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-12" value="Firma del desarrollador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-12" edge="1" parent="1" source="node-3-11" target="node-3-12" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-13" value="Contrato activo tras ambas firmas" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-13" edge="1" parent="1" source="node-3-12" target="node-3-13" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-14" value="Dashboard: Favoritos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-14" edge="1" parent="1" source="actor-3" target="node-3-14" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-15" value="Explorar proyectos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-15" edge="1" parent="1" source="node-3-14" target="node-3-15" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-16" value="Detalle / postulación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-16" edge="1" parent="1" source="node-3-15" target="node-3-16" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3-17" value="TRABAJO Y CIERRE" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="865" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-17" value="Dashboard: Proyectos activos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="895" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-17" edge="1" parent="1" source="actor-3" target="node-3-17" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-18" value="Consultar hitos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="895" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-18" edge="1" parent="1" source="node-3-17" target="node-3-18" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-19" value="Registrar avance" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="895" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-19" edge="1" parent="1" source="node-3-18" target="node-3-19" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-20" value="Adjuntar evidencia opcional" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="895" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-20" edge="1" parent="1" source="node-3-19" target="node-3-20" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-21" value="Revisión de empresa" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="895" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-21" edge="1" parent="1" source="node-3-20" target="node-3-21" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-22" value="Proyecto finalizado" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="995" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-22" edge="1" parent="1" source="actor-3" target="node-3-22" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-23" value="Calificar empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="995" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-23" edge="1" parent="1" source="node-3-22" target="node-3-23" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-24" value="Historial de contratos y valoraciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="995" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-24" edge="1" parent="1" source="node-3-23" target="node-3-24" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-25" value="Proyecto sucesor si procede" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="995" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-25" edge="1" parent="1" source="node-3-24" target="node-3-25" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-3-26" value="SOPORTE Y EXCEPCIONES" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1200" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-26" value="Centro de chat / bandeja" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E2F0FD;strokeColor=#608AB0;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1230" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-26" edge="1" parent="1" source="actor-3" target="node-3-26" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-27" value="Chat directo o grupal" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1230" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-27" edge="1" parent="1" source="node-3-26" target="node-3-27" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-28" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1230" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-28" edge="1" parent="1" source="node-3-27" target="node-3-28" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-29" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1330" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-3-29" edge="1" parent="1" source="actor-3" target="node-3-29" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-30" value="Proponer o responder cancelación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1330" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-30" edge="1" parent="1" source="node-3-29" target="node-3-30" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-31" value="Confirmación bilateral o mediación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1330" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-31" edge="1" parent="1" source="node-3-30" target="node-3-31" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-3-32" value="Disputa y evidencia privada" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="1330" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-3-32" edge="1" parent="1" source="node-3-31" target="node-3-32" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="navigation-4" name="04 - Navegación de Administrador">
+    <mxGraphModel dx="1800" dy="1880" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1880" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-4" value="&lt;b&gt;JobDevs · Mapa de navegación&lt;/b&gt;&lt;br&gt;04 - Navegación de Administrador" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="1520" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-4" value="Rectángulo: pantalla o módulo · Hexágono: estado, guarda o transición de negocio · Flecha: navegación/avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1520" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-4" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=16;fontStyle=1;strokeColor=#34465B;" vertex="1" parent="1">
+          <mxGeometry x="62" y="870" width="80" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-4" value="&lt;b&gt;JobDevs&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=18;fontSize=16;fontColor=#506176;fillColor=#FFFFFF;strokeColor=#718499;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="145" width="1550" height="1690" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-4-0" value="SUPERVISIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="195" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-0" value="Dashboard administrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-0" edge="1" parent="1" source="actor-4" target="node-4-0" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-1" value="Métricas y alertas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-1" edge="1" parent="1" source="node-4-0" target="node-4-1" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-2" value="Usuarios" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-2" edge="1" parent="1" source="node-4-1" target="node-4-2" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-3" value="Crear, editar, activar, suspender o eliminar" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-3" edge="1" parent="1" source="node-4-2" target="node-4-3" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-4" value="Dashboard administrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-4" edge="1" parent="1" source="actor-4" target="node-4-4" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-5" value="Proyectos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-5" edge="1" parent="1" source="node-4-4" target="node-4-5" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-6" value="Explorar y supervisar" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-6" edge="1" parent="1" source="node-4-5" target="node-4-6" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-7" value="Regularizar cierre histórico" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-7" edge="1" parent="1" source="node-4-6" target="node-4-7" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-8" value="Crear sucesor sin reactivar el original" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="325" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-8" edge="1" parent="1" source="node-4-7" target="node-4-8" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-4-9" value="VERIFICACIÓN Y CONFIGURACIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="530" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-9" value="Dashboard: Verificación empresas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-9" edge="1" parent="1" source="actor-4" target="node-4-9" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-10" value="Revisar documentos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-10" edge="1" parent="1" source="node-4-9" target="node-4-10" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-11" value="Aprobar, rechazar o pedir soporte" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="560" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-11" edge="1" parent="1" source="node-4-10" target="node-4-11" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-12" value="Dashboard: Verificación desarrolladores" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-12" edge="1" parent="1" source="actor-4" target="node-4-12" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-13" value="Gestionar fichas y excepciones SENA" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-13" edge="1" parent="1" source="node-4-12" target="node-4-13" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-14" value="Resolver solicitud" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="660" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-14" edge="1" parent="1" source="node-4-13" target="node-4-14" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-15" value="Dashboard: Configuración" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="760" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-15" edge="1" parent="1" source="actor-4" target="node-4-15" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-16" value="Plazo global de negociación (1–30)" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="760" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-16" edge="1" parent="1" source="node-4-15" target="node-4-16" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-17" value="Auditar el cambio" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="760" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-17" edge="1" parent="1" source="node-4-16" target="node-4-17" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-4-18" value="MEDIACIÓN Y EVIDENCIA" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1010" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-18" value="Solicitudes de cancelación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1040" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-18" edge="1" parent="1" source="actor-4" target="node-4-18" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-19" value="Revisar causal y evidencia" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1040" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-19" edge="1" parent="1" source="node-4-18" target="node-4-19" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-20" value="Confirmar, rechazar o escalar" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1040" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-20" edge="1" parent="1" source="node-4-19" target="node-4-20" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-21" value="Disputas" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1140" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-21" edge="1" parent="1" source="actor-4" target="node-4-21" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-22" value="Sala de mediación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1140" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-22" edge="1" parent="1" source="node-4-21" target="node-4-22" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-23" value="Consultar evidencia privada" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1140" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-23" edge="1" parent="1" source="node-4-22" target="node-4-23" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-24" value="Resolver y emitir dictamen" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="1140" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-24" edge="1" parent="1" source="node-4-23" target="node-4-24" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-4-25" value="CONTROL OPERATIVO" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1345" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-25" value="Auditoría de cambios" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1375" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-25" edge="1" parent="1" source="actor-4" target="node-4-25" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-26" value="Chats y logs técnicos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1375" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-26" edge="1" parent="1" source="node-4-25" target="node-4-26" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-27" value="Reportes CSV / impresión" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1375" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-27" edge="1" parent="1" source="node-4-26" target="node-4-27" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-28" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1475" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-4-28" edge="1" parent="1" source="actor-4" target="node-4-28" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-29" value="Depuración" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1475" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-29" edge="1" parent="1" source="node-4-28" target="node-4-29" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-4-30" value="Volver al dashboard" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#F6EBFF;strokeColor=#9674AE;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1475" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-4-30" edge="1" parent="1" source="node-4-29" target="node-4-30" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="navigation-5" name="05 - Flujos transversales y guardas">
+    <mxGraphModel dx="2185" dy="1650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="2185" pageHeight="1650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-5" value="&lt;b&gt;JobDevs · Mapa de navegación&lt;/b&gt;&lt;br&gt;05 - Flujos transversales y guardas" style="text;html=1;align=left;verticalAlign=middle;fontSize=24;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="1905" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-5" value="Rectángulo: pantalla o módulo · Hexágono: estado, guarda o transición de negocio · Flecha: navegación/avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1905" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-5" value="Reglas de transición" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=16;fontStyle=1;strokeColor=#34465B;" vertex="1" parent="1">
+          <mxGeometry x="62" y="755" width="80" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary-5" value="&lt;b&gt;JobDevs&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=18;fontSize=16;fontColor=#506176;fillColor=#FFFFFF;strokeColor=#718499;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="190" y="145" width="1935" height="1460" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-5-0" value="CONTRATACIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="195" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-0" value="Proyecto con vacante" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-0" edge="1" parent="1" source="actor-5" target="node-5-0" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-1" value="Postulación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-1" edge="1" parent="1" source="node-5-0" target="node-5-1" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-2" value="Negociación: cupo reservado" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-2" edge="1" parent="1" source="node-5-1" target="node-5-2" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-3" value="Contrato borrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-3" edge="1" parent="1" source="node-5-2" target="node-5-3" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-4" value="Primera firma: no activa" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-4" edge="1" parent="1" source="node-5-3" target="node-5-4" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-5" value="Segunda firma" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-5" edge="1" parent="1" source="node-5-4" target="node-5-5" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-6" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="225" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-6" edge="1" parent="1" source="node-5-5" target="node-5-6" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-5-7" value="EJECUCIÓN Y CIERRE" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="385" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-7" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-7" edge="1" parent="1" source="actor-5" target="node-5-7" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-8" value="Hitos" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-8" edge="1" parent="1" source="node-5-7" target="node-5-8" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-9" value="Avance con descripción / evidencia" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-9" edge="1" parent="1" source="node-5-8" target="node-5-9" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-10" value="Revisión de empresa" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-10" edge="1" parent="1" source="node-5-9" target="node-5-10" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-11" value="Último hito aprobado" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-11" edge="1" parent="1" source="node-5-10" target="node-5-11" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-12" value="Proyecto y contrato finalizados" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-12" edge="1" parent="1" source="node-5-11" target="node-5-12" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-13" value="Valoraciones posteriores" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="415" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-13" edge="1" parent="1" source="node-5-12" target="node-5-13" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-14" value="Proyecto y contrato finalizados" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-14" edge="1" parent="1" source="actor-5" target="node-5-14" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-15" value="Continuación requerida" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-15" edge="1" parent="1" source="node-5-14" target="node-5-15" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-16" value="Nuevo proyecto sucesor vinculado" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="515" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-16" edge="1" parent="1" source="node-5-15" target="node-5-16" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-5-17" value="CANCELACIÓN Y MEDIACIÓN" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="720" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-17" value="Contrato activo" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-17" edge="1" parent="1" source="actor-5" target="node-5-17" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-18" value="Solicitud con causal" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-18" edge="1" parent="1" source="node-5-17" target="node-5-18" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-19" value="Acuerdo / respuesta de contraparte" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-19" edge="1" parent="1" source="node-5-18" target="node-5-19" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-20" value="Cancelar sin sanción o continuar" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="750" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-20" edge="1" parent="1" source="node-5-19" target="node-5-20" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-21" value="Desacuerdo, inactividad o fuerza mayor" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-21" edge="1" parent="1" source="actor-5" target="node-5-21" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-22" value="Abrir mediación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-22" edge="1" parent="1" source="node-5-21" target="node-5-22" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-23" value="Congelar proyecto y cupo" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-23" edge="1" parent="1" source="node-5-22" target="node-5-23" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-24" value="Evidencia privada" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-24" edge="1" parent="1" source="node-5-23" target="node-5-24" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-25" value="Dictamen administrativo" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-25" edge="1" parent="1" source="node-5-24" target="node-5-25" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-26" value="Continuidad, terminación o sanción" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="850" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-26" edge="1" parent="1" source="node-5-25" target="node-5-26" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-5-27" value="GUARDAS" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#506176;" vertex="1" parent="1">
+          <mxGeometry x="225" y="1055" width="180" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-27" value="Ruta pública" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8EDFF;strokeColor=#6D83BA;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-27" edge="1" parent="1" source="actor-5" target="node-5-27" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-28" value="Autenticación" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-28" edge="1" parent="1" source="node-5-27" target="node-5-28" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-29" value="Rol + objeto + estado" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-29" edge="1" parent="1" source="node-5-28" target="node-5-29" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-30" value="Pantalla o acción autorizada" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFF2DB;strokeColor=#B99456;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1165" y="1085" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-30" edge="1" parent="1" source="node-5-29" target="node-5-30" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-31" value="Ruta denegada / estado inválido" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="430" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-edge-5-31" edge="1" parent="1" source="actor-5" target="node-5-31" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="node-5-32" value="Error, redirección o 403" style="hexagon;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#FFE8E8;strokeColor=#BA6868;fontColor=#1D2D3C;fontSize=13;strokeWidth=2;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="675" y="1185" width="205" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-5-32" edge="1" parent="1" source="node-5-31" target="node-5-32" style="endArrow=blockThin;endFill=1;html=1;rounded=0;strokeColor=#718499;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

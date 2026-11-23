@@ -156,8 +156,10 @@
                             tipo: 'alerta',
                             mensaje: err.message,
                         });
-                    } else {
-                        alert(err.message);
+                    } else if (typeof window.jdToast === 'function') {
+                        window.jdToast(err.message, true);
+                    } else if (typeof window.mostrarToast === 'function') {
+                        window.mostrarToast(err.message, true);
                     }
                 }
             });

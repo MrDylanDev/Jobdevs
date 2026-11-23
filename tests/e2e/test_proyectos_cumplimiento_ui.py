@@ -43,16 +43,19 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     assert page.locator('#crear_fecha_cumplimiento').get_attribute('required') is not None
     page.locator('#modalProyecto input[name="titulo"]').fill('Convocatoria QA de cumplimiento')
     page.locator('#modalProyecto textarea[name="descripcion"]').fill('Entrega de prueba')
-    page.locator('#crear_fecha_limite_display').click()
-    page.locator('#datepicker-crear .datepicker-preset-pill').first.click()
+    page.locator('#crear_fecha_limite').fill(
+        (timezone.localdate() + timedelta(days=15)).isoformat()
+    )
     page.locator('#crear_fecha_cumplimiento').fill(
         (timezone.localdate() + timedelta(days=30)).isoformat()
     )
     salida = Path(os.environ.get('TMPDIR', '/tmp')) / 'jobdevs-qa'
     salida.mkdir(parents=True, exist_ok=True)
     page.locator('#modalProyecto').screenshot(path=str(salida / 'creacion-fechas.png'))
-    page.locator('#modalProyecto button[type="submit"]').click()
-    page.wait_for_url('**' + reverse('dashboard_empresa'))
+    with page.expect_response(lambda r: '/proyectos/crear' in r.url and r.request.method == 'POST') as resp:
+        page.locator('#modalProyecto button[type="submit"]').click()
+    # El flujo AJAX recarga el dashboard; esperar a que el proyecto aparezca en la UI.
+    page.get_by_text('Convocatoria QA de cumplimiento').first.wait_for(state='visible', timeout=15000)
     proyecto = Proyecto.objects.get(titulo='Convocatoria QA de cumplimiento')
     assert proyecto.fecha_cumplimiento == timezone.localdate() + timedelta(days=30)
     assert page.get_by_text('Convocatoria QA de cumplimiento').count() >= 1

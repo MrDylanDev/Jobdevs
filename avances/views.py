@@ -22,6 +22,17 @@ MAX_AVANCE_BYTES = 10 * 1024 * 1024  # 10 MB
 ESTADOS_PROYECTO_REVISABLES = ('en_desarrollo', 'en_revision')
 
 
+def _es_ajax(request):
+    return (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in (request.headers.get('Accept') or '')
+    )
+
+
+def _json_error(msg, status=400):
+    return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=status)
+
+
 def _validar_archivo_adjunto(archivo):
     """Valida tamaño, extensión, cabecera mágica y consistencia estructural (SCRUM-168)."""
     if not archivo:
@@ -62,16 +73,29 @@ def _validar_archivo_adjunto(archivo):
 
 @login_required
 def registrar_avance(request, proyecto_id):
+    is_ajax = _es_ajax(request)
+
     if request.user.rol != 'desarrollador':
-        messages.error(request, "Solo los desarrolladores pueden registrar avances.")
+        msg = "Solo los desarrolladores pueden registrar avances."
+        if is_ajax:
+            return _json_error(msg, status=403)
+        messages.error(request, msg)
         return redirect('inicio')
-    
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id)
-    
+
+    if is_ajax:
+        proyecto = Proyecto.objects.filter(id=proyecto_id).first()
+        if not proyecto:
+            return _json_error("El proyecto no existe.", status=404)
+    else:
+        proyecto = get_object_or_404(Proyecto, id=proyecto_id)
+
     # 1. Verificar que el desarrollador está contratado para este proyecto (SCRUM-459 / AUD-001)
     contratado = Contratacion.objects.filter(proyecto=proyecto, desarrollador=request.user, estado='activa').exists()
     if not contratado:
-        messages.error(request, "No tienes un contrato activo para este proyecto.")
+        msg = "No tienes un contrato activo para este proyecto."
+        if is_ajax:
+            return _json_error(msg, status=403)
+        messages.error(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
     # 2. Verificar el estado del proyecto: 
@@ -79,7 +103,10 @@ def registrar_avance(request, proyecto_id):
     # IMPORTANTE: No mutar estado en GET. La transición a 'en_desarrollo' se efectúa atómicamente en POST.
     hitos_pendientes_count = Entregable.objects.filter(proyecto=proyecto, estado='pendiente').count()
     if proyecto.estado not in ('en_desarrollo', 'en_revision') or (proyecto.estado == 'en_revision' and hitos_pendientes_count == 0):
-        messages.warning(request, f"Ya no puedes subir más avances para el proyecto '{proyecto.titulo}', pues ya no se encuentra en estado de desarrollo.")
+        msg = f"Ya no puedes subir más avances para el proyecto '{proyecto.titulo}', pues ya no se encuentra en estado de desarrollo."
+        if is_ajax:
+            return _json_error(msg, status=400)
+        messages.warning(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
     # 3. SCRUM-205 / SCRUM-309: Verificar si hay hitos pendientes disponibles para el desarrollador
@@ -97,15 +124,16 @@ def registrar_avance(request, proyecto_id):
     if not hitos_pendientes.exists():
         total_hitos = Entregable.objects.filter(proyecto=proyecto).count()
         if total_hitos == 0:
-            messages.warning(request, f"El proyecto '{proyecto.titulo}' aún no tiene hitos definidos por la empresa.")
+            msg = f"El proyecto '{proyecto.titulo}' aún no tiene hitos definidos por la empresa."
+            if is_ajax:
+                return _json_error(msg, status=400)
+            messages.warning(request, msg)
         else:
-            messages.info(request, f"Todos los hitos del proyecto '{proyecto.titulo}' ya han sido entregados o están en revisión.")
+            msg = f"Todos los hitos del proyecto '{proyecto.titulo}' ya han sido entregados o están en revisión."
+            if is_ajax:
+                return _json_error(msg, status=400)
+            messages.info(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
-
-    is_ajax = (
-        request.headers.get('Accept') == 'application/json'
-        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    )
 
     if request.method == 'GET' and is_ajax:
         return JsonResponse({
@@ -370,8 +398,15 @@ def revisar_avance(request, avance_id):
 
 @login_required
 def ver_avances(request, proyecto_id):
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id)
-    
+    es_ajax = _es_ajax(request)
+
+    if es_ajax:
+        proyecto = Proyecto.objects.filter(id=proyecto_id).first()
+        if not proyecto:
+            return _json_error("El proyecto no existe.", status=404)
+    else:
+        proyecto = get_object_or_404(Proyecto, id=proyecto_id)
+
     # Verificar si el usuario tiene relación con el proyecto (Desarrollador, Empresa, Admin)
     es_admin = request.user.rol == 'administrador'
     es_empresa_duena = (request.user.rol == 'empresa' and proyecto.empresa == request.user)
@@ -381,7 +416,10 @@ def ver_avances(request, proyecto_id):
     ).exists()
 
     if not (es_admin or es_empresa_duena or es_desarrollador_relacionado):
-        messages.error(request, "No tienes permisos para ver los avances de este proyecto.")
+        msg = "No tienes permisos para ver los avances de este proyecto."
+        if es_ajax:
+            return _json_error(msg, status=403)
+        messages.error(request, msg)
         if request.user.rol == 'desarrollador':
             return redirect('dashboard_desarrollador')
         elif request.user.rol == 'empresa':
@@ -399,7 +437,7 @@ def ver_avances(request, proyecto_id):
     hitos_completados = progreso['hitos_completados'] or 0
     hitos_totales = progreso['hitos_totales'] or 0
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+    if es_ajax:
         avances_data = []
         for a in avances:
             avances_data.append({

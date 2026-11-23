@@ -143,8 +143,10 @@
     function mostrarErrorEnVivo(mensaje) {
       if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
         window.JobDevsSSE.mostrarToast({ tipo: 'alerta', mensaje: mensaje });
+      } else if (typeof window.jdToast === 'function') {
+        window.jdToast(mensaje, true);
       } else {
-        alert(mensaje);
+        window.alert(mensaje);
       }
     }
 

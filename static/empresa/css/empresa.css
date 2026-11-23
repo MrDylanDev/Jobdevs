@@ -2754,6 +2754,28 @@ button {
   box-shadow: 0 0 0 2px rgba(0, 113, 63, 0.16);
 }
 
+input[type="date"].form-input-corp {
+  cursor: pointer;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+input[type="date"].form-input-corp::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+  padding: 4px;
+}
+
+input[type="date"].form-input-corp::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] input[type="date"].form-input-corp::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+}
+
 .modal-box-corp .btn-corp-primary,
 .modal-box-corp .btn-corp-action,
 .modal-box-corp .form-input-corp,

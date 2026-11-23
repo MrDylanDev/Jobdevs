@@ -7,6 +7,7 @@
   <title>JobDevs | Gestionar Equipos</title>
   <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v25">
 </head>
 <body>
 <div class="app-layout">
@@ -70,7 +71,7 @@
               <div style="font-size:15px; font-weight:600; color:var(--text-primary);">
                 <i style="margin-right:8px; color:var(--info);" data-lucide="users"></i>{{ equipo.nombre }}
               </div>
-              <form method="post" action="{% url 'eliminar_equipo' equipo.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este grupo? Los hitos asignados quedarán sin equipo.');">
+              <form method="post" action="{% url 'eliminar_equipo' equipo.id %}" style="display:inline; margin:0;" data-confirm-title="Eliminar grupo de trabajo" data-confirm="¿Eliminar este grupo? Los hitos asignados quedarán sin equipo.">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm" title="Eliminar grupo">
                   <i data-lucide="trash-2"></i>
@@ -104,5 +105,6 @@
     window.lucide.createIcons();
   }
 </script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v21"></script>
 </body>
 </html>

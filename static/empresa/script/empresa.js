@@ -442,6 +442,71 @@
     }
   };
 
+  document.addEventListener('DOMContentLoaded', function () {
+    const formCrear = document.getElementById('formCrearProyecto');
+    if (!formCrear) return;
+
+    formCrear.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const submitBtn = formCrear.querySelector('button[type="submit"]');
+      const textoOrig = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="corp-spinner-sm" style="display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;"></span> Publicando...';
+      }
+
+      try {
+        const formData = new FormData(formCrear);
+        const res = await fetch(formCrear.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+          },
+          credentials: 'same-origin',
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (res.ok && data && data.ok) {
+          window.cerrarModal();
+          formCrear.reset();
+          if (typeof window.mostrarToastCorp === 'function') {
+            window.mostrarToastCorp(data.mensaje || '¡Convocatoria publicada exitosamente!');
+          }
+          window.switchTab('ofertas');
+          window.location.hash = '#ofertas';
+          setTimeout(function () {
+            window.location.reload();
+          }, 350);
+        } else {
+          const errMsg = (data && data.mensaje) ? data.mensaje : 'Por favor verifica los datos de la convocatoria.';
+          if (typeof window.mostrarToastCorp === 'function') {
+            window.mostrarToastCorp(errMsg, true);
+          } else if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
+            window.JobDevsToast.mostrar({ tipo: 'error', mensaje: errMsg });
+          } else if (typeof window.jdToast === 'function') {
+            window.jdToast(errMsg, true);
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = textoOrig;
+          }
+        }
+      } catch (err) {
+        console.error('Error al publicar convocatoria:', err);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = textoOrig;
+        }
+        if (typeof window.mostrarToastCorp === 'function') {
+          window.mostrarToastCorp('Error de conexión al publicar la convocatoria. Intenta de nuevo.', true);
+        }
+      }
+    });
+  });
+
   // --- 2.1 Modal de Editar Perfil In-Situ ---
   window.abrirModalPerfil = function () {
     const modal = document.getElementById('modalEditarPerfil');
@@ -1900,6 +1965,10 @@
   function padZero(n) { return n < 10 ? '0' + n : '' + n; }
 
   window.initCorpDatepicker = function (pickerId, initialIso) {
+    const container = document.getElementById(pickerId);
+    const hasVisualPicker = !!(container && container.querySelector('.datepicker-display') && document.getElementById(pickerId + '-popover'));
+    if (!hasVisualPicker) return;
+
     const today = new Date();
     let initialDate = null;
     if (initialIso) {
@@ -1922,7 +1991,9 @@
 
   window.toggleCorpDatepicker = function (pickerId) {
     const popover = document.getElementById(pickerId + '-popover');
-    if (!popover) return;
+    const container = document.getElementById(pickerId);
+    const hasVisualPicker = !!(popover && container && container.querySelector('.datepicker-display'));
+    if (!hasVisualPicker) return;
     const isOpen = popover.classList.contains('is-open');
     document.querySelectorAll('.datepicker-popover').forEach(function (p) {
       p.classList.remove('is-open');

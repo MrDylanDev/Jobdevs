@@ -371,6 +371,30 @@ def _nombre_usuario(usuario):
     return usuario.nombre or usuario.username
 
 
+def _foto_usuario(usuario):
+    """Devuelve la URL del logo (empresa) o foto de perfil (desarrollador), o None."""
+    if usuario is None:
+        return None
+    try:
+        if getattr(usuario, 'rol', None) == 'empresa':
+            perfil = getattr(usuario, 'perfil_empresa', None)
+            if perfil and getattr(perfil, 'logo', None):
+                return perfil.logo.url
+        elif getattr(usuario, 'rol', None) == 'desarrollador':
+            perfil = getattr(usuario, 'perfil_desarrollador', None)
+            if perfil:
+                if getattr(perfil, 'foto_perfil', None):
+                    return perfil.foto_perfil.url
+                if getattr(perfil, 'foto', None):
+                    return perfil.foto.url
+        elif getattr(usuario, 'rol', None) == 'administrador' or getattr(usuario, 'is_superuser', False):
+            from django.templatetags.static import static
+            return static('IMG/admin_soporte.svg')
+    except (ValueError, AttributeError):
+        return None
+    return None
+
+
 def _serializar_mensaje(mensaje, usuario):
     """Representación JSON mínima de un mensaje para el chat embebido."""
     fecha_local = timezone.localtime(mensaje.fecha_envio)
@@ -464,7 +488,7 @@ def api_conversacion(request, receptor_id, proyecto_id=0):
 
     proyecto = None
     if proyecto_id:
-        proyecto = Proyecto.objects.filter(id=proyecto_id).first()
+        proyecto = Proyecto.objects.select_related('empresa').filter(id=proyecto_id).first()
         if proyecto is None:
             return _json_error('El proyecto no existe.', 404)
 
@@ -489,11 +513,17 @@ def api_conversacion(request, receptor_id, proyecto_id=0):
             'username': receptor.username,
             'rol': receptor.get_rol_display(),
             'inicial': _nombre_usuario(receptor)[:1].upper(),
+            'foto_url': _foto_usuario(receptor),
         },
         'proyecto': {
             'id': proyecto.id,
             'titulo': proyecto.titulo,
+            'descripcion': proyecto.descripcion or '',
             'estado': proyecto.estado,
+            'estado_label': proyecto.get_estado_display(),
+            'empresa_nombre': _nombre_usuario(proyecto.empresa),
+            'modalidad': proyecto.get_modalidad_display() if hasattr(proyecto, 'get_modalidad_display') else '',
+            'tipo_solucion': proyecto.get_tipo_solucion_display() if hasattr(proyecto, 'get_tipo_solucion_display') else '',
         } if proyecto else None,
         'puede_escribir': not (proyecto is not None and proyecto.estado == 'finalizado'),
         'mensajes': [_serializar_mensaje(m, request.user) for m in mensajes_qs],

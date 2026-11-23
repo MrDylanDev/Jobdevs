@@ -7,10 +7,10 @@
   <title>JobDevs | Panel Administrador</title>
   <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261121_v27">
   <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261114_v6">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261117_v1">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v27">
   <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=3">
 </head>
 <body>
@@ -170,7 +170,9 @@
         </div>
       </div>
       <div class="user-chip">
-        <div class="user-avatar"><i style="font-size:12px;" data-lucide="shield-halved"></i></div>
+        <div class="user-avatar" style="overflow:hidden; padding:0; background:transparent;">
+          <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Administrador" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        </div>
         <div>
           <div class="user-name">Administrador</div>
           <div class="user-role">Control Total</div>
@@ -1763,7 +1765,7 @@
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script src="{% static 'administrador/script/administrador.js' %}"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=5"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v8"></script>
 <script>
   (function () {
     const CATEGORY_API = {
@@ -1784,8 +1786,8 @@
         });
         const result = await response.json().catch(() => ({}));
         if (response.ok) { reload(); }
-        else { alert(result.error || 'No se pudo completar la operación.'); }
-      } catch (err) { alert('Error de red.'); }
+        else { (window.adminNotify || console.error)(result.error || 'No se pudo completar la operación.'); }
+      } catch (err) { (window.adminNotify || console.error)('Error de red.'); }
     }
 
     window.openCategoryModal = function (id) {
@@ -1897,9 +1899,9 @@
         const response = await fetch(AUDIT_URL + '?' + params.toString(), {
           headers: { 'Accept': 'application/json' }
         });
-        if (!response.ok) { alert('No se pudo completar la auditoría.'); return; }
+        if (!response.ok) { (window.adminNotify || console.error)('No se pudo completar la auditoría.'); return; }
         render(await response.json());
-      } catch (err) { alert('Error de red.'); }
+      } catch (err) { (window.adminNotify || console.error)('Error de red.'); }
     }
 
     window.openAuditChatModal = function (i) {
@@ -1947,7 +1949,7 @@
 </script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261117_v1"></script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v23"></script>
 <script>
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();

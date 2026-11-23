@@ -83,3 +83,6 @@ backups/
 
 # Harness local (skills/commands por proyecto)
 .opencode/
+
+# Docker local overrides
+docker-compose.override.yml

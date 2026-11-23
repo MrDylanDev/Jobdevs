@@ -24,6 +24,7 @@
       document.documentElement.setAttribute('data-theme', tema);
     })();
   </script>
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v25">
 </head>
 <body>
 <div class="app-layout">
@@ -215,7 +216,7 @@
                 </div>
               </div>
               {% if hito.estado == 'pendiente' %}
-                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de eliminar este hito?');">
+                <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" data-confirm-title="Eliminar hito" data-confirm="¿Estás seguro de eliminar este hito?">
                   {% csrf_token %}
                   <button type="submit" class="btn-corp-action danger-subtle" title="Eliminar hito" style="padding:6px 10px;">
                     <i data-lucide="trash-2"></i>
@@ -390,5 +391,6 @@
     window.lucide.createIcons();
   }
 </script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v21"></script>
 </body>
 </html>

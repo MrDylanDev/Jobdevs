@@ -27,6 +27,16 @@
     return valor < 10 ? '0' + valor : String(valor);
   }
 
+  function escapeHtml(val) {
+    if (val == null) return '';
+    return String(val)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function fechaDeHoy() {
     var hoy = new Date();
     return (
@@ -151,7 +161,13 @@
       }
 
       if (nameEl) nameEl.textContent = data.receptor.nombre;
-      if (avatarEl) avatarEl.textContent = data.receptor.inicial;
+      if (avatarEl) {
+        if (data.receptor.foto_url) {
+          avatarEl.innerHTML = '<img src="' + escapeHtml(data.receptor.foto_url) + '" alt="' + escapeHtml(data.receptor.nombre) + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">';
+        } else {
+          avatarEl.textContent = data.receptor.inicial;
+        }
+      }
       if (subEl) {
         subEl.textContent = data.proyecto
           ? data.receptor.rol + ' · ' + data.proyecto.titulo
@@ -165,12 +181,32 @@
       var contextPanel = root.querySelector('[data-chat-context]');
       var contextTitle = root.querySelector('[data-context-project-title]');
       var contextBadge = root.querySelector('[data-context-project-badge]');
+      var contextEmpresa = root.querySelector('[data-context-project-empresa]');
+      var contextDesc = root.querySelector('[data-context-project-desc]');
+      var contextMeta = root.querySelector('[data-context-project-meta]');
       if (contextPanel) {
         if (data.proyecto) {
-          contextPanel.style.display = 'flex';
           root.classList.add('has-context');
+          var isCollapsed = root.classList.contains('is-context-collapsed');
+          contextPanel.style.display = isCollapsed ? 'none' : 'flex';
           if (contextTitle) contextTitle.textContent = data.proyecto.titulo;
           if (contextBadge) contextBadge.textContent = data.proyecto.estado_label || 'En Desarrollo';
+          if (contextEmpresa) {
+            var empName = data.proyecto.empresa_nombre || (data.receptor ? data.receptor.nombre : '');
+            var empSpan = contextEmpresa.querySelector('span');
+            if (empSpan) empSpan.textContent = empName;
+            else contextEmpresa.textContent = empName;
+          }
+          if (contextDesc) contextDesc.textContent = data.proyecto.descripcion || '';
+          if (contextMeta) {
+            contextMeta.innerHTML = '';
+            if (data.proyecto.tipo_solucion) {
+              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Tipo:</strong> ' + escapeHtml(data.proyecto.tipo_solucion) + '</div>';
+            }
+            if (data.proyecto.modalidad) {
+              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Modalidad:</strong> ' + escapeHtml(data.proyecto.modalidad) + '</div>';
+            }
+          }
         } else {
           contextPanel.style.display = 'none';
           root.classList.remove('has-context');
@@ -204,8 +240,12 @@
           var nombreItem = requested.querySelector('.jd-chat-name');
           var avatarItem = requested.querySelector('.jd-chat-avatar');
           if (nombreItem) nombreItem.textContent = data.receptor.nombre;
-          if (avatarItem && !avatarItem.querySelector('i')) {
-            avatarItem.textContent = data.receptor.inicial;
+          if (avatarItem) {
+            if (data.receptor.foto_url) {
+              avatarItem.innerHTML = '<img src="' + escapeHtml(data.receptor.foto_url) + '" alt="' + escapeHtml(data.receptor.nombre) + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">';
+            } else if (!avatarItem.querySelector('img') && !avatarItem.querySelector('i')) {
+              avatarItem.textContent = data.receptor.inicial;
+            }
           }
           render(data);
           if (empty) empty.hidden = true;

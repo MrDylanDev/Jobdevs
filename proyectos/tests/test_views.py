@@ -1015,6 +1015,35 @@ class TestCalificarEmpresa:
             rol_evaluador='desarrollador',
         ).exists()
 
+    def test_ajax_fuera_de_ventana_devuelve_json_error(
+        self, dev_client, proyecto_finalizado
+    ):
+        from proyectos.models import HistorialEstadoProyecto
+
+        historial = proyecto_finalizado.historial_estados.get(estado_nuevo='finalizado')
+        HistorialEstadoProyecto.objects.filter(pk=historial.pk).update(
+            fecha=timezone.now() - timedelta(days=31)
+        )
+
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        headers = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest', 'HTTP_ACCEPT': 'application/json'}
+
+        get_res = dev_client.get(url, **headers)
+        assert get_res.status_code == 400
+        get_data = get_res.json()
+        assert get_data['ok'] is False
+        assert '30 días' in get_data['error']
+
+        post_res = dev_client.post(
+            url,
+            {'puntuacion': '4', 'comentario': 'Valoración tardía por AJAX', 'origen': 'dashboard'},
+            **headers,
+        )
+        assert post_res.status_code == 400
+        post_data = post_res.json()
+        assert post_data['ok'] is False
+        assert '30 días' in post_data['mensaje']
+
 
 class TestGestionarHitosAsignacionIndividual:
     """SCRUM-309 (HU-E13): la empresa puede asignar un hito a un desarrollador individual."""
@@ -1150,3 +1179,43 @@ class TestGestionarHitosAsignacionIndividual:
                 mensaje__contains='Célula Backend',
             ).values_list('usuario_id', flat=True)
         ) == {dev_uno.id, dev_dos.id}
+
+
+class TestApiDetalleProyecto:
+    def test_desarrollador_puede_ver_ficha_de_proyecto_publicado(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Vitrina Publicado",
+            descripcion="Descripción detallada para desarrolladores",
+            estado="publicado",
+            vacantes=2,
+        )
+
+        response = dev_client.get(reverse('api_detalle_proyecto', args=[proyecto.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data['ok'] is True
+        assert data['proyecto']['titulo'] == "Proyecto Vitrina Publicado"
+        assert any(a['label'] == 'Postularme' for a in data['acciones'])
+
+    def test_desarrollador_bloqueado_en_proyecto_no_publicado_sin_vinculo(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Borrador",
+            descripcion="Privado",
+            estado="inactivo",
+            vacantes=1,
+        )
+
+        response = dev_client.get(reverse('api_detalle_proyecto', args=[proyecto.id]))
+        assert response.status_code == 403
+        data = response.json()
+        assert data['ok'] is False
+        assert "No tienes permisos" in data['mensaje']
+

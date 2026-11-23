@@ -1,82 +1,556 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}JobDevs | Solicitudes de cancelación{% endblock %}
+{% block title %}JobDevs | Solicitudes de Cancelación{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cancel-bg: #090a0d;
+    --cancel-card: #111318;
+    --cancel-card-hover: #161920;
+    --cancel-darker: #050608;
+    --cancel-border: #1e222a;
+    --cancel-border-high: rgba(255, 255, 255, 0.16);
+    --cancel-fg: #ffffff;
+    --cancel-fg-dim: #9da3ae;
+    --cancel-muted: #6b7280;
+    --cancel-accent: #00e676;
+    --cancel-danger: #ef4444;
+    --cancel-warning: #f59e0b;
+  }
+
+  [data-theme="light"],
+  body.theme-light {
+    --cancel-bg: #f8fafc;
+    --cancel-card: #ffffff;
+    --cancel-card-hover: #f1f5f9;
+    --cancel-darker: #f1f5f9;
+    --cancel-border: #e2e8f0;
+    --cancel-border-high: rgba(0, 0, 0, 0.15);
+    --cancel-fg: #0f172a;
+    --cancel-fg-dim: #475569;
+    --cancel-muted: #64748b;
+    --cancel-accent: #00713f;
+    --cancel-danger: #dc2626;
+    --cancel-warning: #d97706;
+  }
+
+  body {
+    background: var(--cancel-bg);
+    color: var(--cancel-fg);
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+
+  .cancel-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 36px 20px 60px;
+  }
+
+  .cancel-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--cancel-fg-dim);
+    background: var(--cancel-card);
+    border: 1px solid var(--cancel-border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: all 0.15s ease;
+  }
+
+  .cancel-back-btn:hover {
+    color: var(--cancel-fg);
+    border-color: var(--cancel-border-high);
+    background: var(--cancel-card-hover);
+  }
+
+  .cancel-hero {
+    margin-bottom: 24px;
+  }
+
+  .cancel-hero-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--cancel-fg);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .cancel-hero-title i {
+    color: var(--cancel-danger);
+    width: 28px;
+    height: 28px;
+  }
+
+  .cancel-protocol-box {
+    background: var(--cancel-card);
+    border: 1px solid var(--cancel-border);
+    border-left: 3px solid var(--cancel-accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--cancel-fg-dim);
+  }
+
+  .cancel-protocol-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--cancel-accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .cancel-protocol-box strong {
+    color: var(--cancel-fg);
+  }
+
+  .cancel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    gap: 28px;
+  }
+
+  @media (max-width: 600px) {
+    .cancel-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cancel-col-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cancel-fg);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    letter-spacing: -0.01em;
+  }
+
+  .cancel-col-header i {
+    color: var(--cancel-accent);
+    margin-right: 8px;
+  }
+
+  /* Tarjetas de Contrato */
+  .cancel-card {
+    background: var(--cancel-card);
+    border: 1px solid var(--cancel-border);
+    border-radius: 8px;
+    padding: 22px;
+    margin-bottom: 18px;
+    transition: all 0.2s ease;
+  }
+
+  .cancel-card:hover {
+    border-color: var(--cancel-border-high);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .cancel-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cancel-fg);
+    margin-bottom: 6px;
+    line-height: 1.35;
+  }
+
+  .cancel-card-sub {
+    font-size: 12.5px;
+    color: var(--cancel-fg-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cancel-form-group {
+    margin-bottom: 16px;
+  }
+
+  .cancel-label {
+    display: block;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cancel-muted);
+    margin-bottom: 6px;
+  }
+
+  .cancel-input,
+  .cancel-select,
+  .cancel-textarea {
+    width: 100%;
+    background: var(--cancel-darker);
+    border: 1px solid var(--cancel-border);
+    border-radius: 6px;
+    color: var(--cancel-fg);
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+
+  .cancel-input:focus,
+  .cancel-select:focus,
+  .cancel-textarea:focus {
+    outline: none;
+    border-color: var(--cancel-accent);
+    box-shadow: 0 0 0 1px var(--cancel-accent);
+  }
+
+  .cancel-textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .btn-cancel-propose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cancel-danger);
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 100%;
+  }
+
+  .btn-cancel-propose:hover {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: var(--cancel-danger);
+    color: #ffffff;
+  }
+
+  .cancel-disputa-note {
+    font-size: 12px;
+    color: var(--cancel-muted);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--cancel-border);
+  }
+
+  .cancel-disputa-note a {
+    color: var(--cancel-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .cancel-disputa-note a:hover {
+    text-decoration: underline;
+  }
+
+  /* Tarjetas de Solicitudes */
+  .request-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-pendiente {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--cancel-warning);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .badge-aprobada {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--cancel-accent);
+    border: 1px solid rgba(0, 230, 118, 0.25);
+  }
+
+  .badge-rechazada {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--cancel-danger);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  .request-meta-box {
+    background: var(--cancel-darker);
+    border: 1px solid var(--cancel-border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .request-meta-box strong {
+    color: var(--cancel-fg);
+  }
+
+  .request-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-approve {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    background: var(--cancel-danger);
+    border: 1px solid var(--cancel-danger);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-approve:hover {
+    background: #dc2626;
+  }
+
+  .btn-reject {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--cancel-border);
+    color: var(--cancel-fg-dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-reject:hover {
+    background: var(--cancel-card-hover);
+    color: var(--cancel-fg);
+    border-color: var(--cancel-border-high);
+  }
+
+  .force-majeure-box {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px dashed rgba(245, 158, 11, 0.25);
+    border-radius: 6px;
+    font-size: 12px;
+  }
+
+  .force-majeure-box a {
+    color: var(--cancel-warning);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .force-majeure-box a:hover {
+    text-decoration: underline;
+  }
+
+  .cancel-empty {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--cancel-card);
+    border: 1px dashed var(--cancel-border);
+    border-radius: 8px;
+    color: var(--cancel-muted);
+    font-size: 13.5px;
+  }
+
+  .cancel-empty i {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<main class="container py-5" style="max-width: 980px;">
-  <a href="{% if rol == 'empresa' %}{% url 'dashboard_empresa' %}{% elif rol == 'desarrollador' %}{% url 'dashboard_desarrollador' %}{% else %}{% url 'dashboard_admin' %}{% endif %}" class="btn btn-outline-secondary mb-4">Volver al panel</a>
-  <h1>Solicitudes de cancelación</h1>
-  <p>Cualquiera de las partes puede proponer la terminación, incluso por fuerza mayor. Solo la contraparte puede confirmarla. El silencio no es aceptación: el contrato y la vacante siguen activos. Sin acuerdo o sin respuesta, solicita revisión en mediación; alegar fuerza mayor no genera sanciones automáticas.</p>
+<main class="cancel-container">
+  <a href="{% if rol == 'empresa' %}{% url 'dashboard_empresa' %}{% elif rol == 'desarrollador' %}{% url 'dashboard_desarrollador' %}?seccion=contratos{% else %}{% url 'dashboard_admin' %}{% endif %}" class="cancel-back-btn">
+    <i data-lucide="arrow-left" style="width:14px; height:14px;"></i>
+    <span>Volver al panel</span>
+  </a>
+
+  <div class="cancel-hero">
+    <h1 class="cancel-hero-title">
+      <i data-lucide="file-x"></i>
+      <span>Solicitudes de cancelación</span>
+    </h1>
+  </div>
+
+  <div class="cancel-protocol-box">
+    <i data-lucide="info" class="cancel-protocol-icon"></i>
+    <div>
+      <strong>Protocolo de Respaldo Mutuo:</strong> Cualquiera de las partes puede proponer la terminación, incluso por fuerza mayor. Solo la contraparte puede confirmarla. El silencio no es aceptación: el contrato y la vacante siguen activos. Sin acuerdo o sin respuesta, solicita revisión en mediación; alegar fuerza mayor no genera sanciones automáticas.
+    </div>
+  </div>
 
   {% include 'partials/_flash_toasts.html' %}
 
-  {% if rol == 'empresa' or rol == 'desarrollador' %}
-    <h2 class="h4 mt-4">Proponer terminación de mutuo acuerdo</h2>
-    {% for contrato in contratos %}
-      {% if rol == 'desarrollador' %}
-        <section class="card mb-3" aria-label="Contrato con {{ contrato.empresa.nombre|default:contrato.empresa.username }}">
-          <div class="card-body">
-            <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.empresa.nombre|default:contrato.empresa.username }}</h3>
-      {% else %}
-        <section class="card mb-3" aria-label="Contrato con {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}">
-          <div class="card-body">
-            <h3 class="h5">{{ contrato.proyecto.titulo }} — {{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</h3>
-      {% endif %}
-          <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
-            {% csrf_token %}
-            <label class="form-label" for="causal-{{ contrato.id }}">Motivo de terminación</label>
-            <select id="causal-{{ contrato.id }}" name="causal" class="form-select" required>
-              <option value="acuerdo_mutuo">Acuerdo mutuo</option>
-              <option value="fuerza_mayor">Fuerza mayor (requiere acuerdo)</option>
-            </select>
-            <div class="mb-3">
-              <label class="form-label" for="motivo-{{ contrato.id }}">Motivo del acuerdo propuesto</label>
-              <textarea id="motivo-{{ contrato.id }}" name="motivo_cancelacion" class="form-control" minlength="10" maxlength="2000" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-outline-danger">Proponer acuerdo (no cancela aún)</button>
-          </form>
-          <p class="mt-3 mb-0">¿Hay un incumplimiento o conflicto grave? <a href="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}">Abrir una disputa formal para este contrato</a>.</p>
-        </div>
-      </section>
-    {% empty %}
-      <p>No hay contratos activos disponibles para solicitar terminación.</p>
-    {% endfor %}
-  {% endif %}
+  <div class="cancel-grid">
+    <!-- Columna 1: Proponer acuerdo -->
+    {% if rol == 'empresa' or rol == 'desarrollador' %}
+      <div>
+        <h2 class="cancel-col-header">
+          <span><i data-lucide="handshake"></i>Proponer terminación de mutuo acuerdo</span>
+        </h2>
 
-  <h2 class="h4 mt-5">{% if rol == 'administrador' %}Revisión de causas unilaterales{% else %}Mis solicitudes{% endif %}</h2>
-  {% for solicitud in solicitudes %}
-    <section class="card mb-3" aria-label="Solicitud {{ solicitud.id }}">
-      <div class="card-body">
-        <h3 class="h5">#{{ solicitud.id }} · {{ solicitud.contratacion.proyecto.titulo }}</h3>
-        <p class="mb-1">{{ solicitud.get_causal_display }} — {{ solicitud.get_estado_display }}</p>
-        <p class="mb-1">Empresa: {{ solicitud.contratacion.empresa.nombre|default:solicitud.contratacion.empresa.username }} · Desarrollador: {{ solicitud.contratacion.desarrollador.nombre|default:solicitud.contratacion.desarrollador.username }}</p>
-        <p>Propuesta por: {{ solicitud.solicitante.nombre|default:solicitud.solicitante.username }}</p>
-        <p><strong>Explicación:</strong> {{ solicitud.motivo }}</p>
-        {% if solicitud.evidencia %}<p><strong>Evidencia referida:</strong> {{ solicitud.evidencia }}</p>{% endif %}
-        {% if solicitud.dictamen %}<p><strong>Decisión:</strong> {{ solicitud.dictamen }}</p>{% endif %}
-        {% if solicitud.contratacion.proyecto.estado == 'en_disputa' %}
-          <p>Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución.</p>
-        {% elif rol == 'administrador' and solicitud.estado == 'pendiente_revision' or rol == 'desarrollador' and solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
-          <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
-            {% csrf_token %}
-            {% if rol == 'administrador' %}
-              <label class="form-label" for="dictamen-{{ solicitud.id }}">Dictamen fundamentado</label>
-              <textarea class="form-control mb-2" id="dictamen-{{ solicitud.id }}" name="dictamen" required></textarea>
-            {% endif %}
-            <button type="submit" name="decision" value="aprobar" class="btn btn-danger">{% if rol == 'administrador' %}Aprobar causa y finalizar contrato{% else %}Confirmar acuerdo y finalizar contrato{% endif %}</button>
-            <button type="submit" name="decision" value="rechazar" class="btn btn-outline-secondary">{% if rol == 'administrador' %}Rechazar causa{% else %}No confirmar acuerdo{% endif %}</button>
-          </form>
-        {% endif %}
-        {% if rol != 'administrador' and solicitud.causal == 'fuerza_mayor' and solicitud.contratacion.estado == 'activa' and solicitud.contratacion.proyecto.estado != 'en_disputa' %}
-          {% if solicitud.estado == 'pendiente_acuerdo' or solicitud.estado == 'rechazada' %}
-            <p>Si no hay acuerdo o respuesta, puedes pedir mediación sin declarar incumplimiento.</p>
-            <a href="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&amp;categoria=fuerza_mayor">Solicitar revisión por fuerza mayor</a>
-          {% endif %}
-        {% endif %}
+        {% for contrato in contratos %}
+          <section class="cancel-card card" aria-label="Contrato con {% if rol == 'desarrollador' %}{{ contrato.empresa.nombre|default:contrato.empresa.username }}{% else %}{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}{% endif %}">
+            <h3 class="cancel-card-title h5">{{ contrato.proyecto.titulo }}</h3>
+            <div class="cancel-card-sub">
+              <i data-lucide="{% if rol == 'desarrollador' %}building{% else %}user{% endif %}" style="width:14px; height:14px; color:var(--cancel-accent);"></i>
+              <span>{% if rol == 'desarrollador' %}Empresa: <strong>{{ contrato.empresa.nombre|default:contrato.empresa.username }}</strong>{% else %}Desarrollador: <strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong>{% endif %}</span>
+            </div>
+
+            <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
+              {% csrf_token %}
+              <div class="cancel-form-group">
+                <label class="cancel-label form-label" for="causal-{{ contrato.id }}">Motivo de terminación</label>
+                <select id="causal-{{ contrato.id }}" name="causal" class="cancel-select form-select" required>
+                  <option value="acuerdo_mutuo">Acuerdo mutuo</option>
+                  <option value="fuerza_mayor">Fuerza mayor (requiere acuerdo)</option>
+                </select>
+              </div>
+
+              <div class="cancel-form-group mb-3">
+                <label class="cancel-label form-label" for="motivo-{{ contrato.id }}">Motivo del acuerdo propuesto</label>
+                <textarea id="motivo-{{ contrato.id }}" name="motivo_cancelacion" class="cancel-textarea form-control" minlength="10" maxlength="2000" required placeholder="Explica las razones del acuerdo propuesto (mínimo 10 caracteres)..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-cancel-propose btn btn-outline-danger">
+                <i data-lucide="file-x" style="width:14px; height:14px;"></i>
+                <span>Proponer acuerdo (no cancela aún)</span>
+              </button>
+            </form>
+
+            <div class="cancel-disputa-note">
+              ¿Hay un incumplimiento o conflicto grave? <a href="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}">Abrir una disputa formal para este contrato</a>.
+            </div>
+          </section>
+        {% empty %}
+          <div class="cancel-empty">
+            <i data-lucide="file-check"></i>
+            <p style="margin:0; font-weight:600;">No hay contratos activos disponibles para solicitar terminación.</p>
+          </div>
+        {% endfor %}
       </div>
-    </section>
-  {% empty %}
-    <p>No hay solicitudes para mostrar.</p>
-  {% endfor %}
+    {% endif %}
+
+    <!-- Columna 2: Mis Solicitudes / Historial -->
+    <div>
+      <h2 class="cancel-col-header">
+        <span><i data-lucide="inbox"></i>{% if rol == 'administrador' %}Revisión de causas unilaterales{% else %}Mis solicitudes{% endif %}</span>
+      </h2>
+
+      {% for solicitud in solicitudes %}
+        <section class="cancel-card card" aria-label="Solicitud {{ solicitud.id }}">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px;">
+            <h3 class="cancel-card-title h5" style="margin:0;">#{{ solicitud.id }} · {{ solicitud.contratacion.proyecto.titulo }}</h3>
+            <span class="request-badge {% if solicitud.estado == 'aprobada' %}badge-aprobada{% elif solicitud.estado == 'rechazada' %}badge-rechazada{% else %}badge-pendiente{% endif %}">
+              {{ solicitud.get_estado_display }}
+            </span>
+          </div>
+
+          <div class="cancel-card-sub" style="margin-bottom:8px;">
+            <span style="font-family:var(--font-mono, monospace); font-size:11px; text-transform:uppercase;">Causal: <strong>{{ solicitud.get_causal_display }}</strong></span>
+          </div>
+
+          <div style="font-size:12px; color:var(--cancel-fg-dim); margin-bottom:10px; display:flex; flex-direction:column; gap:2px;">
+            <div>Empresa: <strong>{{ solicitud.contratacion.empresa.nombre|default:solicitud.contratacion.empresa.username }}</strong> · Desarrollador: <strong>{{ solicitud.contratacion.desarrollador.nombre|default:solicitud.contratacion.desarrollador.username }}</strong></div>
+            <div>Propuesta por: <strong>{{ solicitud.solicitante.nombre|default:solicitud.solicitante.username }}</strong></div>
+          </div>
+
+          <div class="request-meta-box">
+            <strong>Explicación:</strong> {{ solicitud.motivo }}
+            {% if solicitud.evidencia %}<div style="margin-top:6px;"><strong>Evidencia referida:</strong> {{ solicitud.evidencia }}</div>{% endif %}
+            {% if solicitud.dictamen %}<div style="margin-top:6px;"><strong>Decisión:</strong> {{ solicitud.dictamen }}</div>{% endif %}
+          </div>
+
+          {% if solicitud.contratacion.proyecto.estado == 'en_disputa' %}
+            <div style="font-size:12px; color:var(--cancel-warning); padding:8px 12px; background:rgba(245,158,11,0.08); border-radius:4px;">
+              <i data-lucide="alert-triangle" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i>
+              Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución.
+            </div>
+          {% elif rol == 'administrador' and solicitud.estado == 'pendiente_revision' or rol == 'desarrollador' and solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
+            <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
+              {% csrf_token %}
+              {% if rol == 'administrador' %}
+                <div class="cancel-form-group">
+                  <label class="cancel-label form-label" for="dictamen-{{ solicitud.id }}">Dictamen fundamentado</label>
+                  <textarea class="cancel-textarea form-control mb-2" id="dictamen-{{ solicitud.id }}" name="dictamen" required placeholder="Dictamen fundamentado de la decisión administrativa..."></textarea>
+                </div>
+              {% endif %}
+              <div class="request-actions">
+                <button type="submit" name="decision" value="aprobar" class="btn-approve btn btn-danger">
+                  <i data-lucide="check"></i>
+                  <span>{% if rol == 'administrador' %}Aprobar causa y finalizar contrato{% else %}Confirmar acuerdo y finalizar contrato{% endif %}</span>
+                </button>
+                <button type="submit" name="decision" value="rechazar" class="btn-reject btn btn-outline-secondary">
+                  <i data-lucide="x"></i>
+                  <span>{% if rol == 'administrador' %}Rechazar causa{% else %}No confirmar acuerdo{% endif %}</span>
+                </button>
+              </div>
+            </form>
+          {% endif %}
+
+          {% if rol != 'administrador' and solicitud.causal == 'fuerza_mayor' and solicitud.contratacion.estado == 'activa' and solicitud.contratacion.proyecto.estado != 'en_disputa' %}
+            {% if solicitud.estado == 'pendiente_acuerdo' or solicitud.estado == 'rechazada' %}
+              <div class="force-majeure-box">
+                <div>Si no hay acuerdo o respuesta, puedes pedir mediación sin declarar incumplimiento.</div>
+                <a href="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&amp;categoria=fuerza_mayor">
+                  <i data-lucide="shield-alert" style="width:13px; height:13px;"></i>
+                  <span>Solicitar revisión por fuerza mayor</span>
+                </a>
+              </div>
+            {% endif %}
+          {% endif %}
+        </section>
+      {% empty %}
+        <div class="cancel-empty">
+          <i data-lucide="inbox"></i>
+          <p style="margin:0; font-weight:600;">No hay solicitudes para mostrar.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 </main>
 {% endblock %}

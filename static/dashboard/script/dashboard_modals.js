@@ -21,6 +21,14 @@
     return match ? decodeURIComponent(match.slice(nombre.length + 1)) : '';
   }
 
+  async function parseJsonResponse(res, fallbackMsg) {
+    var ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      throw new Error(fallbackMsg || 'Respuesta inesperada del servidor.');
+    }
+    return await res.json();
+  }
+
   function getCsrfToken() {
     var cookie = leerCookie('csrftoken');
     if (cookie) return cookie;
@@ -35,8 +43,120 @@
         mensaje: mensaje,
         duracion: 4500,
       });
+      return;
     }
+    if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
+      window.JobDevsSSE.mostrarToast({
+        tipo: esError ? 'alerta' : 'info',
+        mensaje: mensaje,
+      });
+      return;
+    }
+    if (typeof window.mostrarToast === 'function' && window.mostrarToast !== mostrarToast) {
+      window.mostrarToast(mensaje, esError);
+      return;
+    }
+    // Fallback Toast Flotante Personalizado
+    var t = document.createElement('div');
+    t.className = 'jobdevs-toast-fallback ' + (esError ? 'is-error' : 'is-success');
+    t.textContent = mensaje;
+    document.body.appendChild(t);
+    setTimeout(function () {
+      t.style.opacity = '0';
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+    }, 4000);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // Modal Personalizado de Confirmación In-Situ (Reemplaza window.confirm)
+  // ─────────────────────────────────────────────────────────────
+  var confirmEl = null;
+
+  function ensureConfirmModal() {
+    if (confirmEl) return confirmEl;
+    confirmEl = document.createElement('div');
+    confirmEl.id = 'jdmConfirmModal';
+    confirmEl.className = 'jdm-modal jdm-confirm-overlay';
+    confirmEl.hidden = true;
+    confirmEl.style.zIndex = '2350';
+    confirmEl.innerHTML =
+      '<div class="jdm-backdrop" data-jdm-confirm-cancel></div>' +
+      '<div class="jdm-card jdm-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="jdmConfirmTitle" aria-describedby="jdmConfirmMsg" style="max-width:460px;">' +
+        '<header class="jdm-header" style="padding:18px 22px 14px;">' +
+          '<div style="min-width:0;flex:1;">' +
+            '<div class="jdm-kicker" id="jdmConfirmKicker">CONFIRMACIÓN REQUERIDA</div>' +
+            '<h2 class="jdm-title" id="jdmConfirmTitle" style="font-size:17px;">¿Deseas continuar?</h2>' +
+          '</div>' +
+          '<button type="button" class="jdm-close" data-jdm-confirm-cancel aria-label="Cerrar">&times;</button>' +
+        '</header>' +
+        '<div class="jdm-body" style="padding:18px 22px;">' +
+          '<p id="jdmConfirmMsg" style="margin:0;font-size:13.5px;line-height:1.6;"></p>' +
+        '</div>' +
+        '<footer class="jdm-footer" style="padding:14px 22px;display:flex;justify-content:flex-end;gap:10px;">' +
+          '<button type="button" class="jdm-btn jdm-btn-secondary" id="jdmConfirmBtnCancel" data-jdm-confirm-cancel>Cancelar</button>' +
+          '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmConfirmBtnOk">Confirmar</button>' +
+        '</footer>' +
+      '</div>';
+    document.body.appendChild(confirmEl);
+    return confirmEl;
+  }
+
+  function confirmarAccion(opciones) {
+    var opts = typeof opciones === 'string' ? { mensaje: opciones } : (opciones || {});
+    var modal = ensureConfirmModal();
+    var titleEl = document.getElementById('jdmConfirmTitle');
+    var kickerEl = document.getElementById('jdmConfirmKicker');
+    var msgEl = document.getElementById('jdmConfirmMsg');
+    var btnOk = document.getElementById('jdmConfirmBtnOk');
+    var btnCancel = document.getElementById('jdmConfirmBtnCancel');
+
+    if (kickerEl) kickerEl.textContent = opts.kicker || (opts.peligro ? 'ACCIÓN CRÍTICA' : 'CONFIRMACIÓN REQUERIDA');
+    if (titleEl) titleEl.textContent = opts.titulo || '¿Confirmar esta acción?';
+    if (msgEl) msgEl.textContent = opts.mensaje || '¿Estás seguro de que deseas continuar?';
+    if (btnOk) {
+      btnOk.textContent = opts.textoConfirmar || 'Confirmar';
+      btnOk.className = 'jdm-btn ' + (opts.peligro ? 'jdm-btn-danger' : 'jdm-btn-primary');
+    }
+    if (btnCancel) {
+      btnCancel.textContent = opts.textoCancelar || 'Cancelar';
+    }
+
+    modal.hidden = false;
+
+    return new Promise(function (resolve) {
+      function limpiar(resultado) {
+        modal.hidden = true;
+        modal.removeEventListener('click', onClick);
+        document.removeEventListener('keydown', onKey, true);
+        resolve(resultado);
+      }
+
+      function onClick(e) {
+        if (e.target.closest('#jdmConfirmBtnOk')) {
+          e.preventDefault();
+          limpiar(true);
+        } else if (e.target.closest('[data-jdm-confirm-cancel]')) {
+          e.preventDefault();
+          limpiar(false);
+        }
+      }
+
+      function onKey(e) {
+        if (e.key === 'Escape' && !modal.hidden) {
+          e.preventDefault();
+          e.stopPropagation();
+          limpiar(false);
+        }
+      }
+
+      modal.addEventListener('click', onClick);
+      document.addEventListener('keydown', onKey, true);
+      if (btnOk) btnOk.focus();
+    });
+  }
+
+  window.JdConfirm = confirmarAccion;
+  window.jdToast = mostrarToast;
 
   // ─────────────────────────────────────────────────────────────
   // Modal Base Manager
@@ -71,6 +191,7 @@
     document.body.appendChild(modalEl);
 
     modalEl.addEventListener('click', function (e) {
+      if (modalEl.dataset.obligatorio === 'true') return;
       if (e.target.closest('[data-jdm-close]')) {
         e.preventDefault();
         cerrarModal();
@@ -80,6 +201,10 @@
     document.addEventListener('keydown', function (e) {
       if (!modalEl || modalEl.hidden) return;
       if (e.key === 'Escape') {
+        if (modalEl.dataset.obligatorio === 'true') {
+          e.preventDefault();
+          return;
+        }
         e.preventDefault();
         cerrarModal();
       }
@@ -104,10 +229,14 @@
     footer.innerHTML = '';
   }
 
-  function cerrarModal() {
+  function cerrarModal(forzar) {
     if (!modalEl) return;
+    if (!forzar && modalEl.dataset.obligatorio === 'true') return;
+    modalEl.dataset.obligatorio = 'false';
     modalEl.hidden = true;
     document.body.style.overflow = '';
+    var closeBtn = modalEl.querySelector('.jdm-close');
+    if (closeBtn) closeBtn.style.display = 'flex';
     if (lastFocusEl && typeof lastFocusEl.focus === 'function') {
       try { lastFocusEl.focus(); } catch (err) {}
     }
@@ -153,7 +282,7 @@
   // ─────────────────────────────────────────────────────────────
   async function cargarContratoDigital(url, triggerBtn) {
     abrirModal('');
-    setHeader('CONTRATACIÓN // CONTRATO DIGITAL', 'Cargando contrato…');
+    setHeader('ACUERDO LEGAL DE CONTRATACIÓN', 'Cargando contrato…');
 
     try {
       var res = await fetch(url, {
@@ -164,92 +293,99 @@
       var c = data.contrato || (data.id ? data : null);
       if (!c) throw new Error(data.error || 'No se pudo obtener el contrato');
 
-      var cEstadoLabel = c.estado_label || c.estado_display || c.estado || '';
-      setHeader('CONTRATACIÓN // CONTRATO DIGITAL', c.codigo + ' — ' + c.proyecto_titulo, 'Estado: ' + cEstadoLabel);
+      setHeader('ACUERDO LEGAL DE CONTRATACIÓN', 'Contrato Digital #' + (c.codigo || ''), 'Proyecto: ' + (c.proyecto_titulo || ''));
 
-      var estadoCls = c.estado === 'firmado' ? 'jdm-badge-success' : (c.estado === 'borrador' ? 'jdm-badge-warning' : 'jdm-badge-info');
+      var estadoCls = c.estado === 'firmado' ? 'jdm-badge-success' : 'jdm-badge-gray';
 
       var html =
-        '<div class="jdm-contract-meta">' +
-          '<div class="jdm-meta-box">' +
-            '<div class="jdm-meta-label">Código Contrato</div>' +
-            '<div class="jdm-meta-value accent">' + escapeHtml(c.codigo) + '</div>' +
+        '<div class="jdm-contract-meta-bar">' +
+          '<div class="jdm-meta-item"><span class="jdm-meta-label">Monto</span> <span class="jdm-meta-val">' + escapeHtml(c.monto_formateado || ('$' + c.monto)) + '</span></div>' +
+          '<span class="meta-dot">·</span>' +
+          '<div class="jdm-meta-item"><span class="jdm-meta-label">Emisión</span> <span class="jdm-meta-val">' + escapeHtml(c.fecha_creacion) + '</span></div>' +
+          '<span class="meta-dot">·</span>' +
+          '<div class="jdm-meta-item"><span class="jdm-meta-label">Estado</span> <span class="jdm-badge ' + estadoCls + '">' + escapeHtml(c.estado_label) + '</span></div>' +
+        '</div>' +
+
+        '<div class="jdm-contract-parties">' +
+          '<div class="jdm-party-item">' +
+            '<span class="jdm-party-label"><i data-lucide="building"></i> Empresa Contratante</span>' +
+            '<span class="jdm-party-name">' + escapeHtml(c.empresa_nombre) + '</span>' +
+            '<span class="jdm-party-status">' +
+              (c.firmado_empresa ? '<span class="jdm-sign-ok"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_empresa || '') + ')</span>' : '<span class="jdm-sign-wait"><i data-lucide="clock"></i> Pendiente de firma</span>') +
+            '</span>' +
           '</div>' +
-          '<div class="jdm-meta-box">' +
-            '<div class="jdm-meta-label">Monto Acordado</div>' +
-            '<div class="jdm-meta-value accent">' + escapeHtml(c.monto_formateado || ('$' + c.monto)) + '</div>' +
-          '</div>' +
-          '<div class="jdm-meta-box">' +
-            '<div class="jdm-meta-label">Fecha de Emisión</div>' +
-            '<div class="jdm-meta-value">' + escapeHtml(c.fecha_creacion) + '</div>' +
-          '</div>' +
-          '<div class="jdm-meta-box">' +
-            '<div class="jdm-meta-label">Estado Legal</div>' +
-            '<div class="jdm-meta-value"><span class="jdm-badge ' + estadoCls + '">' + escapeHtml(c.estado_label) + '</span></div>' +
+          '<div class="jdm-party-divider"></div>' +
+          '<div class="jdm-party-item">' +
+            '<span class="jdm-party-label"><i data-lucide="code-2"></i> Desarrollador / Contratista</span>' +
+            '<span class="jdm-party-name">' + escapeHtml(c.desarrollador_nombre) + '</span>' +
+            '<span class="jdm-party-status" id="jdmDevSignStatus">' +
+              (c.firmado_desarrollador ? '<span class="jdm-sign-ok"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_desarrollador || '') + ')</span>' : '<span class="jdm-sign-urgent"><i data-lucide="file-signature"></i> Pendiente de tu firma</span>') +
+            '</span>' +
           '</div>' +
         '</div>' +
 
-        '<div class="jdm-parties-grid">' +
-          '<div class="jdm-party-card">' +
-            '<div class="jdm-party-role">[ EMPRESA CONTRATANTE ]</div>' +
-            '<div class="jdm-party-name">' + escapeHtml(c.empresa_nombre) + '</div>' +
-            '<div class="jdm-party-status">' +
-              (c.firmado_empresa ? '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_empresa || '') + ')</span>' : '<span style="color:#fbbf24;"><i data-lucide="clock"></i> Pendiente de firma</span>') +
-            '</div>' +
-          '</div>' +
-          '<div class="jdm-party-card">' +
-            '<div class="jdm-party-role">[ DESARROLLADOR / APRENDIZ ]</div>' +
-            '<div class="jdm-party-name">' + escapeHtml(c.desarrollador_nombre) + '</div>' +
-            '<div class="jdm-party-status" id="jdmDevSignStatus">' +
-              (c.firmado_desarrollador ? '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado (' + escapeHtml(c.fecha_firma_desarrollador || '') + ')</span>' : '<span style="color:#f87171;"><i data-lucide="file-signature"></i> Pendiente de tu firma</span>') +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-
-        '<div class="jdm-form-label"><i data-lucide="scroll"></i> Cláusulas y Términos del Acuerdo</div>' +
-        '<div class="jdm-clauses-container">';
+        '<div class="jdm-clauses-doc">' +
+          '<div class="jdm-doc-title"><i data-lucide="file-text"></i> Términos y Cláusulas del Acuerdo</div>';
 
       var clausulasArr = Array.isArray(c.clausulas) ? c.clausulas : (typeof c.clausulas === 'string' && c.clausulas.trim() ? [c.clausulas] : []);
       if (clausulasArr.length) {
         clausulasArr.forEach(function (clausula, i) {
-          html += '<div class="jdm-clause-item"><strong>CLÁUSULA ' + (i + 1) + '.</strong> ' + escapeHtml(clausula) + '</div>';
+          var limpia = String(clausula).replace(/^\d+[\.\)]\s*/, '').replace(/^CLÁUSULA\s*\d+[\.\:]\s*/i, '');
+          html += '<div class="jdm-clause-item"><span class="jdm-clause-num">Cláusula ' + (i + 1) + '.</span> <span class="jdm-clause-text">' + escapeHtml(limpia) + '</span></div>';
         });
       } else {
-        html += '<p>Sin cláusulas adicionales registradas.</p>';
+        html += '<p style="color:#71717a; font-size:12.5px;">Sin cláusulas adicionales registradas.</p>';
       }
       html += '</div>';
 
       var perfil = c.perfil_profesional;
-      html += '<div class="jdm-clauses-container"><strong>Perfil profesional de la postulación</strong>';
       if (perfil) {
-        html += '<p style="margin:6px 0 10px;opacity:.8;">' + (c.hash_documento ? 'Datos conservados en la primera firma.' : 'Vista previa: se conservará en la primera firma.') + '</p>' +
-          '<div class="jdm-clause-item"><strong>Nombre:</strong> ' + escapeHtml(perfil.nombre) + '</div>' +
-          '<div class="jdm-clause-item"><strong>Verificación SENA:</strong> ' + escapeHtml(perfil.estado_verificacion) + ' · ' + escapeHtml(perfil.condicion_sena) + '</div>' +
-          '<div class="jdm-clause-item"><strong>Programa:</strong> ' + escapeHtml(perfil.programa_formacion || 'No registrado') + '</div>' +
-          '<div class="jdm-clause-item"><strong>Ficha:</strong> ' + escapeHtml(perfil.ficha || 'No registrada') + '</div>' +
-          '<div class="jdm-clause-item"><strong>Habilidades:</strong> ' + escapeHtml(perfil.habilidades || 'No registradas') + '</div>' +
-          (perfil.portafolio_url ? '<div class="jdm-clause-item"><strong>Portafolio:</strong> ' + escapeHtml(perfil.portafolio_url) + '</div>' : '') +
-          '<div class="jdm-clause-item" style="white-space:pre-wrap;"><strong>Mensaje de presentación:</strong>\n' + escapeHtml(perfil.mensaje_postulacion || 'Sin mensaje') + '</div>';
-      } else {
-        html += '<p>Contrato anterior sin evidencia de perfil conservada.</p>';
-      }
-      html += '</div>';
-
-      if (c.puede_firmar) {
         html +=
-          '<div class="jdm-sign-callout" id="jdmSignCallout">' +
-            '<div>' +
-              '<strong style="color:#00e676;display:block;margin-bottom:2px;"><i data-lucide="fingerprint"></i> Firma electrónica lista para emitir</strong>' +
-              '<span style="font-size:12px;color:#a0a0a0;">Al firmar aceptas los términos, plazos, retribución y el perfil profesional mostrado.</span>' +
+          '<details class="jdm-contract-profile-details">' +
+            '<summary class="jdm-contract-profile-summary">' +
+              '<span><i data-lucide="user-check"></i> Datos de postulación vinculados</span>' +
+              '<i data-lucide="chevron-down" style="width:13px; height:13px;"></i>' +
+            '</summary>' +
+            '<div class="jdm-contract-profile-body">' +
+              '<p style="margin:0 0 6px; font-size:11.5px; color:#71717a;">' + (c.hash_documento ? 'Evidencia técnica conservada en la formalización.' : 'Vista previa de la ficha que se conservará en la firma.') + '</p>' +
+              '<div><strong>Nombre:</strong> ' + escapeHtml(perfil.nombre) + '</div>' +
+              '<div><strong>Condición SENA:</strong> ' + escapeHtml(perfil.estado_verificacion) + ' · ' + escapeHtml(perfil.condicion_sena) + '</div>' +
+              (perfil.programa_formacion ? '<div><strong>Programa:</strong> ' + escapeHtml(perfil.programa_formacion) + '</div>' : '') +
+              (perfil.ficha ? '<div><strong>Ficha:</strong> ' + escapeHtml(perfil.ficha) + '</div>' : '') +
+              (perfil.habilidades ? '<div><strong>Habilidades:</strong> ' + escapeHtml(perfil.habilidades) + '</div>' : '') +
+              (perfil.portafolio_url ? '<div><strong>Portafolio:</strong> <a href="' + escapeHtml(perfil.portafolio_url) + '" target="_blank" rel="noopener" style="color:#ffffff; text-decoration:underline;">' + escapeHtml(perfil.portafolio_url) + '</a></div>' : '') +
+              (perfil.mensaje_postulacion ? '<div style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.08); white-space:pre-wrap;"><strong>Mensaje:</strong>\n' + escapeHtml(perfil.mensaje_postulacion) + '</div>' : '') +
             '</div>' +
-            '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url || c.url_firmar || '') + '">' +
-              '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora' +
-            '</button>' +
-          '</div>';
+          '</details>';
       }
 
       setContent(html);
-      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+
+      var footerHtml = '<div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:14px; flex-wrap:wrap;">';
+      if (c.puede_firmar) {
+        footerHtml +=
+          '<div class="jdm-footer-note">' +
+            '<i data-lucide="shield-check" style="width:15px; height:15px; color:var(--accent, #00713f); flex-shrink:0;"></i>' +
+            '<span>Al firmar formalizas legalmente este acuerdo vinculante.</span>' +
+          '</div>' +
+          '<div style="display:inline-flex; gap:10px; margin-left:auto;">' +
+            '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>' +
+            '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="' + escapeHtml(c.firma_url || c.url_firmar || '') + '">' +
+              '<i data-lucide="file-signature"></i> Firmar Contrato Digitalmente' +
+            '</button>' +
+          '</div>';
+      } else {
+        footerHtml +=
+          '<div class="jdm-footer-note">' +
+            '<i data-lucide="shield-check" style="width:14px; height:14px; color:var(--accent, #00713f); flex-shrink:0;"></i>' +
+            '<span>Documento digital registrado y protegido por JobDevs.</span>' +
+          '</div>' +
+          '<div style="display:inline-flex; gap:10px; margin-left:auto;">' +
+            '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>' +
+          '</div>';
+      }
+      footerHtml += '</div>';
+      setFooter(footerHtml);
 
       var btnFirmar = document.getElementById('jdmBtnFirmar');
       if (btnFirmar) {
@@ -272,26 +408,33 @@
             var signData = await signRes.json();
             if (signData.ok) {
               mostrarToast(signData.mensaje || '¡Contrato firmado exitosamente!');
-              var callout = document.getElementById('jdmSignCallout');
-              if (callout) callout.remove();
               var devStatus = document.getElementById('jdmDevSignStatus');
               if (devStatus) {
-                devStatus.innerHTML = '<span style="color:#00e676;"><i data-lucide="check-check"></i> Firmado ahora</span>';
+                devStatus.innerHTML = '<span class="jdm-sign-ok"><i data-lucide="check-check"></i> Firmado ahora</span>';
+              }
+              var f = document.getElementById('jdmFooter');
+              if (f) {
+                f.innerHTML =
+                  '<div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:14px; flex-wrap:wrap;">' +
+                    '<span class="jdm-sign-ok" style="font-size:12px;">' +
+                      '<i data-lucide="check-check" style="width:15px; height:15px;"></i> Has firmado este contrato con éxito.' +
+                    '</span>' +
+                    '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>' +
+                  '</div>';
+                if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
               }
               if (triggerBtn) {
-                triggerBtn.classList.remove('btn-primary');
-                triggerBtn.classList.add('btn-secondary');
                 triggerBtn.innerHTML = '<i data-lucide="file-signature"></i> Ver Contrato';
               }
             } else {
               mostrarToast(signData.mensaje || signData.error || 'No se pudo firmar el contrato.', true);
               btnFirmar.disabled = false;
-              btnFirmar.innerHTML = '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora';
+              btnFirmar.innerHTML = '<i data-lucide="file-signature"></i> Firmar Contrato Digitalmente';
             }
           } catch (err) {
             mostrarToast('Error de conexión al firmar.', true);
             btnFirmar.disabled = false;
-            btnFirmar.innerHTML = '<i data-lucide="pen-tool"></i> Firmar Contrato Ahora';
+            btnFirmar.innerHTML = '<i data-lucide="file-signature"></i> Firmar Contrato Digitalmente';
           }
         });
       }
@@ -307,24 +450,24 @@
   // ─────────────────────────────────────────────────────────────
   async function cargarAvances(url) {
     abrirModal('jdm-card-lg');
-    setHeader('PROYECTO // GESTIÓN DE AVANCES', 'Cargando avances…');
+    setHeader('HISTORIAL DE ENTREGAS', 'Cargando avances…');
 
     try {
       var res = await fetch(url, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         credentials: 'same-origin'
       });
-      var data = await res.json();
-      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudieron obtener los avances');
+      var data = await parseJsonResponse(res, 'No se pudieron obtener los avances (respuesta inesperada del servidor).');
+      if (!data.ok || !data.proyecto) throw new Error(data.error || data.mensaje || 'No se pudieron obtener los avances');
 
       var p = data.proyecto;
-      setHeader('PROYECTO // HISTORIAL Y AVANCES', p.titulo, 'Empresa: ' + p.empresa + ' · Estado: ' + p.estado_label);
+      setHeader('HISTORIAL DE ENTREGAS', p.titulo, 'Empresa: ' + p.empresa + ' · Estado: ' + p.estado_label);
 
       var html =
         '<div class="jdm-progress-header">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;font-family:\'JetBrains Mono\',monospace;font-size:12px;">' +
-            '<span style="color:#a0a0a0;">PROGRESO GENERAL</span>' +
-            '<span style="color:#00e676;font-weight:700;">' + p.progreso + '% (' + p.hitos_completados + ' / ' + p.hitos_totales + ' hitos completados)</span>' +
+          '<div class="jdm-progress-top-row">' +
+            '<span class="jdm-progress-lbl">PROGRESO GENERAL</span>' +
+            '<span class="jdm-progress-pct">' + p.progreso + '% (' + p.hitos_completados + ' / ' + p.hitos_totales + ' hitos completados)</span>' +
           '</div>' +
           '<div class="jdm-progress-bar-bg">' +
             '<div class="jdm-progress-bar-fill" style="width:' + p.progreso + '%;"></div>' +
@@ -332,22 +475,23 @@
         '</div>';
 
       if (data.hitos && data.hitos.length) {
-        html += '<div class="jdm-form-label"><i data-lucide="list-check"></i> Hitos del Proyecto</div><div class="jdm-hitos-scroll">';
+        html += '<div class="jdm-clean-label"><i data-lucide="list-check"></i> Hitos del Proyecto</div><div class="jdm-hitos-scroll">';
         data.hitos.forEach(function (h) {
-          var icon = h.estado === 'completado' ? 'check-circle" style="color:#00e676;' : (h.estado === 'en_revision' ? 'clock" style="color:#fbbf24;' : 'circle" style="color:#666666;');
+          var iconCls = h.estado === 'completado' ? 'is-done' : (h.estado === 'en_revision' ? 'is-rev' : 'is-wait');
+          var iconName = h.estado === 'completado' ? 'check-circle-2' : (h.estado === 'en_revision' ? 'clock' : 'circle');
           html +=
-            '<div class="jdm-hito-pill">' +
-              '<i data-lucide="' + icon + '"></i>' +
+            '<div class="jdm-hito-pill ' + iconCls + '">' +
+              '<i data-lucide="' + iconName + '"></i>' +
               '<div>' +
-                '<strong>' + escapeHtml(h.titulo) + '</strong>' +
-                '<div style="font-size:10px;color:#a0a0a0;">' + escapeHtml(h.estado_label) + '</div>' +
+                '<strong class="jdm-hito-pill-title">' + escapeHtml(h.titulo) + '</strong>' +
+                '<div class="jdm-hito-pill-state">' + escapeHtml(h.estado_label) + '</div>' +
               '</div>' +
             '</div>';
         });
         html += '</div>';
       }
 
-      html += '<div class="jdm-form-label"><i data-lucide="git-branch"></i> Registro de Entregas y Evidencias (' + (data.avances ? data.avances.length : 0) + ')</div>';
+      html += '<div class="jdm-clean-label"><i data-lucide="git-branch"></i> Registro de Entregas y Evidencias (' + (data.avances ? data.avances.length : 0) + ')</div>';
 
       if (data.avances && data.avances.length) {
         html += '<div class="jdm-advances-feed">';
@@ -358,7 +502,7 @@
               '<div class="jdm-advance-head">' +
                 '<div>' +
                   '<div class="jdm-advance-title">' + escapeHtml(a.entregable_titulo) + '</div>' +
-                  '<div style="font-size:11px;color:#a0a0a0;font-family:\'JetBrains Mono\',monospace;">Por ' + escapeHtml(a.desarrollador) + ' · ' + escapeHtml(a.fecha) + '</div>' +
+                  '<div class="jdm-advance-meta">Por ' + escapeHtml(a.desarrollador) + ' · ' + escapeHtml(a.fecha) + '</div>' +
                 '</div>' +
                 '<span class="jdm-badge ' + badgeCls + '">' + escapeHtml(a.estado_label) + '</span>' +
               '</div>' +
@@ -413,17 +557,17 @@
   // ─────────────────────────────────────────────────────────────
   async function cargarFormularioAvance(url) {
     abrirModal('');
-    setHeader('PROYECTO // REGISTRAR AVANCE', 'Cargando hitos pendientes…');
+    setHeader('GESTIÓN DE ENTREGABLES', 'Registrar Avance Técnico', 'Cargando hitos pendientes…');
 
     try {
       var res = await fetch(url, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         credentials: 'same-origin'
       });
-      var data = await res.json();
-      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudieron consultar los hitos');
+      var data = await parseJsonResponse(res, 'No se pudieron consultar los hitos (respuesta inesperada del servidor).');
+      if (!data.ok || !data.proyecto) throw new Error(data.error || data.mensaje || 'No se pudieron consultar los hitos');
 
-      setHeader('PROYECTO // NUEVA ENTREGA', data.proyecto.titulo, 'Completa la información de avance y adjunta tu evidencia');
+      setHeader('GESTIÓN DE ENTREGABLES', 'Registrar Avance Técnico', 'Proyecto: ' + data.proyecto.titulo);
 
       var options = '<option value="">-- Selecciona el hito a reportar --</option>';
       if (data.hitos_pendientes && data.hitos_pendientes.length) {
@@ -535,22 +679,35 @@
   // ─────────────────────────────────────────────────────────────
   // 4. CALIFICAR EMPRESA
   // ─────────────────────────────────────────────────────────────
-  async function cargarCalificarEmpresa(url, triggerBtn) {
+  async function cargarCalificarEmpresa(url, triggerBtn, esObligatorio) {
     abrirModal('jdm-card-sm');
-    setHeader('PROYECTO // VALORACIÓN', 'Cargando calificación…');
+    if (modalEl) modalEl.dataset.obligatorio = esObligatorio ? 'true' : 'false';
+    var closeBtn = modalEl ? modalEl.querySelector('.jdm-close') : null;
+    if (closeBtn) closeBtn.style.display = esObligatorio ? 'none' : 'flex';
+
+    setHeader(
+      esObligatorio ? 'EVALUACIÓN OBLIGATORIA' : 'PROYECTO // VALORACIÓN',
+      'Cargando calificación…'
+    );
 
     try {
       var res = await fetch(url, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         credentials: 'same-origin'
       });
-      var data = await res.json();
-      if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudo cargar la valoración');
+      var data = await parseJsonResponse(res, 'No se pudo cargar la valoración (respuesta inesperada del servidor).');
+      if (!data.ok || !data.proyecto) throw new Error(data.error || data.mensaje || 'No se pudo cargar la valoración');
 
       var p = data.proyecto;
-      setHeader('VALORAR EMPRESA', p.empresa, 'Proyecto: ' + p.titulo);
+      setHeader(
+        esObligatorio ? 'EVALUACIÓN OBLIGATORIA' : 'VALORAR EMPRESA',
+        p.empresa,
+        'Proyecto finalizado: ' + p.titulo
+      );
 
       if (data.ya_califico) {
+        if (modalEl) modalEl.dataset.obligatorio = 'false';
+        if (closeBtn) closeBtn.style.display = 'flex';
         setContent(
           '<div style="text-align:center;padding:24px 10px;">' +
             '<i data-lucide="check-circle" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;"></i>' +
@@ -562,8 +719,16 @@
         return;
       }
 
+      var avisoHtml = esObligatorio
+        ? '<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:6px;background:rgba(255,171,0,0.08);border:1px solid rgba(255,171,0,0.3);color:#ffab00;font-size:12.5px;margin-bottom:16px;line-height:1.45;">' +
+            '<i data-lucide="shield-alert" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;"></i>' +
+            '<div><strong>Evaluación requerida:</strong> El proyecto ha finalizado. Para continuar navegando en tu panel, califica tu experiencia colaborando con la empresa.</div>' +
+          '</div>'
+        : '';
+
       var html =
         '<form id="jdmFormCalificar" novalidate>' +
+          avisoHtml +
           '<div id="jdmCalificarError" class="jdm-error" style="display:none;"></div>' +
           '<div class="jdm-rating-container">' +
             '<div class="jdm-stars-row" id="jdmStars">' +
@@ -585,10 +750,19 @@
         '</form>';
 
       setContent(html);
-      setFooter(
-        '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i data-lucide="star"></i> Enviar Calificación</button>'
-      );
+
+      if (esObligatorio) {
+        setFooter(
+          '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion" style="width:100%;justify-content:center;">' +
+            '<i data-lucide="star"></i> Enviar Calificación Obligatoria' +
+          '</button>'
+        );
+      } else {
+        setFooter(
+          '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
+          '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i data-lucide="star"></i> Enviar Calificación</button>'
+        );
+      }
 
       var puntuacionVal = 0;
       var stars = document.querySelectorAll('#jdmStars .jdm-star-btn');
@@ -666,12 +840,16 @@
           var resJson = await postRes.json();
           if (resJson.ok) {
             mostrarToast(resJson.mensaje || '¡Calificación enviada!');
-            cerrarModal();
+            cerrarModal(true);
             if (triggerBtn) {
-              triggerBtn.classList.remove('btn-primary');
+              triggerBtn.classList.remove('btn-primary', 'primary');
               triggerBtn.classList.add('btn-secondary');
-              triggerBtn.innerHTML = '<i data-lucide="star" style="color:#00e676;"></i> Calificada (' + puntuacionVal + '/5)';
+              triggerBtn.innerHTML = '<i data-lucide="check-circle-2" style="color:#00e676;"></i> Empresa calificada (' + puntuacionVal + '/5)';
               triggerBtn.disabled = true;
+            }
+            document.querySelectorAll('.calificar-popup-overlay').forEach(function(p) { p.remove(); });
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              window.lucide.createIcons();
             }
           } else {
             errBox.style.display = 'flex';
@@ -688,6 +866,9 @@
       });
 
     } catch (err) {
+      if (modalEl) modalEl.dataset.obligatorio = 'false';
+      var closeBtnError = modalEl ? modalEl.querySelector('.jdm-close') : null;
+      if (closeBtnError) closeBtnError.style.display = 'flex';
       setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }
@@ -716,61 +897,185 @@
         : '<span class="jdm-badge jdm-badge-gray"><i data-lucide="shield"></i> ' + escapeHtml(e.badge_label || 'Sin verificar') + '</span>';
 
       var initial = (e.nombre || 'E').slice(0, 1).toUpperCase();
+      var avatarInner = e.logo_url
+        ? '<img src="' + escapeHtml(e.logo_url) + '" alt="' + escapeHtml(e.nombre) + '" class="jdm-empresa-logo-img">'
+        : escapeHtml(initial);
 
       var html =
         '<div class="jdm-empresa-header">' +
-          '<div class="jdm-empresa-avatar">' + escapeHtml(initial) + '</div>' +
+          '<div class="jdm-empresa-avatar">' + avatarInner + '</div>' +
           '<div>' +
-            '<div style="font-size:16px;font-weight:700;color:#ffffff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+            '<div class="jdm-empresa-name">' +
               escapeHtml(e.nombre) + ' ' + badgeHtml +
             '</div>' +
-            '<div style="font-size:12px;color:#a0a0a0;margin-top:2px;">@' + escapeHtml(e.username) + ' · ' + escapeHtml(e.sector) + ' (' + escapeHtml(e.ciudad) + ')</div>' +
+            '<div class="jdm-empresa-meta">@' + escapeHtml(e.username) + ' · ' + escapeHtml(e.sector) + ' (' + escapeHtml(e.ciudad) + ')</div>' +
           '</div>' +
         '</div>' +
 
-        '<div class="jdm-empresa-stats">' +
-          '<div class="jdm-stat-card">' +
-            '<div class="jdm-stat-value">⭐ ' + e.reputacion + '</div>' +
-            '<div class="jdm-stat-label">Reputación</div>' +
+        '<div class="jdm-empresa-stats-flat">' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">⭐ ' + e.reputacion + '</span>' +
+            '<span class="jdm-stat-lbl">Reputación</span>' +
           '</div>' +
-          '<div class="jdm-stat-card">' +
-            '<div class="jdm-stat-value">' + e.total_resenas + '</div>' +
-            '<div class="jdm-stat-label">Reseñas</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + e.total_resenas + '</span>' +
+            '<span class="jdm-stat-lbl">Reseñas</span>' +
           '</div>' +
-          '<div class="jdm-stat-card">' +
-            '<div class="jdm-stat-value">' + e.proyectos_activos + '</div>' +
-            '<div class="jdm-stat-label">Activos</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + e.proyectos_activos + '</span>' +
+            '<span class="jdm-stat-lbl">Activos</span>' +
           '</div>' +
-          '<div class="jdm-stat-card">' +
-            '<div class="jdm-stat-value">' + e.proyectos_finalizados + '</div>' +
-            '<div class="jdm-stat-label">Finalizados</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + e.proyectos_finalizados + '</span>' +
+            '<span class="jdm-stat-lbl">Finalizados</span>' +
           '</div>' +
         '</div>' +
 
-        '<div class="jdm-form-label"><i data-lucide="building"></i> Acerca de la empresa</div>' +
-        '<div style="background:#030604;border:1px solid #14221a;border-radius:4px;padding:14px;font-size:13px;line-height:1.6;color:#c0d0c6;margin-bottom:18px;">' +
-          escapeHtml(e.descripcion) +
+        '<div class="jdm-section-clean">' +
+          '<div class="jdm-clean-label"><i data-lucide="building"></i> Acerca de la empresa</div>' +
+          '<p class="jdm-clean-desc">' +
+            escapeHtml(e.descripcion || 'Sin descripción corporativa registrada.') +
+          '</p>' +
         '</div>' +
 
-        '<div class="jdm-form-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
+        '<div class="jdm-section-clean">' +
+          '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
 
       if (e.resenas && e.resenas.length) {
-        html += '<div style="display:flex;flex-direction:column;gap:10px;">';
+        html += '<div class="jdm-resenas-flat-list">';
         e.resenas.forEach(function (r) {
           html +=
-            '<div style="background:#050a07;border:1px solid #14221a;border-radius:4px;padding:12px 14px;">' +
-              '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px;">' +
-                '<strong>' + escapeHtml(r.desarrollador) + ' <span style="font-size:11px;color:#a0a0a0;font-weight:400;">en ' + escapeHtml(r.proyecto_titulo) + '</span></strong>' +
-                '<span style="color:#00e676;font-family:\'JetBrains Mono\',monospace;font-weight:700;">⭐ ' + r.puntuacion + '/5</span>' +
+            '<div class="jdm-resena-flat-item">' +
+              '<div class="jdm-resena-header">' +
+                '<strong class="jdm-resena-author">' + escapeHtml(r.desarrollador) + ' <span class="jdm-resena-project">en ' + escapeHtml(r.proyecto_titulo) + '</span></strong>' +
+                '<span class="jdm-resena-rating">⭐ ' + r.puntuacion + '/5</span>' +
               '</div>' +
-              '<div style="font-size:12.5px;color:#c0d0c6;font-style:italic;">"' + escapeHtml(r.comentario) + '"</div>' +
-              '<div style="font-size:10px;color:#666666;font-family:\'JetBrains Mono\',monospace;margin-top:4px;">' + escapeHtml(r.fecha) + '</div>' +
+              '<p class="jdm-resena-comment">"' + escapeHtml(r.comentario) + '"</p>' +
+              '<div class="jdm-resena-date">' + escapeHtml(r.fecha) + '</div>' +
             '</div>';
         });
         html += '</div>';
       } else {
-        html += '<div class="jdm-empty"><i data-lucide="message-square-off"></i>Aún no registra reseñas de proyectos finalizados.</div>';
+        html += '<div class="jdm-empty" style="padding:16px 0;"><i data-lucide="message-square-off"></i>Aún no registra reseñas de proyectos finalizados.</div>';
       }
+
+      html += '</div>';
+
+      setContent(html);
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+
+    } catch (err) {
+      setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
+      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 5B. DETALLE PÚBLICO DE DESARROLLADOR (IN-SITU)
+  // ─────────────────────────────────────────────────────────────
+  async function cargarDetalleDesarrollador(url) {
+    abrirModal('');
+    setHeader('TALENTO SENA // PERFIL PÚBLICO', 'Cargando perfil profesional…');
+
+    try {
+      var res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await parseJsonResponse(res, 'No se pudo obtener el perfil del desarrollador.');
+      if (!data.ok || !data.desarrollador) throw new Error(data.error || 'No se pudo obtener el perfil del desarrollador');
+
+      var d = data.desarrollador;
+      setHeader('TALENTO SENA // PERFIL PÚBLICO', d.nombre, d.programa_formacion + ' · Ficha ' + d.ficha);
+
+      var badgeHtml = d.es_verificado_sena
+        ? '<span class="jdm-badge jdm-badge-success"><i data-lucide="check-circle"></i> ' + escapeHtml(d.badge_label || 'Verificado SENA') + '</span>'
+        : '<span class="jdm-badge jdm-badge-gray"><i data-lucide="id-card"></i> ' + escapeHtml(d.badge_label || 'Sin verificar') + '</span>';
+
+      var initial = (d.nombre || 'D').slice(0, 1).toUpperCase();
+      var avatarInner = d.foto_url
+        ? '<img src="' + escapeHtml(d.foto_url) + '" alt="' + escapeHtml(d.nombre) + '" class="jdm-empresa-logo-img">'
+        : escapeHtml(initial);
+
+      var html =
+        '<div class="jdm-empresa-header">' +
+          '<div class="jdm-empresa-avatar">' + avatarInner + '</div>' +
+          '<div>' +
+            '<div class="jdm-empresa-name">' +
+              escapeHtml(d.nombre) + ' ' + badgeHtml +
+            '</div>' +
+            '<div class="jdm-empresa-meta">@' + escapeHtml(d.username) + ' · ' + escapeHtml(d.condicion_sena) + ' SENA (' + escapeHtml(d.programa_formacion) + ')</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-empresa-stats-flat">' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">⭐ ' + d.reputacion + '</span>' +
+            '<span class="jdm-stat-lbl">Reputación</span>' +
+          '</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + d.total_resenas + '</span>' +
+            '<span class="jdm-stat-lbl">Reseñas</span>' +
+          '</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + d.proyectos_activos + '</span>' +
+            '<span class="jdm-stat-lbl">Activos</span>' +
+          '</div>' +
+          '<div class="jdm-stat-flat-divider"></div>' +
+          '<div class="jdm-stat-flat">' +
+            '<span class="jdm-stat-val">' + d.proyectos_finalizados + '</span>' +
+            '<span class="jdm-stat-lbl">Finalizados</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="jdm-section-clean">' +
+          '<div class="jdm-clean-label"><i data-lucide="award"></i> Habilidades Técnicas</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      if (d.habilidades && d.habilidades.length) {
+        d.habilidades.forEach(function (hab) {
+          html += '<span class="jdm-badge jdm-badge-gray" style="text-transform:none;font-size:11.5px;">' + escapeHtml(hab) + '</span>';
+        });
+      } else {
+        html += '<span style="font-size:12.5px;color:var(--text-muted,#94a3b8);">Sin habilidades técnicas registradas.</span>';
+      }
+      html += '</div></div>';
+
+      if (d.portafolio_url) {
+        html += '<div class="jdm-section-clean">' +
+          '<div class="jdm-clean-label"><i data-lucide="globe"></i> Portafolio / Repositorio</div>' +
+          '<a href="' + escapeHtml(d.portafolio_url) + '" target="_blank" rel="noopener" class="jdm-advance-attachment">' +
+            '<i data-lucide="external-link"></i> ' + escapeHtml(d.portafolio_url) +
+          '</a>' +
+        '</div>';
+      }
+
+      html += '<div class="jdm-section-clean">' +
+        '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Valoraciones de Empresas (' + (d.resenas ? d.resenas.length : 0) + ')</div>';
+
+      if (d.resenas && d.resenas.length) {
+        html += '<div class="jdm-resenas-flat-list">';
+        d.resenas.forEach(function (r) {
+          html +=
+            '<div class="jdm-resena-flat-item">' +
+              '<div class="jdm-resena-header">' +
+                '<strong class="jdm-resena-author">' + escapeHtml(r.empresa) + ' <span class="jdm-resena-project">en ' + escapeHtml(r.proyecto_titulo) + '</span></strong>' +
+                '<span class="jdm-resena-rating">⭐ ' + r.puntuacion + '/5</span>' +
+              '</div>' +
+              '<p class="jdm-resena-comment">"' + escapeHtml(r.comentario) + '"</p>' +
+              '<div class="jdm-resena-date">' + escapeHtml(r.fecha) + '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="jdm-empty" style="padding:16px 0;"><i data-lucide="message-square-off"></i>Aún no registra valoraciones de empresas contratantes.</div>';
+      }
+
+      html += '</div>';
 
       setContent(html);
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
@@ -803,28 +1108,28 @@
 
       var html =
         '<div class="jdm-disputa-summary">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">' +
+          '<div class="jdm-disputa-summary-top">' +
             '<div>' +
               '<span class="jdm-badge ' + estadoCls + '">' + escapeHtml(d.estado_label) + '</span> ' +
               '<span class="jdm-badge jdm-badge-gray">' + escapeHtml(d.categoria) + '</span>' +
             '</div>' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#a0a0a0;">Iniciada por: <strong style="color:#ffffff;">' + escapeHtml(d.iniciado_por) + '</strong></div>' +
+            '<div class="jdm-disputa-iniciado">Iniciada por: <strong>' + escapeHtml(d.iniciado_por) + '</strong></div>' +
           '</div>' +
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;font-size:12px;color:#a0a0a0;border-top:1px dashed #14221a;padding-top:8px;">' +
-            '<div>Empresa: <strong style="color:#ffffff;">' + escapeHtml(d.empresa) + '</strong></div>' +
-            '<div>Desarrollador: <strong style="color:#ffffff;">' + escapeHtml(d.desarrollador) + '</strong></div>' +
-            '<div>Mediador JobDevs: <strong style="color:#00e676;">' + escapeHtml(d.mediador) + '</strong></div>' +
+          '<div class="jdm-disputa-parties-grid">' +
+            '<div>Empresa: <strong>' + escapeHtml(d.empresa) + '</strong></div>' +
+            '<div>Desarrollador: <strong>' + escapeHtml(d.desarrollador) + '</strong></div>' +
+            '<div>Mediador JobDevs: <strong>' + escapeHtml(d.mediador) + '</strong></div>' +
           '</div>' +
-          '<div style="margin-top:10px;font-size:12.5px;color:#c0d0c6;background:#050a07;border-radius:4px;padding:8px 12px;border:1px solid #14221a;">' +
+          '<div class="jdm-disputa-motivo-box">' +
             '<strong>Motivo de apertura:</strong> ' + escapeHtml(d.motivo) +
-            (d.evidencia_url ? '<div style="margin-top:4px;"><a href="' + escapeHtml(d.evidencia_url) + '" target="_blank" rel="noopener" style="color:#00e676;font-size:11px;font-family:\'JetBrains Mono\',monospace;"><i data-lucide="link"></i> Ver enlace de evidencia</a></div>' : '') +
+            (d.evidencia_url ? '<div style="margin-top:4px;"><a href="' + escapeHtml(d.evidencia_url) + '" target="_blank" rel="noopener" class="jdm-disputa-evidencia-link"><i data-lucide="link"></i> Ver enlace de evidencia</a></div>' : '') +
           '</div>';
 
       if (d.resolucion) {
         html +=
-          '<div style="margin-top:10px;padding:12px 14px;background:rgba(0,230,118,0.08);border:1px solid #00e676;border-radius:4px;">' +
-            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#00e676;font-weight:700;"><i data-lucide="gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: ' + escapeHtml(d.resolucion) + '</div>' +
-            (d.dictamen ? '<div style="margin-top:4px;font-size:12px;color:#e6f4ec;">Dictamen: ' + escapeHtml(d.dictamen) + '</div>' : '') +
+          '<div class="jdm-disputa-resolucion-box">' +
+            '<div class="jdm-resolucion-header"><i data-lucide="gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: ' + escapeHtml(d.resolucion) + '</div>' +
+            (d.dictamen ? '<div class="jdm-resolucion-dictamen">Dictamen: ' + escapeHtml(d.dictamen) + '</div>' : '') +
           '</div>';
       }
 
@@ -943,7 +1248,14 @@
             return;
           }
 
-          if (!confirm('¿Confirmas la emisión definitiva de esta resolución arbitral? Esta acción es irreversible.')) {
+          var confirmado = await confirmarAccion({
+            kicker: 'RESOLUCIÓN ARBITRAL VINCULANTE',
+            titulo: 'Confirmar Emisión de Dictamen',
+            mensaje: '¿Confirmas la emisión definitiva de esta resolución arbitral? Esta acción es irreversible y aplicará efectos inmediatos sobre el contrato.',
+            textoConfirmar: 'Emitir Resolución',
+            peligro: true
+          });
+          if (!confirmado) {
             return;
           }
 
@@ -992,7 +1304,7 @@
   // ─────────────────────────────────────────────────────────────
   async function cargarFormularioAbrirDisputa(url) {
     abrirModal('');
-    setHeader('DISPUTAS // FORMALIZAR ARBITRAJE', 'Consultando proyecto…');
+    setHeader('ARBITRAJE CONTRACTUAL', 'Consultando proyecto…');
 
     try {
       var res = await fetch(url, {
@@ -1003,7 +1315,7 @@
       if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudo consultar el proyecto');
 
       var p = data.proyecto;
-      setHeader('INICIAR DISPUTA FORMAL', p.titulo, 'Empresa: ' + p.empresa);
+      setHeader('ARBITRAJE CONTRACTUAL', 'Apertura de Mediación Formal', 'Proyecto: ' + escapeHtml(p.titulo) + ' · Empresa: ' + escapeHtml(p.empresa));
 
       var catOptions = '<option value="">-- Selecciona causal de disputa --</option>';
       if (data.categorias && data.categorias.length) {
@@ -1016,9 +1328,14 @@
         '<form id="jdmFormNuevaDisputa" novalidate>' +
           '<div id="jdmDisputaError" class="jdm-error" style="display:none;"></div>' +
 
-          '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);padding:12px 14px;border-radius:4px;margin-bottom:16px;font-size:12.5px;color:#fca5a5;">' +
-            '<i data-lucide="alert-triangle" style="margin-right:6px;color:#ef4444;"></i>' +
-            '<strong>Importante:</strong> La mediación <strong>congela de inmediato</strong> el proyecto y su contratación hasta el dictamen. Fuerza mayor permite revisión sin atribuir incumplimiento ni generar sanciones automáticas; las demás causales corresponden a conflictos graves.' +
+          '<div style="background:rgba(255, 255, 255, 0.015); border:1px solid rgba(255, 255, 255, 0.08); border-radius:10px; padding:14px 18px; margin-bottom:18px;">' +
+            '<div style="display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#f87171; margin-bottom:6px;">' +
+              '<i data-lucide="alert-triangle" style="width:14px; height:14px; color:#f87171;"></i>' +
+              '<span>Efectos Contractuales del Arbitraje</span>' +
+            '</div>' +
+            '<p style="font-size:12.5px; line-height:1.6; color:#94a3b8; margin:0;">' +
+              'La mediación <strong>congela de inmediato</strong> el proyecto y su contratación hasta la emisión del dictamen final. Fuerza mayor permite revisión neutral sin atribuir incumplimiento ni sanciones automáticas.' +
+            '</p>' +
           '</div>' +
 
           '<div class="jdm-form-group">' +
@@ -1028,26 +1345,34 @@
 
           '<div class="jdm-form-group">' +
             '<label class="jdm-form-label" for="jdmMotivoDisputa">Motivo y hechos detallados <span class="req">*</span></label>' +
-            '<textarea id="jdmMotivoDisputa" name="motivo" class="jdm-textarea" placeholder="Describe los hechos y los intentos de llegar a un acuerdo…" required></textarea>' +
+            '<textarea id="jdmMotivoDisputa" name="motivo" class="jdm-textarea" placeholder="Describe los hechos y los intentos de acuerdo previo…" required></textarea>' +
           '</div>' +
 
           '<div class="jdm-form-group">' +
             '<label class="jdm-form-label" for="jdmEvidenciaDisputa">Enlace a pruebas o evidencias (opcional)</label>' +
-            '<input type="url" id="jdmEvidenciaDisputa" name="evidencia_url" class="jdm-input" placeholder="https://drive.google.com/... o captura">' +
+            '<input type="url" id="jdmEvidenciaDisputa" name="evidencia_url" class="jdm-input" placeholder="https://drive.google.com/... o enlace de evidencias">' +
           '</div>' +
 
-          '<label class="jdm-form-group"><input type="checkbox" name="confirma_intento_previo" required> Intenté llegar a un acuerdo por los canales de comunicación.</label>' +
-          '<label class="jdm-form-group" id="jdmDeclaracionGravedad"><input type="checkbox" name="confirma_gravedad" required> Declaro que existe un conflicto grave que requiere mediación.</label>' +
-          '<div style="margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#c0d0c6;">' +
-            '<input type="checkbox" id="jdmAceptaSanciones" name="acepta_sanciones" style="margin-top:3px;" required>' +
-            '<label for="jdmAceptaSanciones">Acepto las reglas de mediación y comprendo que el proyecto quedará congelado hasta el dictamen. Alegar fuerza mayor no supone culpa ni sanción automática.</label>' +
+          '<div style="background:rgba(255, 255, 255, 0.015); border:1px solid rgba(255, 255, 255, 0.08); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:10px; margin-top:16px;">' +
+            '<label style="display:flex; align-items:flex-start; gap:10px; font-size:12.5px; color:#cbd5e1; cursor:pointer;">' +
+              '<input type="checkbox" name="confirma_intento_previo" style="margin-top:3px;" required>' +
+              '<span>Intenté llegar a un acuerdo por los canales de comunicación directos.</span>' +
+            '</label>' +
+            '<label style="display:flex; align-items:flex-start; gap:10px; font-size:12.5px; color:#cbd5e1; cursor:pointer;" id="jdmDeclaracionGravedad">' +
+              '<input type="checkbox" name="confirma_gravedad" style="margin-top:3px;" required>' +
+              '<span>Declaro que existe un conflicto grave que requiere la intervención de un mediador.</span>' +
+            '</label>' +
+            '<label style="display:flex; align-items:flex-start; gap:10px; font-size:12.5px; color:#cbd5e1; cursor:pointer;">' +
+              '<input type="checkbox" id="jdmAceptaSanciones" name="acepta_sanciones" style="margin-top:3px;" required>' +
+              '<span>Acepto las reglas de mediación y comprendo que el proyecto quedará congelado hasta el dictamen arbitral vinculante.</span>' +
+            '</label>' +
           '</div>' +
         '</form>';
 
       setContent(html);
       setFooter(
         '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-danger" id="jdmBtnConfirmarDisputa"><i data-lucide="gavel"></i> Abrir Disputa Formal</button>'
+        '<button type="button" class="jdm-btn" id="jdmBtnConfirmarDisputa" style="background:#e11d48; color:#ffffff; font-weight:600; border:1px solid rgba(225, 29, 72, 0.4);"><i data-lucide="gavel"></i> Abrir Disputa Formal</button>'
       );
 
       var btnConf = document.getElementById('jdmBtnConfirmarDisputa');
@@ -1182,6 +1507,18 @@
       return;
     }
 
+    // 5B. Detalle Desarrollador
+    var btnDev = e.target.closest('[data-abrir-desarrollador]');
+    if (btnDev) {
+      e.preventDefault();
+      var urlDev = btnDev.getAttribute('data-url') || btnDev.getAttribute('href');
+      if (typeof window.cerrarModalPerfilDev === 'function') {
+        window.cerrarModalPerfilDev();
+      }
+      if (urlDev) cargarDetalleDesarrollador(urlDev);
+      return;
+    }
+
     // 6. Sala de Disputa
     var btnDisputa = e.target.closest('[data-abrir-sala-disputa]');
     if (btnDisputa) {
@@ -1201,6 +1538,37 @@
     }
   });
 
+  // Interceptor global para formularios con data-confirm (reemplaza onsubmit="return confirm(...)")
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || !form.hasAttribute('data-confirm')) return;
+    if (form.dataset.confirmed === 'true') {
+      form.dataset.confirmed = '';
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+
+    var msg = form.getAttribute('data-confirm');
+    var title = form.getAttribute('data-confirm-title') || 'Confirmar acción';
+    var danger = form.getAttribute('data-confirm-danger') !== 'false';
+
+    confirmarAccion({
+      titulo: title,
+      mensaje: msg,
+      peligro: danger
+    }).then(function (ok) {
+      if (ok) {
+        form.dataset.confirmed = 'true';
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else {
+          form.submit();
+        }
+      }
+    });
+  }, true);
+
   // Exportar API global
   window.JdDashboardModals = {
     abrirContrato: cargarContratoDigital,
@@ -1208,8 +1576,10 @@
     abrirRegistrarAvance: cargarFormularioAvance,
     abrirCalificar: cargarCalificarEmpresa,
     abrirEmpresa: cargarDetalleEmpresa,
+    abrirDesarrollador: cargarDetalleDesarrollador,
     abrirSalaDisputa: cargarSalaDisputa,
     abrirFormularioDisputa: cargarFormularioAbrirDisputa,
+    confirmar: confirmarAccion,
     cerrar: cerrarModal,
     toast: mostrarToast
   };

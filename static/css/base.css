@@ -21,3 +21,12 @@ select,
 textarea {
     color: inherit;
 }
+
+[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+    background-color: #0b0c0e !important;
+    color: #ededed !important;
+}

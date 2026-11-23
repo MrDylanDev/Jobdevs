@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/avances.css' %}">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v25">
 </head>
 <body>
 <div class="app-layout">
@@ -129,10 +130,12 @@
                 <i data-lucide="shield" style="width:14px; height:14px;"></i>
                 <span>Continuación Administrativa</span>
               </div>
-              <form method="post" action="{% url 'admin_reactivar_proyecto' proyecto.id %}">
+              <form method="post" action="{% url 'admin_reactivar_proyecto' proyecto.id %}"
+                    data-confirm-title="Crear proyecto sucesor"
+                    data-confirm-danger="false"
+                    data-confirm="¿Crear un proyecto sucesor? El cierre y los contratos originales permanecerán intactos.">
                 {% csrf_token %}
                 <button type="submit"
-                  onclick="return confirm('¿Crear un proyecto sucesor? El cierre y los contratos originales permanecerán intactos.')"
                   class="btn-corp-action secondary btn-sm" style="width:100%; justify-content:center; color:#b45309; border-color:#f59e0b;">
                   <i data-lucide="rotate-ccw"></i>
                   <span>Crear proyecto sucesor</span>
@@ -356,7 +359,7 @@
                   </div>
                 </div>
                 {% if hito.estado == 'pendiente' %}
-                  <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de eliminar este hito?');">
+                  <form method="post" action="{% url 'eliminar_hito' hito.id %}" style="display:inline; margin:0;" data-confirm-title="Eliminar hito" data-confirm="¿Estás seguro de eliminar este hito?">
                     {% csrf_token %}
                     <button type="submit" class="btn-corp-action danger-subtle" title="Eliminar hito" style="padding:6px 10px;">
                       <i data-lucide="trash-2"></i>
@@ -428,5 +431,6 @@
     window.lucide.createIcons();
   }
 </script>
+<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v21"></script>
 </body>
 </html>

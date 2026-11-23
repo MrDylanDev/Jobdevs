@@ -80,6 +80,7 @@ class TestApiConversacion:
         data = response.json()
         assert data['receptor']['id'] == empresa_user.id
         assert data['receptor']['nombre'] == empresa_user.nombre
+        assert 'foto_url' in data['receptor']
         assert data['proyecto']['id'] == contratacion.proyecto.id
         assert data['puede_escribir'] is True
         assert len(data['mensajes']) == 1

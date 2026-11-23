@@ -92,7 +92,8 @@
         <div id="panelResolucion" class="disp-collapse">
           <form method="post" action="{% url 'disputas:resolver_disputa' disputa.pk %}" novalidate
                 style="padding-top:16px;"
-                onsubmit="return confirm('Esta resolución es vinculante e irreversible: ejecutará cambios automáticos sobre el proyecto, la contratación y las cuentas involucradas. ¿Deseas continuar?');">
+                data-confirm-title="Emitir Resolución Vinculante"
+                data-confirm="Esta resolución es vinculante e irreversible: ejecutará cambios automáticos sobre el proyecto, la contratación y las cuentas involucradas. ¿Deseas continuar?">
             {% csrf_token %}
             <div class="form-group">
               <label for="resolucion" class="form-label">Resolución</label>

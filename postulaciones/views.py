@@ -201,9 +201,12 @@ def postularse_a_proyecto(request, proyecto_id):
         )
 
     if request.method == 'POST':
+        perfil = getattr(request.user, 'perfil_desarrollador', None)
         carta = (request.POST.get('carta') or '').strip()
         experiencia = (request.POST.get('experiencia') or '').strip()
         link = (request.POST.get('link') or '').strip()
+        if not link and perfil and perfil.portafolio_url:
+            link = perfil.portafolio_url
 
         if not carta:
             return fallo("La carta de presentación es obligatoria.", status=400)
@@ -234,7 +237,7 @@ def postularse_a_proyecto(request, proyecto_id):
                         status=409,
                     )
 
-                Postulacion.objects.create(
+                postulacion = Postulacion.objects.create(
                     proyecto=proyecto,
                     desarrollador=request.user,
                     mensaje=mensaje,
@@ -253,10 +256,32 @@ def postularse_a_proyecto(request, proyecto_id):
                 )
 
             if ajax:
+                from django.utils.formats import date_format
+                from django.urls import reverse
+                perfil_emp = getattr(proyecto.empresa, 'perfil_empresa', None)
+                empresa_logo = perfil_emp.logo.url if (perfil_emp and perfil_emp.logo) else None
+                empresa_nombre = (perfil_emp.nombre_empresa if perfil_emp and perfil_emp.nombre_empresa else '') or proyecto.empresa.nombre or proyecto.empresa.username
                 return JsonResponse({
                     'ok': True,
                     'mensaje': f"¡Te has postulado al proyecto '{proyecto.titulo}'!",
                     'proyecto_id': proyecto.id,
+                    'postulacion': {
+                        'id': postulacion.id,
+                        'fecha': date_format(timezone.localtime(postulacion.fecha), 'd/m/Y'),
+                        'estado': postulacion.estado,
+                        'estado_display': postulacion.get_estado_display(),
+                        'proyecto': {
+                            'id': proyecto.id,
+                            'titulo': proyecto.titulo,
+                            'tipo_solucion': proyecto.get_tipo_solucion_display() or proyecto.tipo_solucion,
+                            'modalidad': proyecto.get_modalidad_display() or proyecto.modalidad,
+                            'empresa_id': proyecto.empresa_id,
+                            'empresa_nombre': empresa_nombre,
+                            'empresa_logo': empresa_logo,
+                            'detalle_empresa_url': reverse('detalle_empresa', args=[proyecto.empresa_id]),
+                            'detalle_proyecto_url': reverse('api_detalle_proyecto', args=[proyecto.id]),
+                        }
+                    }
                 })
 
             messages.success(request, f"¡Te has postulado al proyecto '{proyecto.titulo}'!")

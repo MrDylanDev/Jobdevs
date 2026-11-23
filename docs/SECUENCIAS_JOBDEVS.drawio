@@ -1,0 +1,640 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="jobdevs-sequence-generator" agent="scripts/generate_sequence_diagrams.py" version="24.0.0" type="device">
+  <diagram id="seq-1" name="01 - Negociación y contratación con doble firma">
+    <mxGraphModel dx="1880" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-1" value="&lt;b&gt;JobDevs · Diagrama de secuencia&lt;/b&gt;&lt;br&gt;01 - Negociación y contratación con doble firma" style="text;html=1;align=left;verticalAlign=middle;fontSize=23;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1790" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-0" value="Empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-0" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="184" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-1" value="UI / navegador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-1" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="454" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-2" value="Vista de negociación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-2" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="724" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-3" value="BD / transacción" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-3" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="994" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-4" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-4" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1264" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-1-5" value="Desarrollador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-1-5" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1534" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="m-1-0" value="Selecciona candidatura e inicia negociación" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="210" as="sourcePoint" />
+            <mxPoint x="455" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-1" value="POST /postulaciones/iniciar-negociacion/&lt;id&gt;/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="282" as="sourcePoint" />
+            <mxPoint x="725" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-2" value="Valida rol, titularidad, estado y cupo; bloquea proyecto/postulación" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="354" as="sourcePoint" />
+            <mxPoint x="995" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-3" value="Reserva cupo: postulación=en_negociacion; plazo congelado; crea contrato" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="426" as="sourcePoint" />
+            <mxPoint x="725" y="426" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-4" value="Crea avisos de negociación y firma pendiente" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="498" as="sourcePoint" />
+            <mxPoint x="1265" y="498" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-5" value="Notifica negociación y plazo para revisar/firma" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1265" y="570" as="sourcePoint" />
+            <mxPoint x="1535" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-6" value="Responde OK; abre chat/contrato" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="642" as="sourcePoint" />
+            <mxPoint x="455" y="642" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-7" value="Edita términos y firma como empresa" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="714" as="sourcePoint" />
+            <mxPoint x="455" y="714" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-8" value="POST /contrataciones/contrato-digital/&lt;id&gt;/firmar/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="786" as="sourcePoint" />
+            <mxPoint x="725" y="786" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-9" value="Guarda primera firma y snapshot/hash; NO activa" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="858" as="sourcePoint" />
+            <mxPoint x="995" y="858" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-10" value="Revisa contrato y firma" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1535" y="930" as="sourcePoint" />
+            <mxPoint x="455" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-11" value="POST firma del desarrollador" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="1002" as="sourcePoint" />
+            <mxPoint x="725" y="1002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-12" value="Valida segunda firma y activa contratación atómicamente" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="1074" as="sourcePoint" />
+            <mxPoint x="995" y="1074" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-1-13" value="Notifica contrato activo a las partes" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="1146" as="sourcePoint" />
+            <mxPoint x="1265" y="1146" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note-1-0" value="La primera firma nunca activa el contrato." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-1-1" value="La activación requiere ambas firmas, reserva válida y transacción exitosa." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-2" name="02 - Registro y revisión de avance">
+    <mxGraphModel dx="1880" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-2" value="&lt;b&gt;JobDevs · Diagrama de secuencia&lt;/b&gt;&lt;br&gt;02 - Registro y revisión de avance" style="text;html=1;align=left;verticalAlign=middle;fontSize=23;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1790" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-0" value="Desarrollador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-0" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="184" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-1" value="UI / navegador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-1" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="454" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-2" value="Vista de avances" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-2" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="724" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-3" value="BD / transacción" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-3" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="994" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-4" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-4" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1264" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-2-5" value="Empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-2-5" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1534" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="m-2-0" value="Abre proyecto activo y formulario de avance" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="210" as="sourcePoint" />
+            <mxPoint x="455" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-1" value="POST /avances/registrar/&lt;proyecto_id&gt;/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="282" as="sourcePoint" />
+            <mxPoint x="725" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-2" value="Verifica desarrollador contratado, proyecto activo e hito pendiente" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="354" as="sourcePoint" />
+            <mxPoint x="995" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-3" value="Valida descripción obligatoria y URL/archivo opcionales" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="799" y="426" as="sourcePoint" />
+            <mxPoint x="855" y="448" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-4" value="Crea avance pendiente; hito=en_revision" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="498" as="sourcePoint" />
+            <mxPoint x="995" y="498" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-5" value="Crea aviso para empresa" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="570" as="sourcePoint" />
+            <mxPoint x="1265" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-6" value="Notifica avance pendiente de revisión" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1265" y="642" as="sourcePoint" />
+            <mxPoint x="1535" y="642" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-7" value="Revisa avance y elige aceptar/rechazar" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1535" y="714" as="sourcePoint" />
+            <mxPoint x="455" y="714" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-8" value="POST /avances/revisar/&lt;avance_id&gt;/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="786" as="sourcePoint" />
+            <mxPoint x="725" y="786" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-9" value="Bloquea avance/proyecto y revalida estado" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="858" as="sourcePoint" />
+            <mxPoint x="995" y="858" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-10" value="Aceptar: avance aceptado, hito completado; rechazar: hito pendiente" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="930" as="sourcePoint" />
+            <mxPoint x="725" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-11" value="Si es último hito: finaliza proyecto y contratos" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="1002" as="sourcePoint" />
+            <mxPoint x="995" y="1002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-2-12" value="Notifica decisión al desarrollador" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="1074" as="sourcePoint" />
+            <mxPoint x="1265" y="1074" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note-2-0" value="Un rechazo exige comentario y devuelve el hito a pendiente." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-2-1" value="La aprobación del último hito dispara el cierre transaccional." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-3" name="03 - Cancelación justificada y mediación">
+    <mxGraphModel dx="1880" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-3" value="&lt;b&gt;JobDevs · Diagrama de secuencia&lt;/b&gt;&lt;br&gt;03 - Cancelación justificada y mediación" style="text;html=1;align=left;verticalAlign=middle;fontSize=23;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1790" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-0" value="Parte solicitante" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-0" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="184" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-1" value="UI / navegador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-1" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="454" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-2" value="Servicio de cancelación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-2" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="724" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-3" value="BD / transacción" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-3" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="994" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-4" value="Contraparte" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-4" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1264" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-3-5" value="Administrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-3-5" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1534" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="m-3-0" value="Propone cancelación con causal y datos requeridos" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="210" as="sourcePoint" />
+            <mxPoint x="455" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-1" value="POST /contrataciones/cancelar/&lt;id&gt;/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="282" as="sourcePoint" />
+            <mxPoint x="725" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-2" value="Valida contrato, actor, causal, evidencia/declaración" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="354" as="sourcePoint" />
+            <mxPoint x="995" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-3" value="Crea solicitud pendiente; no libera cupo ni cancela" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="426" as="sourcePoint" />
+            <mxPoint x="725" y="426" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-4" value="Notifica solicitud a contraparte" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="498" as="sourcePoint" />
+            <mxPoint x="1265" y="498" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-5" value="Confirma o rechaza según causal" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1265" y="570" as="sourcePoint" />
+            <mxPoint x="455" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-6" value="POST /contrataciones/cancelaciones/&lt;id&gt;/resolver/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="642" as="sourcePoint" />
+            <mxPoint x="725" y="642" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-7" value="Confirma acuerdo o conserva solicitud para revisión" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="714" as="sourcePoint" />
+            <mxPoint x="995" y="714" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-8" value="Ante desacuerdo/fuerza mayor/inactividad abre mediación" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="786" as="sourcePoint" />
+            <mxPoint x="455" y="786" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-9" value="POST /disputas/abrir/&lt;proyecto_id&gt;/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="858" as="sourcePoint" />
+            <mxPoint x="725" y="858" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-10" value="Crea disputa; congela contrato/proyecto y conserva cupo" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="930" as="sourcePoint" />
+            <mxPoint x="995" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-11" value="Notifica expediente y evidencia privada" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="1002" as="sourcePoint" />
+            <mxPoint x="1535" y="1002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-12" value="Revisa evidencia y emite dictamen" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1535" y="1074" as="sourcePoint" />
+            <mxPoint x="725" y="1074" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-3-13" value="Resuelve: continuidad, terminación o sanción" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="1146" as="sourcePoint" />
+            <mxPoint x="995" y="1146" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note-3-0" value="Solicitud o silencio no cancelan automáticamente." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-3-1" value="La evidencia privada se descarga solo tras autorización por expediente." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-4" name="04 - Cierre irreversible y proyecto sucesor">
+    <mxGraphModel dx="1880" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-4" value="&lt;b&gt;JobDevs · Diagrama de secuencia&lt;/b&gt;&lt;br&gt;04 - Cierre irreversible y proyecto sucesor" style="text;html=1;align=left;verticalAlign=middle;fontSize=23;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1790" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-0" value="Empresa" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-0" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="184" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-1" value="UI / navegador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-1" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="454" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-2" value="Revisión / servicio" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-2" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="724" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-3" value="BD / transacción" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-3" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="994" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-4" value="Desarrolladores" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-4" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1264" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-4-5" value="Administrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-4-5" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1534" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="m-4-0" value="Aprueba avance final" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="210" as="sourcePoint" />
+            <mxPoint x="455" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-1" value="POST revisión de avance" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="282" as="sourcePoint" />
+            <mxPoint x="725" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-2" value="Marca último hito completado y verifica que no queden pendientes" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="354" as="sourcePoint" />
+            <mxPoint x="995" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-3" value="Finaliza proyecto y contratos; registra historial/auditoría" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="426" as="sourcePoint" />
+            <mxPoint x="725" y="426" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-4" value="Notifica cierre y habilita valoraciones posteriores" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="498" as="sourcePoint" />
+            <mxPoint x="1265" y="498" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-5" value="Crea proyecto sucesor si continúa el trabajo" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="570" as="sourcePoint" />
+            <mxPoint x="455" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-6" value="Acción autorizada desde el flujo de cierre" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="642" as="sourcePoint" />
+            <mxPoint x="725" y="642" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-7" value="Crea nuevo proyecto vinculado al original" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="714" as="sourcePoint" />
+            <mxPoint x="995" y="714" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-8" value="Preserva proyecto/contratos originales como finalizados" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="786" as="sourcePoint" />
+            <mxPoint x="725" y="786" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-9" value="Regulariza cierre histórico solo con evidencia" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1535" y="858" as="sourcePoint" />
+            <mxPoint x="725" y="858" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-4-10" value="Registra fecha, actor, motivo y referencia de evidencia" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="930" as="sourcePoint" />
+            <mxPoint x="995" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note-4-0" value="No existe reactivación del proyecto finalizado para continuar trabajo." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-4-1" value="Las valoraciones se realizan después del cierre real." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-5" name="05 - Solicitud y resolución de verificación">
+    <mxGraphModel dx="1880" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-5" value="&lt;b&gt;JobDevs · Diagrama de secuencia&lt;/b&gt;&lt;br&gt;05 - Solicitud y resolución de verificación" style="text;html=1;align=left;verticalAlign=middle;fontSize=23;fontColor=#243449;" vertex="1" parent="1">
+          <mxGeometry x="45" y="20" width="1790" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-0" value="Empresa o desarrollador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-0" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="184" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-1" value="UI / navegador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-1" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="454" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-2" value="Vista de verificación" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-2" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="724" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-3" value="BD / almacenamiento" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-3" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="994" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-4" value="Administrador" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-4" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1264" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="p-5-5" value="Notificaciones" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fillColor=#E8F2FA;strokeColor=#5B88A5;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="112" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="life-5-5" value="" style="shape=line;strokeColor=#9AAABB;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1534" y="164" width="1" height="1260" as="geometry" />
+        </mxCell>
+        <mxCell id="m-5-0" value="Completa perfil y solicitud de verificación" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="185" y="210" as="sourcePoint" />
+            <mxPoint x="455" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-1" value="POST /empresa/verificacion/ o /desarrollador/verificacion/" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="282" as="sourcePoint" />
+            <mxPoint x="725" y="282" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-2" value="Valida rol, datos y documento de soporte" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="354" as="sourcePoint" />
+            <mxPoint x="995" y="354" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-3" value="Persiste solicitud y estado pendiente" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="426" as="sourcePoint" />
+            <mxPoint x="725" y="426" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-4" value="Notifica solicitud al panel administrativo" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="498" as="sourcePoint" />
+            <mxPoint x="1535" y="498" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-5" value="Abre panel, revisa datos y documento autorizado" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1265" y="570" as="sourcePoint" />
+            <mxPoint x="455" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-6" value="POST resolver verificación" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="455" y="642" as="sourcePoint" />
+            <mxPoint x="725" y="642" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-7" value="Guarda aprobar, rechazar o solicitar soporte" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="725" y="714" as="sourcePoint" />
+            <mxPoint x="995" y="714" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-8" value="Notifica resultado al titular" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="786" as="sourcePoint" />
+            <mxPoint x="1535" y="786" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m-5-9" value="Muestra badge/estado actualizado" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=blockThin;strokeColor=#536B84;fontSize=11;labelBackgroundColor=#FFFFFF;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1535" y="858" as="sourcePoint" />
+            <mxPoint x="185" y="858" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note-5-0" value="La revisión documental no prueba por sí sola consulta externa a RUES/Cámara." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-5-1" value="El acceso al documento de soporte se autoriza por rol y perfil." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;fillColor=#FFF2CC;strokeColor=#B99456;fontSize=11;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1490" width="810" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

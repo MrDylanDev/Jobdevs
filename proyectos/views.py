@@ -163,9 +163,19 @@ def listar_proyectos(request):
 
 @login_required
 def crear_proyecto(request):
+    es_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in (request.headers.get('Accept') or '')
+    )
+
+    def responder_error(msg):
+        if es_ajax:
+            return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+        messages.error(request, msg)
+        return redirect(reverse('dashboard_empresa') + '#ofertas')
+
     if request.user.rol != 'empresa':
-        messages.error(request, "Solo las empresas pueden publicar proyectos.")
-        return redirect('dashboard_empresa')
+        return responder_error("Solo las empresas pueden publicar proyectos.")
 
     categorias_solucion = CategoriaSolucion.objects.filter(activo=True)
 
@@ -177,14 +187,12 @@ def crear_proyecto(request):
                 vacantes = 0
 
             if vacantes < 1:
-                messages.error(request, "Las vacantes deben ser un número mayor o igual a 1.")
-                return redirect('dashboard_empresa')
+                return responder_error("Las vacantes deben ser un número mayor o igual a 1.")
 
             tipo_solucion = request.POST.get('tipo_solucion')
             categoria = categorias_solucion.filter(slug=tipo_solucion).first()
             if categoria is None and tipo_solucion not in dict(Proyecto.TIPO_SOLUCION):
-                messages.error(request, "Error: el tipo de solución seleccionado no es válido.")
-                return redirect('dashboard_empresa')
+                return responder_error("Error: el tipo de solución seleccionado no es válido.")
 
             # Hallazgo 9: Validar que fecha_limite no sea en el pasado
             fecha_limite = request.POST.get('fecha_limite') or None
@@ -192,24 +200,19 @@ def crear_proyecto(request):
                 try:
                     fecha_limite_dt = datetime.strptime(fecha_limite, '%Y-%m-%d').date()
                     if fecha_limite_dt < timezone.now().date():
-                        messages.error(request, "La fecha límite no puede ser anterior a la fecha actual.")
-                        return redirect('dashboard_empresa')
+                        return responder_error("La fecha límite no puede ser anterior a la fecha actual.")
                 except ValueError:
-                    messages.error(request, "Formato de fecha límite inválido.")
-                    return redirect('dashboard_empresa')
+                    return responder_error("Formato de fecha límite inválido.")
 
             fecha_cumplimiento = (request.POST.get('fecha_cumplimiento') or '').strip()
             if not fecha_cumplimiento:
-                messages.error(request, "La fecha de cumplimiento es obligatoria.")
-                return redirect('dashboard_empresa')
+                return responder_error("La fecha de cumplimiento es obligatoria.")
             try:
                 fecha_cumplimiento_dt = datetime.strptime(fecha_cumplimiento, '%Y-%m-%d').date()
                 if fecha_cumplimiento_dt < timezone.localdate():
-                    messages.error(request, "La fecha de cumplimiento no puede estar en el pasado.")
-                    return redirect('dashboard_empresa')
+                    return responder_error("La fecha de cumplimiento no puede estar en el pasado.")
             except ValueError:
-                messages.error(request, "Formato de fecha de cumplimiento inválido.")
-                return redirect('dashboard_empresa')
+                return responder_error("Formato de fecha de cumplimiento inválido.")
 
             prioridad = request.POST.get('prioridad', 'media')
             if prioridad not in dict(Proyecto.PRIORIDAD):
@@ -242,14 +245,24 @@ def crear_proyecto(request):
             proyecto.full_clean(exclude=['tipo_solucion'])
             proyecto.save()
             proyecto.registrar_cambio_estado('publicado', request.user, estado_anterior=None)
-            messages.success(request, f"¡Proyecto '{proyecto.titulo}' publicado exitosamente!")
-            return redirect('dashboard_empresa')
+
+            msg_exito = f"¡Proyecto '{proyecto.titulo}' publicado exitosamente!"
+            if es_ajax:
+                return JsonResponse({
+                    'ok': True,
+                    'mensaje': msg_exito,
+                    'proyecto_id': proyecto.id,
+                    'redirect_url': reverse('dashboard_empresa') + '#ofertas',
+                })
+
+            messages.success(request, msg_exito)
+            return redirect(reverse('dashboard_empresa') + '#ofertas')
         except ValidationError as ve:
-            messages.error(request, f"Error de validación: {', '.join(ve.messages)}")
+            return responder_error(f"Error de validación: {', '.join(ve.messages)}")
         except Exception as e:
-            messages.error(request, f"Error: {e}")
-            
-    return redirect('dashboard_empresa')
+            return responder_error(f"Error: {e}")
+
+    return redirect(reverse('dashboard_empresa') + '#ofertas')
 
 @login_required
 def finalizar_proyecto(request, proyecto_id):
@@ -358,23 +371,41 @@ def finalizar_proyecto(request, proyecto_id):
 @login_required
 def calificar_empresa(request, proyecto_id):
     """Permite al desarrollador calificar a la empresa tras finalizar un proyecto"""
+    es_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in (request.headers.get('Accept') or '')
+        or request.POST.get('origen') == 'dashboard'
+    )
+
     if request.user.rol != 'desarrollador':
+        if es_ajax:
+            return JsonResponse(
+                {'ok': False, 'error': 'Acceso denegado.', 'mensaje': 'Acceso denegado.'},
+                status=403,
+            )
         return redirect('inicio')
-    
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='finalizado')
-    contratacion = get_object_or_404(Contratacion, proyecto=proyecto, desarrollador=request.user)
+
+    if es_ajax:
+        proyecto = Proyecto.objects.filter(id=proyecto_id, estado='finalizado').first()
+        if not proyecto:
+            msg = 'El proyecto no existe o aún no ha finalizado.'
+            return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+        contratacion = Contratacion.objects.filter(proyecto=proyecto, desarrollador=request.user).first()
+        if not contratacion:
+            msg = 'No tienes una contratación asociada a este proyecto.'
+            return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+    else:
+        proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='finalizado')
+        contratacion = get_object_or_404(Contratacion, proyecto=proyecto, desarrollador=request.user)
 
     try:
         services.validar_plazo_valoracion(proyecto)
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages))
+        msg = ' '.join(exc.messages)
+        if es_ajax:
+            return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=400)
+        messages.error(request, msg)
         return redirect('dashboard_desarrollador')
-
-    es_ajax = (
-        request.headers.get('x-requested-with') == 'XMLHttpRequest'
-        or request.headers.get('Accept') == 'application/json'
-        or request.POST.get('origen') == 'dashboard'
-    )
 
     if request.method == 'GET' and es_ajax:
         ya_califico = Valoracion.objects.filter(
@@ -1060,10 +1091,11 @@ def api_detalle_proyecto(request, proyecto_id):
     user = request.user
     es_admin = user.rol == 'administrador'
     es_empresa = user.rol == 'empresa' and proyecto.empresa_id == user.id
-    es_dev = user.rol == 'desarrollador' and (
-        Contratacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
-        or Postulacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
-    )
+    esta_contratado = Contratacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
+    tiene_postulacion = Postulacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
+    es_publicado = proyecto.estado == 'publicado'
+
+    es_dev = user.rol == 'desarrollador' and (esta_contratado or tiene_postulacion or es_publicado)
     if not (es_admin or es_empresa or es_dev):
         return JsonResponse(
             {'ok': False, 'mensaje': 'No tienes permisos para ver este proyecto.'},
@@ -1086,17 +1118,20 @@ def api_detalle_proyecto(request, proyecto_id):
     progreso = round((completados / total_hitos) * 100) if total_hitos else 0
 
     contrataciones_qs = proyecto.contrataciones.select_related('desarrollador').order_by('fecha_inicio')
-    contrataciones = [
-        {
-            'id': c.id,
-            'desarrollador': c.desarrollador.nombre or c.desarrollador.username,
-            'username': c.desarrollador.username,
-            'estado': c.estado,
-            'estado_label': c.get_estado_display(),
-        }
-        for c in contrataciones_qs
-    ]
-    num_desarrolladores = len(contrataciones)
+    if es_admin or es_empresa or esta_contratado:
+        contrataciones = [
+            {
+                'id': c.id,
+                'desarrollador': c.desarrollador.nombre or c.desarrollador.username,
+                'username': c.desarrollador.username,
+                'estado': c.estado,
+                'estado_label': c.get_estado_display(),
+            }
+            for c in contrataciones_qs
+        ]
+    else:
+        contrataciones = []
+    num_desarrolladores = contrataciones_qs.count()
 
     perfil_empresa = getattr(proyecto.empresa, 'perfil_empresa', None)
     badge = perfil_empresa.badge_info if perfil_empresa else None
@@ -1136,17 +1171,33 @@ def api_detalle_proyecto(request, proyecto_id):
                 'icono': 'user-plus', 'estilo': 'secondary',
             })
     else:
-        acciones.append({
-            'label': 'Ver historial completo', 'url': reverse('ver_avances', args=[proyecto.id]),
-            'icono': 'git-branch', 'estilo': 'primary',
-        })
-        if proyecto.estado == 'en_desarrollo':
+        # Desarrollador
+        if esta_contratado:
             acciones.append({
-                'label': 'Registrar avance', 'url': reverse('registrar_avance', args=[proyecto.id]),
-                'icono': 'pen', 'estilo': 'secondary',
+                'label': 'Ver historial completo', 'url': reverse('ver_avances', args=[proyecto.id]),
+                'icono': 'git-branch', 'estilo': 'primary',
+            })
+            if proyecto.estado == 'en_desarrollo':
+                acciones.append({
+                    'label': 'Registrar avance', 'url': reverse('registrar_avance', args=[proyecto.id]),
+                    'icono': 'pen', 'estilo': 'secondary',
+                })
+        elif tiene_postulacion:
+            acciones.append({
+                'label': 'Ver mi postulación',
+                'url': reverse('dashboard_desarrollador') + '#postulaciones',
+                'icono': 'send',
+                'estilo': 'secondary',
+            })
+        elif es_publicado and proyecto.acepta_postulaciones and proyecto.vacantes_disponibles > 0:
+            acciones.append({
+                'label': 'Postularme',
+                'url': reverse('postularse_a_proyecto', args=[proyecto.id]),
+                'icono': 'send',
+                'estilo': 'primary',
             })
 
-    if num_desarrolladores >= 2:
+    if num_desarrolladores >= 2 and (es_admin or es_empresa or esta_contratado):
         acciones.append({
             'label': 'Chat grupal', 'url': reverse('sala_chat_grupal', args=[proyecto.id]),
             'icono': 'users', 'estilo': 'secondary',
@@ -1163,6 +1214,10 @@ def api_detalle_proyecto(request, proyecto_id):
             'tipo': proyecto.get_tipo_solucion_display(),
             'prioridad': proyecto.prioridad,
             'prioridad_label': proyecto.get_prioridad_display(),
+            'modalidad': proyecto.modalidad,
+            'modalidad_label': proyecto.get_modalidad_display(),
+            'ciudad': proyecto.ciudad or '',
+            'ubicacion_display': proyecto.ubicacion_display,
             'vacantes': proyecto.vacantes,
             'vacantes_disponibles': proyecto.vacantes_disponibles,
             'fecha_publicacion': date_format(proyecto.fecha_publicacion, 'd M Y'),

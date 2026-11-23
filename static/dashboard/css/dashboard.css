@@ -542,13 +542,17 @@ ul { list-style: none; }
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  background: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 .btn-primary:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
   transform: translateY(-1px);
 }
 
@@ -1070,3 +1074,71 @@ ul { list-style: none; }
     display: none;
   }
 }
+
+/* ============================================================
+   BOTÓN Y ANIMACIÓN DE FAVORITOS (CORAZÓN REACTIVO)
+   ============================================================ */
+.fav-toggle-btn {
+  background: none !important;
+  border: none !important;
+  padding: 4px !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.15s ease !important;
+}
+
+.fav-toggle-btn:hover {
+  transform: scale(1.22) !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.fav-toggle-btn:active {
+  transform: scale(0.85) !important;
+}
+
+.fav-toggle-btn svg,
+.fav-toggle-btn i {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  pointer-events: none !important;
+  transition: color 0.18s ease, fill 0.18s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.fav-toggle-btn.is-favorito svg,
+.fav-toggle-btn.is-favorito i {
+  color: var(--danger, #ef4444) !important;
+  fill: var(--danger, #ef4444) !important;
+}
+
+.fav-toggle-btn:not(.is-favorito) svg,
+.fav-toggle-btn:not(.is-favorito) i {
+  color: var(--text-muted, #8f8f8f) !important;
+  fill: none !important;
+}
+
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.48);
+  }
+  60% {
+    transform: scale(0.85);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.fav-toggle-btn.animating svg,
+.fav-toggle-btn.animating i {
+  animation: heartPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
