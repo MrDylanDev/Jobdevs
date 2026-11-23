@@ -201,10 +201,10 @@
           if (contextMeta) {
             contextMeta.innerHTML = '';
             if (data.proyecto.tipo_solucion) {
-              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Tipo:</strong> ' + data.proyecto.tipo_solucion + '</div>';
+              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Tipo:</strong> ' + escapeHtml(data.proyecto.tipo_solucion) + '</div>';
             }
             if (data.proyecto.modalidad) {
-              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Modalidad:</strong> ' + data.proyecto.modalidad + '</div>';
+              contextMeta.innerHTML += '<div><strong style="color:var(--fg, #fff);">Modalidad:</strong> ' + escapeHtml(data.proyecto.modalidad) + '</div>';
             }
           }
         } else {

@@ -90,8 +90,8 @@ Secuencia de referencia:
 # Obtener la versión aprobada y construir sin imprimir secretos
 docker compose build --pull
 
-# Revisar configuración materializada
-docker compose config
+# Revisar configuración materializada sin imprimir secretos
+docker compose config --quiet
 
 # Servicios de datos
 docker compose up -d db redis

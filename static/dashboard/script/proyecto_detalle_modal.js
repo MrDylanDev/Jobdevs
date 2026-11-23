@@ -173,7 +173,7 @@
     }
     if (p.modalidad) {
       var modIcon = p.modalidad === 'remoto' ? 'wifi' : (p.modalidad === 'hibrido' ? 'split' : 'map-pin');
-      var ubicacionTexto = p.ubicacion_display || (escapeHtml(p.modalidad_label || p.modalidad) + (p.ciudad && p.modalidad !== 'remoto' ? ' · ' + escapeHtml(p.ciudad) : ''));
+      var ubicacionTexto = p.ubicacion_display ? escapeHtml(p.ubicacion_display) : (escapeHtml(p.modalidad_label || p.modalidad) + (p.ciudad && p.modalidad !== 'remoto' ? ' · ' + escapeHtml(p.ciudad) : ''));
       subHtml += '<span class="jdp-modality"><i data-lucide="' + modIcon + '"></i> ' + ubicacionTexto + '</span>';
     }
     subHtml += '</div>';

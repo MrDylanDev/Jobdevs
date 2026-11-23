@@ -43,8 +43,9 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     assert page.locator('#crear_fecha_cumplimiento').get_attribute('required') is not None
     page.locator('#modalProyecto input[name="titulo"]').fill('Convocatoria QA de cumplimiento')
     page.locator('#modalProyecto textarea[name="descripcion"]').fill('Entrega de prueba')
-    page.locator('#crear_fecha_limite_display').click()
-    page.locator('#datepicker-crear .datepicker-preset-pill').first.click()
+    page.locator('#crear_fecha_limite').fill(
+        (timezone.localdate() + timedelta(days=15)).isoformat()
+    )
     page.locator('#crear_fecha_cumplimiento').fill(
         (timezone.localdate() + timedelta(days=30)).isoformat()
     )

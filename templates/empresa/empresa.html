@@ -251,8 +251,6 @@
                 <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
                     <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}">
-                  {% elif colaboracion.desarrollador.perfil_desarrollador.foto %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}

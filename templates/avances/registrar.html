@@ -145,6 +145,8 @@
         window.JobDevsSSE.mostrarToast({ tipo: 'alerta', mensaje: mensaje });
       } else if (typeof window.jdToast === 'function') {
         window.jdToast(mensaje, true);
+      } else {
+        window.alert(mensaje);
       }
     }
 

@@ -4,10 +4,14 @@
 No sustituye los Markdown fuente. Los libros se regeneran desde:
 - docs/MATRIZ_REGLAS_NEGOCIO.md
 - docs/ESTADO_VERIFICACION_ACTUAL.md
+
+Por defecto no sobrescribe libros existentes para no perder estados,
+fechas, responsables ni evidencias editadas a mano. Usa --force para regenerar.
 """
 from __future__ import annotations
 
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +27,15 @@ RULES_SOURCE = DOCS / "MATRIZ_REGLAS_NEGOCIO.md"
 VERIFICATION_SOURCE = DOCS / "ESTADO_VERIFICACION_ACTUAL.md"
 RULES_OUTPUT = DOCS / "MATRIZ_REGLAS_NEGOCIO_JOBDEVS.xlsx"
 VERIFICATION_OUTPUT = DOCS / "ESTADO_VERIFICACION_ACTUAL_JOBDEVS.xlsx"
+
+
+def guardar_libro(wb, ruta: Path) -> None:
+    """Guarda el libro sin pisar ediciones humanas salvo que se pida --force."""
+    if ruta.exists() and "--force" not in sys.argv:
+        print(f"{ruta}: ya existe; no se sobrescribe (usa --force para regenerar)")
+        return
+    wb.save(ruta)
+    print(f"{ruta}: generado")
 
 NAVY = "162842"
 BLUE = "28639A"
@@ -211,7 +224,7 @@ def rules_workbook() -> None:
     for status in STATUS_VALUES:
         lists.append([status])
     lists.sheet_state = "hidden"
-    wb.save(RULES_OUTPUT)
+    guardar_libro(wb, RULES_OUTPUT)
 
 
 def verification_workbook() -> None:
@@ -293,14 +306,12 @@ def verification_workbook() -> None:
     for status in EXECUTION_VALUES:
         lists.append([status])
     lists.sheet_state = "hidden"
-    wb.save(VERIFICATION_OUTPUT)
+    guardar_libro(wb, VERIFICATION_OUTPUT)
 
 
 def main() -> None:
     rules_workbook()
     verification_workbook()
-    print(f"{RULES_OUTPUT}: generado")
-    print(f"{VERIFICATION_OUTPUT}: generado")
 
 
 if __name__ == "__main__":

@@ -1122,7 +1122,7 @@ function insertarPostulacionActiva(post) {
   // Actualizar el contador de postulaciones vigentes ("X en curso")
   const badgeCount = contenedorVigentes.querySelector('.label-section .badge');
   if (badgeCount) {
-    const cards = postList.querySelectorAll('.post-row-card');
+    const cards = postList.querySelectorAll('.post-row-compact');
     badgeCount.textContent = cards.length + ' en curso';
   }
 

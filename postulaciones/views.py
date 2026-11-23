@@ -267,7 +267,7 @@ def postularse_a_proyecto(request, proyecto_id):
                     'proyecto_id': proyecto.id,
                     'postulacion': {
                         'id': postulacion.id,
-                        'fecha': date_format(postulacion.fecha, 'd/m/Y'),
+                        'fecha': date_format(timezone.localtime(postulacion.fecha), 'd/m/Y'),
                         'estado': postulacion.estado,
                         'estado_display': postulacion.get_estado_display(),
                         'proyecto': {

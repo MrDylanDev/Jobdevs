@@ -92,7 +92,7 @@
     }
 
     function verificarEmptyStateFavoritos() {
-        const grid = document.querySelector('#devFavoritosGrid, .cards-grid');
+        const grid = document.querySelector('#devFavoritosGrid') || document.querySelector('.cards-grid');
         if (grid && grid.querySelectorAll('.project-card, .dev-explore-card').length === 0) {
             grid.innerHTML = `
                 <div class="cockpit-empty-state empty-state" style="grid-column:1 / -1; padding:48px 20px;">

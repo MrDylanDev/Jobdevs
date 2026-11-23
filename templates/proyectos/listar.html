@@ -10,9 +10,7 @@
     (function () {
       try {
         var rol = '{{ request.user.rol }}';
-        if (rol === 'desarrollador') {
-          window.location.replace("{% url 'dashboard_desarrollador' %}?seccion=explorar");
-        } else if (rol === 'empresa') {
+        if (rol === 'empresa') {
           window.location.replace("{% url 'dashboard_empresa' %}");
         } else if (rol === 'administrador') {
           window.location.replace("{% url 'dashboard_admin' %}");

@@ -473,10 +473,7 @@
           window.cerrarModal();
           formCrear.reset();
           if (typeof window.mostrarToastCorp === 'function') {
-            window.mostrarToastCorp({
-              tipo: 'aprobacion',
-              mensaje: data.mensaje || '¡Convocatoria publicada exitosamente!',
-            });
+            window.mostrarToastCorp(data.mensaje || '¡Convocatoria publicada exitosamente!');
           }
           window.switchTab('ofertas');
           window.location.hash = '#ofertas';
@@ -486,10 +483,7 @@
         } else {
           const errMsg = (data && data.mensaje) ? data.mensaje : 'Por favor verifica los datos de la convocatoria.';
           if (typeof window.mostrarToastCorp === 'function') {
-            window.mostrarToastCorp({
-              tipo: 'alerta',
-              mensaje: errMsg,
-            });
+            window.mostrarToastCorp(errMsg, true);
           } else if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
             window.JobDevsToast.mostrar({ tipo: 'error', mensaje: errMsg });
           } else if (typeof window.jdToast === 'function') {
@@ -502,7 +496,13 @@
         }
       } catch (err) {
         console.error('Error al publicar convocatoria:', err);
-        formCrear.submit();
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = textoOrig;
+        }
+        if (typeof window.mostrarToastCorp === 'function') {
+          window.mostrarToastCorp('Error de conexión al publicar la convocatoria. Intenta de nuevo.', true);
+        }
       }
     });
   });
@@ -1965,6 +1965,10 @@
   function padZero(n) { return n < 10 ? '0' + n : '' + n; }
 
   window.initCorpDatepicker = function (pickerId, initialIso) {
+    const container = document.getElementById(pickerId);
+    const hasVisualPicker = !!(container && container.querySelector('.datepicker-display') && document.getElementById(pickerId + '-popover'));
+    if (!hasVisualPicker) return;
+
     const today = new Date();
     let initialDate = null;
     if (initialIso) {
@@ -1987,7 +1991,9 @@
 
   window.toggleCorpDatepicker = function (pickerId) {
     const popover = document.getElementById(pickerId + '-popover');
-    if (!popover) return;
+    const container = document.getElementById(pickerId);
+    const hasVisualPicker = !!(popover && container && container.querySelector('.datepicker-display'));
+    if (!hasVisualPicker) return;
     const isOpen = popover.classList.contains('is-open');
     document.querySelectorAll('.datepicker-popover').forEach(function (p) {
       p.classList.remove('is-open');

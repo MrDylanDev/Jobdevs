@@ -197,7 +197,7 @@ def dashboard_desarrollador(request):
     # Solo postulaciones en negociación de proyectos activos publicados (excluye finalizados, inactivos y aceptadas concluidas)
     postulaciones_chat_qs = mis_postulaciones.filter(
         estado='en_negociacion',
-        proyecto__estado='publicado'
+        proyecto__estado__in=['publicado', 'en_desarrollo']
     ).select_related('proyecto__empresa__perfil_empresa')
 
     for post in postulaciones_chat_qs:

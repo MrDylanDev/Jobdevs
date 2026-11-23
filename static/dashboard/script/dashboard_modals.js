@@ -127,7 +127,7 @@
       function limpiar(resultado) {
         modal.hidden = true;
         modal.removeEventListener('click', onClick);
-        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('keydown', onKey, true);
         resolve(resultado);
       }
 
@@ -866,6 +866,9 @@
       });
 
     } catch (err) {
+      if (modalEl) modalEl.dataset.obligatorio = 'false';
+      var closeBtnError = modalEl ? modalEl.querySelector('.jdm-close') : null;
+      if (closeBtnError) closeBtnError.style.display = 'flex';
       setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');
       setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
     }

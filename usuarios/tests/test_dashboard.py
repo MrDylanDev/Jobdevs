@@ -480,7 +480,7 @@ def test_postulacion_de_proyecto_finalizado_no_aparece_en_vigentes(dev_client, d
 
     proyecto_finalizado = _crear_proyecto(empresa_user, 'Proyecto Ya Concluido', estado='finalizado')
     post = Postulacion.objects.create(
-        proyecto=proyecto_finalizado, desarrollador=desarrollador_user, estado='aceptada'
+        proyecto=proyecto_finalizado, desarrollador=desarrollador_user, estado='en_negociacion'
     )
 
     response = dev_client.get(reverse('dashboard_desarrollador'))

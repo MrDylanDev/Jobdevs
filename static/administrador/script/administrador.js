@@ -26,15 +26,6 @@ function showSection(id, btn) {
     document.getElementById('createUserModal').classList.add('open');
   }
 
-  document.getElementById('createUserForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const data = {
-      username: document.getElementById('create-username').value,
-      email: document.getElementById('create-email').value,
-      password: document.getElementById('create-password').value,
-      rol: document.getElementById('create-rol').value
-    };
-
   function adminNotify(msg, isError) {
     if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
       window.JobDevsSSE.mostrarToast({ tipo: isError !== false ? 'alerta' : 'info', mensaje: msg });
@@ -99,6 +90,16 @@ function showSection(id, btn) {
     });
   }
   window.adminConfirm = adminConfirm;
+
+  document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = {
+      username: document.getElementById('create-username').value,
+      email: document.getElementById('create-email').value,
+      password: document.getElementById('create-password').value,
+      rol: document.getElementById('create-rol').value
+    };
+
 
     try {
       const response = await fetch('/api/crear/', {
