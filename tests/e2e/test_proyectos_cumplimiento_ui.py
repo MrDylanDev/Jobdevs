@@ -52,7 +52,7 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     salida = Path(os.environ.get('TMPDIR', '/tmp')) / 'jobdevs-qa'
     salida.mkdir(parents=True, exist_ok=True)
     page.locator('#modalProyecto').screenshot(path=str(salida / 'creacion-fechas.png'))
-    with page.expect_response(lambda r: '/empresa/' in r.url and r.request.method == 'POST' and r.status in (200, 302)) as resp:
+    with page.expect_response(lambda r: '/proyectos/crear' in r.url and r.request.method == 'POST') as resp:
         page.locator('#modalProyecto button[type="submit"]').click()
     # El flujo AJAX recarga el dashboard; esperar a que el proyecto aparezca en la UI.
     page.get_by_text('Convocatoria QA de cumplimiento').first.wait_for(state='visible', timeout=15000)
