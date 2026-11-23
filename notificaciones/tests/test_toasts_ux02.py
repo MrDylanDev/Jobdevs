@@ -105,19 +105,22 @@ class TestIntegracionWebSocket:
 
 
 class TestCacheBusting:
+    # Versión compartida de cada asset: evita caché obsoleta entre roles.
+    VERSIONES_COMUNES = {
+        'dashboard/css/dashboard.css': '20261121_v27',
+        'dashboard/css/dashboard_modals.css': '20261121_v27',
+        'dashboard/script/dashboard_modals.js': '20261121_v23',
+        'dashboard/script/notificaciones_sse.js': '2',
+        'mensajes/script/chat_inline.js': '20261121_v8',
+    }
+
     def test_los_tres_roles_cargan_el_css_y_sse_actualizados(self):
         for rol, path in TEMPLATES.items():
             html = _leer(path)
-            assert "static 'dashboard/css/dashboard.css' %}?v=3" in html, rol
-            assert "static 'dashboard/script/notificaciones_sse.js' %}?v=2" in html, rol
-            assert "static 'dashboard/css/dashboard_modals.css' %}?v=20261117_v1" in html, rol
-            assert "static 'dashboard/script/dashboard_modals.js' %}?v=20261117_v1" in html, rol
+            for asset, version in self.VERSIONES_COMUNES.items():
+                esperado = f"static '{asset}' %}}?v={version}"
+                assert esperado in html, f'{rol}: {asset} no sirve la versión {version}'
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['admin'])
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['dev'])
-        assert "static 'Desarrollador/css/desarrollador.css' %}?v=3" in _leer(TEMPLATES['dev'])
-        assert "static 'Desarrollador/script/desarrollador.js' %}?v=5" in _leer(TEMPLATES['dev'])
-
-    def test_chat_actualizado_en_los_tres_roles(self):
-        assert "static 'mensajes/script/chat_inline.js' %}?v=5" in _leer(TEMPLATES['admin'])
-        assert "static 'mensajes/script/chat_inline.js' %}?v=5" in _leer(TEMPLATES['dev'])
-        assert "static 'mensajes/script/chat_inline.js' %}?v=20261115_v6" in _leer(TEMPLATES['empresa'])
+        assert "static 'Desarrollador/css/desarrollador.css' %}?v=20261121_v27" in _leer(TEMPLATES['dev'])
+        assert "static 'Desarrollador/script/desarrollador.js' %}?v=20261121_v4" in _leer(TEMPLATES['dev'])

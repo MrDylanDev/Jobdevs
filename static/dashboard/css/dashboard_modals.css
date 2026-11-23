@@ -2009,7 +2009,7 @@
 }
 
 /* ── Toast Fallback & Modal Confirmación Personalizado ── */
-.jdm-toast-fallback {
+.jobdevs-toast-fallback {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -2028,11 +2028,11 @@
   max-width: 380px;
 }
 
-.jdm-toast-fallback.is-error {
+.jobdevs-toast-fallback.is-error {
   border-left-color: #ef4444;
 }
 
-[data-theme="light"] .jdm-toast-fallback {
+[data-theme="light"] .jobdevs-toast-fallback {
   background: #ffffff;
   color: #0f172a;
   border-color: #cbd5e1;

@@ -58,7 +58,7 @@
     }
     // Fallback Toast Flotante Personalizado
     var t = document.createElement('div');
-    t.className = 'jdm-toast-fallback ' + (esError ? 'is-error' : 'is-success');
+    t.className = 'jobdevs-toast-fallback ' + (esError ? 'is-error' : 'is-success');
     t.textContent = mensaje;
     document.body.appendChild(t);
     setTimeout(function () {

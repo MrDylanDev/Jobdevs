@@ -446,7 +446,6 @@ def dashboard_desarrollador(request):
         'cancelaciones_pendientes_dev_count': len(cancelaciones_pendientes_dev),
         'hitos_pendientes_count': sum(p.get('hitos_pendientes', 0) for p in mis_proyectos_v),
         'postulaciones_negociacion_count': postulaciones_vigentes.filter(estado='en_negociacion').count(),
-        'postulaciones_revision_count': postulaciones_vigentes.filter(estado='pendiente').count(),
         'favoritos': mis_favoritos,
         'perfil': perfil,
         'perfil_form': perfil_form,
