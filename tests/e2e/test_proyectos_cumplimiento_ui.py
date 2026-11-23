@@ -53,7 +53,7 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     salida.mkdir(parents=True, exist_ok=True)
     page.locator('#modalProyecto').screenshot(path=str(salida / 'creacion-fechas.png'))
     page.locator('#modalProyecto button[type="submit"]').click()
-    page.wait_for_url('**' + reverse('dashboard_empresa'))
+    page.wait_for_url('**/empresa/dashboard/**')
     proyecto = Proyecto.objects.get(titulo='Convocatoria QA de cumplimiento')
     assert proyecto.fecha_cumplimiento == timezone.localdate() + timedelta(days=30)
     assert page.get_by_text('Convocatoria QA de cumplimiento').count() >= 1
