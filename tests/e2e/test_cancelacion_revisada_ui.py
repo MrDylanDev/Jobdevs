@@ -72,11 +72,7 @@ def test_conflicto_se_media_y_libera_cupo_solo_tras_fallo(
     page.locator('#resolucion').select_option('cancelar_contrato')
     page.locator('#dictamen').fill('Incumplimiento acreditado tras revisar el historial del hito.')
     page.locator(f'form[action="{reverse("disputas:resolver_disputa", args=[disputa.pk])}"] button[type="submit"]').click()
-    confirm_btn = page.locator('#jdmConfirmBtnOk')
-    if confirm_btn.is_visible():
-        confirm_btn.click()
-    else:
-        page.once('dialog', lambda dialog: dialog.accept())
+    page.locator('#jdmConfirmBtnOk').click()
     contrato.refresh_from_db()
     proyecto.refresh_from_db()
     disputa.refresh_from_db()
