@@ -1,16 +1,24 @@
+from datetime import timedelta
 import os
 import re
 import unicodedata
 
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from .models import ExcepcionFichaSena, FichaSena, PerfilDesarrollador, Usuario
+from .models import (
+    ExcepcionFichaSena,
+    FichaSena,
+    PerfilDesarrollador,
+    Usuario,
+    es_modo_institucional,
+)
 
 MAX_SOPORTE_DEV_BYTES = 5 * 1024 * 1024  # 5 MB
 
@@ -355,6 +363,7 @@ def admin_resolver_verificacion_desarrollador(
                     f'Motivo: {notas}.'
                 )
             else:
+                perfil.intentos_verificacion += 1
                 accion_log = f'Rechazó la verificación SENA del aprendiz {nombre} (Ficha {perfil.ficha})'
                 mensaje = (
                     f'Tu solicitud de verificación SENA fue rechazada. '
@@ -371,20 +380,41 @@ def admin_resolver_verificacion_desarrollador(
             registro_id=perfil.id,
         )
 
-        Notificacion.objects.create(
-            usuario=perfil.usuario,
-            tipo=tipo_notif,
-            mensaje=mensaje,
-        )
+        email_destinatario = perfil.usuario.email
+        datos_usuario_email = {
+            'nombre': perfil.usuario.nombre,
+            'username': perfil.usuario.username,
+            'email': email_destinatario,
+        }
 
-        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+        max_intentos = getattr(settings, 'MAX_INTENTOS_VERIFICACION', MAX_INTENTOS_VERIFICACION)
+        resultado_depuracion = None
+        if accion == 'rechazar' and perfil.intentos_verificacion >= max_intentos:
+            resultado_depuracion = depurar_usuario_por_verificacion(
+                perfil.usuario,
+                admin_user=admin_user,
+                motivo_log=f'por agotar los {max_intentos} intentos de verificación',
+            )
+            mensaje = (
+                f'Tu solicitud de verificación SENA fue rechazada y agotaste los {max_intentos} intentos permitidos. '
+                f'Tu cuenta fue {resultado_depuracion}. Motivo: {notas}.'
+            )
+
+        if resultado_depuracion != 'eliminada':
+            Notificacion.objects.create(
+                usuario=perfil.usuario,
+                tipo=tipo_notif,
+                mensaje=mensaje,
+            )
+
+        if accion in ('rechazar', 'solicitar_documento') and email_destinatario:
             contexto_email = {
-                'asunto': 'Necesitamos un nuevo documento para tu verificación SENA',
-                'usuario': {
-                    'nombre': perfil.usuario.nombre,
-                    'username': perfil.usuario.username,
-                    'email': perfil.usuario.email,
-                },
+                'asunto': (
+                    'Cuenta depurada por agotar intentos de verificación SENA'
+                    if resultado_depuracion
+                    else 'Necesitamos un nuevo documento para tu verificación SENA'
+                ),
+                'usuario': datos_usuario_email,
                 'sujeto': nombre,
                 'tipo_sujeto': 'verificación SENA',
                 'motivo': notas,
@@ -397,10 +427,13 @@ def admin_resolver_verificacion_desarrollador(
                     asunto=contexto_email['asunto'],
                     template_name='emails/verificacion_documento.html',
                     contexto=contexto_email,
-                    destinatarios=[perfil.usuario.email],
+                    destinatarios=[email_destinatario],
                 )
 
             transaction.on_commit(_enviar_email_verificacion)
+
+    if resultado_depuracion:
+        return True, f'Solicitud rechazada. Cuenta {resultado_depuracion} por agotar los {max_intentos} intentos de verificación.'
 
     etiquetas = {
         'aprobar': 'aprobada',
@@ -414,3 +447,140 @@ async def validar_ficha_sena_api_async(numero_ficha: str | int, **kwargs):
     """Valida una ficha de forma asíncrona contra API externa SENA con fallback a lista blanca local (SCRUM-190)."""
     from .clients_external import consultar_ficha_sena_api
     return await consultar_ficha_sena_api(numero_ficha, **kwargs)
+
+
+MAX_INTENTOS_VERIFICACION = 3
+
+
+def _usuario_tiene_actividad_relacionada(usuario):
+    """Comprueba si el usuario tiene registros relacionados que impiden borrado duro."""
+    return (
+        usuario.proyectos_empresa.exists()
+        or usuario.mis_postulaciones.exists()
+        or usuario.contrataciones_dev.exists()
+        or usuario.contrataciones_emp.exists()
+        or usuario.mensajes_enviados.exists()
+        or usuario.mensajes_recibidos.exists()
+    )
+
+
+def depurar_usuario_por_verificacion(usuario, admin_user=None, motivo_log='por verificación'):
+    """Elimina la cuenta si no tiene actividad relacionada, o la desactiva si tiene actividad."""
+    uid = usuario.id
+    username = usuario.username
+    rol = usuario.rol
+
+    if not _usuario_tiene_actividad_relacionada(usuario):
+        try:
+            with transaction.atomic():
+                usuario.delete()
+                LogAuditoria.objects.create(
+                    usuario=admin_user,
+                    accion=(
+                        f'Depuración verificación: cuenta eliminada ({username}, rol={rol}) '
+                        f'{motivo_log}'
+                    )[:300],
+                    tabla_afectada='usuarios',
+                    registro_id=uid,
+                )
+            return 'eliminada'
+        except ProtectedError:
+            pass
+
+    with transaction.atomic():
+        usuario.is_active = False
+        usuario.estado = 'inactivo'
+        usuario.save(update_fields=['is_active', 'estado'])
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion=(
+                f'Depuración verificación: cuenta desactivada ({username}, rol={rol}) '
+                f'con actividad previa {motivo_log}'
+            )[:300],
+            tabla_afectada='usuarios',
+            registro_id=uid,
+        )
+    return 'desactivada'
+
+
+def depurar_cuentas_sin_verificar(dias_limite=None):
+    """Depura cuentas sin verificar que superaron el plazo configurado en Modo Piloto.
+
+    En Modo Institucional no modifica ninguna cuenta y retorna `ejecutado=False`.
+    En Modo Piloto:
+    - Elimina cuentas activas (desarrollador/empresa) en estado `sin_verificar`
+      sin actividad relacionada y deja constancia en `LogAuditoria`.
+    - Desactiva (`is_active=False`, `estado='inactivo'`) aquellas que ya tienen
+      actividad relacionada, conservando integridad referencial y auditoría.
+    """
+    if es_modo_institucional():
+        return {
+            'ejecutado': False,
+            'motivo': 'modo_institucional',
+            'eliminados': 0,
+            'desactivados': 0,
+        }
+
+    dias_default = getattr(settings, 'DIAS_LIMITE_VERIFICACION_PILOTO', 3)
+    dias = dias_default if dias_limite is None else int(dias_limite)
+    fecha_corte = timezone.now() - timedelta(days=dias)
+
+    candidatos = list(
+        Usuario.objects.filter(
+            is_active=True,
+            rol__in=('desarrollador', 'empresa'),
+            date_joined__lte=fecha_corte,
+        )
+        .filter(
+            Q(rol='desarrollador', perfil_desarrollador__estado_verificacion='sin_verificar')
+            | Q(rol='empresa', perfil_empresa__estado_verificacion='sin_verificar')
+        )
+        .distinct()
+    )
+
+    eliminados = 0
+    desactivados = 0
+
+    for usuario in candidatos:
+        uid = usuario.id
+        username = usuario.username
+        rol = usuario.rol
+
+        if not _usuario_tiene_actividad_relacionada(usuario):
+            try:
+                with transaction.atomic():
+                    usuario.delete()
+                    LogAuditoria.objects.create(
+                        usuario=None,
+                        accion=(
+                            f'Depuración Modo Piloto: cuenta eliminada ({username}, rol={rol}) '
+                            f'por superar {dias} días sin verificar'
+                        )[:300],
+                        tabla_afectada='usuarios',
+                        registro_id=uid,
+                    )
+                eliminados += 1
+                continue
+            except ProtectedError:
+                pass
+
+        with transaction.atomic():
+            usuario.is_active = False
+            usuario.estado = 'inactivo'
+            usuario.save(update_fields=['is_active', 'estado'])
+            LogAuditoria.objects.create(
+                usuario=None,
+                accion=(
+                    f'Depuración Modo Piloto: cuenta desactivada ({username}, rol={rol}) '
+                    f'con actividad previa por superar {dias} días sin verificar'
+                )[:300],
+                tabla_afectada='usuarios',
+                registro_id=uid,
+            )
+        desactivados += 1
+
+    return {
+        'ejecutado': True,
+        'eliminados': eliminados,
+        'desactivados': desactivados,
+    }

@@ -149,3 +149,13 @@ def analizar_documento_soporte_task(self, perfil_id: int, tipo_perfil: str) -> d
         except self.MaxRetriesExceededError:
             logger.critical("Se agotaron los reintentos de análisis documental para perfil_id=%s", perfil_id)
             raise
+
+
+@shared_task(name='usuarios.depurar_cuentas_sin_verificar')
+def depurar_cuentas_sin_verificar_task(dias_limite=None) -> dict:
+    """Depura cuentas sin verificar tras el plazo configurado (solo en Modo Piloto)."""
+    from .services_sena import depurar_cuentas_sin_verificar
+
+    resultado = depurar_cuentas_sin_verificar(dias_limite=dias_limite)
+    logger.info("Resultado depuración de cuentas sin verificar: %s", resultado)
+    return resultado
