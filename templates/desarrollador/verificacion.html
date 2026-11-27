@@ -66,17 +66,17 @@
         <div class="card-header bg-light">
           <ul class="nav nav-tabs card-header-tabs" id="metodoTab" role="tablist">
             <li class="nav-item" role="presentation">
-              <button class="nav-link {% if valores.metodo != 'manual' %}active{% endif %}" id="auto-tab" data-bs-toggle="tab" data-bs-target="#auto-pane" type="button" role="tab" aria-controls="auto-pane" aria-selected="{% if valores.metodo != 'manual' %}true{% else %}false{% endif %}">
+              <button class="nav-link {% if valores.metodo != 'manual' %}active{% endif %}" id="auto-tab" data-tab-target="#auto-pane" type="button" role="tab" aria-controls="auto-pane" aria-selected="{% if valores.metodo != 'manual' %}true{% else %}false{% endif %}">
                 <i data-lucide="zap"></i> Aprendiz (Lista Blanca)
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link {% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}active{% endif %}" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}true{% else %}false{% endif %}">
+              <button class="nav-link {% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}active{% endif %}" id="manual-tab" data-tab-target="#manual-pane" type="button" role="tab" aria-controls="manual-pane" aria-selected="{% if valores.metodo == 'manual' and valores.condicion_sena != 'egresado' %}true{% else %}false{% endif %}">
                 <i data-lucide="id-card"></i> Aprendiz (Carnet / Certificado)
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link {% if valores.condicion_sena == 'egresado' %}active{% endif %}" id="egresado-tab" data-bs-toggle="tab" data-bs-target="#egresado-pane" type="button" role="tab" aria-controls="egresado-pane" aria-selected="{% if valores.condicion_sena == 'egresado' %}true{% else %}false{% endif %}">
+              <button class="nav-link {% if valores.condicion_sena == 'egresado' %}active{% endif %}" id="egresado-tab" data-tab-target="#egresado-pane" type="button" role="tab" aria-controls="egresado-pane" aria-selected="{% if valores.condicion_sena == 'egresado' %}true{% else %}false{% endif %}">
                 <i data-lucide="graduation-cap"></i> Egresado SENA (Diploma)
               </button>
             </li>
@@ -197,4 +197,58 @@
     {% endif %}
   {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    var tablist = document.getElementById('metodoTab');
+    var content = document.getElementById('metodoTabContent');
+    if (!tablist || !content) return;
+
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[data-tab-target]'));
+    var panes = Array.prototype.slice.call(content.querySelectorAll('.tab-pane'));
+
+    function activateTab(tab) {
+      var targetSelector = tab.getAttribute('data-tab-target');
+      var targetPane = targetSelector ? document.querySelector(targetSelector) : null;
+      if (!targetPane) return;
+
+      tabs.forEach(function (btn) {
+        var isCurrent = btn === tab;
+        btn.classList.toggle('active', isCurrent);
+        btn.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+        btn.setAttribute('tabindex', isCurrent ? '0' : '-1');
+      });
+
+      panes.forEach(function (pane) {
+        var isCurrent = pane === targetPane;
+        pane.classList.toggle('active', isCurrent);
+        pane.classList.toggle('show', isCurrent);
+      });
+    }
+
+    tabs.forEach(function (tab, index) {
+      tab.setAttribute('tabindex', tab.classList.contains('active') ? '0' : '-1');
+
+      tab.addEventListener('click', function () {
+        activateTab(tab);
+      });
+
+      tab.addEventListener('keydown', function (event) {
+        var nextIndex = null;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = tabs.length - 1;
+
+        if (nextIndex !== null) {
+          event.preventDefault();
+          tabs[nextIndex].focus();
+          activateTab(tabs[nextIndex]);
+        }
+      });
+    });
+  })();
+</script>
 {% endblock %}
