@@ -1,0 +1,89 @@
+<div class="jdm-perfil-partial"
+     data-modal-kicker="TALENTO SENA // PERFIL PÚBLICO"
+     data-modal-title="{{ nombre_desarrollador }}"
+     data-modal-subtitle="{{ programa_formacion }} · Ficha {{ ficha }}">
+  <div class="jdm-empresa-header">
+    <div class="jdm-empresa-avatar">
+      {% if foto_url %}
+        <img src="{{ foto_url }}" alt="{{ nombre_desarrollador }}" class="jdm-empresa-logo-img">
+      {% else %}
+        {{ nombre_desarrollador|slice:":1"|upper }}
+      {% endif %}
+    </div>
+    <div>
+      <div class="jdm-empresa-name">
+        {{ nombre_desarrollador }}
+        {% if perfil.es_verificado_sena %}
+          <span class="jdm-badge jdm-badge-success"><i data-lucide="check-circle"></i> {{ badge_label }}</span>
+        {% else %}
+          <span class="jdm-badge jdm-badge-gray"><i data-lucide="id-card"></i> {{ badge_label }}</span>
+        {% endif %}
+      </div>
+      <div class="jdm-empresa-meta">@{{ desarrollador.username }} · {{ condicion_sena }} SENA ({{ programa_formacion }})</div>
+    </div>
+  </div>
+
+  <div class="jdm-empresa-stats-flat">
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">⭐ {{ promedio_reputacion|stringformat:".1f" }}</span>
+      <span class="jdm-stat-lbl">Reputación</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ total_resenas }}</span>
+      <span class="jdm-stat-lbl">Reseñas</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ proyectos_activos_count }}</span>
+      <span class="jdm-stat-lbl">Activos</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ proyectos_finalizados_count }}</span>
+      <span class="jdm-stat-lbl">Finalizados</span>
+    </div>
+  </div>
+
+  <div class="jdm-section-clean">
+    <div class="jdm-clean-label"><i data-lucide="award"></i> Habilidades Técnicas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      {% if habilidades_lista %}
+        {% for hab in habilidades_lista %}
+          <span class="jdm-badge jdm-badge-gray" style="text-transform:none;font-size:11.5px;">{{ hab }}</span>
+        {% endfor %}
+      {% else %}
+        <span style="font-size:12.5px;color:var(--text-muted,#94a3b8);">Sin habilidades técnicas registradas.</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.portafolio_url %}
+    <div class="jdm-section-clean">
+      <div class="jdm-clean-label"><i data-lucide="globe"></i> Portafolio / Repositorio</div>
+      <a href="{{ perfil.portafolio_url }}" target="_blank" rel="noopener" class="jdm-advance-attachment">
+        <i data-lucide="external-link"></i> {{ perfil.portafolio_url }}
+      </a>
+    </div>
+  {% endif %}
+
+  <div class="jdm-section-clean">
+    <div class="jdm-clean-label"><i data-lucide="message-circle"></i> Valoraciones de Empresas ({{ total_resenas }})</div>
+    {% if resenas_modal %}
+      <div class="jdm-resenas-flat-list">
+        {% for r in resenas_modal %}
+          <div class="jdm-resena-flat-item">
+            <div class="jdm-resena-header">
+              <strong class="jdm-resena-author">{{ r.empresa }} <span class="jdm-resena-project">en {{ r.proyecto_titulo }}</span></strong>
+              <span class="jdm-resena-rating">⭐ {{ r.puntuacion }}/5</span>
+            </div>
+            <p class="jdm-resena-comment">"{{ r.comentario }}"</p>
+            <div class="jdm-resena-date">{{ r.fecha }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="jdm-empty" style="padding:16px 0;"><i data-lucide="message-square-off"></i>Aún no registra valoraciones de empresas contratantes.</div>
+    {% endif %}
+  </div>
+</div>

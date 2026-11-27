@@ -166,3 +166,123 @@ class TestDetalleEmpresaView:
         assert 'Portal E-Commerce React' in content
         assert '3 vacantes' in content
         assert reverse('postularse_a_proyecto', args=[p_abierto.id]) in content
+
+
+@pytest.mark.django_db
+class TestDetalleEmpresaHTMX:
+    """Pruebas HTMX (S3) para el modal de perfil público de empresa."""
+
+    def test_htmx_retorna_partial_modal_empresa_con_datos_y_resenas(
+        self, client, dev_user, otro_dev, empresa_user
+    ):
+        p1 = Proyecto.objects.create(
+            empresa=empresa_user, titulo='Plataforma API REST',
+            descripcion='Backend en Django', tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        p2 = Proyecto.objects.create(
+            empresa=empresa_user, titulo='App Móvil Flutter',
+            descripcion='App para clientes', tipo_solucion='aplicacion_movil',
+            estado='en_desarrollo',
+        )
+        Valoracion.objects.create(
+            proyecto=p1, empresa=empresa_user, desarrollador=dev_user,
+            rol_evaluador='desarrollador', puntuacion=5,
+            comentario='Excelente equipo técnico.',
+        )
+        Valoracion.objects.create(
+            proyecto=p2, empresa=empresa_user, desarrollador=otro_dev,
+            rol_evaluador='desarrollador', puntuacion=4,
+            comentario='Comunicación clara y puntual.',
+        )
+
+        client.force_login(dev_user)
+        url = reverse('detalle_empresa', args=[empresa_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'empresa/partials/_modal_perfil_publico.html' in template_names
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE' not in content
+        assert '<html' not in content
+        assert 'jdm-perfil-partial' in content
+        assert 'data-modal-title="Soluciones Cloud Colombia"' in content
+        assert 'jdm-empresa-header' in content
+        assert 'jdm-empresa-stats-flat' in content
+        assert 'Empresa Verificada' in content
+        assert '4.5' in content
+        assert 'Excelente equipo técnico.' in content
+        assert 'Comunicación clara y puntual.' in content
+        assert 'Plataforma API REST' in content
+
+    def test_htmx_empresa_sin_resenas_muestra_estado_vacio(self, client, dev_user, empresa_user):
+        client.force_login(dev_user)
+        url = reverse('detalle_empresa', args=[empresa_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        assert 'empresa/partials/_modal_perfil_publico.html' in [t.name for t in response.templates]
+        content = response.content.decode('utf-8')
+        assert 'Aún no registra reseñas de proyectos finalizados.' in content
+
+    def test_htmx_escapa_xss_en_perfil_y_resenas(self, client, dev_user, empresa_user):
+        payload = '<script>alert("xss-emp")</script>'
+        perfil = empresa_user.perfil_empresa
+        perfil.nombre_empresa = f'Corp {payload}'
+        perfil.descripcion = f'Desc {payload}'
+        perfil.save()
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user, titulo=f'Proy {payload}',
+            descripcion='Test', tipo_solucion='sitio_web', estado='finalizado',
+        )
+        Valoracion.objects.create(
+            proyecto=proyecto, empresa=empresa_user, desarrollador=dev_user,
+            rol_evaluador='desarrollador', puntuacion=5,
+            comentario=f'Resena {payload}',
+        )
+
+        client.force_login(dev_user)
+        url = reverse('detalle_empresa', args=[empresa_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert payload not in content
+        assert '&lt;script&gt;alert(&quot;xss-emp&quot;)&lt;/script&gt;' in content
+
+    def test_htmx_404_y_anonimo_auth(self, client, dev_user, otro_dev, empresa_user):
+        url_ok = reverse('detalle_empresa', args=[empresa_user.id])
+        resp_anon = client.get(url_ok, HTTP_HX_REQUEST='true')
+        assert resp_anon.status_code == 302
+        assert '/login/' in resp_anon.url
+
+        client.force_login(dev_user)
+        resp_missing = client.get(reverse('detalle_empresa', args=[999999]), HTTP_HX_REQUEST='true')
+        assert resp_missing.status_code == 404
+
+        resp_wrong_role = client.get(reverse('detalle_empresa', args=[otro_dev.id]), HTTP_HX_REQUEST='true')
+        assert resp_wrong_role.status_code == 404
+
+    def test_preserva_contrato_json_xhr_y_accept_json(self, client, dev_user, empresa_user):
+        client.force_login(dev_user)
+        url = reverse('detalle_empresa', args=[empresa_user.id])
+
+        resp_xhr = client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        assert resp_xhr.status_code == 200
+        assert 'application/json' in resp_xhr['Content-Type']
+        data_xhr = resp_xhr.json()
+        assert data_xhr['ok'] is True
+        assert data_xhr['empresa']['nombre'] == 'Soluciones Cloud Colombia'
+
+        resp_accept = client.get(url, HTTP_HX_REQUEST='true', HTTP_ACCEPT='application/json')
+        assert resp_accept.status_code == 200
+        assert 'application/json' in resp_accept['Content-Type']
+        assert resp_accept.json()['ok'] is True
+
+        resp_format = client.get(f'{url}?format=json', HTTP_HX_REQUEST='true')
+        assert resp_format.status_code == 200
+        assert 'application/json' in resp_format['Content-Type']
+        assert resp_format.json()['ok'] is True
+

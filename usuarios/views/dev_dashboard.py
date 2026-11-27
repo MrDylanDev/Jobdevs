@@ -505,7 +505,18 @@ def detalle_desarrollador(request, desarrollador_id):
         h.strip() for h in (perfil.habilidades or '').split(',') if h.strip()
     ]
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+    es_htmx = (
+        request.headers.get('HX-Request') == 'true'
+        and request.GET.get('format') != 'json'
+        and 'application/json' not in request.headers.get('Accept', '')
+    )
+    quiere_json = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in request.headers.get('Accept', '')
+        or request.GET.get('format') == 'json'
+    )
+
+    if es_htmx or quiere_json:
         foto_url = None
         if perfil.foto_perfil:
             try:
@@ -528,20 +539,49 @@ def detalle_desarrollador(request, desarrollador_id):
             for r in resenas[:5]
         ]
 
+        nombre_desarrollador = desarrollador.nombre or desarrollador.username
+        programa_formacion = perfil.programa_formacion or 'No especificado'
+        ficha = perfil.ficha or 'Sin registrar'
+        condicion_sena = (
+            perfil.get_condicion_sena_display()
+            if hasattr(perfil, 'get_condicion_sena_display')
+            else 'Aprendiz'
+        )
+        badge_label = perfil.badge_info['label'] if perfil.badge_info else 'Sin verificar'
+        promedio_redondeado = round(float(promedio), 1)
+
+        if es_htmx:
+            return render(request, 'Desarrollador/partials/_modal_perfil_publico.html', {
+                'desarrollador': desarrollador,
+                'perfil': perfil,
+                'nombre_desarrollador': nombre_desarrollador,
+                'programa_formacion': programa_formacion,
+                'ficha': ficha,
+                'condicion_sena': condicion_sena,
+                'badge_label': badge_label,
+                'foto_url': foto_url,
+                'habilidades_lista': habilidades_lista,
+                'promedio_reputacion': promedio_redondeado,
+                'total_resenas': total_resenas,
+                'proyectos_activos_count': proyectos_activos_count,
+                'proyectos_finalizados_count': proyectos_finalizados_count,
+                'resenas_modal': resenas_data,
+            })
+
         return JsonResponse({
             'ok': True,
             'desarrollador': {
                 'id': desarrollador.id,
-                'nombre': desarrollador.nombre or desarrollador.username,
+                'nombre': nombre_desarrollador,
                 'username': desarrollador.username,
-                'programa_formacion': perfil.programa_formacion or 'No especificado',
-                'ficha': perfil.ficha or 'Sin registrar',
-                'condicion_sena': perfil.get_condicion_sena_display() if hasattr(perfil, 'get_condicion_sena_display') else 'Aprendiz',
+                'programa_formacion': programa_formacion,
+                'ficha': ficha,
+                'condicion_sena': condicion_sena,
                 'portafolio_url': perfil.portafolio_url or '',
                 'habilidades': habilidades_lista,
                 'es_verificado_sena': perfil.es_verificado_sena,
-                'badge_label': perfil.badge_info['label'] if perfil.badge_info else 'Sin verificar',
-                'reputacion': round(float(promedio), 1),
+                'badge_label': badge_label,
+                'reputacion': promedio_redondeado,
                 'total_resenas': total_resenas,
                 'proyectos_activos': proyectos_activos_count,
                 'proyectos_finalizados': proyectos_finalizados_count,
