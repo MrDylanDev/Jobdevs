@@ -43,3 +43,8 @@ class TestChatInlineCliente:
         assert 'data-session-url' in source
         assert 'verificarSesion' in source
         assert 'api/sesion' in source or 'sessionUrl' in source
+
+    def test_actualiza_badge_sidebar_al_renderizar_conversacion(self):
+        source = _chat_inline_source()
+        assert 'mensajes_no_leidos' in source
+        assert '[data-mensajes-badge]' in source

@@ -136,14 +136,15 @@ body.is-chat-active #centro-chat.activa,
   font-size: 12px;
   font-weight: 600;
   border-radius: 8px;
-  background: #10b981;
+  border: none;
+  background: var(--accent, #16a34a);
   color: #ffffff;
   text-decoration: none;
   margin-top: 4px;
 }
 
 .jd-context-btn:hover {
-  background: #059669;
+  background: var(--accent-dim, #15803d);
 }
 
 .jd-context-btn.secondary {
@@ -489,9 +490,9 @@ body.is-chat-active #centro-chat.activa,
 
 .jd-msg-out {
   align-self: flex-end;
-  background: #065f46;
+  background: var(--accent, #16a34a);
   color: #ffffff;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: none;
   border-bottom-right-radius: 4px;
 }
 
@@ -588,7 +589,7 @@ body.is-chat-active #centro-chat.activa,
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #10b981;
+  background: var(--accent, #16a34a);
   color: #ffffff;
   font-size: 15px;
   cursor: pointer;
@@ -596,7 +597,7 @@ body.is-chat-active #centro-chat.activa,
 }
 
 .jd-chat-send:hover:not(:disabled) {
-  background: #059669;
+  background: var(--accent-dim, #15803d);
   transform: scale(1.06);
 }
 
@@ -757,8 +758,8 @@ body.is-chat-active #centro-chat.activa,
 }
 
 [data-theme="light"] .jd-msg-out {
-  background: #00713f;
-  border-color: #00713f;
+  background: var(--accent, #00713f);
+  border: none;
   color: #ffffff;
 }
 
