@@ -202,191 +202,155 @@ export async function cargarContratoDigital(url, triggerBtn) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 4. CALIFICAR EMPRESA
+// 4. CALIFICAR EMPRESA (HTMX partial)
 // ─────────────────────────────────────────────────────────────
+const RATING_CAPTIONS = [
+  '',
+  '1/5 - Muy insatisfactorio',
+  '2/5 - Regular',
+  '3/5 - Aceptable',
+  '4/5 - Muy bueno',
+  '5/5 - Excelente',
+];
+
+let activeCalificarTrigger = null;
+let calificarHooksInit = false;
+
+function hidratarCalificarModal(container) {
+  if (!container) return;
+  const metaEl = container.querySelector('.jdm-calificar-partial');
+  if (metaEl) {
+    setHeader(
+      metaEl.dataset.modalKicker || 'VALORAR EMPRESA',
+      metaEl.dataset.modalTitle || '',
+      metaEl.dataset.modalSubtitle || ''
+    );
+    setModalObligatorio(metaEl.dataset.obligatorio === 'true');
+  }
+
+  const form = container.querySelector('#jdmFormCalificar');
+  if (!form) return;
+
+  const starsWrap = form.querySelector('#jdmStars');
+  const stars = form.querySelectorAll('#jdmStars .jdm-star-btn');
+  const caption = form.querySelector('#jdmRatingCaption');
+  const inputPunt = form.querySelector('#jdmInputPuntuacion');
+  const txtComentario = form.querySelector('#jdmComentario');
+  const charCount = form.querySelector('#jdmCharCount');
+  let puntuacionVal = parseInt(inputPunt && inputPunt.value, 10) || 0;
+
+  function pintarEstrellas(n) {
+    stars.forEach(function (s, idx) {
+      s.classList.toggle('is-active', (idx + 1) <= n);
+    });
+  }
+
+  if (puntuacionVal && caption) {
+    pintarEstrellas(puntuacionVal);
+    caption.textContent = RATING_CAPTIONS[puntuacionVal] || '';
+    caption.style.color = '#00e676';
+  }
+
+  stars.forEach(function (star) {
+    star.addEventListener('click', function () {
+      puntuacionVal = parseInt(star.getAttribute('data-val'), 10);
+      if (inputPunt) inputPunt.value = puntuacionVal;
+      pintarEstrellas(puntuacionVal);
+      if (caption) {
+        caption.textContent = RATING_CAPTIONS[puntuacionVal] || '';
+        caption.style.color = '#00e676';
+      }
+    });
+    star.addEventListener('mouseenter', function () {
+      pintarEstrellas(parseInt(star.getAttribute('data-val'), 10));
+    });
+  });
+
+  if (starsWrap) {
+    starsWrap.addEventListener('mouseleave', function () {
+      pintarEstrellas(puntuacionVal);
+    });
+  }
+
+  if (txtComentario && charCount) {
+    const actualizarContador = function () {
+      const len = txtComentario.value.trim().length;
+      charCount.textContent = len + ' / 20 caracteres mínimos';
+      charCount.style.color = len >= 20 ? '#00e676' : '#666666';
+    };
+    txtComentario.addEventListener('input', actualizarContador);
+    actualizarContador();
+  }
+}
+
+function initCalificarHooks() {
+  if (calificarHooksInit) return;
+  calificarHooksInit = true;
+
+  document.addEventListener('htmx:afterSwap', function (event) {
+    const target = event && event.detail && event.detail.target;
+    if (target && target.id === 'jdmBody' && target.querySelector('.jdm-calificar-partial')) {
+      hidratarCalificarModal(target);
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+  });
+
+  document.addEventListener('jobdevs:calificacion-empresa-guardada', function (event) {
+    const detail = (event && event.detail) || {};
+    cerrarModal(true);
+    if (activeCalificarTrigger) {
+      activeCalificarTrigger.classList.remove('btn-primary', 'primary');
+      activeCalificarTrigger.classList.add('btn-secondary');
+      activeCalificarTrigger.innerHTML =
+        '<i data-lucide="check-circle-2" style="color:#00e676;"></i> Empresa calificada' +
+        (detail.puntuacion ? ' (' + escapeHtml(detail.puntuacion) + '/5)' : '');
+      activeCalificarTrigger.disabled = true;
+      activeCalificarTrigger = null;
+    }
+    document.querySelectorAll('.calificar-popup-overlay').forEach(function (popup) {
+      popup.remove();
+    });
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+}
+
 export async function cargarCalificarEmpresa(url, triggerBtn, esObligatorio) {
+  initCalificarHooks();
+  activeCalificarTrigger = triggerBtn || null;
   abrirModal('jdm-card-sm');
   setModalObligatorio(Boolean(esObligatorio));
-
   setHeader(
     esObligatorio ? 'EVALUACIÓN OBLIGATORIA' : 'PROYECTO // VALORACIÓN',
     'Cargando calificación…'
   );
 
   try {
-    const res = await fetch(url, {
-      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-      credentials: 'same-origin'
+    const fetchUrl = esObligatorio
+      ? url + (url.indexOf('?') === -1 ? '?' : '&') + 'obligatorio=1'
+      : url;
+    const res = await fetch(fetchUrl, {
+      headers: { 'HX-Request': 'true' },
+      credentials: 'same-origin',
     });
-    const data = await parseJsonResponse(res, 'No se pudo cargar la valoración (respuesta inesperada del servidor).');
-    if (!data.ok || !data.proyecto) throw new Error(data.error || data.mensaje || 'No se pudo cargar la valoración');
-
-    const p = data.proyecto;
-    setHeader(
-      esObligatorio ? 'EVALUACIÓN OBLIGATORIA' : 'VALORAR EMPRESA',
-      p.empresa,
-      'Proyecto finalizado: ' + p.titulo
-    );
-
-    if (data.ya_califico) {
-      setModalObligatorio(false);
-      setContent(
-        '<div style="text-align:center;padding:24px 10px;">' +
-          '<i data-lucide="check-circle" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;"></i>' +
-          '<h3 style="margin:0 0 8px;font-family:\'JetBrains Mono\',monospace;color:#ffffff;">¡Ya has calificado a esta empresa!</h3>' +
-          '<p style="color:#a0a0a0;font-size:13px;">Tu reseña para este proyecto ya fue registrada en el perfil de la empresa.</p>' +
-        '</div>'
-      );
-      setFooter('<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>');
-      return;
+    const html = await res.text();
+    if (!html || !html.includes('jdm-calificar-partial')) {
+      throw new Error('No se pudo cargar la valoración (respuesta inesperada del servidor).');
     }
-
-    const avisoHtml = esObligatorio
-      ? '<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:6px;background:rgba(255,171,0,0.08);border:1px solid rgba(255,171,0,0.3);color:#ffab00;font-size:12.5px;margin-bottom:16px;line-height:1.45;">' +
-          '<i data-lucide="shield-alert" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;"></i>' +
-          '<div><strong>Evaluación requerida:</strong> El proyecto ha finalizado. Para continuar navegando en tu panel, califica tu experiencia colaborando con la empresa.</div>' +
-        '</div>'
-      : '';
-
-    const html =
-      '<form id="jdmFormCalificar" novalidate>' +
-        avisoHtml +
-        '<div id="jdmCalificarError" class="jdm-error" style="display:none;"></div>' +
-        '<div class="jdm-rating-container">' +
-          '<div class="jdm-stars-row" id="jdmStars">' +
-            '<button type="button" class="jdm-star-btn" data-val="1"><i data-lucide="star"></i></button>' +
-            '<button type="button" class="jdm-star-btn" data-val="2"><i data-lucide="star"></i></button>' +
-            '<button type="button" class="jdm-star-btn" data-val="3"><i data-lucide="star"></i></button>' +
-            '<button type="button" class="jdm-star-btn" data-val="4"><i data-lucide="star"></i></button>' +
-            '<button type="button" class="jdm-star-btn" data-val="5"><i data-lucide="star"></i></button>' +
-          '</div>' +
-          '<div class="jdm-rating-caption" id="jdmRatingCaption">Selecciona una puntuación (1 a 5)</div>' +
-          '<input type="hidden" name="puntuacion" id="jdmInputPuntuacion" value="">' +
-        '</div>' +
-
-        '<div class="jdm-form-group">' +
-          '<label class="jdm-form-label" for="jdmComentario">Comentario cualitativo <span class="req">* (mínimo 20 caracteres)</span></label>' +
-          '<textarea id="jdmComentario" name="comentario" class="jdm-textarea" placeholder="Describe tu experiencia colaborando con la empresa, cumplimiento de pagos y comunicación…" required></textarea>' +
-          '<div class="jdm-char-counter" id="jdmCharCount">0 / 20 caracteres mínimos</div>' +
-        '</div>' +
-      '</form>';
 
     setContent(html);
-
-    if (esObligatorio) {
-      setFooter(
-        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion" style="width:100%;justify-content:center;">' +
-          '<i data-lucide="star"></i> Enviar Calificación Obligatoria' +
-        '</button>'
-      );
-    } else {
-      setFooter(
-        '<button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>' +
-        '<button type="button" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion"><i data-lucide="star"></i> Enviar Calificación</button>'
-      );
+    setFooter('');
+    const bodyEl = document.getElementById('jdmBody');
+    hidratarCalificarModal(bodyEl);
+    if (window.htmx && typeof window.htmx.process === 'function' && bodyEl) {
+      window.htmx.process(bodyEl);
     }
-
-    let puntuacionVal = 0;
-    const stars = document.querySelectorAll('#jdmStars .jdm-star-btn');
-    const caption = document.getElementById('jdmRatingCaption');
-    const inputPunt = document.getElementById('jdmInputPuntuacion');
-    const txtComentario = document.getElementById('jdmComentario');
-    const charCount = document.getElementById('jdmCharCount');
-    const captions = ['', '1/5 - Muy insatisfactorio', '2/5 - Regular', '3/5 - Aceptable', '4/5 - Muy bueno', '5/5 - Excelente'];
-
-    function pintarEstrellas(n) {
-      stars.forEach(function (s, idx) {
-        s.classList.toggle('is-active', (idx + 1) <= n);
-      });
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
     }
-
-    stars.forEach(function (star) {
-      star.addEventListener('click', function () {
-        puntuacionVal = parseInt(star.getAttribute('data-val'), 10);
-        inputPunt.value = puntuacionVal;
-        pintarEstrellas(puntuacionVal);
-        caption.textContent = captions[puntuacionVal] || '';
-        caption.style.color = '#00e676';
-      });
-      star.addEventListener('mouseenter', function () {
-        pintarEstrellas(parseInt(star.getAttribute('data-val'), 10));
-      });
-    });
-
-    document.getElementById('jdmStars').addEventListener('mouseleave', function () {
-      pintarEstrellas(puntuacionVal);
-    });
-
-    txtComentario.addEventListener('input', function () {
-      const len = txtComentario.value.trim().length;
-      charCount.textContent = len + ' / 20 caracteres mínimos';
-      charCount.style.color = len >= 20 ? '#00e676' : '#666666';
-    });
-
-    const btnEnviar = document.getElementById('jdmBtnEnviarCalificacion');
-    btnEnviar.addEventListener('click', async function () {
-      const errBox = document.getElementById('jdmCalificarError');
-      const com = txtComentario.value.trim();
-
-      if (!puntuacionVal) {
-        errBox.style.display = 'flex';
-        errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar una puntuación de 1 a 5 estrellas.</span>';
-        return;
-      }
-      if (com.length < 20) {
-        errBox.style.display = 'flex';
-        errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>El comentario debe tener al menos 20 caracteres.</span>';
-        return;
-      }
-
-      errBox.style.display = 'none';
-      btnEnviar.disabled = true;
-      btnEnviar.innerHTML = '<i data-lucide="loader-2"></i> Registrando...';
-
-      try {
-        const formData = new FormData();
-        formData.append('puntuacion', puntuacionVal);
-        formData.append('comentario', com);
-        formData.append('origen', 'dashboard');
-
-        const postRes = await fetch(data.url_calificar, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCsrfToken()
-          },
-          body: formData,
-          credentials: 'same-origin'
-        });
-
-        const resJson = await postRes.json();
-        if (resJson.ok) {
-          mostrarToast(resJson.mensaje || '¡Calificación enviada!');
-          cerrarModal(true);
-          if (triggerBtn) {
-            triggerBtn.classList.remove('btn-primary', 'primary');
-            triggerBtn.classList.add('btn-secondary');
-            triggerBtn.innerHTML = '<i data-lucide="check-circle-2" style="color:#00e676;"></i> Empresa calificada (' + puntuacionVal + '/5)';
-            triggerBtn.disabled = true;
-          }
-          document.querySelectorAll('.calificar-popup-overlay').forEach(function (popup) { popup.remove(); });
-          if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-          }
-        } else {
-          errBox.style.display = 'flex';
-          errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.mensaje || 'No se pudo registrar la calificación.') + '</span>';
-          btnEnviar.disabled = false;
-          btnEnviar.innerHTML = '<i data-lucide="star"></i> Enviar Calificación';
-        }
-      } catch (e) {
-        errBox.style.display = 'flex';
-        errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de conexión al enviar la calificación.</span>';
-        btnEnviar.disabled = false;
-        btnEnviar.innerHTML = '<i data-lucide="star"></i> Enviar Calificación';
-      }
-    });
-
   } catch (err) {
     setModalObligatorio(false);
     setContent('<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>' + escapeHtml(err.message) + '</span></div>');

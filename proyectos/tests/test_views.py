@@ -1312,6 +1312,154 @@ class TestCalificarEmpresa:
         assert post_data['ok'] is False
         assert '30 días' in post_data['mensaje']
 
+    def test_htmx_get_retorna_partial_y_escapa_xss(
+        self, dev_client, proyecto_finalizado, empresa_user
+    ):
+        empresa_user.nombre = 'Empresa <script>alert("xss")</script>'
+        empresa_user.save(update_fields=['nombre'])
+        proyecto_finalizado.titulo = 'Proyecto <img src=x onerror=alert(1)>'
+        proyecto_finalizado.save(update_fields=['titulo'])
+
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        response = dev_client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' in html
+        assert 'id="jdmStars"' in html
+        assert 'jdm-stars' in html
+        assert 'id="jdmComentario"' in html
+        assert 'id="jdmBtnEnviarCalificacion"' in html
+        assert 'csrfmiddlewaretoken' in html
+        assert '<script>alert("xss")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+        ob_res = dev_client.get(f'{url}?obligatorio=1', HTTP_HX_REQUEST='true')
+        assert ob_res.status_code == 200
+        ob_html = ob_res.content.decode('utf-8')
+        assert 'Evaluación requerida' in ob_html
+        assert 'Enviar Calificación Obligatoria' in ob_html
+
+    def test_htmx_post_error_validacion_rerenderiza_partial(
+        self, dev_client, proyecto_finalizado, desarrollador_user
+    ):
+        from proyectos.models import Valoracion
+
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        response = dev_client.post(
+            url,
+            {'puntuacion': '5', 'comentario': 'Muy corto'},
+            HTTP_HX_REQUEST='true',
+        )
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' in html
+        assert 'al menos 20 caracteres' in html
+        assert 'HX-Trigger' not in response
+        assert not Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).exists()
+
+        res_sin_punt = dev_client.post(
+            url,
+            {'puntuacion': '', 'comentario': 'Comentario suficientemente largo para validar.'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_sin_punt.status_code == 200
+        assert 'Debes seleccionar una puntuación.' in res_sin_punt.content.decode('utf-8')
+
+    def test_htmx_post_exito_retorna_confirmacion_y_hx_trigger(
+        self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
+    ):
+        import json as _json
+        from proyectos.models import Valoracion
+        from usuarios.models import PerfilEmpresa
+
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+
+        response = dev_client.post(
+            url,
+            {
+                'puntuacion': '5',
+                'comentario': 'Excelente comunicación, requisitos claros y pagos puntuales.',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' not in html
+        assert 'calificación ha sido registrada' in html.lower() or 'ya has calificado' in html.lower()
+
+        assert 'HX-Trigger' in response
+        trigger = _json.loads(response['HX-Trigger'])
+        assert 'jobdevs:toast' in trigger
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:calificacion-empresa-guardada' in trigger
+        assert trigger['jobdevs:calificacion-empresa-guardada']['proyecto_id'] == proyecto_finalizado.id
+        assert trigger['jobdevs:calificacion-empresa-guardada']['puntuacion'] == 5
+
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado,
+            desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador',
+            puntuacion=5,
+        ).exists()
+        perfil.refresh_from_db()
+        assert perfil.calificacion_promedio == 5
+
+        get_after = dev_client.get(url, HTTP_HX_REQUEST='true')
+        assert get_after.status_code == 200
+        assert 'id="jdmFormCalificar"' not in get_after.content.decode('utf-8')
+
+    def test_preserva_contrato_json_y_html_completo(
+        self, dev_client, proyecto_finalizado
+    ):
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+
+        # Full-page HTML contract
+        html_res = dev_client.get(url)
+        assert html_res.status_code == 200
+        assert 'proyectos/calificar_empresa.html' in [t.name for t in html_res.templates]
+
+        # JSON contract via XHR + Accept (even if HX-Request is also sent)
+        json_headers = {
+            'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest',
+            'HTTP_ACCEPT': 'application/json',
+            'HTTP_HX_REQUEST': 'true',
+        }
+        get_json = dev_client.get(url, **json_headers)
+        assert get_json.status_code == 200
+        data = get_json.json()
+        assert data['ok'] is True
+        assert data['ya_califico'] is False
+        assert data['proyecto']['id'] == proyecto_finalizado.id
+
+        post_json = dev_client.post(
+            url,
+            {
+                'puntuacion': '4',
+                'comentario': 'Experiencia positiva colaborando con la empresa.',
+                'origen': 'dashboard',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+        assert post_json.status_code == 200
+        post_data = post_json.json()
+        assert post_data['ok'] is True
+        assert post_data['puntuacion'] == 4
+
 
 class TestGestionarHitosAsignacionIndividual:
     """SCRUM-309 (HU-E13): la empresa puede asignar un hito a un desarrollador individual."""

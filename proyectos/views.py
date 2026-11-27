@@ -521,11 +521,19 @@ def finalizar_proyecto(request, proyecto_id):
 @login_required
 def calificar_empresa(request, proyecto_id):
     """Permite al desarrollador calificar a la empresa tras finalizar un proyecto"""
-    es_ajax = (
+    wants_json = (
         request.headers.get('x-requested-with') == 'XMLHttpRequest'
         or 'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
         or request.POST.get('origen') == 'dashboard'
     )
+    es_htmx = request.headers.get('HX-Request') == 'true' and not wants_json
+    es_ajax = wants_json
+    es_obligatorio = (
+        request.GET.get('obligatorio') in ('1', 'true')
+        or request.POST.get('obligatorio') in ('1', 'true')
+    )
+    partial_tpl = 'proyectos/partials/_modal_calificar_empresa.html'
 
     if request.user.rol != 'desarrollador':
         if es_ajax:
@@ -533,20 +541,48 @@ def calificar_empresa(request, proyecto_id):
                 {'ok': False, 'error': 'Acceso denegado.', 'mensaje': 'Acceso denegado.'},
                 status=403,
             )
+        if es_htmx:
+            return render(
+                request,
+                partial_tpl,
+                {'solo_mensaje': True, 'error': 'Acceso denegado.'},
+                status=403,
+            )
         return redirect('inicio')
 
-    if es_ajax:
+    if es_ajax or es_htmx:
         proyecto = Proyecto.objects.filter(id=proyecto_id, estado='finalizado').first()
         if not proyecto:
             msg = 'El proyecto no existe o aún no ha finalizado.'
-            return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+            if es_ajax:
+                return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+            return render(request, partial_tpl, {'solo_mensaje': True, 'error': msg}, status=404)
         contratacion = Contratacion.objects.filter(proyecto=proyecto, desarrollador=request.user).first()
         if not contratacion:
             msg = 'No tienes una contratación asociada a este proyecto.'
-            return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+            if es_ajax:
+                return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=404)
+            return render(request, partial_tpl, {'solo_mensaje': True, 'error': msg}, status=404)
     else:
         proyecto = get_object_or_404(Proyecto, id=proyecto_id, estado='finalizado')
         contratacion = get_object_or_404(Contratacion, proyecto=proyecto, desarrollador=request.user)
+
+    empresa_nombre = proyecto.empresa.nombre or proyecto.empresa.username
+    action_url = reverse('calificar_empresa', args=[proyecto.id])
+
+    def _htmx_ctx(**extra):
+        ctx = {
+            'proyecto': proyecto,
+            'empresa_nombre': empresa_nombre,
+            'action_url': action_url,
+            'es_obligatorio': es_obligatorio,
+            'min_comentario': services.MIN_COMENTARIO,
+            'puntuacion': '',
+            'puntuacion_num': 0,
+            'comentario': '',
+        }
+        ctx.update(extra)
+        return ctx
 
     try:
         services.validar_plazo_valoracion(proyecto)
@@ -554,44 +590,82 @@ def calificar_empresa(request, proyecto_id):
         msg = ' '.join(exc.messages)
         if es_ajax:
             return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=400)
+        if es_htmx:
+            return render(
+                request,
+                partial_tpl,
+                _htmx_ctx(solo_mensaje=True, error=msg),
+                status=400,
+            )
         messages.error(request, msg)
         return redirect('dashboard_desarrollador')
 
-    if request.method == 'GET' and es_ajax:
+    if request.method == 'GET' and (es_ajax or es_htmx):
         ya_califico = Valoracion.objects.filter(
             proyecto=proyecto,
             empresa=proyecto.empresa,
             desarrollador=request.user,
             rol_evaluador='desarrollador',
         ).exists()
+        if es_htmx:
+            return render(request, partial_tpl, _htmx_ctx(ya_califico=ya_califico))
         return JsonResponse({
             'ok': True,
             'proyecto': {
                 'id': proyecto.id,
                 'titulo': proyecto.titulo,
-                'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
+                'empresa': empresa_nombre,
             },
             'ya_califico': ya_califico,
-            'url_calificar': reverse('calificar_empresa', args=[proyecto.id]),
+            'url_calificar': action_url,
         })
-    
+
     if request.method == 'POST':
+        raw_puntuacion = (request.POST.get('puntuacion') or '').strip()
+        raw_comentario = (request.POST.get('comentario') or '').strip()
+
         try:
-            puntuacion = int(request.POST.get('puntuacion'))
+            puntuacion = int(raw_puntuacion)
         except (TypeError, ValueError):
+            msg = "Debes seleccionar una puntuación."
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': "Debes seleccionar una puntuación."}, status=400)
-            messages.error(request, "Debes seleccionar una puntuación.")
+                return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+            if es_htmx:
+                return render(
+                    request,
+                    partial_tpl,
+                    _htmx_ctx(
+                        error=msg,
+                        puntuacion=raw_puntuacion,
+                        puntuacion_num=0,
+                        comentario=raw_comentario,
+                    ),
+                    status=200,
+                )
+            messages.error(request, msg)
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
         if not 1 <= puntuacion <= 5:
+            msg = "La puntuación debe estar entre 1 y 5."
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': "La puntuación debe estar entre 1 y 5."}, status=400)
-            messages.error(request, "La puntuación debe estar entre 1 y 5.")
+                return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+            if es_htmx:
+                return render(
+                    request,
+                    partial_tpl,
+                    _htmx_ctx(
+                        error=msg,
+                        puntuacion=raw_puntuacion,
+                        puntuacion_num=0,
+                        comentario=raw_comentario,
+                    ),
+                    status=200,
+                )
+            messages.error(request, msg)
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
         # RF 5.2.2: puntuación + comentario cualitativo obligatorio.
-        comentario = (request.POST.get('comentario') or '').strip()
+        comentario = raw_comentario
         if len(comentario) < services.MIN_COMENTARIO:
             msg = (
                 f"El comentario es obligatorio y debe tener al menos "
@@ -599,6 +673,18 @@ def calificar_empresa(request, proyecto_id):
             )
             if es_ajax:
                 return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+            if es_htmx:
+                return render(
+                    request,
+                    partial_tpl,
+                    _htmx_ctx(
+                        error=msg,
+                        puntuacion=str(puntuacion),
+                        puntuacion_num=puntuacion,
+                        comentario=comentario,
+                    ),
+                    status=200,
+                )
             messages.error(request, msg)
             return redirect('calificar_empresa', proyecto_id=proyecto.id)
 
@@ -610,9 +696,12 @@ def calificar_empresa(request, proyecto_id):
                     desarrollador=request.user,
                     rol_evaluador='desarrollador',
                 ).exists():
+                    msg = "Ya has calificado a esta empresa para este proyecto."
                     if es_ajax:
-                        return JsonResponse({'ok': False, 'mensaje': "Ya has calificado a esta empresa para este proyecto."}, status=409)
-                    messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
+                        return JsonResponse({'ok': False, 'mensaje': msg}, status=409)
+                    if es_htmx:
+                        return render(request, partial_tpl, _htmx_ctx(ya_califico=True), status=200)
+                    messages.error(request, msg)
                     return redirect('dashboard_desarrollador')
 
                 Valoracion.objects.create(
@@ -628,14 +717,33 @@ def calificar_empresa(request, proyecto_id):
                 services.recalcular_reputacion_empresa(proyecto.empresa_id)
         except IntegrityError:
             # Dos POST simultáneos: la unicidad del modelo gana la carrera.
+            msg = "Ya has calificado a esta empresa para este proyecto."
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': "Ya has calificado a esta empresa para este proyecto."}, status=409)
-            messages.error(request, "Ya has calificado a esta empresa para este proyecto.")
+                return JsonResponse({'ok': False, 'mensaje': msg}, status=409)
+            if es_htmx:
+                return render(request, partial_tpl, _htmx_ctx(ya_califico=True), status=200)
+            messages.error(request, msg)
             return redirect('dashboard_desarrollador')
 
+        ok_msg = "¡Gracias! Tu calificación ha sido registrada."
         if es_ajax:
-            return JsonResponse({'ok': True, 'mensaje': "¡Gracias! Tu calificación ha sido registrada.", 'puntuacion': puntuacion})
-        messages.success(request, "¡Gracias! Tu calificación ha sido registrada.")
+            return JsonResponse({'ok': True, 'mensaje': ok_msg, 'puntuacion': puntuacion})
+        if es_htmx:
+            response = render(
+                request,
+                partial_tpl,
+                _htmx_ctx(calificacion_guardada=True, puntuacion=puntuacion, puntuacion_num=puntuacion),
+                status=200,
+            )
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'success', 'mensaje': ok_msg},
+                'jobdevs:calificacion-empresa-guardada': {
+                    'proyecto_id': proyecto.id,
+                    'puntuacion': puntuacion,
+                },
+            })
+            return response
+        messages.success(request, ok_msg)
         return redirect('dashboard_desarrollador')
 
     return render(request, 'proyectos/calificar_empresa.html', {'proyecto': proyecto})

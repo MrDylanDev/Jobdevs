@@ -1,0 +1,88 @@
+<div class="jdm-calificar-partial"
+     data-modal-kicker="{% if es_obligatorio and not ya_califico and not calificacion_guardada and not solo_mensaje %}EVALUACIÓN OBLIGATORIA{% else %}VALORAR EMPRESA{% endif %}"
+     data-modal-title="{% if empresa_nombre %}{{ empresa_nombre }}{% else %}Valorar empresa{% endif %}"
+     data-modal-subtitle="{% if proyecto %}Proyecto finalizado: {{ proyecto.titulo }}{% endif %}"
+     data-obligatorio="{% if es_obligatorio and not ya_califico and not calificacion_guardada and not solo_mensaje %}true{% else %}false{% endif %}">
+{% if solo_mensaje %}
+  <div class="jdm-error" role="alert">
+    <i data-lucide="alert-triangle"></i>
+    <span>{{ error|default:"No se pudo cargar la valoración." }}</span>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+    <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>
+  </div>
+{% elif calificacion_guardada %}
+  <div style="text-align:center;padding:24px 10px;">
+    <i data-lucide="check-circle" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;margin-inline:auto;"></i>
+    <h3 style="margin:0 0 8px;font-family:'JetBrains Mono',monospace;color:#ffffff;">¡Tu calificación ha sido registrada!</h3>
+    <p style="color:#a0a0a0;font-size:13px;margin:0 0 18px;">
+      Gracias por valorar a <strong>{{ empresa_nombre }}</strong>{% if puntuacion %} ({{ puntuacion }}/5){% endif %}.
+    </p>
+    <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>
+  </div>
+{% elif ya_califico %}
+  <div style="text-align:center;padding:24px 10px;">
+    <i data-lucide="check-circle" style="font-size:36px;color:#00e676;margin-bottom:12px;display:block;margin-inline:auto;"></i>
+    <h3 style="margin:0 0 8px;font-family:'JetBrains Mono',monospace;color:#ffffff;">¡Ya has calificado a esta empresa!</h3>
+    <p style="color:#a0a0a0;font-size:13px;margin:0 0 18px;">Tu reseña para este proyecto ya fue registrada en el perfil de la empresa.</p>
+    <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>
+  </div>
+{% else %}
+  <form id="jdmFormCalificar"
+        method="post"
+        action="{{ action_url }}"
+        hx-post="{{ action_url }}"
+        hx-target="#jdmBody"
+        hx-swap="innerHTML"
+        novalidate>
+    {% csrf_token %}
+    {% if es_obligatorio %}
+      <input type="hidden" name="obligatorio" value="1">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:6px;background:rgba(255,171,0,0.08);border:1px solid rgba(255,171,0,0.3);color:#ffab00;font-size:12.5px;margin-bottom:16px;line-height:1.45;">
+        <i data-lucide="shield-alert" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;"></i>
+        <div><strong>Evaluación requerida:</strong> El proyecto ha finalizado. Para continuar navegando en tu panel, califica tu experiencia colaborando con la empresa.</div>
+      </div>
+    {% endif %}
+
+    {% if error %}
+      <div id="jdmCalificarError" class="jdm-error" role="alert" style="display:flex;">
+        <i data-lucide="alert-circle"></i>
+        <span>{{ error }}</span>
+      </div>
+    {% else %}
+      <div id="jdmCalificarError" class="jdm-error" role="alert" style="display:none;"></div>
+    {% endif %}
+
+    <div class="jdm-rating-container">
+      <div class="jdm-stars-row jdm-stars" id="jdmStars">
+        <button type="button" class="jdm-star-btn{% if puntuacion_num >= 1 %} is-active{% endif %}" data-val="1"><i data-lucide="star"></i></button>
+        <button type="button" class="jdm-star-btn{% if puntuacion_num >= 2 %} is-active{% endif %}" data-val="2"><i data-lucide="star"></i></button>
+        <button type="button" class="jdm-star-btn{% if puntuacion_num >= 3 %} is-active{% endif %}" data-val="3"><i data-lucide="star"></i></button>
+        <button type="button" class="jdm-star-btn{% if puntuacion_num >= 4 %} is-active{% endif %}" data-val="4"><i data-lucide="star"></i></button>
+        <button type="button" class="jdm-star-btn{% if puntuacion_num >= 5 %} is-active{% endif %}" data-val="5"><i data-lucide="star"></i></button>
+      </div>
+      <div class="jdm-rating-caption" id="jdmRatingCaption">Selecciona una puntuación (1 a 5)</div>
+      <input type="hidden" name="puntuacion" id="jdmInputPuntuacion" value="{{ puntuacion|default:'' }}">
+    </div>
+
+    <div class="jdm-form-group">
+      <label class="jdm-form-label" for="jdmComentario">Comentario cualitativo <span class="req">* (mínimo {{ min_comentario|default:20 }} caracteres)</span></label>
+      <textarea id="jdmComentario" name="comentario" class="jdm-textarea" placeholder="Describe tu experiencia colaborando con la empresa, cumplimiento de pagos y comunicación…" required>{{ comentario|default:'' }}</textarea>
+      <div class="jdm-char-counter" id="jdmCharCount">{{ comentario|default:''|length }} / {{ min_comentario|default:20 }} caracteres mínimos</div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+      {% if es_obligatorio %}
+        <button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion" style="width:100%;justify-content:center;">
+          <i data-lucide="star"></i> Enviar Calificación Obligatoria
+        </button>
+      {% else %}
+        <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>
+        <button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarCalificacion">
+          <i data-lucide="star"></i> Enviar Calificación
+        </button>
+      {% endif %}
+    </div>
+  </form>
+{% endif %}
+</div>
