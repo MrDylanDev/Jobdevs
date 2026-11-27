@@ -1,0 +1,70 @@
+{% load static i18n %}
+<!-- ==================== LOGIN MODAL ==================== -->
+<div class="modal fade theme-dev" id="loginModal" role="dialog" aria-modal="true" aria-label="{% trans "Autenticación" %}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-tech tech-frame">
+      <div class="modal-header">
+        <h2 class="modal-title">{% trans "Autenticación" %}</h2>
+        <button type="button" class="btn-close btn-close-tech" data-cerrar-login aria-label="{% trans "Close" %}"></button>
+      </div>
+      <div class="modal-body">
+
+        <div id="loginForm">
+          <form id="loginFormElement" method="POST" action="{% url 'login' %}">
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+            {% csrf_token %}
+
+            <div class="modal-field">
+              <label class="label-tech" for="username">{% trans "Correo o usuario" %}</label>
+              <input required type="text" class="input-tech" id="username" name="username" placeholder="{% trans "ejemplo@correo.com o tu usuario" %}" autocomplete="username">
+            </div>
+
+            <div class="modal-field-password">
+              <label class="label-tech" for="password">{% trans "Contraseña" %}</label>
+              <input required type="password" class="input-tech" id="password" name="password" placeholder="••••••••">
+              <button type="button" id="togglePassTech" class="pass-toggle" aria-pressed="false" aria-label="{% trans "Mostrar contraseña" %}"><svg xmlns="http://www.w3.org/2000/svg" width="1.1rem" height="1.1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="1.1rem" height="1.1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+
+            <button type="submit" class="btn-submit-tech">{% trans "Ingresar" %}</button>
+          </form>
+
+          <div class="modal-links">
+            {% if allow_public_registration %}
+            <a href="{% url 'registro' %}" class="login-link">{% trans "¿Primera vez? Regístrate" %}</a>
+            <span class="login-sep" aria-hidden="true">|</span>
+            {% endif %}
+            <a href="#" id="recoveryLink" class="login-link">{% trans "Recuperar acceso" %}</a>
+          </div>
+        </div>
+
+        <div id="recoveryForm" class="hidden">
+          <form id="recoveryFormInner" method="POST" action="{% url 'recuperar' %}">
+            {% csrf_token %}
+            <div class="modal-field">
+              <label class="label-tech" for="recoveryEmail">{% trans "Correo electrónico" %}</label>
+              <input type="email" id="recoveryEmail" name="email" class="input-tech" placeholder="{% trans "ejemplo@correo.com" %}" required autocomplete="email">
+            </div>
+            <button type="submit" class="btn-submit-tech">{% trans "Enviar instrucciones" %}</button>
+          </form>
+          <div class="modal-links">
+            <a href="#" id="backToLoginLink" class="login-link">{% trans "&larr; Volver al inicio de sesión" %}</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div class="toast-tech" id="toast">
+  <div class="toast-row">
+    <div class="toast-icon-circle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="0.7rem" height="0.7rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check icono-linea" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <div>
+      <div id="toastTitle" class="toast-title">{% trans "Solicitud recibida" %}</div>
+      <div id="toastMsg" class="toast-msg">{% trans "Recibimos tu solicitud. Te contactaremos pronto." %}</div>
+    </div>
+  </div>
+</div>

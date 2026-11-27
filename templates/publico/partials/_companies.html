@@ -1,0 +1,117 @@
+{% load static i18n %}
+<!-- ==================== EMPRESAS QUE CONFÍAN (CARRUSEL CONTINUO) ==================== -->
+<section id="empresas" class="section-tech logos-marquee-section" aria-labelledby="tituloEmpresas">
+  <div class="logos-grid-bg" aria-hidden="true"></div>
+
+  <div class="section-inner logos-marquee-head reveal">
+    <span class="section-marker"><span>{% trans "CONFIANZA CORPORATIVA" %}</span></span>
+    <h2 class="sh-title" id="tituloEmpresas">{% trans "Empresas que" %} <span class="acento-marca">{% trans "confían en nosotros" %}</span></h2>
+    <p class="desc-mono">{% trans "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de Jobdevs." %}</p>
+  </div>
+
+  <div class="logos-marquee">
+    <div class="logos-marquee-fade logos-marquee-fade--left" aria-hidden="true"></div>
+    <div class="logos-marquee-fade logos-marquee-fade--right" aria-hidden="true"></div>
+
+    <div class="logos-marquee-viewport">
+      <!-- Pista visible -->
+      <div class="logos-marquee-track" role="list" aria-label="{% trans "Empresas colombianas que contratan talento SENA" %}">
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="{% trans "Logo de Alpina" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="{% trans "Logo de Bavaria" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="{% trans "Logo de Colanta" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="{% trans "Logo de Colsubsidio" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="{% trans "Logo de Corona" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="{% trans "Logo de DIAN" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="{% trans "Logo de EPM" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="{% trans "Logo de ETB" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="{% trans "Logo de Ecopetrol" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="{% trans "Logo de Frisby" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="{% trans "Logo de Grupo Argos" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="{% trans "Logo de Postobón" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="{% trans "Logo de Presto" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="{% trans "Logo de Rappi" %}" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="{% trans "Logo de Tiendas D1" %}" decoding="async">
+        </span>
+      </div>
+
+      <!-- Copia para el loop infinito (oculta a lectores de pantalla) -->
+      <div class="logos-marquee-track" aria-hidden="true">
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-wide">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-standard">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="" decoding="async">
+        </span>
+        <span class="logos-wordmark is-square">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="" decoding="async">
+        </span>
+      </div>
+    </div>
+  </div>
+
+</section>

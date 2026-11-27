@@ -80,7 +80,10 @@ class TestConmutador:
         assert 'aria-label=' in etiqueta
 
     def test_en_movil_el_conmutador_vive_en_el_menu(self):
-        plantilla = TEMPLATE.read_text(encoding='utf-8')
+        assert TEMPLATE.exists(), 'Debe existir la plantilla de la landing'
+        parciales = sorted((TEMPLATE.parent / 'partials').glob('*.html'))
+        assert parciales, 'Deben existir los parciales HTML de la landing'
+        plantilla = '\n'.join(p.read_text(encoding='utf-8') for p in [TEMPLATE, *parciales])
         menu = plantilla[plantilla.index('id="navLinks"'):plantilla.index('class="nav-right"')]
         assert 'English' in menu or 'Español' in menu, (
             'En móvil el conmutador se esconde de la barra: tiene que estar en el menú'
@@ -114,10 +117,15 @@ class TestTextosDelJs:
         assert datos['authTitle'] == 'Secure authentication'
         assert datos['sending'] == 'Sending...'
 
-    def test_el_js_ya_no_hardcodea_los_titulos(self):
-        from django.conf import settings
-
-        js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text(encoding='utf-8')
+    def test_el_js_ya_no_hardcodea_los_titulos(self, client):
+        contenido = client.get('/').content.decode()
+        assert 'publico/script/index.js' in contenido
+        js_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script'
+        js_path = js_dir / 'index.js'
+        assert js_path.exists(), 'Debe existir el JS principal de la landing'
+        modulos = sorted((js_dir / 'modules').glob('*.js'))
+        assert modulos, 'Deben existir los módulos JS de la landing'
+        js = '\n'.join(p.read_text(encoding='utf-8') for p in [js_path, *modulos])
         assert "texto('authTitle'" in js and "texto('recoveryTitle'" in js
         assert "= 'AUTENTICACIÓN SEGURA'" not in js, 'Quedó el literal en español en el JS'
 

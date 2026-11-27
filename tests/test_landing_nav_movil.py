@@ -12,13 +12,21 @@ from django.template.loader import render_to_string
 
 
 @pytest.fixture(scope='module')
-def css():
-    return (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+def html():
+    return render_to_string('publico/index.html')
 
 
 @pytest.fixture(scope='module')
-def html():
-    return render_to_string('publico/index.html')
+def css(html):
+    css_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css'
+    css_path = css_dir / 'index.css'
+    assert css_path.exists(), 'Debe existir el CSS base de la landing'
+    modulos = sorted((css_dir / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    assert 'publico/css/index.css' in html
+    for modulo in modulos:
+        assert f'publico/css/modules/{modulo.name}' in html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [css_path, *modulos])
 
 
 class TestNavMovil:

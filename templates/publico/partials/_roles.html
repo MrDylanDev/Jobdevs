@@ -1,0 +1,79 @@
+{% load static i18n %}
+<!-- ==================== ROLES (HERO STYLE FULL BLEED) ==================== -->
+<section id="roles" class="section-tech roles-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
+  <div class="roles-bg-stage">
+    <div class="role-bg-frame active" id="bgRoleEmpresa">
+      <img src="{% static 'IMG/empresa_rol.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="role-bg-frame" id="bgRoleDev">
+      <img src="{% static 'IMG/aprendiz_rol.webp' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="roles-bg-overlay"></div>
+  </div>
+
+  <div class="section-inner roles-hero-content">
+    <div class="roles-hero-layout reveal">
+
+      <!-- Todo el encabezado agrupado a la derecha -->
+      <div class="roles-main-header">
+        <span class="section-marker"><span>{% trans "MODELO BILATERAL" %}</span></span>
+        <h2 class="sh-title">{% trans "Diseñado para Empresas" %}<br>{% trans "y" %} <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
+        <p class="desc-mono">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que Jobdevs tiene para ti." %}</p>
+      </div>
+
+      <!-- Selector de rol interactivo con iconos Lucide -->
+      <div class="roles-role-switcher" role="tablist" aria-label="{% trans "Selector de rol" %}">
+        <button type="button" class="role-nav-btn active" id="btnRoleEmpresa" role="tab" aria-selected="true" aria-controls="paneEmpresa" data-role="empresa">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          </span>
+          <span class="role-nav-label">{% trans "Empresa" %}</span>
+        </button>
+
+        <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
+          <span class="role-nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+          </span>
+          <span class="role-nav-label">{% trans "Aprendiz" %}</span>
+        </button>
+      </div>
+
+      <!-- Contenido detallado del rol seleccionado -->
+      <div class="roles-right-stage">
+        <!-- Panel Empresa -->
+        <div class="role-stage-pane active" id="paneEmpresa" role="tabpanel" aria-labelledby="btnRoleEmpresa">
+          <div class="role-info-col">
+            <div class="rp-label">{% trans "Para Empresas y Startups" %}</div>
+            <h3 class="role-stage-title">{% trans "Impulsa tus proyectos con" %} <span class="acento-marca">{% trans "talento SENA" %}</span> {% trans "verificado" %}</h3>
+            <p class="role-stage-desc">{% trans "Publica requerimientos de software reales, evalúa postulaciones de aprendices con portafolio y calificaciones verificadas, y gestiona entregas mediante hitos auditables con trazabilidad total." %}</p>
+
+            <ul class="role-stage-features">
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Publicación ágil:" %}</strong> {% trans "define stack técnico, vacantes y fechas estimadas sin costos de registro." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Selección directa:" %}</strong> {% trans "recibe cartas de presentación y perfiles con ficha SENA oficial." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Control por hitos:" %}</strong> {% trans "aprueba avances con evidencia técnica documentada para dar conformidad a cada entrega." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Seguridad jurídica:" %}</strong> {% trans "contratos digitales con sello de verificación único, historial inalterable y mediación formal." %}</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Panel Desarrollador / Aprendiz -->
+        <div class="role-stage-pane" id="paneDev" role="tabpanel" aria-labelledby="btnRoleDev">
+          <div class="role-info-col">
+            <div class="rp-label rp-label--accent">{% trans "Para Aprendices y Egresados SENA" %}</div>
+            <h3 class="role-stage-title">{% trans "Construye tu carrera profesional con" %} <span class="acento-marca">{% trans "proyectos reales" %}</span></h3>
+            <p class="role-stage-desc">{% trans "Valida tu número de ficha académica, postúlate a requerimientos de software en empresas activas y acumula experiencia real en producción con calificaciones públicas y contratos formales." %}</p>
+
+            <ul class="role-stage-features">
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Validación oficial:" %}</strong> {% trans "verificación de identidad académica contra el padrón oficial del SENA." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Postulación directa:" %}</strong> {% trans "carta de presentación técnica y límite responsable de 3 vacantes simultáneas." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Experiencia en producción:" %}</strong> {% trans "entrega de código y avances por hitos con evidencias respaldadas en la nube." %}</span></li>
+              <li><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <span><strong>{% trans "Reputación verificable:" %}</strong> {% trans "calificaciones mutuas por estrellas y portafolio visible para futuras contrataciones." %}</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

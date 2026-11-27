@@ -1,7 +1,9 @@
 """Fuerza mayor solicita revisión, sin imputar incumplimiento ni sancionar."""
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 
 from contrataciones.models import Contratacion, SolicitudCancelacion
@@ -110,9 +112,13 @@ def test_formulario_fuerza_mayor_no_exige_declarar_conflicto_grave(client, escen
     assert '<option value="fuerza_mayor" selected>' in content
     assert response.context['categoria'] == 'fuerza_mayor'
     assert 'no implica incumplimiento ni sanción automática' in content
-    assert "gravedad.required = !esFuerzaMayor" in content
-    assert "gravedad.disabled = esFuerzaMayor" in content
-    assert "gravedad.closest('label').style.display = esFuerzaMayor ? 'none' : ''" in content
+    assert 'disputas/script/abrir_disputa.js' in content
+    js_path = Path(settings.BASE_DIR) / 'static' / 'disputas' / 'script' / 'abrir_disputa.js'
+    assert js_path.exists(), 'Debe existir el script externo de apertura de disputa'
+    js_content = js_path.read_text(encoding='utf-8')
+    assert "gravedad.required = !esFuerzaMayor" in js_content
+    assert "gravedad.disabled = esFuerzaMayor" in js_content
+    assert "gravedad.closest('label').style.display = esFuerzaMayor ? 'none' : ''" in js_content
 
 
 @pytest.mark.parametrize('campo', ['confirma_intento_previo', 'acepta_sanciones'])

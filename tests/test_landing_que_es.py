@@ -16,6 +16,30 @@ def landing_html():
 
 
 @pytest.fixture(scope='module')
+def landing_css(landing_html):
+    css_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css'
+    css_path = css_dir / 'index.css'
+    assert css_path.exists(), 'Debe existir el CSS base de la landing'
+    modulos = sorted((css_dir / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    assert 'publico/css/index.css' in landing_html
+    for modulo in modulos:
+        assert f'publico/css/modules/{modulo.name}' in landing_html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [css_path, *modulos])
+
+
+@pytest.fixture(scope='module')
+def landing_js(landing_html):
+    js_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script'
+    js_path = js_dir / 'index.js'
+    assert js_path.exists(), 'Debe existir el JS principal de la landing'
+    modulos = sorted((js_dir / 'modules').glob('*.js'))
+    assert modulos, 'Deben existir los módulos JS de la landing'
+    assert 'publico/script/index.js' in landing_html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [js_path, *modulos])
+
+
+@pytest.fixture(scope='module')
 def bloque_que_es(landing_html):
     inicio = landing_html.index('id="que-es"')
     fin = landing_html.index('id="metodologia"')
@@ -52,8 +76,8 @@ class TestQueEsJobDevs:
         for palabra in ('FASE_01', 'FASE_02', 'Publicar Proyecto', 'Postulación'):
             assert palabra not in bloque_que_es
 
-    def test_css_minimo_de_la_seccion(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+    def test_css_minimo_de_la_seccion(self, landing_css):
+        css = landing_css
         for regla in ('.what-section', '.what-head', '.what-grid-bg'):
             assert regla in css, f'Falta la regla {regla}'
         for resto in ('.what-spec', '.what-principle', '.what-negation', '.what-inner'):
@@ -63,8 +87,8 @@ class TestQueEsJobDevs:
         for resto in ('stats-section', 'stats-grid', 'data-count', 'stat-number'):
             assert resto not in landing_html, f'Quedó rastro de la banda de métricas: {resto}'
 
-    def test_js_sin_contador_animado(self):
-        js = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
+    def test_js_sin_contador_animado(self, landing_js):
+        js = landing_js
         assert 'number-display' not in js and 'counterObserver' not in js
 
     def test_testimonios_comparte_la_piel_de_la_banda(self, landing_html):
@@ -76,23 +100,23 @@ class TestQueEsJobDevs:
         assert 'section-marker' in bloque and 'sh-title' in bloque and 'desc-mono' in bloque
         assert 'style="margin-bottom: 48px;"' not in bloque, 'Sin estilos inline del encabezado viejo'
 
-    def test_css_agrupa_las_bandas(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+    def test_css_agrupa_las_bandas(self, landing_css):
+        css = landing_css
         assert '.logos-marquee-section,\n.what-section,\n.story-section {' in css
         assert '.logos-grid-bg,\n.what-grid-bg,\n.story-grid-bg,\n.foot-grid-bg {' in css
         assert '.logos-marquee-head,\n.what-head,\n.story-head {' in css
 
 
-    def test_sin_manifiesto(self, bloque_que_es):
+    def test_sin_manifiesto(self, bloque_que_es, landing_css):
         """El manifiesto se retiró a pedido del operador; no debe volver por accidente."""
         assert 'what-manifesto' not in bloque_que_es
         assert 'MANIFIESTO' not in bloque_que_es
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        css = landing_css
         assert '.what-manifesto' not in css
 
 
-    def test_css_sin_reglas_de_la_version_dual(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+    def test_css_sin_reglas_de_la_version_dual(self, landing_css):
+        css = landing_css
         assert 'booking-layout-dual' not in css
         # el layout de paneles se retiro con el cierre full-bleed: su CSS tambien
         for regla in ('.booking-layout', '.booking-panel', '.booking-info',
@@ -123,8 +147,8 @@ class TestQueEsJobDevs:
             'Con registro público habilitado, el botón debe apuntar al registro y decir Crear cuenta'
         )
 
-    def test_css_del_cierre(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+    def test_css_del_cierre(self, landing_css):
+        css = landing_css
         for regla in ('.cta-hero {', '.cta-hero-img', '.cta-hero-overlay',
                       '.cta-hero-content', '.cta-hero-btn'):
             assert regla in css, f'Falta la regla {regla}'

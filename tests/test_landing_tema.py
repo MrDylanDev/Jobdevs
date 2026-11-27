@@ -44,18 +44,28 @@ BLANCO, NEGRO = '#ffffff', '#000000'
 
 
 @pytest.fixture(scope='module')
-def css():
-    return CSS_PATH.read_text(encoding='utf-8')
-
-
-@pytest.fixture(scope='module')
-def js():
-    return JS_PATH.read_text(encoding='utf-8')
-
-
-@pytest.fixture(scope='module')
 def html():
     return render_to_string('publico/index.html')
+
+
+@pytest.fixture(scope='module')
+def css(html):
+    assert CSS_PATH.exists(), 'Debe existir el CSS base de la landing'
+    modulos = sorted((CSS_PATH.parent / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    assert 'publico/css/index.css' in html
+    for modulo in modulos:
+        assert f'publico/css/modules/{modulo.name}' in html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [CSS_PATH, *modulos])
+
+
+@pytest.fixture(scope='module')
+def js(html):
+    assert JS_PATH.exists(), 'Debe existir el JS principal de la landing'
+    modulos = sorted((JS_PATH.parent / 'modules').glob('*.js'))
+    assert modulos, 'Deben existir los módulos JS de la landing'
+    assert 'publico/script/index.js' in html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [JS_PATH, *modulos])
 
 
 def bloque(css, selector):

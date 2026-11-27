@@ -1,0 +1,87 @@
+{% load static i18n %}
+<!-- ==================== FOOTER ==================== -->
+<footer class="foot-tech">
+  <div class="foot-grid-bg" aria-hidden="true"></div>
+  <div class="foot-grid">
+    <div class="foot-col">
+      <div class="foot-brand">
+        <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="Jobdevs" class="foot-brand-icon" width="38" height="38" decoding="async">
+        <span>Job<span class="foot-brand-accent">devs</span></span>
+      </div>
+      <p class="foot-desc">{% trans "Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia." %}</p>
+      <div class="newsletter-box">
+        <p>{% trans "Contacto y Soporte" %}</p>
+        <p class="foot-contact-email">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail icono-linea foot-contact-icon" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>{% trans "contacto@jobdevs.co" %}
+        </p>
+        <div class="foot-socials" aria-label="{% trans "Redes sociales" %}">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="foot-social-link" aria-label="Facebook">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="https://x.com" target="_blank" rel="noopener noreferrer" class="foot-social-link" aria-label="X">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="foot-social-link" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="foot-social-link" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot-col">
+      <h3 class="foot-col-title">{% trans "Preguntas frecuentes" %}</h3>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary class="faq-q">{% trans "¿Qué es Jobdevs?" %}</summary>
+          <p class="faq-a">{% trans "Plataforma que conecta empresas con talento del SENA para el desarrollo de software colaborativo." %}</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">{% trans "¿Cómo funciona?" %}</summary>
+          <p class="faq-a">{% trans "La empresa publica un proyecto, los desarrolladores SENA postulan, la empresa elige y se trabaja por hitos verificables." %}</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">{% trans "¿Tiene costo?" %}</summary>
+          <p class="faq-a">{% trans "El registro en la plataforma es gratuito. Los términos del proyecto se acuerdan entre empresa y desarrollador." %}</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">{% trans "¿Quiénes pueden participar?" %}</summary>
+          <p class="faq-a">{% trans "Empresas con necesidades de desarrollo de software y desarrolladores vinculados al SENA." %}</p>
+        </details>
+      </div>
+    </div>
+
+    {% if allow_public_registration %}
+    <div class="foot-col">
+      <h3 class="foot-col-title">{% trans "Perfiles" %}</h3>
+      <ul>
+        <li><a href="{% url 'registro' %}">{% trans "Empresa" %}</a></li>
+        <li><a href="{% url 'registro' %}">{% trans "Desarrolladores" %}</a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="foot-col">
+      <h3 class="foot-col-title">{% trans "Acceso" %}</h3>
+      <ul>
+        <li><a href="#" data-abrir-login>{% trans "Iniciar sesión" %}</a></li>
+        {% if allow_public_registration %}
+        <li><a href="{% url 'registro' %}">{% trans "Registrarse" %}</a></li>
+        {% endif %}
+        <li><a href="{% url 'recuperar' %}" data-abrir-recuperar>{% trans "Recuperar contraseña" %}</a></li>
+      </ul>
+      <h3 class="foot-col-title foot-col-title--spaced">{% trans "Legal" %}</h3>
+      <ul>
+        <li><a href="{% url 'legal_condiciones' %}">{% trans "Condiciones del servicio" %}</a></li>
+        <li><a href="{% url 'legal_privacidad' %}">{% trans "Política de privacidad" %}</a></li>
+        <li><a href="{% url 'legal_cookies' %}">{% trans "Política de cookies" %}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>{% trans "Medellín, Colombia" %}</span>
+    <span>{% trans "© 2026 Jobdevs" %}</span>
+  </div>
+</footer>
