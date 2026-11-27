@@ -504,9 +504,14 @@ def api_conversacion(request, receptor_id, proyecto_id=0):
 
     # Marcar como leídos solo los mensajes de este contexto
     mensajes_qs.filter(receptor=request.user, leido=False).update(leido=True)
-    mensajes_no_leidos = Mensaje.objects.filter(
-        receptor=request.user, leido=False
-    ).count()
+    if request.user.rol == 'administrador':
+        mensajes_no_leidos = Mensaje.objects.filter(
+            receptor_id__in=get_admin_ids(), leido=False
+        ).count()
+    else:
+        mensajes_no_leidos = Mensaje.objects.filter(
+            receptor=request.user, leido=False
+        ).count()
 
     return JsonResponse({
         'yo_id': request.user.id,

@@ -253,7 +253,7 @@ def _badge_estado_html(valor):
     texto = escape(str(valor or ''))
     low = texto.lower()
     cls = 'badge'
-    if 'public' in low or 'activ' in low or 'finaliz' in low:
+    if 'public' in low or ('activ' in low and 'inactiv' not in low) or 'finaliz' in low:
         cls = 'badge badge-ok'
     elif 'desarrollo' in low or 'proceso' in low:
         cls = 'badge badge-info'
@@ -276,9 +276,9 @@ def _signature_block_html(usuario_gen):
 def render_reporte_mensual_pdf(mes_texto, usuario_gen, usuarios, proyectos, contrataciones, desglose_roles, desglose_proyectos):
     kpis_html = (
         '<table class="kpi-grid"><tr>'
-        f'<td><div class="kpi-label">Usuarios registrados: {usuarios}</div><div class="kpi-value">{usuarios}</div><div class="kpi-sub">Nuevas cuentas en el período</div></td>'
-        f'<td><div class="kpi-label">Proyectos publicados: {proyectos}</div><div class="kpi-value">{proyectos}</div><div class="kpi-sub">Necesidades tecnológicas creadas</div></td>'
-        f'<td><div class="kpi-label">Contrataciones realizadas: {contrataciones}</div><div class="kpi-value">{contrataciones}</div><div class="kpi-sub">Vinculaciones formalizadas</div></td>'
+        f'<td><div class="kpi-label">Usuarios registrados</div><div class="kpi-value">{usuarios}</div><div class="kpi-sub">Nuevas cuentas en el período</div></td>'
+        f'<td><div class="kpi-label">Proyectos publicados</div><div class="kpi-value">{proyectos}</div><div class="kpi-sub">Necesidades tecnológicas creadas</div></td>'
+        f'<td><div class="kpi-label">Contrataciones realizadas</div><div class="kpi-value">{contrataciones}</div><div class="kpi-sub">Vinculaciones formalizadas</div></td>'
         '</tr></table>'
     )
 

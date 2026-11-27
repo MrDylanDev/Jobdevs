@@ -93,10 +93,10 @@ class TestIntegracionWebSocket:
     def test_sin_toasts_legados_en_modales_ni_desarrollador(self):
         modals_dir = BASE / 'static' / 'dashboard' / 'script'
         modals_files = [modals_dir / 'dashboard_modals.js', *sorted((modals_dir / 'modules').glob('*.js'))]
-        modals_js = '\n'.join(_leer(p) for p in modals_files if p.exists())
+        modals_js = '\n'.join(_leer(p) for p in modals_files)
         dev_dir = BASE / 'static' / 'Desarrollador' / 'script'
         dev_files = [dev_dir / 'desarrollador.js', *sorted((dev_dir / 'modules').glob('*.js'))]
-        dev_js = '\n'.join(_leer(p) for p in dev_files if p.exists())
+        dev_js = '\n'.join(_leer(p) for p in dev_files)
         assert 'jdm-toast' not in modals_js
         assert 'jd-toast' not in dev_js
         assert 'window.JobDevsToast' in modals_js

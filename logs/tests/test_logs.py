@@ -164,9 +164,13 @@ class TestReportes:
         documento = pymupdf.open(stream=response.content, filetype='pdf')
         texto = ''.join(pagina.get_text() for pagina in documento)
         documento.close()
-        assert 'Usuarios registrados:' in texto
-        assert 'Proyectos publicados:' in texto
-        assert 'Contrataciones realizadas:' in texto
+        assert 'Usuarios registrados' in texto
+        assert 'Proyectos publicados' in texto
+        assert 'Contrataciones realizadas' in texto
+        assert 'Usuarios registrados:' not in texto
+        assert 'Cancelado' not in texto
+        for _, etiqueta in Proyecto.ESTADO:
+            assert etiqueta in texto
 
     def test_reporte_aprendices_csv_sin_n_mas_1(self, admin_client, db):
         """SCRUM-177: reporte_aprendices_csv ejecuta un número acotado de consultas con .annotate()."""
@@ -396,6 +400,53 @@ class TestReportes:
         assert LogAuditoria.objects.filter(
             tabla_afectada='reportes', accion__icontains='PDF'
         ).exists()
+
+    @pytest.mark.parametrize(
+        'nombre_ruta',
+        (
+            'reporte_proyectos_csv',
+            'reporte_aprendices_csv',
+            'reporte_empresas_csv',
+            'reporte_auditoria_csv',
+        ),
+    )
+    @pytest.mark.parametrize('valor_invalido', ('no-es-fecha', '2026-02-31'))
+    def test_reportes_rechazan_fechas_invalidas_con_400(
+        self, admin_client, nombre_ruta, valor_invalido
+    ):
+        res = admin_client.get(reverse(nombre_ruta), {'fecha_desde': valor_invalido})
+        assert res.status_code == 400
+        assert 'error' in res.json()
+
+    def test_reporte_auditoria_csv_avisa_cuando_trunca(
+        self, admin_client, admin_user, monkeypatch
+    ):
+        from logs import views as logs_views
+
+        monkeypatch.setattr(logs_views, 'MAX_EXPORT_AUDITORIA', 3)
+        for i in range(5):
+            LogAuditoria.objects.create(
+                usuario=admin_user,
+                accion=f'Evento prueba {i}',
+                tabla_afectada='proyectos',
+            )
+
+        res = admin_client.get(reverse('reporte_auditoria_csv'), {'tabla': 'proyectos'})
+        assert res.status_code == 200
+        assert res.get('X-Export-Truncated') == 'true'
+        filas = list(csv.reader(io.StringIO(res.content.decode('utf-8-sig'))))
+        # encabezado + 3 filas de datos + 1 fila de advertencia
+        assert len(filas) == 5
+        assert filas[-1][1] == 'ADVERTENCIA'
+        assert '3' in filas[-1][2]
+
+    def test_badge_estado_html_no_marca_inactivo_como_ok(self):
+        from logs.pdf_reports import _badge_estado_html
+
+        html_inactivo = _badge_estado_html('Inactivo')
+        html_activo = _badge_estado_html('Activo')
+        assert 'badge-ok' not in html_inactivo
+        assert 'badge-ok' in html_activo
 
 
 

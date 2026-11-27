@@ -18,9 +18,30 @@ from logs.models import LogAuditoria
 from logs.pdf_reports import render_reporte_mensual_pdf, render_reporte_tabla_pdf
 
 
+MAX_EXPORT_AUDITORIA = 5000
+
+
 def _exigir_admin(request):
     if request.user.rol != 'administrador':
         raise PermissionDenied
+
+
+def _parsear_rango_fechas(fecha_desde, fecha_hasta):
+    """Valida fechas AAAA-MM-DD y devuelve (desde, hasta, error_response)."""
+    try:
+        desde = parse_date(fecha_desde) if fecha_desde else None
+        hasta = parse_date(fecha_hasta) if fecha_hasta else None
+    except ValueError:
+        return None, None, JsonResponse(
+            {'error': 'Las fechas deben usar el formato AAAA-MM-DD.'},
+            status=400,
+        )
+    if (fecha_desde and desde is None) or (fecha_hasta and hasta is None):
+        return None, None, JsonResponse(
+            {'error': 'Las fechas deben usar el formato AAAA-MM-DD.'},
+            status=400,
+        )
+    return desde, hasta, None
 
 
 def _csv_safe(value):
@@ -65,13 +86,9 @@ def historial_actividad(request):
     if accion:
         logs = logs.filter(accion__icontains=accion)
 
-    try:
-        desde = parse_date(desde_texto) if desde_texto else None
-        hasta = parse_date(hasta_texto) if hasta_texto else None
-    except ValueError:
-        return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
-    if (desde_texto and desde is None) or (hasta_texto and hasta is None):
-        return JsonResponse({'error': 'Las fechas deben usar el formato AAAA-MM-DD.'}, status=400)
+    desde, hasta, error_fechas = _parsear_rango_fechas(desde_texto, hasta_texto)
+    if error_fechas is not None:
+        return error_fechas
     if desde:
         logs = logs.filter(fecha_hora__date__gte=desde)
     if hasta:
@@ -131,11 +148,14 @@ def reporte_mensual_pdf(request):
         ('Empresas', usuarios_qs.filter(rol='empresa').count()),
         ('Administradores', usuarios_qs.filter(rol='administrador').count()),
     ]
+    conteos_estado = dict(
+        proyectos_qs.values('estado')
+        .annotate(total=Count('id'))
+        .values_list('estado', 'total')
+    )
     desglose_proyectos = [
-        ('Publicado', proyectos_qs.filter(estado='publicado').count()),
-        ('En desarrollo', proyectos_qs.filter(estado='en_desarrollo').count()),
-        ('Finalizado', proyectos_qs.filter(estado='finalizado').count()),
-        ('Cancelado', proyectos_qs.filter(estado='cancelado').count()),
+        (etiqueta, conteos_estado.get(codigo, 0))
+        for codigo, etiqueta in Proyecto.ESTADO
     ]
 
     _registrar_auditoria_reporte(request.user, 'Reporte mensual PDF', {'mes': mes_texto})
@@ -161,13 +181,16 @@ def reporte_proyectos_csv(request):
     fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
     # Traemos proyectos con su empresa y calculamos métricas en una sola ráfaga SQL
-    proyectos = Proyecto.objects.select_related('empresa', 'categoria').annotate(
+    proyectos = Proyecto.objects.select_related('empresa', 'empresa__perfil_empresa', 'categoria').annotate(
         num_devs=Count('contrataciones', filter=Q(contrataciones__estado='activa'))
     ).order_by('-fecha_publicacion')
     if estado:
         proyectos = proyectos.filter(estado=estado)
-    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
-    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    fecha_desde_parsed, fecha_hasta_parsed, error_fechas = _parsear_rango_fechas(
+        fecha_desde, fecha_hasta
+    )
+    if error_fechas is not None:
+        return error_fechas
     if fecha_desde_parsed:
         proyectos = proyectos.filter(fecha_publicacion__date__gte=fecha_desde_parsed)
     if fecha_hasta_parsed:
@@ -182,11 +205,11 @@ def reporte_proyectos_csv(request):
     )
 
     encabezados = ['Título', 'Empresa', 'Tipo', 'Prioridad', 'Estado', 'Desarrolladores', 'Vacantes Totales', 'Fecha Publicación']
-    filas_datos = []
-    for p in proyectos:
+
+    def _fila_proyecto(p):
         nombre_empresa = getattr(p.empresa, 'perfil_empresa', None)
         empresa_display = nombre_empresa.nombre_empresa if nombre_empresa and nombre_empresa.nombre_empresa else p.empresa.nombre
-        filas_datos.append([
+        return [
             p.titulo,
             empresa_display,
             p.get_tipo_solucion_display(),
@@ -195,9 +218,10 @@ def reporte_proyectos_csv(request):
             p.num_devs,
             p.vacantes,
             p.fecha_publicacion.strftime('%d/%m/%Y %H:%M'),
-        ])
+        ]
 
     if formato == 'pdf':
+        filas_datos = [_fila_proyecto(p) for p in proyectos]
         filtros_txt = ', '.join(
             f'{k}={v}' for k, v in (('estado', estado), ('desde', fecha_desde), ('hasta', fecha_hasta)) if v
         )
@@ -227,7 +251,8 @@ def reporte_proyectos_csv(request):
 
     writer = csv.writer(response)
     writer.writerow(encabezados)
-    for fila in filas_datos:
+    for p in proyectos.iterator(chunk_size=500):
+        fila = _fila_proyecto(p)
         writer.writerow([
             _csv_safe(fila[0]),
             _csv_safe(fila[1]),
@@ -259,8 +284,11 @@ def reporte_aprendices_csv(request):
             output_field=FloatField()
         )
     ).order_by('usuario__username')
-    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
-    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    fecha_desde_parsed, fecha_hasta_parsed, error_fechas = _parsear_rango_fechas(
+        fecha_desde, fecha_hasta
+    )
+    if error_fechas is not None:
+        return error_fechas
     if fecha_desde_parsed:
         aprendices = aprendices.filter(usuario__date_joined__date__gte=fecha_desde_parsed)
     if fecha_hasta_parsed:
@@ -275,19 +303,19 @@ def reporte_aprendices_csv(request):
     )
 
     encabezados = ['Usuario', 'Nombre', 'Programa', 'Ficha', 'Promedio', 'Proyectos']
-    filas_datos = [
-        [
-            a.usuario.username,
-            a.usuario.nombre,
-            a.programa_formacion or '-',
-            a.ficha or '-',
-            round(a.promedio_estrellas, 2),
-            a.num_proyectos_completados,
-        ]
-        for a in aprendices
-    ]
 
     if formato == 'pdf':
+        filas_datos = [
+            [
+                a.usuario.username,
+                a.usuario.nombre,
+                a.programa_formacion or '-',
+                a.ficha or '-',
+                round(a.promedio_estrellas, 2),
+                a.num_proyectos_completados,
+            ]
+            for a in aprendices
+        ]
         filtros_txt = ', '.join(
             f'{k}={v}' for k, v in (('desde', fecha_desde), ('hasta', fecha_hasta)) if v
         )
@@ -316,14 +344,14 @@ def reporte_aprendices_csv(request):
 
     writer = csv.writer(response)
     writer.writerow(encabezados)
-    for fila in filas_datos:
+    for a in aprendices.iterator(chunk_size=500):
         writer.writerow([
-            _csv_safe(fila[0]),
-            _csv_safe(fila[1]),
-            _csv_safe(fila[2]),
-            _csv_safe(fila[3]),
-            fila[4],
-            fila[5],
+            _csv_safe(a.usuario.username),
+            _csv_safe(a.usuario.nombre),
+            _csv_safe(a.programa_formacion or '-'),
+            _csv_safe(a.ficha or '-'),
+            round(a.promedio_estrellas, 2),
+            a.num_proyectos_completados,
         ])
     return response
 
@@ -363,8 +391,11 @@ def reporte_empresas_csv(request):
             output_field=FloatField()
         )
     ).order_by('usuario__username')
-    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
-    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    fecha_desde_parsed, fecha_hasta_parsed, error_fechas = _parsear_rango_fechas(
+        fecha_desde, fecha_hasta
+    )
+    if error_fechas is not None:
+        return error_fechas
     if fecha_desde_parsed:
         empresas = empresas.filter(usuario__date_joined__date__gte=fecha_desde_parsed)
     if fecha_hasta_parsed:
@@ -379,21 +410,21 @@ def reporte_empresas_csv(request):
     )
 
     encabezados = ['Empresa', 'NIT', 'Sector', 'Ciudad', 'Telefono', 'Email', 'Proyectos Publicados', 'Reputación (★)']
-    filas_datos = [
-        [
-            e.nombre_empresa or e.usuario.username,
-            e.usuario.identificacion or '-',
-            e.sector or '-',
-            e.ciudad or '-',
-            e.telefono or '-',
-            e.usuario.email,
-            e.proyectos_count,
-            round(e.promedio_estrellas, 2),
-        ]
-        for e in empresas
-    ]
 
     if formato == 'pdf':
+        filas_datos = [
+            [
+                e.nombre_empresa or e.usuario.username,
+                e.usuario.identificacion or '-',
+                e.sector or '-',
+                e.ciudad or '-',
+                e.telefono or '-',
+                e.usuario.email,
+                e.proyectos_count,
+                round(e.promedio_estrellas, 2),
+            ]
+            for e in empresas
+        ]
         filtros_txt = ', '.join(
             f'{k}={v}' for k, v in (('desde', fecha_desde), ('hasta', fecha_hasta)) if v
         )
@@ -422,16 +453,16 @@ def reporte_empresas_csv(request):
 
     writer = csv.writer(response)
     writer.writerow(encabezados)
-    for fila in filas_datos:
+    for e in empresas.iterator(chunk_size=500):
         writer.writerow([
-            _csv_safe(fila[0]),
-            _csv_safe(fila[1]),
-            _csv_safe(fila[2]),
-            _csv_safe(fila[3]),
-            _csv_safe(fila[4]),
-            _csv_safe(fila[5]),
-            fila[6],
-            fila[7],
+            _csv_safe(e.nombre_empresa or e.usuario.username),
+            _csv_safe(e.usuario.identificacion or '-'),
+            _csv_safe(e.sector or '-'),
+            _csv_safe(e.ciudad or '-'),
+            _csv_safe(e.telefono or '-'),
+            _csv_safe(e.usuario.email),
+            e.proyectos_count,
+            round(e.promedio_estrellas, 2),
         ])
 
     return response
@@ -450,14 +481,15 @@ def reporte_auditoria_csv(request):
     qs = LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora', '-id')
     if tabla:
         qs = qs.filter(tabla_afectada__icontains=tabla)
-    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
-    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    fecha_desde_parsed, fecha_hasta_parsed, error_fechas = _parsear_rango_fechas(
+        fecha_desde, fecha_hasta
+    )
+    if error_fechas is not None:
+        return error_fechas
     if fecha_desde_parsed:
         qs = qs.filter(fecha_hora__date__gte=fecha_desde_parsed)
     if fecha_hasta_parsed:
         qs = qs.filter(fecha_hora__date__lte=fecha_hasta_parsed)
-
-    registros = list(qs[:5000])
 
     formato = request.GET.get('formato', 'csv').strip().lower()
     etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
@@ -467,26 +499,29 @@ def reporte_auditoria_csv(request):
         {'tabla': tabla, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta},
     )
 
-    encabezados = ['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Fecha y Hora']
-    filas_datos = [
-        [
-            f'#{log.id}',
-            log.usuario.username if log.usuario else 'Sistema',
-            log.accion,
-            log.tabla_afectada or '-',
-            '' if log.registro_id is None else f'#{log.registro_id}',
-            timezone.localtime(log.fecha_hora).strftime('%d/%m/%Y %H:%M:%S') if log.fecha_hora else '-',
-        ]
-        for log in registros
-    ]
-
     if formato == 'pdf':
+        registros = list(qs[:MAX_EXPORT_AUDITORIA + 1])
+        truncado = len(registros) > MAX_EXPORT_AUDITORIA
+        if truncado:
+            registros = registros[:MAX_EXPORT_AUDITORIA]
+        encabezados = ['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Fecha y Hora']
+        filas_datos = [
+            [
+                f'#{log.id}',
+                log.usuario.username if log.usuario else 'Sistema',
+                log.accion,
+                log.tabla_afectada or '-',
+                '' if log.registro_id is None else f'#{log.registro_id}',
+                timezone.localtime(log.fecha_hora).strftime('%d/%m/%Y %H:%M:%S') if log.fecha_hora else '-',
+            ]
+            for log in registros
+        ]
         filtros_txt = ', '.join(
             f'{k}={v}' for k, v in (('tabla', tabla), ('desde', fecha_desde), ('hasta', fecha_hasta)) if v
         )
         usuarios_distintos = len({f[1] for f in filas_datos})
         tablas_distintas = len({f[3] for f in filas_datos if f[3] != '-'})
-        return render_reporte_tabla_pdf(
+        response = render_reporte_tabla_pdf(
             codigo='JD-REP-AUD',
             titulo='Reporte de Auditoría',
             subtitulo='Trazabilidad institucional de acciones administrativas y del sistema',
@@ -502,6 +537,9 @@ def reporte_auditoria_csv(request):
             filename='reporte_auditoria.pdf',
             numeric_cols=(0, 4),
         )
+        if truncado:
+            response['X-Export-Truncated'] = 'true'
+        return response
 
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="reporte_auditoria_tem.csv"'
@@ -509,7 +547,11 @@ def reporte_auditoria_csv(request):
 
     writer = csv.writer(response)
     writer.writerow(['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Valor Anterior', 'Valor Nuevo', 'Fecha y Hora'])
-    for log in registros:
+    truncado = False
+    for idx, log in enumerate(qs[:MAX_EXPORT_AUDITORIA + 1].iterator(chunk_size=500)):
+        if idx >= MAX_EXPORT_AUDITORIA:
+            truncado = True
+            break
         writer.writerow([
             log.id,
             _csv_safe(log.usuario.username if log.usuario else 'Sistema'),
@@ -519,6 +561,18 @@ def reporte_auditoria_csv(request):
             _csv_safe(log.valor_anterior or ''),
             _csv_safe(log.valor_nuevo or ''),
             timezone.localtime(log.fecha_hora).strftime('%d/%m/%Y %H:%M:%S') if log.fecha_hora else '',
+        ])
+    if truncado:
+        response['X-Export-Truncated'] = 'true'
+        writer.writerow([
+            '',
+            'ADVERTENCIA',
+            f'Exportación truncada: se superó el límite de {MAX_EXPORT_AUDITORIA} registros. Aplique filtros de fecha o tabla para obtener el resto.',
+            '',
+            '',
+            '',
+            '',
+            '',
         ])
     return response
 

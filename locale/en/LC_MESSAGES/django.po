@@ -3605,9 +3605,8 @@ msgstr "Young SENA developers collaborating"
 msgid "Tech leaders and companies"
 msgstr "Tech leaders and companies"
 
-#, python-format
-msgid "100%% de hitos completados. Cierre formal con sello digital verificable y calificación mutua."
-msgstr "100%% of milestones completed. Formal closing with a verifiable digital seal and mutual rating."
+msgid "100% de hitos completados. Cierre formal con sello digital verificable y calificación mutua."
+msgstr "100% of milestones completed. Formal closing with a verifiable digital seal and mutual rating."
 
 msgid "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de Jobdevs."
 msgstr "Colombian companies already building their software with verified SENA apprentices and graduates through Jobdevs."

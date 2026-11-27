@@ -122,15 +122,22 @@ class TestContrasteBajoGlifos:
         )
 
     def test_la_marca_del_nav_se_lee_sobre_la_foto(self, page, live_server):
-        # El 1.67:1 que reportaba el ticket era el verde del dot parpadeante, no
-        # la marca. Con las animaciones congeladas la marca pasa con margen; este
-        # test fija ese piso para que no se degrade sin que nadie lo note.
+        # La marca del nav ahora es un logo SVG (<img>) y el CTA visible del nav
+        # (.nav-cta) lleva el texto principal sobre la foto del hero.
         abrir_landing(page, live_server, 'dark', ancho=1920, alto=1080)
 
-        marca = page.locator('.nav-brand')
-        peor, mediana = peor_contraste_bajo_glifos(page, marca)
+        logo = page.locator('.nav-brand .nav-brand-logo')
+        assert logo.is_visible(), 'El logo SVG del nav debe estar visible sobre el hero'
+        cargado = logo.evaluate("img => img.complete && img.naturalWidth > 0")
+        assert cargado, 'El logo SVG del nav no cargó correctamente'
+        caja = logo.bounding_box()
+        assert caja is not None and caja['width'] >= 24 and caja['height'] >= 24
+
+        cta = page.locator('.nav-tech .nav-cta')
+        assert cta.is_visible()
+        peor, mediana = peor_contraste_bajo_glifos(page, cta)
         assert peor >= UMBRAL_NORMAL, (
-            f'La marca del nav da {peor:.2f}:1 en el peor píxel (mediana {mediana:.2f}:1)'
+            f'El CTA del nav da {peor:.2f}:1 en el peor píxel (mediana {mediana:.2f}:1)'
         )
 
     @pytest.mark.parametrize('tema', ['light', 'dark'])
@@ -173,12 +180,21 @@ class TestEnlacesDelNavSobreElHero:
     def test_los_enlaces_se_leen_sobre_las_siete_fotos(self, page, live_server, ancho, alto):
         abrir_landing(page, live_server, 'dark', ancho=ancho, alto=alto)
 
-        enlace = page.locator('.nav-links a').first
-        peor = peor_en_todas_las_fotos(page, enlace)
-        assert peor >= UMBRAL_NORMAL, (
-            f'El enlace del nav sobre el hero da {peor:.2f}:1 a {ancho}x{alto}: '
-            f'sin fondo, el texto se apoya en la foto'
-        )
+        selectores = ['.nav-links a', '.nav-tech .nav-cta', '.nav-tech .lang-switch-code']
+        medidos = 0
+        for selector in selectores:
+            elementos = page.locator(selector)
+            for idx in range(elementos.count()):
+                el = elementos.nth(idx)
+                if not el.is_visible():
+                    continue
+                peor = peor_en_todas_las_fotos(page, el)
+                assert peor >= UMBRAL_NORMAL, (
+                    f'El elemento "{selector}" del nav sobre el hero da {peor:.2f}:1 a '
+                    f'{ancho}x{alto}: sin fondo suficiente, el texto se apoya en la foto'
+                )
+                medidos += 1
+        assert medidos, f'No se midió ningún control visible del nav a {ancho}x{alto}'
 
 
 @pytest.mark.e2e
