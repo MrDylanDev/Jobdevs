@@ -1,0 +1,2498 @@
+/* ============================================================
+   JobDevs - Empresa Module: Modales, Datepicker, Contratos,
+   Cancelaciones, Hitos & Command Center
+   Loaded in parallel after empresa.css (before empresa_sober_overrides.css).
+   ============================================================ */
+
+/* ============================================================
+   MODAL NUEVO PROYECTO (ENTERPRISE EDITION)
+   Base .modal-overlay heredada de dashboard.css.
+   ============================================================ */
+.modal-box-corp {
+  background: var(--corp-surface);
+  border-radius: 6px;
+  padding: 24px 28px;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: var(--corp-shadow-md);
+  animation: modalScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--corp-border);
+}
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+  .modal-box-corp {
+    padding: 20px 18px;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+}
+
+@keyframes modalScale {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header-corp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--corp-border);
+}
+
+.modal-title-corp {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  letter-spacing: -0.01em;
+}
+
+.modal-close-btn {
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-sm);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--corp-slate-500);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-800);
+}
+
+.form-group-corp {
+  margin-bottom: 16px;
+}
+
+.form-label-corp {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--corp-slate-700);
+  margin-bottom: 6px;
+}
+
+.form-input-corp {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-sm);
+  font-size: 13.5px;
+  color: var(--corp-slate-900);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.form-input-corp:focus {
+  border-color: var(--corp-brand);
+  box-shadow: 0 0 0 2px rgba(0, 113, 63, 0.16);
+}
+
+input[type="date"].form-input-corp {
+  cursor: pointer;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+input[type="date"].form-input-corp::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+  padding: 4px;
+}
+
+input[type="date"].form-input-corp::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] input[type="date"].form-input-corp::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+}
+
+.modal-box-corp .btn-corp-primary,
+.modal-box-corp .btn-corp-action,
+.modal-box-corp .form-input-corp,
+.modal-box-corp .modal-close-btn,
+.modal-box-corp .verif-card,
+.modal-box-corp .verif-modal-icon,
+.modal-box-corp .logo-upload-preview,
+.modal-box-corp .logo-preview-box {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.modal-footer-corp {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--corp-border);
+}
+
+@media (max-width: 1024px) {
+  .reputation-layout-corp {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .kpi-grid-corp {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid-corp {
+    grid-template-columns: 1fr;
+  }
+
+  .user-chip-corp .user-chip-info {
+    display: none;
+  }
+}
+/* ============================================================
+   MODAL DE CONFIRMACIÓN CORPORATIVO (CUSTOM CONFIRM DIALOG)
+   ============================================================ */
+.modal-confirm-box {
+  background: var(--corp-surface);
+  border-radius: var(--corp-radius-xl);
+  padding: 28px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: var(--corp-shadow-pop);
+  border: 1px solid var(--corp-border);
+  animation: modalScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.modal-confirm-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--corp-danger-light);
+  color: var(--corp-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.modal-confirm-icon .lucide {
+  width: 24px;
+  height: 24px;
+}
+
+.modal-confirm-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.modal-confirm-desc {
+  font-size: 13.5px;
+  color: var(--corp-slate-600);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.btn-corp-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--corp-danger);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--corp-radius-sm);
+  font-size: 13px;
+  border: 1px solid #b91c1c;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-corp-danger:hover {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+/* ============================================================
+   CORPORATE DATEPICKER SUITE (CALENDARIO MODERNO)
+   ============================================================ */
+.corp-datepicker {
+  position: relative;
+  width: 100%;
+}
+
+.datepicker-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.datepicker-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--corp-brand);
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+  z-index: 2;
+}
+
+.datepicker-display {
+  padding-left: 36px !important;
+  padding-right: 36px !important;
+  cursor: pointer;
+  background: var(--corp-surface);
+  font-weight: 500;
+}
+
+.datepicker-trigger-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--corp-slate-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.datepicker-trigger-btn:hover {
+  color: var(--corp-brand);
+}
+
+.datepicker-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(320px, calc(100vw - 24px));
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  box-shadow: var(--corp-shadow-pop);
+  z-index: 2000;
+  padding: 16px;
+  animation: popoverFade 0.15s ease-out;
+}
+
+.datepicker-popover.is-open {
+  display: block;
+}
+
+.datepicker-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.datepicker-preset-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 12px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+  border: 1px solid var(--corp-border);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.datepicker-preset-pill:hover {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  border-color: var(--corp-brand);
+}
+
+.datepicker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.datepicker-month-year {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  text-transform: capitalize;
+}
+
+.datepicker-nav-btn {
+  background: var(--corp-slate-100);
+  border: 1px solid var(--corp-border);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--corp-slate-700);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.datepicker-nav-btn:hover {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  border-color: var(--corp-brand);
+}
+
+.datepicker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--corp-slate-400);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.datepicker-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.datepicker-day {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  color: var(--corp-slate-800);
+  font-weight: 500;
+}
+
+.datepicker-day:hover:not(.disabled) {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+}
+
+.datepicker-day.selected {
+  background: var(--corp-brand) !important;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.datepicker-day.today {
+  border-color: var(--corp-brand);
+  font-weight: 700;
+  color: var(--corp-brand);
+}
+
+.datepicker-day.disabled {
+  color: var(--corp-slate-300);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.datepicker-day.other-month {
+  opacity: 0.25;
+}
+
+.datepicker-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--corp-border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+
+/* ============================================================
+   MÓDULO 8 — CONTRATOS DIGITALES IN-SITU (BLANCO & VERDE)
+   Paleta: #00e676 / #00c853 / #ffffff / #e4e7e5
+   ============================================================ */
+
+
+.contrato-row-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  line-height: 1.35;
+}
+
+
+.contrato-monto {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--corp-brand);
+  letter-spacing: -0.01em;
+}
+
+
+/* Sello de firma (empresa / desarrollador) */
+.signature-badge-corp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--corp-border);
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.signature-badge-corp .lucide,
+.signature-badge-corp svg {
+  width: 12px;
+  height: 12px;
+}
+
+.signature-badge-corp.is-signed {
+  background: var(--corp-brand-light);
+  border-color: rgba(0, 200, 83, 0.35);
+  color: var(--corp-brand);
+}
+
+.signature-badge-corp.is-pending {
+  background: var(--corp-warning-light);
+  border-color: var(--corp-warning);
+  color: var(--corp-warning);
+}
+
+/* Estado del contrato */
+.contract-estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--corp-border);
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-600);
+  white-space: nowrap;
+}
+
+
+.contract-estado-badge.estado-firmado {
+  background: var(--corp-brand-light);
+  border-color: rgba(0, 200, 83, 0.35);
+  color: var(--corp-brand);
+}
+
+
+/* ============================================================
+   SECCIÓN: CANCELACIONES DE CONTRATO (EMPRESA)
+   ============================================================ */
+
+
+.cancel-section-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--corp-slate-900);
+  margin: 28px 0 14px;
+}
+
+.cancel-card-title {
+  margin: 12px 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--corp-slate-900);
+}
+
+.cancel-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--corp-slate-600);
+}
+
+.cancel-card-meta i,
+.cancel-card-meta .lucide {
+  width: 13px;
+  height: 13px;
+  color: var(--corp-brand);
+}
+
+.cancel-card-fecha {
+  margin-top: 6px;
+  color: var(--corp-slate-500);
+}
+
+.cancel-motivo {
+  min-height: 84px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.cancel-submit {
+  width: 100%;
+  justify-content: center;
+}
+
+.cancel-disputa-link {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--corp-border-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--corp-slate-500);
+}
+
+.cancel-disputa-link a {
+  color: var(--corp-danger);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cancel-disputa-link a:hover {
+  text-decoration: underline;
+}
+
+.cancel-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cancel-item {
+  padding: 18px 20px;
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+}
+
+.cancel-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cancel-item-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.cancel-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--corp-slate-500);
+}
+
+.cancel-item-meta i,
+.cancel-item-meta .lucide {
+  width: 12px;
+  height: 12px;
+}
+
+.cancel-item-body {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--corp-slate-600);
+}
+
+.cancel-item-body p {
+  margin: 0 0 6px;
+}
+
+.cancel-item-body strong {
+  font-weight: 600;
+  color: var(--corp-slate-800);
+}
+
+/* Estado de la solicitud: el color acompaña, el texto siempre está presente. */
+.cancel-estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--corp-border);
+  border-radius: 6px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-800);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+.cancel-pausa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--corp-info);
+  border-radius: var(--corp-radius-sm);
+  background: var(--corp-info-light);
+  color: var(--corp-slate-800);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cancel-pausa i,
+.cancel-pausa .lucide {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--corp-info);
+}
+
+.cancel-empty {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+}
+
+/* Sello criptográfico */
+.hash-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-slate-700);
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hash-pill .lucide,
+.hash-pill svg {
+  width: 12px;
+  height: 12px;
+  color: var(--corp-brand);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   MODAL IN-SITU DE CONTRATO DIGITAL (DOCUSIGN CORPORATIVO)
+   ============================================================ */
+
+.contract-modal-box {
+  max-width: 860px;
+  width: calc(100% - 32px);
+  max-height: 92vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--corp-radius-xl);
+}
+
+.contract-modal-header {
+  padding: 20px 26px;
+  margin-bottom: 0;
+  background: linear-gradient(180deg, var(--corp-surface) 0%, var(--corp-slate-50) 100%);
+  border-bottom: 1px solid var(--corp-border);
+  flex-shrink: 0;
+}
+
+.contract-modal-subtitle {
+  display: block;
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  margin-top: 3px;
+}
+
+.contract-modal-body {
+  padding: 22px 26px 26px;
+  overflow-y: auto;
+  background: var(--corp-surface-alt);
+  flex: 1;
+}
+
+/* Hoja de documento */
+.contract-doc-paper {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  box-shadow: 0 8px 28px rgba(11, 15, 12, 0.07);
+  padding: 26px 28px 24px;
+  position: relative;
+}
+
+.contract-doc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--corp-border);
+}
+
+.contract-doc-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--corp-brand);
+}
+
+.contract-doc-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  margin: 5px 0 4px;
+  line-height: 1.25;
+}
+
+.contract-doc-project {
+  font-size: 13px;
+  color: var(--corp-slate-600);
+}
+
+.contract-doc-hashes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 18px;
+}
+
+.contract-doc-parties {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.contract-party-card {
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.contract-party-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--corp-slate-400);
+}
+
+.contract-party-card strong {
+  font-size: 13px;
+  color: var(--corp-slate-900);
+}
+
+.contract-terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.contract-term-box {
+  border: 1px solid rgba(0, 200, 83, 0.3);
+  background: var(--corp-brand-light);
+  border-radius: var(--corp-radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.contract-term-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--corp-brand);
+}
+
+.contract-term-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  letter-spacing: -0.01em;
+}
+
+.contract-term-sub {
+  font-size: 12px;
+  color: var(--corp-slate-600);
+}
+
+/* Bloque de cláusulas */
+.contract-clause-box {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.contract-clause-box > strong,
+.contract-section-heading {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--corp-slate-500);
+  margin-bottom: 10px;
+}
+
+.contract-clause-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--corp-slate-700);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.contract-profile-note {
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+  margin: 0 0 14px;
+}
+
+.contract-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.contract-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.contract-profile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--corp-border-subtle);
+}
+
+.contract-profile-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-slate-500);
+}
+
+.contract-profile-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--corp-slate-900);
+  word-break: break-word;
+}
+
+.contract-profile-empty {
+  font-size: 13px;
+  color: var(--corp-slate-500);
+}
+
+.contract-profile-link {
+  color: var(--corp-brand);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+
+.contract-profile-link:hover {
+  color: var(--corp-brand-hover);
+}
+
+.contract-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.contract-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--corp-slate-700);
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: 6px;
+}
+
+.contract-message-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contract-message-block {
+  padding: 10px 12px;
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: 6px;
+}
+
+.contract-message-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--corp-slate-500);
+  margin-bottom: 4px;
+}
+
+.contract-message-body,
+.contract-message-plain {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--corp-slate-700);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.contract-clauses-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contract-clause-item {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--corp-slate-700);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.contract-clause-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.contract-clause-title {
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+/* Firmas de las partes */
+.contract-signatures-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+
+.contract-signature-block {
+  border: 1px dashed var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 12px 14px;
+  background: var(--corp-slate-50);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.contract-signature-block-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--corp-slate-400);
+}
+
+.contract-signature-block-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.contract-signature-block-stamp {
+  width: 100%;
+  border-bottom: 1px solid var(--corp-border);
+  padding-bottom: 6px;
+}
+
+.contract-signature-script {
+  font-family: "Segoe Script", "Brush Script MT", cursive;
+  font-size: 15px;
+  color: var(--corp-brand);
+}
+
+.contract-signature-block-date {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+}
+
+/* Disclaimer legal */
+.contract-doc-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--corp-slate-500);
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
+.contract-doc-disclaimer .lucide,
+.contract-doc-disclaimer svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--corp-info);
+  margin-top: 1px;
+}
+
+/* Formulario de firma electrónica */
+.contract-sign-form {
+  border: 1px solid rgba(0, 200, 83, 0.35);
+  background: var(--corp-brand-light);
+  border-radius: var(--corp-radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contract-sign-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--corp-slate-700);
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.contract-sign-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--corp-brand);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.contract-sign-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-danger);
+  background: var(--corp-danger-light);
+  border: 1px solid #fecaca;
+  border-radius: var(--corp-radius);
+  padding: 8px 10px;
+}
+
+.contract-sign-submit {
+  align-self: flex-start;
+}
+
+.contract-sign-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(0, 200, 83, 0.35);
+  background: var(--corp-brand-light);
+  border-radius: var(--corp-radius-lg);
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--corp-brand);
+}
+
+.contract-sign-done.is-muted {
+  border-color: var(--corp-border);
+  background: var(--corp-slate-50);
+  color: var(--corp-slate-500);
+}
+
+.contract-sign-done p {
+  margin: 0;
+}
+
+.contract-sign-done .lucide,
+.contract-sign-done svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Toast en estado de error */
+.corp-toast svg,
+.corp-toast i {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--corp-brand);
+}
+
+.corp-toast.is-error {
+  background: var(--corp-surface);
+  border-left-color: var(--corp-danger);
+  color: var(--corp-slate-900);
+}
+
+.corp-toast.is-error svg,
+.corp-toast.is-error i {
+  color: var(--corp-danger);
+}
+
+@media (max-width: 768px) {
+  .contract-modal-box {
+    max-width: 100%;
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .contract-modal-body {
+    padding: 16px;
+  }
+
+  .contract-doc-paper {
+    padding: 20px 16px;
+  }
+
+  
+}
+
+/* ── Sub-tabs corporativas (Hitos / Avances sin recarga) ── */
+.corp-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--corp-border, #e2e8f0);
+}
+
+.corp-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: -1px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--corp-slate-600, #475569);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.corp-subtab-btn .lucide,
+.corp-subtab-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.corp-subtab-btn:hover {
+  color: var(--corp-brand);
+  background: var(--corp-brand-subtle);
+}
+
+.corp-subtab-btn:focus-visible {
+  outline: 2px solid var(--corp-brand);
+  outline-offset: 2px;
+}
+
+.corp-subtab-btn.active {
+  color: var(--corp-brand);
+  border-bottom-color: var(--corp-brand);
+  background: var(--corp-brand-subtle);
+}
+
+.subtab-panel {
+  animation: corp-subtab-fade 0.18s ease;
+}
+
+@keyframes corp-subtab-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .corp-subtabs {
+    gap: 2px;
+  }
+
+  .corp-subtab-btn {
+    padding: 9px 12px;
+    font-size: 12.5px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+.roadmap-svg-box-corp {
+  width: 100%;
+  height: 180px;
+  position: relative;
+}
+
+/* ============================================================
+   COMMAND CENTER - DASHBOARD EMPRESA (REDESIGN)
+   ============================================================ */
+.ledger-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ledger-metric-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.ledger-metric-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ledger-metric-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--corp-slate-500);
+}
+
+.ledger-metric-val {
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--corp-slate-900);
+  line-height: 1.1;
+}
+
+.ledger-metric-sub {
+  font-size: 12px;
+  color: var(--corp-slate-600);
+  margin-top: 4px;
+}
+
+.ledger-analytics-split {
+  display: grid;
+  grid-template-columns: 68% calc(32% - 20px);
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 1080px) {
+  .ledger-analytics-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ledger-side-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.chart-floating-tooltip {
+  position: absolute;
+  background: rgba(13, 19, 16, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--corp-brand);
+  border-radius: var(--corp-radius-sm, 8px);
+  padding: 8px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 999;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.chart-floating-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(13, 19, 16, 0.96) transparent transparent transparent;
+}
+
+.chart-point-target {
+  cursor: pointer;
+}
+
+.chart-point-target:hover .chart-node-circle {
+  r: 6.5;
+  filter: drop-shadow(0 0 6px var(--corp-brand));
+}
+
+.distribution-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--corp-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.distribution-bar-track {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border);
+  display: flex;
+  margin: 10px 0 14px 0;
+  position: relative;
+  overflow: visible;
+}
+
+.distribution-segment {
+  height: 100%;
+  position: relative;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.distribution-segment:hover,
+.distribution-segment:focus-visible {
+  filter: brightness(1.2);
+  transform: scaleY(1.3);
+  z-index: 20;
+}
+
+.segment-hover-card {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0d1310;
+  border: 1px solid var(--corp-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  text-align: left;
+}
+
+.segment-hover-card::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #0d1310 transparent transparent transparent;
+}
+
+.distribution-segment:hover .segment-hover-card,
+.distribution-segment:focus-visible .segment-hover-card,
+.punctuality-bar-track:hover .segment-hover-card,
+.punctuality-bar-track:focus-visible .segment-hover-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hover-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--corp-slate-400);
+}
+
+.hover-card-amount {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  margin: 2px 0 1px 0;
+}
+
+.hover-card-sub {
+  font-size: 12px;
+  color: var(--corp-brand);
+  font-weight: 600;
+}
+
+.distribution-list-corp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.distribution-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.distribution-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--corp-slate-700);
+}
+
+.distribution-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.distribution-val-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.history-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--corp-shadow-xs);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.history-card-corp:hover {
+  border-color: var(--corp-slate-400);
+  box-shadow: var(--corp-shadow-md);
+  transform: translateY(-2px);
+}
+
+.history-ledger-talent {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-selector-corp {
+  display: flex;
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-sm);
+  padding: 2px;
+}
+
+.time-tab-corp {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--corp-slate-600);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.time-tab-corp.active {
+  background: var(--corp-surface);
+  color: var(--corp-brand);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.ledger-chart-box {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.ledger-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ledger-chart-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.ledger-chart-total {
+  font-size: 13px;
+  color: var(--corp-brand);
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ledger-chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.ledger-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ledger-filter-pill {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--corp-border);
+  background: var(--corp-surface-alt);
+  color: var(--corp-slate-600);
+  border-radius: var(--corp-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.ledger-filter-pill:hover {
+  border-color: var(--corp-brand);
+  color: var(--corp-slate-900);
+}
+
+.ledger-filter-pill.active {
+  background: var(--corp-brand-light);
+  border-color: var(--corp-brand);
+  color: var(--corp-brand);
+  font-weight: 700;
+}
+
+.ledger-svg-wrap {
+  width: 100%;
+  height: 220px;
+  position: relative;
+}
+
+
+@media (max-width: 1024px) {
+  .ledger-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ledger-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.contracts-grid-corp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.contract-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--corp-shadow-sm);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+
+.contract-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.contract-terms-box-corp {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.contract-signatures-grid {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.contract-sig-chip {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: var(--corp-radius-sm);
+  border: 1px solid var(--corp-border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contract-sig-chip.is-signed {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  border-color: rgba(0, 230, 118, 0.3);
+}
+
+.contract-sig-chip.is-pending {
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+
+.offer-mini-funnel-corp {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 10px 14px;
+  margin: 14px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.offer-funnel-stat {
+  text-align: center;
+  flex: 1;
+}
+
+.offer-funnel-num {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  line-height: 1.2;
+}
+
+.offer-funnel-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--corp-slate-500);
+  margin-top: 2px;
+}
+
+.offer-funnel-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--corp-border);
+}
+
+
+.roadmap-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.roadmap-step-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roadmap-step-card.is-done {
+  border-color: var(--corp-brand);
+}
+
+.roadmap-step-card.is-review {
+  border-color: var(--corp-warning);
+  background: var(--corp-warning-light);
+}
+
+.roadmap-step-card.is-pending {
+  border-color: var(--corp-border);
+  opacity: 0.8;
+}
+
+.deliverable-alert-corp {
+  background: var(--corp-warning-light);
+  border: 1px solid var(--corp-warning);
+  border-radius: var(--corp-radius-lg);
+  padding: 16px 18px;
+  margin: 16px 0;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.deliverable-review-form {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.kpi-grid-corp.kpi-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.kpi-card-corp.clickable-card {
+  cursor: pointer;
+}
+
+.action-alert-corp {
+  background: var(--corp-warning-light);
+  border: 1px solid var(--corp-warning);
+  border-radius: var(--corp-radius-lg);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.action-alert-corp .alert-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-alert-corp .alert-badge {
+  background: var(--corp-warning);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--corp-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.action-alert-corp .alert-msg {
+  font-size: 13.5px;
+  color: var(--corp-slate-800);
+  line-height: 1.4;
+}
+
+.action-alert-corp .alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dashboard-layout-corp {
+  display: grid;
+  grid-template-columns: 65% calc(35% - 24px);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.dashboard-col-main,
+.dashboard-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.command-section-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.command-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.command-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.command-link-action {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--corp-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.command-link-action:hover {
+  text-decoration: underline;
+  color: var(--corp-brand-hover);
+}
+
+.command-project-item {
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--corp-surface-alt);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+
+.command-project-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.command-project-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.command-project-devs {
+  font-size: 12.5px;
+  color: var(--corp-slate-600);
+  margin-top: 2px;
+}
+
+.command-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--corp-slate-600);
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.command-progress-track {
+  background: var(--corp-border);
+  height: 6px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.command-progress-fill {
+  background: var(--corp-brand);
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.command-opening-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.command-opening-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+
+.command-trust-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 20px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+/* Card de Diagrama de Torta / Dona en Command Center */
+.command-donut-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 20px;
+  box-shadow: var(--corp-shadow-xs);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.command-donut-card:hover {
+  border-color: var(--corp-border-focus, var(--corp-border));
+}
+
+.donut-segment-slice {
+  cursor: pointer;
+  transition: stroke-width 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.donut-segment-slice:hover {
+  stroke-width: 15 !important;
+  filter: drop-shadow(0 0 6px rgba(0, 200, 83, 0.45));
+  opacity: 0.95;
+}
+
+.donut-legend-item {
+  border-radius: var(--corp-radius-sm, 6px);
+  padding: 5px 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.donut-legend-item:hover {
+  background: var(--corp-surface-alt, rgba(255, 255, 255, 0.04));
+  transform: translateX(2px);
+}
+
+/* ============================================================
+   Bandeja de Entregables Pendientes de Aprobación (Command Center)
+   ============================================================ */
+.approval-queue-header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approval-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.approval-queue-item {
+  border: 1px solid var(--corp-warning);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  background: var(--corp-surface-alt);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.approval-queue-item:hover {
+  border-color: var(--corp-slate-400);
+  border-left-color: var(--corp-warning);
+  background: var(--corp-surface);
+}
+
+.approval-queue-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.approval-queue-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.approval-queue-project {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.approval-queue-hito {
+  color: var(--corp-brand);
+  font-weight: 600;
+}
+
+.approval-queue-sep {
+  color: var(--corp-slate-400);
+}
+
+.approval-queue-author {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+.approval-queue-desc {
+  font-size: 13px;
+  color: var(--corp-slate-700);
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+
+.approval-queue-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.approval-queue-form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--corp-slate-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.approval-queue-form textarea {
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.approval-queue-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+
+.approval-queue-empty span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+@media (max-width: 1024px) {
+  .kpi-grid-corp.kpi-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-layout-corp {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid-corp.kpi-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .action-alert-corp {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================================
+   Widget: Control Financiero & Custodia (Command Center)
+   ============================================================ */
+.command-financial-card {
+  border-color: var(--corp-border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.command-financial-card:hover {
+  border-color: var(--corp-slate-400);
+  box-shadow: var(--corp-shadow-sm);
+}
+
+.financial-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.financial-card-escrow-box {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-brand);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.financial-card-escrow-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--corp-slate-600);
+  margin-bottom: 6px;
+}
+
+.financial-card-escrow-amount {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.financial-card-escrow-sub {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
+
+.financial-card-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.financial-card-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.financial-card-metric-label {
+  color: var(--corp-slate-600);
+}
+
+.financial-card-metric-value {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.financial-card-metric-value.is-released {
+  color: var(--corp-brand);
+}
+
+.financial-card-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.financial-card-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--corp-slate-600);
+}
+
+.financial-card-progress-pct {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  color: var(--corp-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.financial-card-progress-track {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--corp-slate-200);
+  overflow: hidden;
+}
+
+.financial-card-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--corp-brand), var(--corp-brand-neon));
+  transition: width 0.4s ease;
+}
+
+.financial-card-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--corp-surface-alt);
+  border: 1px dashed var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 14px;
+}
+
+.financial-card-empty-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--corp-radius-sm);
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.financial-card-empty-text {
+  font-size: 12.5px;
+  color: var(--corp-slate-600);
+  line-height: 1.5;
+  margin: 0;
+}
+
+
+/* ============================================================
+   FLAT-BY-DEFAULT & PRO SURFACE OVERRIDES (Contratos / Command Center)
+   ============================================================ */
+.command-financial-card,
+.command-donut-card,
+.datepicker-input-wrap .form-input-corp,
+.table-shell-corp,
+.distribution-card-corp,
+.ledger-chart-box,
+.ledger-table-card {
+  box-shadow: none;
+}
+
+.modal-title-corp,
+.contract-doc-title {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.012em;
+}
+
+.ledger-metric-val {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hash-pill,
+.ledger-chart-total,
+.contract-term-value,
+.contrato-monto,
+.roadmap-stat-pill strong,
+.command-kpi-pill strong {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.contract-card-corp,
+.ledger-metric-card,
+.command-section-card,
+.command-trust-card {
+  border-radius: 8px;
+  box-shadow: none;
+  transform: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.contract-card-corp:hover,
+.ledger-metric-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--corp-slate-400);
+}
+
+/* Flat rows instead of nested boxes */
+.command-project-item {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--corp-border-subtle);
+  border-radius: 0;
+  padding: 14px 0;
+  margin-bottom: 0;
+}
+
+.command-project-item:last-of-type {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.command-project-item:hover {
+  background: transparent;
+  border-color: var(--corp-border-subtle);
+}
+
+.approval-queue-item {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--corp-border-subtle);
+  border-radius: 0;
+  padding: 14px 0;
+}
+
+.approval-queue-item:hover {
+  background: transparent;
+  border-color: var(--corp-border-subtle);
+}
+
+/* Financial widget: no inner box, no wrapping chips; compact empty state */
+.financial-card-escrow-box {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+}
+
+.financial-card-escrow-amount {
+  font-size: 26px;
+}
+
+.approval-queue-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+  text-align: left;
+}
+
+.approval-queue-empty > i,
+.approval-queue-empty > svg {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.approval-queue-empty p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--corp-slate-800);
+}
+
+.approval-queue-empty span {
+  display: inline;
+  margin: 0 0 0 8px;
+}
