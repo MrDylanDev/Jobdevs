@@ -1,24 +1,25 @@
 {% load static i18n idioma assets %}
+{% get_current_language as IDIOMA %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{% trans "JobDevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable." %}">
-  <title>{% trans "JobDevs — El sistema operativo del talento SENA" %}</title>
+  <meta name="description" content="{% trans "Jobdevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable." %}">
+  <title>{% trans "Jobdevs — El sistema operativo del talento SENA" %}</title>
 
   <!-- Open Graph / redes sociales -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="JobDevs">
-  <meta property="og:locale" content="es_CO">
-  <meta property="og:title" content="JobDevs — El sistema operativo del talento SENA">
+  <meta property="og:site_name" content="Jobdevs">
+  <meta property="og:locale" content="{% if IDIOMA == 'en' %}en_US{% else %}es_CO{% endif %}">
+  <meta property="og:title" content="{% trans "Jobdevs — El sistema operativo del talento SENA" %}">
   <meta property="og:description" content="{% trans "Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable." %}">
   <meta property="og:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="JobDevs — El sistema operativo del talento SENA">
+  <meta property="og:image:alt" content="{% trans "Jobdevs — El sistema operativo del talento SENA" %}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="JobDevs — El sistema operativo del talento SENA">
+  <meta name="twitter:title" content="{% trans "Jobdevs — El sistema operativo del talento SENA" %}">
   <meta name="twitter:description" content="{% trans "Contrata talento SENA verificado o construye tu portafolio con proyectos reales. Contratos digitales, hitos con evidencia y reputación verificable." %}">
   <meta name="twitter:image" content="{% if request %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% static 'IMG/og-preview.jpg' %}">
 {% if request %}
@@ -66,19 +67,12 @@
 
 <!-- ==================== NAVBAR ==================== -->
 <nav class="nav-tech" id="navbar">
-  {% get_current_language as IDIOMA %}
   {% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
   <a href="#inicio" class="nav-brand">
-    <div class="brand-square blink"></div> JobDevs
-    <div class="brand-dot"></div>
+    <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="Jobdevs" class="nav-brand-logo" width="38" height="38" decoding="async">
   </a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#que-es">{% trans "Qué es" %}</a></li>
-    <li><a href="#metodologia">{% trans "Cómo funciona" %}</a></li>
-    <li><a href="#roles">{% trans "Roles" %}</a></li>
-    <li><a href="#testimonios">{% trans "Casos de éxito" %}</a></li>
-    <li><a href="#comenzar">{% trans "Comenzar" %}</a></li>
-    <li class="d-md-none"><a href="#" data-abrir-login style="color:var(--accent);">{% trans "Ingresar" %}</a></li>
+    <li class="d-md-none"><a href="#" data-abrir-login class="nav-link-accent">{% trans "Ingresar" %}</a></li>
     <li class="d-md-none"><a href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}">{% if IDIOMA == 'en' %}Español{% else %}English{% endif %}</a></li>
   </ul>
   <div class="nav-right">
@@ -93,8 +87,8 @@
         <span class="main-circle"></span>
       </span>
     </button>
-    <button type="button" data-abrir-login class="nav-cta border-right">{% trans "[ INGRESAR ]" %}</button>
-    <button class="btn-mobile-menu" id="mobileMenuBtn">{% trans "[ MENU ]" %}</button>
+    <button type="button" data-abrir-login class="nav-cta border-right">{% trans "Ingresar" %}</button>
+    <button type="button" class="btn-mobile-menu" id="mobileMenuBtn" aria-expanded="false" aria-controls="navLinks">{% trans "Menú" %}</button>
   </div>
 </nav>
 
@@ -102,7 +96,7 @@
 <section id="inicio" class="hero-section">
   <div id="reelContainer">
     <div class="reel-frame active">
-      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="{% trans "Development team collaboration" %}" loading="eager" fetchpriority="high">
+      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="{% trans "Development team collaboration" %}" loading="eager" fetchpriority="high" decoding="async">
     </div>
     <div class="reel-frame">
       <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="{% trans "Code review session" %}" loading="lazy" decoding="async">
@@ -152,9 +146,15 @@
       </p>
 
       <div class="hero-actions">
+        {% if allow_public_registration %}
         <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
           <span>{% trans "Inicializar Proyecto" %}</span>
         </a>
+        {% else %}
+        <a href="#" data-abrir-login class="btn-tech pulse-btn">
+          <span>{% trans "Iniciar sesión" %}</span>
+        </a>
+        {% endif %}
       </div>
 
       <!-- Bottom strip: tech stack + reel progress -->
@@ -195,7 +195,7 @@
   <div class="what-grid-bg" aria-hidden="true"></div>
   <div class="section-inner what-head reveal">
     <span class="section-marker"><span>{% trans "LA PLATAFORMA" %}</span></span>
-    <h2 class="sh-title" id="tituloQueEs">{% trans "¿Qué es" %} <span style="color:var(--accent);">JobDevs</span>?</h2>
+    <h2 class="sh-title" id="tituloQueEs">{% trans "¿Qué es" %} <span class="acento-marca">Jobdevs</span>?</h2>
     <p class="desc-mono">{% trans "La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios." %}</p>
   </div>
 </section>
@@ -205,16 +205,16 @@
   <!-- Fondo cinemático estilo Hero que cubre todo el espacio a la izquierda con transparencia -->
   <div class="wf-bg-stage">
     <div class="wf-bg-frame active" id="bgWfFase01">
-      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="{% trans "Publicar Proyecto" %}" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="{% trans "Publicar Proyecto" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="wf-bg-frame" id="bgWfFase02">
-      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="{% trans "Postulación y Contrato" %}" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="{% trans "Postulación y Contrato" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="wf-bg-frame" id="bgWfFase03">
-      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="{% trans "Hitos con Evidencias" %}" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="{% trans "Hitos con Evidencias" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="wf-bg-frame" id="bgWfFase04">
-      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="{% trans "Cierre y Calificación Mutua" %}" class="wf-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="{% trans "Cierre y Calificación Mutua" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="wf-bg-overlay"></div>
   </div>
@@ -222,71 +222,54 @@
   <div class="section-inner wf-hero-content">
     <div class="wf-hero-layout reveal">
       
-      <!-- Encabezado agrupado a la derecha -->
+      <!-- Encabezado -->
       <div class="wf-main-header">
         <span class="section-marker"><span>{% trans "MODELO DE OPERACIÓN" %}</span></span>
-        <h2 class="sh-title">{% trans "Cómo funciona" %} <span class="acento-marca">JobDevs</span></h2>
-        <p class="desc-mono">{% trans "Trazabilidad integral paso a paso. Del requerimiento técnico a la entrega auditada en producción sin intermediarios." %}</p>
+        <h2 class="sh-title">{% trans "Así funciona" %} <span class="acento-marca">Jobdevs</span></h2>
       </div>
 
-      <!-- Los 4 pasos interactivos a la derecha -->
+      <!-- Los 4 pasos interactivos -->
       <div class="wf-steps-stack" role="tablist" aria-label="{% trans "Etapas del proceso" %}">
         
         <!-- Paso 01 -->
-        <div class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" tabindex="0">
-          <div class="wf-step-header">
+        <button type="button" class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" aria-controls="bgWfFase01">
+          <span class="wf-step-header">
             <span class="wf-step-num">{% trans "// FASE_01" %}</span>
             <span class="wf-step-tag">{% trans "Empresa" %}</span>
-          </div>
-          <h3 class="wf-step-title">{% trans "Publicar Proyecto" %}</h3>
-          <p class="wf-step-desc">{% trans "La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas." %}</p>
-          <div class="wf-step-details">
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Publicación ágil sin costos de registro." %}</div>
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Segmentación por tipo: Web, Móvil, Cloud, Datos." %}</div>
-          </div>
-        </div>
+          </span>
+          <span class="wf-step-title">{% trans "Publicar Proyecto" %}</span>
+          <span class="wf-step-desc">{% trans "La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas." %}</span>
+        </button>
 
         <!-- Paso 02 -->
-        <div class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" tabindex="0">
-          <div class="wf-step-header">
+        <button type="button" class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" aria-controls="bgWfFase02">
+          <span class="wf-step-header">
             <span class="wf-step-num">{% trans "// FASE_02" %}</span>
             <span class="wf-step-tag">{% trans "Match & Firma" %}</span>
-          </div>
-          <h3 class="wf-step-title">{% trans "Postulación y Contrato" %}</h3>
-          <p class="wf-step-desc">{% trans "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital." %}</p>
-          <div class="wf-step-details">
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Validación académica contra el padrón oficial SENA." %}</div>
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Contrato digital vinculante con doble firma electrónica." %}</div>
-          </div>
-        </div>
+          </span>
+          <span class="wf-step-title">{% trans "Postulación y Contrato" %}</span>
+          <span class="wf-step-desc">{% trans "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital." %}</span>
+        </button>
 
         <!-- Paso 03 -->
-        <div class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" tabindex="0">
-          <div class="wf-step-header">
+        <button type="button" class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" aria-controls="bgWfFase03">
+          <span class="wf-step-header">
             <span class="wf-step-num">{% trans "// FASE_03" %}</span>
             <span class="wf-step-tag">{% trans "Desarrollo" %}</span>
-          </div>
-          <h3 class="wf-step-title">{% trans "Hitos con Evidencias" %}</h3>
-          <p class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye archivos, enlaces y evidencia verificable en la nube." %}</p>
-          <div class="wf-step-details">
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Revisión obligatoria: aprobar o solicitar corrección." %}</div>
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Almacenamiento seguro de código y documentación." %}</div>
-          </div>
-        </div>
+          </span>
+          <span class="wf-step-title">{% trans "Hitos con Evidencias" %}</span>
+          <span class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye archivos, enlaces y evidencia verificable en la nube." %}</span>
+        </button>
 
         <!-- Paso 04 -->
-        <div class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" tabindex="0">
-          <div class="wf-step-header">
+        <button type="button" class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" aria-controls="bgWfFase04">
+          <span class="wf-step-header">
             <span class="wf-step-num">{% trans "// FASE_04" %}</span>
             <span class="wf-step-tag">{% trans "Cierre" %}</span>
-          </div>
-          <h3 class="wf-step-title">{% trans "Cierre y Calificación Mutua" %}</h3>
-          <p class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal del contrato con sello digital verificable y calificación mutua entre empresa y desarrollador." %}</p>
-          <div class="wf-step-details">
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Sello inmutable del contrato para validez legal." %}</div>
-            <div><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check text-success me-2 icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Reputación pública acumulable para el portafolio." %}</div>
-          </div>
-        </div>
+          </span>
+          <span class="wf-step-title">{% trans "Cierre y Calificación Mutua" %}</span>
+          <span class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal con sello digital verificable y calificación mutua." %}</span>
+        </button>
 
       </div>
 
@@ -301,7 +284,7 @@
   <div class="section-inner logos-marquee-head reveal">
     <span class="section-marker"><span>{% trans "CONFIANZA CORPORATIVA" %}</span></span>
     <h2 class="sh-title" id="tituloEmpresas">{% trans "Empresas que" %} <span class="acento-marca">{% trans "confían en nosotros" %}</span></h2>
-    <p class="desc-mono">{% trans "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de JobDevs." %}</p>
+    <p class="desc-mono">{% trans "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de Jobdevs." %}</p>
   </div>
 
   <div class="logos-marquee">
@@ -312,98 +295,98 @@
       <!-- Pista visible -->
       <div class="logos-marquee-track" role="list" aria-label="{% trans "Empresas colombianas que contratan talento SENA" %}">
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="{% trans "Logo de Alpina" %}">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="{% trans "Logo de Alpina" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="{% trans "Logo de Bavaria" %}">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="{% trans "Logo de Bavaria" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="{% trans "Logo de Colanta" %}">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="{% trans "Logo de Colanta" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="{% trans "Logo de Colsubsidio" %}">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="{% trans "Logo de Colsubsidio" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/corona.svg' %}" alt="{% trans "Logo de Corona" %}">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="{% trans "Logo de Corona" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/dian.svg' %}" alt="{% trans "Logo de DIAN" %}">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="{% trans "Logo de DIAN" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/epm.svg' %}" alt="{% trans "Logo de EPM" %}">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="{% trans "Logo de EPM" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/etb.svg' %}" alt="{% trans "Logo de ETB" %}">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="{% trans "Logo de ETB" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="{% trans "Logo de Ecopetrol" %}">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="{% trans "Logo de Ecopetrol" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="{% trans "Logo de Frisby" %}">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="{% trans "Logo de Frisby" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="{% trans "Logo de Grupo Argos" %}">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="{% trans "Logo de Grupo Argos" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="{% trans "Logo de Postobón" %}">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="{% trans "Logo de Postobón" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/presto.svg' %}" alt="{% trans "Logo de Presto" %}">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="{% trans "Logo de Presto" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="{% trans "Logo de Rappi" %}">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="{% trans "Logo de Rappi" %}" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="{% trans "Logo de Tiendas D1" %}">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="{% trans "Logo de Tiendas D1" %}" decoding="async">
         </span>
       </div>
 
       <!-- Copia para el loop infinito (oculta a lectores de pantalla) -->
       <div class="logos-marquee-track" aria-hidden="true">
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/alpina.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/bavaria.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/colanta.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/colsubsidio.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/corona.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/corona.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/dian.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/dian.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/epm.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/epm.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/etb.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/etb.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-wide">
-          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/ecopetrol.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/frisby.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/grupo-argos.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/postobon.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/presto.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/presto.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-standard">
-          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/rappi.svg' %}" alt="" decoding="async">
         </span>
         <span class="logos-wordmark is-square">
-          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="">
+          <img src="{% static 'IMG/logos/tiendas-d1.svg' %}" alt="" decoding="async">
         </span>
       </div>
     </div>
@@ -416,10 +399,10 @@
   <!-- Fondo cinemático estilo Hero que cubre todo el espacio -->
   <div class="roles-bg-stage">
     <div class="role-bg-frame active" id="bgRoleEmpresa">
-      <img src="{% static 'IMG/empresa_rol.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/empresa_rol.webp' %}" alt="{% trans "Empresas colaborando con talento SENA" %}" class="role-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="role-bg-frame" id="bgRoleDev">
-      <img src="{% static 'IMG/aprendiz_rol.webp' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy">
+      <img src="{% static 'IMG/aprendiz_rol.webp' %}" alt="{% trans "Desarrollador SENA trabajando en proyectos de software" %}" class="role-full-bg-img" loading="lazy" decoding="async">
     </div>
     <div class="roles-bg-overlay"></div>
   </div>
@@ -430,8 +413,8 @@
       <!-- Todo el encabezado agrupado a la derecha -->
       <div class="roles-main-header">
         <span class="section-marker"><span>{% trans "MODELO BILATERAL" %}</span></span>
-        <h2 class="sh-title">{% trans "Diseñado para Empresas" %}<br>y <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
-        <p class="desc-mono">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que JobDevs tiene para ti." %}</p>
+        <h2 class="sh-title">{% trans "Diseñado para Empresas" %}<br>{% trans "y" %} <span class="acento-marca">{% trans "Desarrolladores SENA" %}</span></h2>
+        <p class="desc-mono">{% trans "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que Jobdevs tiene para ti." %}</p>
       </div>
 
       <!-- Selector de rol interactivo con iconos Lucide -->
@@ -440,14 +423,14 @@
           <span class="role-nav-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building-2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
           </span>
-          <span class="role-nav-label">{% trans "EMPRESA" %}</span>
+          <span class="role-nav-label">{% trans "Empresa" %}</span>
         </button>
 
         <button type="button" class="role-nav-btn" id="btnRoleDev" role="tab" aria-selected="false" aria-controls="paneDev" data-role="dev">
           <span class="role-nav-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
           </span>
-          <span class="role-nav-label">{% trans "APRENDIZ" %}</span>
+          <span class="role-nav-label">{% trans "Aprendiz" %}</span>
         </button>
       </div>
 
@@ -491,29 +474,29 @@
 </section>
 
 <!-- ==================== TESTIMONIALS ==================== -->
-<section id="testimonios" class="section-tech story-section bg-dim" aria-labelledby="tituloTestimonios">
+<section id="testimonios" class="section-tech story-section" aria-labelledby="tituloTestimonios">
   <div class="story-grid-bg" aria-hidden="true"></div>
   <div class="section-inner story-head reveal">
     <span class="section-marker"><span>{% trans "CASOS DE ÉXITO" %}</span></span>
-    <h2 class="sh-title" id="tituloTestimonios">{% trans "Resultados" %} <span style="color:var(--accent);">{% trans "comprobables" %}</span> {% trans "en producción." %}</h2>
-    <p class="desc-mono">{% trans "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de JobDevs." %}</p>
+    <h2 class="sh-title" id="tituloTestimonios">{% trans "Resultados" %} <span class="acento-marca">{% trans "comprobables" %}</span> {% trans "en producción." %}</h2>
+    <p class="desc-mono">{% trans "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de Jobdevs." %}</p>
     <div class="carousel-btns story-head-actions">
       <button type="button" class="carousel-btn" id="storyPrev" aria-label="{% trans "Caso anterior" %}">{% trans "&larr;" %}</button>
       <button type="button" class="carousel-btn" id="storyNext" aria-label="{% trans "Siguiente caso" %}">{% trans "&rarr;" %}</button>
     </div>
   </div>
 
-  <div style="position: relative; overflow: hidden;">
+  <div class="story-viewport">
     <div class="story-track" id="storyTrack">
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-1-geoespacial.webp' %}" class="story-img" alt="{% trans "Software geoespacial para control de ganado" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-1-geoespacial.webp' %}" class="story-img" alt="{% trans "Software geoespacial para control de ganado" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 01" %}</div>
           <div class="story-img-badge">{% trans "TRAZABILIDAD" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "AGROGEO COLOMBIA" %}</div>
+          <div class="story-name">{% trans "Agrogeo Colombia" %}</div>
           <div class="story-role">{% trans "Geoespacial & Ganadería · 6 meses" %}</div>
           <p class="story-quote">{% trans "\"Desarrollaron un software geoespacial para el control y trazabilidad de ganado por lotes. Hoy monitoreamos todo el hato en tiempo real.\"" %}</p>
           <div class="story-stats">
@@ -526,12 +509,12 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-2-devq.webp' %}" class="story-img" alt="{% trans "Automatización de procesos DevQ" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-2-devq.webp' %}" class="story-img" alt="{% trans "Automatización de procesos DevQ" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 02" %}</div>
           <div class="story-img-badge">{% trans "AUTOMATIZACIÓN" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "DEVQ SISTEMAS" %}</div>
+          <div class="story-name">{% trans "DevQ Sistemas" %}</div>
           <div class="story-role">{% trans "Automatización & Backend · 4 meses" %}</div>
           <p class="story-quote">{% trans "\"Nos ayudó a automatizar procesos operativos repetitivos e integrar reportes internos. Redujimos tiempos manuales desde la primera entrega.\"" %}</p>
           <div class="story-stats">
@@ -544,12 +527,12 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-3-clima.webp' %}" class="story-img" alt="{% trans "Monitorización de sismos Medellín" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-3-clima.webp' %}" class="story-img" alt="{% trans "Monitorización de sismos Medellín" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 03" %}</div>
           <div class="story-img-badge">{% trans "TIEMPO REAL" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "ALCALDÍA DE MEDELLÍN" %}</div>
+          <div class="story-name">{% trans "Alcaldía de Medellín" %}</div>
           <div class="story-role">{% trans "Monitorización Sísmica · 8 meses" %}</div>
           <p class="story-quote">{% trans "\"Implementaron el software de monitorización de sismos para la Alcaldía de Medellín, con alertas tempranas y tableros geográficos en vivo.\"" %}</p>
           <div class="story-stats">
@@ -562,12 +545,12 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-4-gym.webp' %}" class="story-img" alt="{% trans "Sitio web para gimnasio" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-4-gym.webp' %}" class="story-img" alt="{% trans "Sitio web para gimnasio" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 04" %}</div>
           <div class="story-img-badge">{% trans "+CAPTACIÓN" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "ZONA FIT GYM" %}</div>
+          <div class="story-name">{% trans "Zona Fit Gym" %}</div>
           <div class="story-role">{% trans "Web & Publicidad · 3 meses" %}</div>
           <p class="story-quote">{% trans "\"Crearon la página web de nuestro gimnasio con planes y agenda en línea. Nos ayudó a publicitarnos mejor y atraer nuevos clientes cada semana.\"" %}</p>
           <div class="story-stats">
@@ -580,12 +563,12 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-5-zapatos.webp' %}" class="story-img" alt="{% trans "Software empresarial venta de zapatos" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-5-zapatos.webp' %}" class="story-img" alt="{% trans "Software empresarial venta de zapatos" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 05" %}</div>
           <div class="story-img-badge">{% trans "+INGRESOS" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "CALZADO URBANO" %}</div>
+          <div class="story-name">{% trans "Calzado Urbano" %}</div>
           <div class="story-role">{% trans "Software Empresarial · 5 meses" %}</div>
           <p class="story-quote">{% trans "\"Desarrollaron nuestro software empresarial para la venta de zapatos, control de tallas e inventario. Ordenó las sucursales y aumentó los ingresos.\"" %}</p>
           <div class="story-stats">
@@ -598,12 +581,12 @@
 
       <article class="story-card">
         <div class="story-img-box">
-          <img src="{% static 'IMG/casos/caso-6-banco.webp' %}" class="story-img" alt="{% trans "Aplicación móvil bancaria" %}" loading="lazy">
+          <img src="{% static 'IMG/casos/caso-6-banco.webp' %}" class="story-img" alt="{% trans "Aplicación móvil bancaria" %}" loading="lazy" decoding="async">
           <div class="story-img-tag">{% trans "CASO / 06" %}</div>
           <div class="story-img-badge">{% trans "MOBILE BANKING" %}</div>
         </div>
         <div class="story-body">
-          <div class="story-name">{% trans "BANCO ALIADO" %}</div>
+          <div class="story-name">{% trans "Banco Aliado" %}</div>
           <div class="story-role">{% trans "Aplicación Móvil · 7 meses" %}</div>
           <p class="story-quote">{% trans "\"Construyeron la aplicación móvil del banco para consultas, transferencias y validación segura, entregando cada hito con pruebas verificadas.\"" %}</p>
           <div class="story-stats">
@@ -626,7 +609,11 @@
   <div class="section-inner cta-hero-content reveal">
     <span class="section-marker"><span>{% trans "COMENZAR AHORA" %}</span></span>
     <h2 class="sh-title" id="tituloComenzar">{% trans "Inicia tu" %} <span class="cta-accent">{% trans "proyecto" %}</span>.<br><span class="text-stroke">{% trans "Sin" %}</span> {% trans "vueltas." %}</h2>
-    <a href="{% url 'registro' %}" class="cta-hero-btn">{% trans "[ CREAR CUENTA ]" %}</a>
+    {% if allow_public_registration %}
+    <a href="{% url 'registro' %}" class="cta-hero-btn">{% trans "Crear cuenta" %}</a>
+    {% else %}
+    <a href="#" data-abrir-login class="cta-hero-btn">{% trans "Iniciar sesión" %}</a>
+    {% endif %}
   </div>
 </section>
 
@@ -635,12 +622,15 @@
   <div class="foot-grid-bg" aria-hidden="true"></div>
   <div class="foot-grid">
     <div class="foot-col">
-      <div class="foot-brand"><div class="brand-square"></div> JobDevs</div>
+      <div class="foot-brand">
+        <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="Jobdevs" class="foot-brand-icon" width="38" height="38" decoding="async">
+        <span>Job<span class="foot-brand-accent">devs</span></span>
+      </div>
       <p class="foot-desc">{% trans "Plataforma que conecta empresas con talento SENA para el desarrollo de software. Medellín, Colombia." %}</p>
       <div class="newsletter-box">
         <p>{% trans "Contacto y Soporte" %}</p>
-        <p style="font-size:13px; color:var(--fg-dim); margin:0;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; color:var(--accent);" class="lucide lucide-mail icono-linea" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>{% trans "contacto@jobdevs.co" %}
+        <p class="foot-contact-email">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail icono-linea foot-contact-icon" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>{% trans "contacto@jobdevs.co" %}
         </p>
         <div class="foot-socials" aria-label="{% trans "Redes sociales" %}">
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="foot-social-link" aria-label="Facebook">
@@ -660,10 +650,10 @@
     </div>
 
     <div class="foot-col">
-      <h5>{% trans "Preguntas frecuentes" %}</h5>
+      <h3 class="foot-col-title">{% trans "Preguntas frecuentes" %}</h3>
       <div class="faq-list">
         <details class="faq-item">
-          <summary class="faq-q">{% trans "¿Qué es JobDevs?" %}</summary>
+          <summary class="faq-q">{% trans "¿Qué es Jobdevs?" %}</summary>
           <p class="faq-a">{% trans "Plataforma que conecta empresas con talento del SENA para el desarrollo de software colaborativo." %}</p>
         </details>
         <details class="faq-item">
@@ -681,35 +671,45 @@
       </div>
     </div>
 
+    {% if allow_public_registration %}
     <div class="foot-col">
-      <h5>{% trans "Perfiles" %}</h5>
+      <h3 class="foot-col-title">{% trans "Perfiles" %}</h3>
       <ul>
         <li><a href="{% url 'registro' %}">{% trans "Empresa" %}</a></li>
         <li><a href="{% url 'registro' %}">{% trans "Desarrolladores" %}</a></li>
       </ul>
     </div>
+    {% endif %}
 
     <div class="foot-col">
-      <h5>{% trans "Acceso" %}</h5>
+      <h3 class="foot-col-title">{% trans "Acceso" %}</h3>
       <ul>
         <li><a href="#" data-abrir-login>{% trans "Iniciar sesión" %}</a></li>
+        {% if allow_public_registration %}
         <li><a href="{% url 'registro' %}">{% trans "Registrarse" %}</a></li>
+        {% endif %}
         <li><a href="{% url 'recuperar' %}" data-abrir-recuperar>{% trans "Recuperar contraseña" %}</a></li>
+      </ul>
+      <h3 class="foot-col-title foot-col-title--spaced">{% trans "Legal" %}</h3>
+      <ul>
+        <li><a href="{% url 'legal_condiciones' %}">{% trans "Condiciones del servicio" %}</a></li>
+        <li><a href="{% url 'legal_privacidad' %}">{% trans "Política de privacidad" %}</a></li>
+        <li><a href="{% url 'legal_cookies' %}">{% trans "Política de cookies" %}</a></li>
       </ul>
     </div>
   </div>
   <div class="foot-bot">
     <span>{% trans "Medellín, Colombia" %}</span>
-    <span>{% trans "© 2026 JobDevs" %}</span>
+    <span>{% trans "© 2026 Jobdevs" %}</span>
   </div>
 </footer>
 
 <!-- ==================== LOGIN MODAL ==================== -->
-<div class="modal fade theme-dev" id="loginModal" role="dialog" aria-modal="true" aria-label="{% trans "AUTENTICACIÓN" %}" tabindex="-1" aria-hidden="true">
+<div class="modal fade theme-dev" id="loginModal" role="dialog" aria-modal="true" aria-label="{% trans "Autenticación" %}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content modal-tech tech-frame">
       <div class="modal-header">
-        <h4 class="modal-title">{% trans "AUTENTICACIÓN" %}</h4>
+        <h2 class="modal-title">{% trans "Autenticación" %}</h2>
         <button type="button" class="btn-close btn-close-tech" data-cerrar-login aria-label="{% trans "Close" %}"></button>
       </div>
       <div class="modal-body">
@@ -719,38 +719,40 @@
             {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
             {% csrf_token %}
 
-            <div style="margin-bottom: 24px;">
-              <label class="label-tech">{% trans "CORREO O USUARIO" %}</label>
+            <div class="modal-field">
+              <label class="label-tech" for="username">{% trans "Correo o usuario" %}</label>
               <input required type="text" class="input-tech" id="username" name="username" placeholder="{% trans "ejemplo@correo.com o tu usuario" %}" autocomplete="username">
             </div>
 
-            <div style="position: relative; margin-bottom: 16px;">
-              <label class="label-tech">{% trans "CONTRASEÑA" %}</label>
+            <div class="modal-field-password">
+              <label class="label-tech" for="password">{% trans "Contraseña" %}</label>
               <input required type="password" class="input-tech" id="password" name="password" placeholder="••••••••">
               <button type="button" id="togglePassTech" class="pass-toggle" aria-pressed="false" aria-label="{% trans "Mostrar contraseña" %}"><svg xmlns="http://www.w3.org/2000/svg" width="1.1rem" height="1.1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="1.1rem" height="1.1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg></button>
             </div>
 
-            <button type="submit" class="btn-submit-tech">{% trans "[ INGRESAR ]" %}</button>
+            <button type="submit" class="btn-submit-tech">{% trans "Ingresar" %}</button>
           </form>
 
-          <div style="margin-top: 24px; text-align: center;">
+          <div class="modal-links">
+            {% if allow_public_registration %}
             <a href="{% url 'registro' %}" class="login-link">{% trans "¿Primera vez? Regístrate" %}</a>
             <span class="login-sep" aria-hidden="true">|</span>
-            <a href="#" id="recoveryLink" class="login-link">{% trans "RECUPERAR ACCESO" %}</a>
+            {% endif %}
+            <a href="#" id="recoveryLink" class="login-link">{% trans "Recuperar acceso" %}</a>
           </div>
         </div>
 
-        <div id="recoveryForm" style="display:none;">
+        <div id="recoveryForm" class="hidden">
           <form id="recoveryFormInner" method="POST" action="{% url 'recuperar' %}">
             {% csrf_token %}
-            <div style="margin-bottom: 24px;">
-              <label class="label-tech">{% trans "CORREO ELECTRÓNICO" %}</label>
-              <input type="email" name="email" class="input-tech" placeholder="{% trans "ejemplo@correo.com" %}" required autocomplete="email">
+            <div class="modal-field">
+              <label class="label-tech" for="recoveryEmail">{% trans "Correo electrónico" %}</label>
+              <input type="email" id="recoveryEmail" name="email" class="input-tech" placeholder="{% trans "ejemplo@correo.com" %}" required autocomplete="email">
             </div>
-            <button type="submit" class="btn-submit-tech">{% trans "[ ENVIAR INSTRUCCIONES ]" %}</button>
+            <button type="submit" class="btn-submit-tech">{% trans "Enviar instrucciones" %}</button>
           </form>
-          <div style="margin-top: 24px; text-align: center;">
-            <a href="#" id="backToLoginLink" class="login-link">{% trans "&larr; VOLVER AL INICIO DE SESIÓN" %}</a>
+          <div class="modal-links">
+            <a href="#" id="backToLoginLink" class="login-link">{% trans "&larr; Volver al inicio de sesión" %}</a>
           </div>
         </div>
 
@@ -763,7 +765,7 @@
 <div class="toast-tech" id="toast">
   <div class="toast-row">
     <div class="toast-icon-circle">
-      <svg xmlns="http://www.w3.org/2000/svg" width="0.7rem" height="0.7rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#000;" class="lucide lucide-check icono-linea" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="0.7rem" height="0.7rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check icono-linea" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
     </div>
     <div>
       <div id="toastTitle" class="toast-title">{% trans "Solicitud recibida" %}</div>
@@ -776,11 +778,11 @@
      quedar hardcodeados en el script. -->
 <script type="application/json" id="textos-i18n">
 {
-  "authTitle": "{% trans 'AUTENTICACIÓN SEGURA' %}",
-  "recoveryTitle": "{% trans 'RECUPERAR CONTRASEÑA' %}",
-  "sending": "{% trans '[ ENVIANDO... ]' %}",
+  "authTitle": "{% trans 'Autenticación segura' %}",
+  "recoveryTitle": "{% trans 'Recuperar contraseña' %}",
+  "sending": "{% trans 'Enviando...' %}",
   "recoveryOk": "{% trans 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.' %}",
-  "backToLogin": "{% trans '&larr; VOLVER AL INICIO DE SESIÓN' %}",
+  "backToLogin": "{% trans '&larr; Volver al inicio de sesión' %}",
   "connectionError": "{% trans 'Error de conexión. Intenta de nuevo.' %}"
 }
 </script>
@@ -789,64 +791,6 @@
 
 <div class="cursor-dot" id="cursorDot"></div>
 <div class="cursor-ring" id="cursorRing"></div>
-
-<style>
-  .login-spinner-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(11, 12, 14, 0.55);
-    backdrop-filter: blur(3px);
-  }
-  .login-spinner-box {
-    background: transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    padding: 20px;
-  }
-  .login-spinner-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #ffffff;
-  }
-  .login-spinner-box .spinner {
-    position: relative;
-    width: 9px;
-    height: 9px;
-    margin: 14px 0;
-  }
-  .login-spinner-box .spinner div {
-    position: absolute;
-    width: 50%;
-    height: 150%;
-    background: #ffffff;
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
-    animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
-  }
-  .login-spinner-box .spinner div:nth-child(1) { --delay: 0.1; --rotation: 36; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(2) { --delay: 0.2; --rotation: 72; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(3) { --delay: 0.3; --rotation: 108; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(4) { --delay: 0.4; --rotation: 144; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(5) { --delay: 0.5; --rotation: 180; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(6) { --delay: 0.6; --rotation: 216; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(7) { --delay: 0.7; --rotation: 252; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(8) { --delay: 0.8; --rotation: 288; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(9) { --delay: 0.9; --rotation: 324; --translation: 150; }
-  .login-spinner-box .spinner div:nth-child(10) { --delay: 1; --rotation: 360; --translation: 150; }
-  @keyframes spinner-fzua35 {
-    0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
-      transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
-    }
-    50% {
-      transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
-    }
-  }
-</style>
 
 <div id="loginSpinnerOverlay" class="login-spinner-overlay" aria-hidden="true">
   <div class="login-spinner-box">
@@ -857,38 +801,6 @@
     <span class="login-spinner-label">{% trans "Ingresando..." %}</span>
   </div>
 </div>
-
-<script>
-  (function () {
-    var lf = document.getElementById('loginFormElement');
-    var overlay = document.getElementById('loginSpinnerOverlay');
-    var loginModal = document.getElementById('loginModal');
-    if (!lf) return;
-    lf.addEventListener('submit', function (e) {
-      if (lf.dataset.submitting === '1') return;
-      e.preventDefault();
-      lf.dataset.submitting = '1';
-      if (loginModal) {
-        loginModal.classList.remove('show');
-        loginModal.setAttribute('aria-hidden', 'true');
-      }
-      if (overlay) {
-        overlay.style.display = 'flex';
-        overlay.setAttribute('aria-hidden', 'false');
-      }
-      setTimeout(function () {
-        lf.submit();
-      }, 260);
-    });
-    window.addEventListener('pageshow', function () {
-      lf.dataset.submitting = '0';
-      if (overlay) {
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-    });
-  })();
-</script>
 
 </body>
 </html>
