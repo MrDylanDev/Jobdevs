@@ -341,6 +341,14 @@ def admin_auditar_mensajes(request):
             'total': paginator.count,
         })
 
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'administrador/partials/_tabla_auditoria_chats.html', {
+            'mensajes': page_obj,
+            'pagina': page_obj.number,
+            'total_paginas': paginator.num_pages,
+            'total': paginator.count,
+        })
+
     filas = format_html_join(
         '',
         '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>',

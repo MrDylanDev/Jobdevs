@@ -16,7 +16,13 @@
           </button>
         </div>
 
-        <form id="auditLogsForm" data-api-url="{% url 'api_auditoria' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+        <form id="auditLogsForm" data-api-url="{% url 'api_auditoria' %}"
+              hx-get="{% url 'api_auditoria' %}"
+              hx-target="#auditLogsBody"
+              hx-swap="innerHTML"
+              hx-trigger="load, submit"
+              hx-sync="this:replace"
+              class="card" style="margin-bottom:16px;padding:18px 20px;">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
             <div class="form-group" style="margin-bottom:0;"><label class="form-label">Usuario</label><input type="text" name="usuario" class="form-input" placeholder="username o Sistema" autocomplete="off"></div>
             <div class="form-group" style="margin-bottom:0;">
@@ -87,7 +93,12 @@
             <i data-lucide="shield-alert"></i> Auditoría de Chats
           </button>
         </div>
-        <form id="auditChatsForm" data-api-url="{% url 'admin_auditar_mensajes' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+        <form id="auditChatsForm" data-api-url="{% url 'admin_auditar_mensajes' %}"
+              hx-get="{% url 'admin_auditar_mensajes' %}"
+              hx-target="#auditChatsBody"
+              hx-swap="innerHTML"
+              hx-sync="this:replace"
+              class="card" style="margin-bottom:16px;padding:18px 20px;">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
             <div class="form-group" style="margin-bottom:0;"><label class="form-label">Remitente</label><input type="text" name="remitente" class="form-input" autocomplete="off"></div>
             <div class="form-group" style="margin-bottom:0;"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>

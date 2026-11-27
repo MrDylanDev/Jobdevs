@@ -1,0 +1,48 @@
+{% for m in mensajes %}
+<tr>
+  <td>{{ m.fecha_envio|date:"d/m/Y H:i" }}</td>
+  <td>{{ m.remitente.nombre }} (@{{ m.remitente.username }})</td>
+  <td>{% if m.receptor_id is None %}Grupal de Proyecto{% else %}Privado: {{ m.receptor.nombre }} (@{{ m.receptor.username }}){% endif %}</td>
+  <td>{% if m.proyecto %}{{ m.proyecto.titulo }}{% else %}—{% endif %}</td>
+  <td>{{ m.contenido|truncatechars:81 }}</td>
+  <td style="text-align:center;">
+    <button type="button"
+            class="btn btn-secondary"
+            title="Ver mensaje completo"
+            data-audit-chat-detail
+            data-chat-id="{{ m.id }}"
+            data-chat-titulo="{{ m.titulo|default:'' }}"
+            data-chat-fecha="{{ m.fecha_envio|date:'d/m/Y H:i' }}"
+            data-chat-remitente="@{{ m.remitente.username }}"
+            data-chat-destinatario="{% if m.receptor_id is None %}Chat grupal{% else %}@{{ m.receptor.username }}{% endif %}"
+            data-chat-proyecto="{% if m.proyecto %}{{ m.proyecto.titulo }}{% endif %}"
+            data-chat-contenido="{{ m.contenido }}">
+      <i data-lucide="eye"></i>
+    </button>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="6" style="text-align:center;color:var(--text-muted);">No se encontraron mensajes.</td>
+</tr>
+{% endfor %}
+
+<div id="auditChatsPager" hx-swap-oob="innerHTML">
+  {% if total_paginas > 1 %}
+    <button type="button" class="btn btn-secondary"
+            {% if pagina <= 1 %}disabled{% else %}
+            hx-get="{% url 'admin_auditar_mensajes' %}?page={{ pagina|add:'-1' }}"
+            hx-include="#auditChatsForm"
+            hx-target="#auditChatsBody"
+            hx-swap="innerHTML"
+            hx-sync="#auditChatsForm:replace"{% endif %}>Anterior</button>
+    <span>Página {{ pagina }} de {{ total_paginas }} ({{ total }} mensajes)</span>
+    <button type="button" class="btn btn-secondary"
+            {% if pagina >= total_paginas %}disabled{% else %}
+            hx-get="{% url 'admin_auditar_mensajes' %}?page={{ pagina|add:'1' }}"
+            hx-include="#auditChatsForm"
+            hx-target="#auditChatsBody"
+            hx-swap="innerHTML"
+            hx-sync="#auditChatsForm:replace"{% endif %}>Siguiente</button>
+  {% endif %}
+</div>

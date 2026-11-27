@@ -1,6 +1,6 @@
 import csv
 import json
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.db import IntegrityError, transaction
@@ -419,6 +419,20 @@ def api_auditoria(request):
         .distinct()
         .order_by('tabla_afectada')
     )
+
+    es_htmx = (
+        request.headers.get('HX-Request') == 'true'
+        and request.GET.get('format') != 'json'
+        and 'application/json' not in request.headers.get('Accept', '')
+    )
+    if es_htmx:
+        return render(request, 'administrador/partials/_tabla_auditoria_logs.html', {
+            'logs': page_obj,
+            'page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'total': paginator.count,
+            'tablas': tablas,
+        })
 
     logs = [
         {
