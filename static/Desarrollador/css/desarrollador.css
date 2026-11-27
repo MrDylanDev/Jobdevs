@@ -50,18 +50,12 @@
   --grain-opacity:  0;
 }
 
-/* Light-mode texturas off (sidebar y nav-item en modo claro heredados de dashboard.css) */
-[data-theme="light"] .grain,
-[data-theme="light"] .tech-bg { display: none; }
-
-/* Light-mode top-header (componentes compartidos heredados de dashboard.css) */
+/* Light-mode top-header (texturas, sidebar y nav-item heredados de dashboard.css) */
 [data-theme="light"] .top-header {
   background: transparent;
   border-bottom: 0;
   box-shadow: none;
 }
-[data-theme="light"] .user-name { color: var(--text-primary); }
-[data-theme="light"] .user-role { color: var(--accent); }
 [data-theme="light"] .user-chip { color: var(--text-primary); }
 [data-theme="light"] .user-avatar {
   background: rgba(0, 113, 63, 0.12);
@@ -206,23 +200,11 @@
 [data-theme="dark"] .theme-toggle:hover[aria-pressed="false"] .theme-toggle-icon--dark,
 [data-theme="dark"] .theme-toggle:hover[aria-pressed="true"] .theme-toggle-icon--light { opacity: 1; }
 
-/* ========== SELECTION & RESET ========== */
-::selection {
-  background: var(--accent);
-  color: #000000;
-}
-
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
+/* ========== BASE OVERRIDE (reset, ::selection, texturas y shell en dashboard.css) ========== */
 html, body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-main);
-  -webkit-font-smoothing: antialiased;
-  margin: 0;
-  padding: 0;
   overflow: hidden;
   height: 100vh;
 }
@@ -237,43 +219,10 @@ html, body {
   html { scrollbar-width: thin; scrollbar-color: var(--accent-dim) var(--bg-darker); }
 }
 
-/* ========== TEXTURAS CYBER (SCANLINE, GRAIN, TECH BG) ========== */
-.grain {
-  position: fixed; inset: -10%; pointer-events: none; z-index: 200;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='250'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  mix-blend-mode: overlay; will-change: transform;
-}
-
-.tech-bg {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background-size: 50px 50px;
-  background-image:
-    linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-}
-.tech-bg::after {
-  content: ''; position: absolute; inset: 0;
-  background-size: 10px 10px;
-  background-image:
-    linear-gradient(to right, rgba(255,255,255,0.008) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.008) 1px, transparent 1px);
-}
-
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .blink { animation: blink 1s step-end infinite; }
 
-/* ========== SHELL & LAYOUT ========== */
-.app-layout {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  background: transparent;
-  position: relative;
-  z-index: 1;
-}
-
-/* ========== SIDEBAR (base y colapsado heredados de dashboard.css; overrides propios de Dev) ========== */
+/* ========== SIDEBAR (base, layout y colapsado heredados de dashboard.css; overrides propios de Dev) ========== */
 .sidebar-group {
   padding: 20px 14px 10px;
 }
@@ -286,17 +235,7 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* ========== MAIN WRAPPER & TOPBAR ========== */
-.main-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  background: transparent;
-  position: relative;
-}
-
+/* ========== TOPBAR FLOATING OVERRIDE (base heredada de dashboard.css) ========== */
 /* Top header flotante en la esquina superior derecha (Estilo Empresa: solo notificaciones y perfil) */
 .top-header {
   position: absolute;
@@ -313,8 +252,6 @@ html, body {
   border-bottom: 0;
   box-shadow: none;
   z-index: 60;
-  display: flex;
-  align-items: center;
   gap: 12px;
 }
 
@@ -351,22 +288,6 @@ html, body {
     margin-right: 0;
     margin-top: 48px;
   }
-}
-
-.notif-btn {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fg-dim);
-  font-size: 14px;
-  transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .notif-btn .bell {
@@ -410,49 +331,7 @@ html, body {
   75% { transform: rotateZ(2deg); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .notif-btn:hover .bell {
-    animation: none !important;
-  }
-  .notif-btn:active {
-    transform: none !important;
-  }
-}
-
-.notif-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: var(--danger);
-  color: white;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--bg-darker);
-}
-
-/* User Chip overrides de Dev (dropdown base heredado de dashboard.css) */
-.user-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 12px 4px 6px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  color: var(--fg);
-  text-decoration: none;
-}
-
+/* User Chip overrides de Dev (base y dropdown heredados de dashboard.css) */
 .user-chip:hover,
 .user-chip[aria-expanded="true"] {
   border-color: var(--accent);
@@ -655,97 +534,16 @@ body.is-chat-active .contrato-popup-overlay {
   height: 30px;
   background: rgba(var(--accent-rgb), 0.15);
   border: 1px solid rgba(var(--accent-rgb), 0.4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  overflow: hidden;
 }
 
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.user-name {
-  font-family: var(--font-main);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.user-role {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* ========== MAIN CONTENT AREA ========== */
+/* ========== MAIN CONTENT AREA (page-header, metrics-grid y labels en dashboard.css) ========== */
 .main-content {
-  flex: 1;
-  overflow-y: auto;
   padding: 24px 28px;
-  background: transparent;
-}
-
-/* ========== HEADINGS & PAGE HEADER ========== */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.page-title {
-  font-family: var(--font-main);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.page-subtitle {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
-}
-
-/* ========== METRICS GRID ========== */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
-  margin-bottom: 22px;
 }
 
 /* ========== CARDS, TABLES, ALERTS, BADGES & BUTTONS (base heredada de dashboard.css) ========== */
-.label-section {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-.label-danger { color: var(--danger); }
-.label-warning { color: var(--warning); }
-
 /* Details and Accordions */
 details {
   background: var(--bg-card);
@@ -853,15 +651,10 @@ details summary:hover {
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* Secciones reactivas */
+/* Secciones reactivas (base en dashboard.css) */
 .seccion-v,
 .section-v {
-  display: none;
   animation: devFade 0.2s ease;
-}
-.seccion-v.activa,
-.section-v.active {
-  display: block;
 }
 
 @keyframes devFade {
@@ -881,38 +674,13 @@ details summary:hover {
   .nav-item i, .nav-item svg.lucide { font-size: 16px !important; margin: 0 !important; }
 }
 
-/* ========== LUCIDE ICONS SUPPORT (base heredada de dashboard.css) ========== */
-.notif-btn svg.lucide {
-  width: 18px;
-  height: 18px;
-}
-
-.user-avatar svg.lucide {
-  width: 15px;
-  height: 15px;
-}
-
-/* ========== EXPLORAR CATÁLOGO & PROJECT CARDS ========== */
+/* ========== EXPLORAR CATÁLOGO (base de tag-solucion, project-desc y lucide en dashboard.css) ========== */
 .tag-solucion {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  text-transform: uppercase;
   color: #94a3b8 !important;
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
   border-radius: 0;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.project-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-top: 8px;
-  margin-bottom: 16px;
 }
 
 /* ============================================================
@@ -3374,6 +3142,7 @@ details summary:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .notif-btn:hover .bell,
   #modalEditarPerfilDev:not([hidden]) .perfil-hero-card,
   #modalEditarPerfilDev:not([hidden]) #formPerfilDev,
   #modalEditarPerfilDev:not([hidden]) .sena-credential-card,
@@ -3381,6 +3150,9 @@ details summary:hover {
   #modalEditarPerfilDev:not([hidden]) [data-testid="badge-verificacion-sena-perfil"].badge-success::after,
   #btnGuardarPerfilDev .jd-spin {
     animation: none !important;
+  }
+  .notif-btn:active {
+    transform: none !important;
   }
   #modalEditarPerfilDev .sena-credential-card,
   #perfilModalAvatar,
@@ -4964,278 +4736,8 @@ details summary:hover {
 }
 
 /* ============================================================
-   CENTRO DE MENSAJES (#centro-chat) — PANTALLA COMPLETA
-   Estilo Empresa: chat 100dvh con notificaciones y perfil flotantes
+   CENTRO DE MENSAJES (#centro-chat) — heredado de dashboard.css
    ============================================================ */
-body.is-chat-active .main-content,
-.main-content:has(#centro-chat.activa),
-.main-wrapper:has(#centro-chat.activa) .main-content,
-.main-wrapper.is-chat-active .main-content {
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  max-height: 100vh !important;
-  max-height: 100dvh !important;
-}
-
-body.is-chat-active #centro-chat.activa,
-.main-content:has(#centro-chat.activa) #centro-chat.activa,
-.main-wrapper:has(#centro-chat.activa) #centro-chat.activa,
-.main-wrapper.is-chat-active #centro-chat.activa {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  max-height: 100vh !important;
-  max-height: 100dvh !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-
-#centro-chat .jd-chat {
-  --jd-chat-list-width: 340px;
-  flex: 1;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  border-radius: 0 !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  background: var(--bg);
-  grid-template-columns: var(--jd-chat-list-width) minmax(0, 1fr) !important;
-}
-
-#centro-chat .jd-chat.has-context {
-  grid-template-columns: var(--jd-chat-list-width) minmax(0, 1fr) 300px !important;
-}
-
-#centro-chat .jd-chat.has-context.is-context-collapsed {
-  grid-template-columns: var(--jd-chat-list-width) minmax(0, 1fr) !important;
-}
-
-#centro-chat .jd-chat.is-context-collapsed .jd-chat-context,
-#centro-chat .jd-chat:not(.has-context) .jd-chat-context {
-  display: none !important;
-}
-
-#centro-chat .jd-chat-head-name-row {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  min-width: 0 !important;
-}
-
-#centro-chat .jd-chat-head-name {
-  display: inline-block;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#centro-chat .jd-chat-context-toggle {
-  display: none !important;
-  margin-left: 2px;
-  padding: 3px 6px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--fg-dim);
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-#centro-chat .jd-chat-context-toggle:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border);
-  color: var(--accent);
-}
-
-#centro-chat .jd-chat.has-context .jd-chat-context-toggle {
-  display: inline-flex !important;
-}
-
-#centro-chat .jd-chat-list {
-  position: relative !important;
-  min-width: 0;
-  background: var(--bg-darker);
-  border-right: 1px solid var(--border);
-  height: 100%;
-}
-
-#centro-chat .jd-chat-resizer {
-  position: absolute;
-  top: 0;
-  right: -4px;
-  bottom: 0;
-  width: 8px;
-  cursor: col-resize;
-  z-index: 15;
-  touch-action: none;
-}
-
-#centro-chat .jd-chat-resizer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 3px;
-  width: 2px;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-#centro-chat .jd-chat-resizer:hover::after,
-#centro-chat .jd-chat-resizer.is-resizing::after {
-  opacity: 0.75;
-}
-
-body.is-chat-resizing {
-  cursor: col-resize !important;
-  user-select: none !important;
-}
-
-#centro-chat .jd-chat-context {
-  display: none;
-  background: var(--bg-card);
-  border-left: 1px solid var(--border);
-  padding: 20px;
-  padding-top: 68px;
-  flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-  min-width: 0;
-  height: 100%;
-}
-
-#centro-chat .jd-chat.has-context:not(.is-context-collapsed) .jd-chat-context {
-  display: flex !important;
-}
-
-#centro-chat .jd-context-card {
-  background: var(--bg-darker);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#centro-chat .jd-context-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(22, 163, 74, 0.12);
-  border: 1px solid rgba(22, 163, 74, 0.3);
-  color: var(--accent);
-  font-family: var(--font-main);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-#centro-chat .jd-context-btn:hover {
-  background: rgba(22, 163, 74, 0.2);
-  border-color: var(--accent);
-  color: #ffffff;
-}
-
-#centro-chat .jd-context-btn.secondary {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--text-secondary);
-}
-
-#centro-chat .jd-context-btn.secondary:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-high);
-  color: var(--fg);
-}
-
-#centro-chat .jd-chat-panel {
-  background: var(--bg);
-  height: 100%;
-}
-
-#centro-chat .jd-chat-head {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
-  padding-right: 260px !important;
-}
-
-@media (max-width: 1024px) {
-  #centro-chat .jd-chat-head {
-    padding-right: 20px !important;
-    padding-top: 56px !important;
-  }
-}
-
-#centro-chat .jd-chat-messages {
-  background-color: var(--bg) !important;
-  background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'240\' height=\'240\' viewBox=\'0 0 240 240\' fill=\'none\' stroke=\'%23cbd5e1\' stroke-opacity=\'0.08\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cg transform=\'translate(20 22) rotate(-8)\'%3E%3Cpath d=\'M10 4L3 11l7 7M22 4l7 7-7 7M18 2l-4 18\'/%3E%3C/g%3E%3Cg transform=\'translate(132 18) rotate(6)\'%3E%3Cpath d=\'M4 6a3 3 0 0 1 3-3h18a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H12l-5 4v-4H7a3 3 0 0 1-3-3V6z\'/%3E%3Cpath d=\'M10 9h12M10 14h8\'/%3E%3C/g%3E%3Cg transform=\'translate(202 68) rotate(12)\'%3E%3Cpath d=\'M8 2c-2 0-3 1-3 3v4c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v4c0 2 1 3 3 3M16 2c2 0 3 1 3 3v4c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v4c0 2-1 3-3 3\'/%3E%3C/g%3E%3Cg transform=\'translate(34 114) rotate(10)\'%3E%3Crect x=\'2\' y=\'4\' width=\'24\' height=\'18\' rx=\'2\'/%3E%3Cpath d=\'M7 10l4 3-4 3M13 16h6\'/%3E%3C/g%3E%3Cg transform=\'translate(114 102) rotate(-10)\'%3E%3Ccircle cx=\'5\' cy=\'16\' r=\'3\'/%3E%3Ccircle cx=\'16\' cy=\'6\' r=\'3\'/%3E%3Ccircle cx=\'27\' cy=\'16\' r=\'3\'/%3E%3Cpath d=\'M7.5 14l6-6M18.5 8l6 6\'/%3E%3C/g%3E%3Cg transform=\'translate(68 186) rotate(-6)\'%3E%3Cpath d=\'M6 2h10l6 6v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z\'/%3E%3Cpath d=\'M16 2v6h6M9 15l3 3 5-5\'/%3E%3C/g%3E%3Cg transform=\'translate(174 176) rotate(8)\'%3E%3Cpath d=\'M4 12l5 5 11-11M14 17l5-5\'/%3E%3C/g%3E%3Cpath d=\'M92 54v6M89 57h6M214 134v5M211.5 136.5h5M18 206v5M15.5 208.5h5\'/%3E%3Ccircle cx=\'88\' cy=\'152\' r=\'1.5\'/%3E%3Ccircle cx=\'178\' cy=\'118\' r=\'1.5\'/%3E%3C/svg%3E') !important;
-  background-repeat: repeat !important;
-  background-size: 240px 240px !important;
-  background-attachment: local !important;
-}
-
-[data-theme="light"] #centro-chat .jd-chat-messages {
-  background-color: #ffffff !important;
-  background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'240\' height=\'240\' viewBox=\'0 0 240 240\' fill=\'none\' stroke=\'%230f172a\' stroke-opacity=\'0.14\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cg transform=\'translate(20 22) rotate(-8)\'%3E%3Cpath d=\'M10 4L3 11l7 7M22 4l7 7-7 7M18 2l-4 18\'/%3E%3C/g%3E%3Cg transform=\'translate(132 18) rotate(6)\'%3E%3Cpath d=\'M4 6a3 3 0 0 1 3-3h18a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H12l-5 4v-4H7a3 3 0 0 1-3-3V6z\'/%3E%3Cpath d=\'M10 9h12M10 14h8\'/%3E%3C/g%3E%3Cg transform=\'translate(202 68) rotate(12)\'%3E%3Cpath d=\'M8 2c-2 0-3 1-3 3v4c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v4c0 2 1 3 3 3M16 2c2 0 3 1 3 3v4c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v4c0 2-1 3-3 3\'/%3E%3C/g%3E%3Cg transform=\'translate(34 114) rotate(10)\'%3E%3Crect x=\'2\' y=\'4\' width=\'24\' height=\'18\' rx=\'2\'/%3E%3Cpath d=\'M7 10l4 3-4 3M13 16h6\'/%3E%3C/g%3E%3Cg transform=\'translate(114 102) rotate(-10)\'%3E%3Ccircle cx=\'5\' cy=\'16\' r=\'3\'/%3E%3Ccircle cx=\'16\' cy=\'6\' r=\'3\'/%3E%3Ccircle cx=\'27\' cy=\'16\' r=\'3\'/%3E%3Cpath d=\'M7.5 14l6-6M18.5 8l6 6\'/%3E%3C/g%3E%3Cg transform=\'translate(68 186) rotate(-6)\'%3E%3Cpath d=\'M6 2h10l6 6v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z\'/%3E%3Cpath d=\'M16 2v6h6M9 15l3 3 5-5\'/%3E%3C/g%3E%3Cg transform=\'translate(174 176) rotate(8)\'%3E%3Cpath d=\'M4 12l5 5 11-11M14 17l5-5\'/%3E%3C/g%3E%3Cpath d=\'M92 54v6M89 57h6M214 134v5M211.5 136.5h5M18 206v5M15.5 208.5h5\'/%3E%3Ccircle cx=\'88\' cy=\'152\' r=\'1.5\'/%3E%3Ccircle cx=\'178\' cy=\'118\' r=\'1.5\'/%3E%3C/svg%3E') !important;
-}
-
-#centro-chat .jd-msg-out {
-  background: #e9f2ed !important;
-  color: #111315 !important;
-  border: 1px solid #cce0d5 !important;
-}
-
-#centro-chat .jd-msg-out .jd-msg-time {
-  color: #52635a !important;
-}
-
-[data-theme="dark"] #centro-chat .jd-msg-out {
-  background: #172820 !important;
-  color: #f4f4f5 !important;
-  border: 1px solid #264234 !important;
-}
-
-[data-theme="dark"] #centro-chat .jd-msg-out .jd-msg-time {
-  color: #9ca3af !important;
-}
-
-#centro-chat .jd-chat-form {
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 768px) {
-  #centro-chat .chat-mobile-menu-toggle {
-    display: inline-flex !important;
-  }
-
-  #centro-chat .jd-chat {
-    grid-template-columns: 1fr !important;
-  }
-}
 
 /* ============================================================
    CENTRO DE MEDIACIÓN Y DISPUTAS (#disputas)
