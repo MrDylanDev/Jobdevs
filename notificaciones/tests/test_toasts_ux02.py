@@ -91,8 +91,12 @@ class TestIntegracionWebSocket:
         assert "origen: 'ws'" in js
 
     def test_sin_toasts_legados_en_modales_ni_desarrollador(self):
-        modals_js = _leer(BASE / 'static' / 'dashboard' / 'script' / 'dashboard_modals.js')
-        dev_js = _leer(BASE / 'static' / 'Desarrollador' / 'script' / 'desarrollador.js')
+        modals_dir = BASE / 'static' / 'dashboard' / 'script'
+        modals_files = [modals_dir / 'dashboard_modals.js', *sorted((modals_dir / 'modules').glob('*.js'))]
+        modals_js = '\n'.join(_leer(p) for p in modals_files if p.exists())
+        dev_dir = BASE / 'static' / 'Desarrollador' / 'script'
+        dev_files = [dev_dir / 'desarrollador.js', *sorted((dev_dir / 'modules').glob('*.js'))]
+        dev_js = '\n'.join(_leer(p) for p in dev_files if p.exists())
         assert 'jdm-toast' not in modals_js
         assert 'jd-toast' not in dev_js
         assert 'window.JobDevsToast' in modals_js
@@ -107,11 +111,11 @@ class TestIntegracionWebSocket:
 class TestCacheBusting:
     # Versión compartida de cada asset: evita caché obsoleta entre roles.
     VERSIONES_COMUNES = {
-        'dashboard/css/dashboard.css': '20261121_v27',
-        'dashboard/css/dashboard_modals.css': '20261121_v27',
-        'dashboard/script/dashboard_modals.js': '20261121_v23',
+        'dashboard/css/dashboard.css': '20261126_v35',
+        'dashboard/css/dashboard_modals.css': '20261126_v33',
+        'dashboard/script/dashboard_modals.js': '20261126_mod1',
         'dashboard/script/notificaciones_sse.js': '2',
-        'mensajes/script/chat_inline.js': '20261121_v8',
+        'mensajes/script/chat_inline.js': '20261121_v10',
     }
 
     def test_los_tres_roles_cargan_el_css_y_sse_actualizados(self):
@@ -122,5 +126,5 @@ class TestCacheBusting:
                 assert esperado in html, f'{rol}: {asset} no sirve la versión {version}'
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['admin'])
         assert "static 'dashboard/script/notificaciones_popover.js' %}?v=3" in _leer(TEMPLATES['dev'])
-        assert "static 'Desarrollador/css/desarrollador.css' %}?v=20261121_v27" in _leer(TEMPLATES['dev'])
-        assert "static 'Desarrollador/script/desarrollador.js' %}?v=20261121_v4" in _leer(TEMPLATES['dev'])
+        assert "static 'Desarrollador/css/desarrollador.css' %}?v=20261126_v34" in _leer(TEMPLATES['dev'])
+        assert "static 'Desarrollador/script/desarrollador.js' %}?v=20261126_mod1" in _leer(TEMPLATES['dev'])
