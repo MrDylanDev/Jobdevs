@@ -7,17 +7,26 @@
   <title>JobDevs | Panel Administrador</title>
   <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261121_v27">
-  <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261114_v6">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v27">
-  <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261126_v35">
+  <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=20261126_v37">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('admin_theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261126_v33">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261126_v33">
+  <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=4">
 </head>
 <body>
 
 <!-- Texturas Cyber Tech (Estilo Landing Page) -->
 <div class="grain" id="grain"></div>
-<div class="scan-line"></div>
 <div class="tech-bg"></div>
 
 <div class="app-layout">
@@ -26,16 +35,16 @@
   <aside class="sidebar" id="adminSidebar">
     <div class="sidebar-brand">
       <div class="brand-tech-wrap">
-        <div class="brand-square blink"></div>
-        <div>
-          <div class="sidebar-brand-text">JobDevs<span class="brand-dot"></span></div>
-          <div class="sidebar-brand-sub">[ PANEL MAESTRO ]</div>
-        </div>
+        <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs" class="sidebar-brand-logo">
+        <div class="sidebar-brand-sub">[ PANEL MAESTRO ]</div>
       </div>
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
+        <i data-lucide="panel-left-close"></i>
+      </button>
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Visión General</div>
+      <div class="sidebar-group-label">Resumen</div>
       <button class="nav-item active" onclick="showSection('statsSection', this)">
         <i data-lucide="pie-chart"></i>
         <span>Estadísticas</span>
@@ -45,13 +54,13 @@
         <i data-lucide="message-square"></i>
         <span>Chat Central</span>
         {% if mensajes_no_leidos_admin > 0 %}
-          <span class="nav-badge">{{ mensajes_no_leidos_admin }}</span>
+          <span class="nav-badge" data-mensajes-badge>{{ mensajes_no_leidos_admin }}</span>
         {% endif %}
       </button>
     </div>
 
     <div class="sidebar-group">
-      <div class="sidebar-group-label">Gestión</div>
+      <div class="sidebar-group-label">Operación</div>
       <button class="nav-item" onclick="showSection('usersSection', this)">
         <i data-lucide="users"></i>
         <span>Usuarios</span>
@@ -60,20 +69,19 @@
         <i data-lucide="folder-kanban"></i>
         <span>Proyectos</span>
       </button>
-      <button class="nav-item" onclick="showSection('explorarSection', this)">
-        <i data-lucide="compass"></i>
-        <span>Explorar Catálogo</span>
-      </button>
-      <button class="nav-item" onclick="showSection('categoriesSection', this)">
-        <i data-lucide="tags"></i>
-        <span>Categorías</span>
-      </button>
       <button class="nav-item" onclick="showSection('disputasSection', this)">
         <i data-lucide="scale"></i>
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
       </button>
-      <a class="nav-item" href="{% url 'solicitudes_cancelacion' %}"><i data-lucide="file-x"></i><span>Revisar cancelaciones</span></a>
+      <a href="{% url 'solicitudes_cancelacion' %}" class="nav-item">
+        <i data-lucide="file-x"></i>
+        <span>Cancelaciones</span>
+      </a>
+    </div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Control SENA</div>
       <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
         <i data-lucide="building"></i>
         <span>Verificación Empresas</span>
@@ -84,50 +92,25 @@
         <span>Verificación Talento SENA</span>
         {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
       </button>
-      <button class="nav-item" onclick="showSection('fichasSenaSection', this)">
-        <i data-lucide="id-card"></i>
-        <span>Lista Blanca SENA</span>
-        {% if total_fichas_sena %}<span class="badge bg-secondary ms-auto">{{ total_fichas_sena }}</span>{% endif %}
-      </button>
       <button class="nav-item" onclick="showSection('auditSection', this)">
         <i data-lucide="shield"></i>
         <span>Auditoría</span>
       </button>
-      <button class="nav-item" onclick="showSection('configSection', this)">
-        <i data-lucide="settings"></i>
-        <span>Configuración</span>
-      </button>
-      <button class="nav-item" onclick="showSection('auditChatsSection', this)"><i data-lucide="shield-alert"></i><span>Auditoría de Chats</span></button>
-      <button class="nav-item" onclick="showSection('logsTecnicosSection', this); cargarLogsTecnicos();"><i data-lucide="terminal"></i><span>Logs Técnicos</span></button>
-      <button class="nav-item" onclick="showSection('reportsSection', this)">
-        <i data-lucide="file-bar-chart"></i>
-        <span>Reportes</span>
-      </button>
     </div>
 
-    <hr class="sidebar-sep" style="margin-top:auto;">
-    <div style="padding:12px;">
-      <a class="nav-item danger" href="{% url 'logout' %}">
-        <i data-lucide="log-out"></i>
-        <span>Cerrar Sesión</span>
-      </a>
-    </div>
+    <div class="sidebar-footer-note">JobDevs · Panel SENA</div>
   </aside>
   <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
   <!-- Main Wrapper -->
   <div class="main-wrapper">
 
-    <!-- Top header -->
-    <header class="top-header">
+    <!-- Top header (minimal: solo Notificaciones + Perfil Admin desplegable) -->
+    <header class="top-header top-header--minimal">
       <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-expanded="false" aria-controls="adminSidebar" aria-label="Abrir menú de navegación">
         <i data-lucide="menu"></i>
       </button>
-      <div class="top-header-title">
-        Panel Administrador
-        <span>/ JobDevs Platform</span>
-        <span class="top-sys-pill"><span class="top-sys-dot"></span> ROOT // ONLINE</span>
-      </div>
+      <div class="top-header-right">
       <div class="notif-wrapper">
         <button type="button" class="notif-btn" title="Notificaciones" aria-label="Notificaciones"
                 aria-haspopup="true" aria-expanded="false" aria-controls="notifPopover" data-notif-toggle>
@@ -166,17 +149,58 @@
             {% endfor %}
           </div>
           <button type="button" class="notif-popover-footer" data-notif-ver-todas
-                  data-url="{% url 'notificaciones_api_lista' %}">Ver todas</button>
+                  data-url="{% url 'notificaciones_api_lista' %}"{% if not notificaciones %} hidden{% endif %}>Ver todas</button>
         </div>
       </div>
-      <div class="user-chip">
-        <div class="user-avatar" style="overflow:hidden; padding:0; background:transparent;">
-          <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Administrador" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+      <div class="user-dropdown-wrapper" id="adminUserDropdown">
+        <button type="button" class="user-chip" id="adminUserDropdownBtn"
+                aria-haspopup="true" aria-expanded="false" aria-controls="adminUserDropdownMenu"
+                onclick="toggleAdminUserDropdown(event)">
+          <div class="user-avatar" style="overflow:hidden; padding:0; background:transparent;">
+            <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Administrador" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+          </div>
+          <div>
+            <div class="user-name">{{ request.user.nombre|default:"Administrador" }}</div>
+            <div class="user-role">Control Total</div>
+          </div>
+          <i data-lucide="chevron-down" class="user-chip-chevron"></i>
+        </button>
+        <div class="user-dropdown-menu" id="adminUserDropdownMenu" role="menu" hidden>
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-avatar">
+              <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Administrador">
+            </div>
+            <div class="user-dropdown-meta">
+              <div class="user-dropdown-name">{{ request.user.nombre|default:"Administrador" }}</div>
+              <div class="user-dropdown-email">{{ request.user.email|default:request.user.username }}</div>
+              <span class="user-dropdown-tag verified">Administrador</span>
+            </div>
+          </div>
+          <div class="user-dropdown-body">
+            <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeAdminUserDropdown(); showSection('configSection');">
+              <i data-lucide="settings"></i>
+              <span>Configuración</span>
+            </button>
+            <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeAdminUserDropdown(); showSection('reportsSection');">
+              <i data-lucide="file-bar-chart"></i>
+              <span>Reportes Oficiales</span>
+            </button>
+            <div class="user-dropdown-divider" role="separator"></div>
+            <button type="button" class="user-dropdown-item" id="adminThemeToggle" role="menuitem" onclick="toggleAdminTheme()" aria-pressed="true">
+              <span class="theme-toggle-morph" aria-hidden="true">
+                <span class="sun-rays"></span>
+                <span class="main-circle"></span>
+              </span>
+              <span id="adminThemeLabel">Tema oscuro</span>
+            </button>
+            <div class="user-dropdown-divider" role="separator"></div>
+            <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" onclick="cerrarSesionConSpinner(event, this);">
+              <i data-lucide="log-out"></i>
+              <span>Cerrar Sesión</span>
+            </a>
+          </div>
         </div>
-        <div>
-          <div class="user-name">Administrador</div>
-          <div class="user-role">Control Total</div>
-        </div>
+      </div>
       </div>
     </header>
 
@@ -187,103 +211,85 @@
       <section id="configSection" class="section-v">
         <div class="page-header">
           <div>
-            <div class="page-title">Configuración de negociación</div>
-            <div class="page-subtitle">Los cambios aplican solo a negociaciones nuevas.</div>
+            <div class="page-title">Configuración</div>
+            <div class="page-subtitle">Parámetros globales y mantenimiento del sistema.</div>
           </div>
         </div>
-        <div class="panel-card" style="max-width:620px; padding:24px;">
-          <form method="post" action="{% url 'admin_actualizar_configuracion_negociacion' %}">
-            {% csrf_token %}
-            <label for="plazoNegociacionDias" class="form-label">Plazo global (días)</label>
-            <input id="plazoNegociacionDias" name="plazo_dias" type="number"
-                   min="1" max="30" required value="{{ plazo_negociacion_dias }}"
-                   class="form-control">
-            <p class="text-muted mt-2">Rango permitido: 1 a 30 días. El plazo queda congelado al iniciar cada negociación.</p>
-            <button type="submit" class="btn btn-primary">Guardar configuración</button>
-          </form>
+        <div style="display:grid;gap:20px;max-width:760px;">
+          <div class="card" style="padding:24px;">
+            <div class="card-header" style="margin-bottom:8px;">
+              <div class="card-title"><i class="card-title-icon" data-lucide="sliders-horizontal"></i>Configuración de negociación</div>
+            </div>
+            <p class="project-card-sub" style="margin-bottom:16px;">Los cambios aplican solo a negociaciones nuevas.</p>
+            <form method="post" action="{% url 'admin_actualizar_configuracion_negociacion' %}">
+              {% csrf_token %}
+              <label for="plazoNegociacionDias" class="form-label">Plazo global (días)</label>
+              <input id="plazoNegociacionDias" name="plazo_dias" type="number"
+                     min="1" max="30" required value="{{ plazo_negociacion_dias }}"
+                     class="form-input">
+              <p class="project-card-sub" style="margin:10px 0 16px;">Rango permitido: 1 a 30 días. El plazo queda congelado al iniciar cada negociación.</p>
+              <button type="submit" class="btn btn-primary">Guardar configuración</button>
+            </form>
+          </div>
+
+          <div class="card" style="padding:24px;">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="eraser"></i>Mantenimiento del Sistema</div>
+              <span class="stats-block-meta">Auditado</span>
+            </div>
+            <p class="project-card-sub" style="margin-bottom:16px;">
+              Elimina notificaciones antiguas para optimizar el espacio y el rendimiento de la base de datos.
+              Cada ejecución queda registrada en el log de auditoría.
+            </p>
+            <form method="post" action="{% url 'admin_depurar_notificaciones' %}" data-admin-confirm="true" data-confirm-title="Depurar notificaciones" data-confirm-message="¿Confirmas que deseas eliminar permanentemente las notificaciones antiguas según el criterio configurado? Esta acción quedará registrada en auditoría." data-confirm-ok="Depurar" data-confirm-danger="true" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end;">
+              {% csrf_token %}
+              <div>
+                <label class="form-label">Días de antigüedad mínima</label>
+                <input type="number" name="dias" min="0" value="90" class="form-input" data-testid="input-dias-depuracion">
+              </div>
+              <div>
+                <label class="form-label" style="display:flex;align-items:center;gap:8px;padding:8px 0;">
+                  <input type="checkbox" name="incluir_no_leidas" data-testid="checkbox-incluir-no-leidas">
+                  Incluir notificaciones no leídas
+                </label>
+              </div>
+              <div>
+                <button type="submit" class="btn btn-secondary" style="width:100%;" data-testid="btn-depurar-notificaciones">
+                  <i data-lucide="trash-2"></i> Depurar notificaciones
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
-      <!-- Estadísticas -->
+      <!-- Estadísticas (Bento Ejecutivo) -->
       <section id="statsSection" class="section-v active">
-        <div class="page-header">
+        <div class="page-header admin-dashboard-header">
           <div>
-            <div class="page-title">Estado Global del Sistema</div>
-            <div class="page-subtitle">Métricas en tiempo real de la plataforma</div>
+            <div class="page-title">Estadísticas de la Plataforma</div>
           </div>
         </div>
 
-        <!-- Tarjetas principales -->
-        <div class="metrics-grid">
-          <div class="metric-card dark">
+        <!-- Fila fija de 4 KPIs -->
+        <div class="metrics-grid bento-kpi-row">
+          <div class="metric-card dark metric-card--clickable" onclick="showSection('usersSection')">
             <div class="mc-header">
               <div class="mc-label">Usuarios Totales</div>
               <div class="mc-icon"><i data-lucide="users"></i></div>
             </div>
             <div class="mc-value">{{ total_usuarios }}</div>
-            <div class="mc-sub" style="color:rgba(255,255,255,.5);">Registrados en plataforma</div>
+            <div class="mc-sub">{{ total_empresas }} empresas · {{ total_devs }} devs</div>
           </div>
-          <div class="metric-card accent">
-            <div class="mc-header">
-              <div class="mc-label">Empresas Activas</div>
-              <div class="mc-icon"><i data-lucide="building"></i></div>
-            </div>
-            <div class="mc-value">{{ total_empresas }}</div>
-            <div class="mc-sub">Corporaciones registradas</div>
-          </div>
-          <div class="metric-card info">
-            <div class="mc-header">
-              <div class="mc-label">Desarrolladores</div>
-              <div class="mc-icon"><i data-lucide="code"></i></div>
-            </div>
-            <div class="mc-value">{{ total_devs }}</div>
-            <div class="mc-sub">Talentos activos</div>
-          </div>
-          <div class="metric-card warning" data-testid="metric-usuarios-inactivos">
-            <div class="mc-header">
-              <div class="mc-label">Usuarios Inactivos</div>
-              <div class="mc-icon"><i data-lucide="user-slash"></i></div>
-            </div>
-            <div class="mc-value">{{ usuarios_inactivos }}</div>
-            <div class="mc-sub">Cuentas sin actividad</div>
-          </div>
-          <div class="metric-card danger" data-testid="metric-usuarios-suspendidos">
-            <div class="mc-header">
-              <div class="mc-label">Usuarios Suspendidos</div>
-              <div class="mc-icon"><i data-lucide="user-lock"></i></div>
-            </div>
-            <div class="mc-value">{{ usuarios_suspendidos }}</div>
-            <div class="mc-sub">Cuentas restringidas</div>
-          </div>
-        </div>
-
-        <!-- Métricas de proyectos -->
-        <div class="metrics-grid mb-24">
-          <div class="metric-card success">
-            <div class="mc-header">
-              <div class="mc-label">Finalizados</div>
-              <div class="mc-icon"><i data-lucide="check"></i></div>
-            </div>
-            <div class="mc-value">{{ p_fin }}</div>
-            <div class="mc-sub">Proyectos completados</div>
-          </div>
-          <div class="metric-card info">
+          <div class="metric-card info metric-card--clickable" onclick="showSection('projectsSection')">
             <div class="mc-header">
               <div class="mc-label">En Desarrollo</div>
               <div class="mc-icon"><i data-lucide="rocket"></i></div>
             </div>
             <div class="mc-value">{{ p_des }}</div>
-            <div class="mc-sub">En marcha ahora</div>
+            <div class="mc-sub">{{ p_pub }} disponibles · {{ p_fin }} finalizados</div>
           </div>
-          <div class="metric-card warning">
-            <div class="mc-header">
-              <div class="mc-label">Disponibles</div>
-              <div class="mc-icon"><i data-lucide="clock"></i></div>
-            </div>
-            <div class="mc-value">{{ p_pub }}</div>
-            <div class="mc-sub">Buscando talento</div>
-          </div>
-          <div class="metric-card accent">
+          <div class="metric-card accent metric-card--clickable" onclick="showSection('projectsSection')">
             <div class="mc-header">
               <div class="mc-label">Postulaciones</div>
               <div class="mc-icon"><i data-lucide="file-text"></i></div>
@@ -291,182 +297,116 @@
             <div class="mc-value">{{ post_pen }}</div>
             <div class="mc-sub">Pendientes de revisión</div>
           </div>
-          <div class="metric-card warning">
-            <div class="mc-header">
-              <div class="mc-label">Calificación</div>
-              <div class="mc-icon"><i data-lucide="star"></i></div>
-            </div>
-            <div class="mc-value">{{ promedio_global }}</div>
-            <div class="mc-sub">Promedio global</div>
-          </div>
-          <div class="metric-card danger">
+          <div class="metric-card danger metric-card--clickable" onclick="showSection('projectsSection')">
             <div class="mc-header">
               <div class="mc-label">En Retraso</div>
               <div class="mc-icon"><i data-lucide="alert-triangle"></i></div>
             </div>
             <div class="mc-value">{{ p_ret }}</div>
-            <div class="mc-sub">Requieren atención</div>
+            <div class="mc-sub">Requieren seguimiento</div>
           </div>
         </div>
 
-        <!-- Notificaciones + Últimos proyectos -->
-        <div class="grid-2col">
-          <div class="card">
+        <!-- Bento Principal: 2/3 Gráfica de Líneas Interactiva + 1/3 Donut Comunidad -->
+        <div class="bento-main-grid mb-24" id="adminChartsGrid"
+             data-empresas="{{ total_empresas|default:0 }}"
+             data-devs="{{ total_devs|default:0 }}"
+             data-inactivos="{{ usuarios_inactivos|default:0 }}"
+             data-suspendidos="{{ usuarios_suspendidos|default:0 }}"
+             data-total-usuarios="{{ total_usuarios|default:0 }}"
+             data-p-pub="{{ p_pub|default:0 }}"
+             data-p-des="{{ p_des|default:0 }}"
+             data-p-fin="{{ p_fin|default:0 }}"
+             data-p-ret="{{ p_ret|default:0 }}"
+             data-post-pen="{{ post_pen|default:0 }}">
+          <div class="card admin-chart-card">
             <div class="card-header">
-              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="bell"></i>Notificaciones Recientes</div>
+              <div class="card-title"><i class="card-title-icon" data-lucide="activity"></i><span id="adminLineChartTitle">Pipeline de Proyectos</span></div>
+              <div class="chart-cat-switcher" role="tablist" aria-label="Categoría de gráfica">
+                <button type="button" class="chart-cat-btn is-active" role="tab" aria-selected="true" onclick="switchAdminLineChart('proyectos', this)">Proyectos</button>
+                <button type="button" class="chart-cat-btn" role="tab" aria-selected="false" onclick="switchAdminLineChart('tendencia', this)">Tendencia (6m)</button>
+              </div>
             </div>
-            <ul class="notif-list">
-              {% for notif in notificaciones %}
-                <li class="notif-item">
-                  <i data-lucide="circle"></i>
-                  <div>
-                    <strong>{{ notif.tipo_display }}:</strong> {{ notif.mensaje }}
-                    <br><small style="color:var(--text-muted);">{{ notif.fecha|date:"d/m H:i" }}</small>
-                  </div>
-                </li>
-              {% empty %}
-                <div class="empty-state" style="padding:20px;"><i data-lucide="inbox"></i><p>Sin notificaciones</p></div>
-              {% endfor %}
-            </ul>
+            <script type="application/json" id="adminTendenciaData">{{ tendencia_mensual_json|safe }}</script>
+            <div class="admin-line-wrap">
+              <svg id="adminLineChartSvg" class="admin-line-svg" viewBox="0 0 600 205" role="img" aria-label="Gráfica de líneas en tiempo real"></svg>
+              <div id="adminLineTooltip" class="admin-line-tooltip" hidden></div>
+            </div>
           </div>
+
+          <div class="card admin-chart-card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="pie-chart"></i>Comunidad</div>
+              <span class="stats-block-meta">{{ total_usuarios }} cuentas</span>
+            </div>
+            <div class="admin-donut-wrap admin-donut-wrap--compact">
+              <svg class="admin-donut-svg" viewBox="0 0 180 180" aria-label="Distribución de usuarios">
+                <circle class="admin-donut-track" cx="90" cy="90" r="66"></circle>
+                <g id="adminUsersDonutSegments" transform="rotate(-90 90 90)"></g>
+                <text x="90" y="86" text-anchor="middle" class="admin-donut-total">{{ total_usuarios }}</text>
+                <text x="90" y="105" text-anchor="middle" class="admin-donut-label">CUENTAS</text>
+              </svg>
+              <ul class="admin-chart-legend" id="adminUsersLegend"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila inferior: Últimos Proyectos (1.4fr) + Estado de Cuentas (1fr) -->
+        <div class="bento-bottom-grid">
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="folder-open"></i>Últimos Proyectos</div>
+              <div class="card-title"><i class="card-title-icon" data-lucide="folder-open"></i>Últimos Proyectos</div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="showSection('projectsSection')">Ver todos</button>
             </div>
             <table class="data-table" style="margin-top:0;">
               <tbody>
                 {% for p in proyectos_todos|slice:":5" %}
                   <tr>
                     <td><strong>{{ p.titulo }}</strong><br><small style="color:var(--text-muted);">{{ p.empresa.username }}</small></td>
-                    <td style="text-align:right;"><span class="badge badge-gray">{{ p.get_estado_display|upper }}</span></td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Rankings de desempeño -->
-        <div class="grid-2col">
-          <!-- Ranking talento -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="star"></i>Talento Destacado</div>
-            </div>
-            <div style="margin-bottom:16px;">
-              <div class="label-section">Mejor Calificados</div>
-              <table class="data-table" style="margin-top:0;">
-                <tbody>
-                  {% for dev in ranking_talento %}
-                    <tr>
-                      <td>{{ dev.0 }}</td>
-                      <td style="text-align:right;color:#f59e0b;font-weight:600;">★ {{ dev.2 }}</td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <div class="label-section label-danger">Talento en Alerta</div>
-              <table class="data-table" style="margin-top:0;">
-                <tbody>
-                  {% for dev in ranking_bajo %}
-                    <tr>
-                      <td>{{ dev.0 }}</td>
-                      <td style="color:var(--danger);font-weight:600;">★ {{ dev.2 }}</td>
-                      <td style="text-align:right;">
-                        <button type="button" class="btn btn-danger btn-sm"
-                                data-chat-open data-receptor="{{ dev.3 }}" data-proyecto="0"
-                                data-nombre="{{ dev.0 }}">Intervenir</button>
-                      </td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Ranking empresas -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="building"></i>Desempeño de Empresas</div>
-            </div>
-            <div style="margin-bottom:16px;">
-              <div class="label-section">Mejor Calificadas</div>
-              <table class="data-table" style="margin-top:0;">
-                <tbody>
-                  {% for emp in ranking_empresas %}
-                    <tr>
-                      <td>{{ emp.1|default:emp.0 }}</td>
-                      <td style="text-align:right;color:#3b82f6;font-weight:600;">★ {{ emp.2 }}</td>
-                      <td style="text-align:right;">
-                        <button type="button" class="btn btn-secondary btn-sm"
-                                data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
-                                data-nombre="{{ emp.1|default:emp.0 }}"><i data-lucide="message"></i></button>
-                      </td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <div class="label-section label-warning">Empresas en Bajo</div>
-              <table class="data-table" style="margin-top:0;">
-                <tbody>
-                  {% for emp in ranking_empresas_bajo %}
-                    <tr>
-                      <td>{{ emp.1|default:emp.0 }}</td>
-                      <td style="color:#f59e0b;font-weight:600;">★ {{ emp.2 }}</td>
-                      <td style="text-align:right;">
-                        <button type="button" class="btn btn-secondary btn-sm" style="color:#f59e0b;"
-                                data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
-                                data-nombre="{{ emp.1|default:emp.0 }}">Mediar</button>
-                      </td>
-                    </tr>
-                  {% empty %}
-                    <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Historial de reseñas -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i style="margin-right:8px;opacity:.5;" data-lucide="comments"></i>Historial de Reseñas</div>
-            <div class="card-subtitle">Monitor de comentarios entre Empresas y Desarrolladores</div>
-          </div>
-          <div class="table-wrapper" style="margin-top:0;border:none;box-shadow:none;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Evaluador</th>
-                  <th>Evaluado</th>
-                  <th>Nota</th>
-                  <th>Comentario</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for r in resenas_auditoria %}
-                  <tr>
-                    <td>{{ r.0 }} <span style="font-size:10px;color:var(--text-muted);">({{ r.4|upper }})</span></td>
-                    <td>{{ r.1 }}</td>
-                    <td style="text-align:center;font-weight:700;">{{ r.2 }}</td>
-                    <td style="font-style:italic;color:var(--text-secondary);">"{{ r.3|truncatechars:60 }}"</td>
+                    <td style="text-align:right;">{{ p.get_estado_display|upper }}</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="4"><div class="empty-state" style="padding:20px;"><i data-lucide="file-x"></i><p>No hay reseñas registradas aún</p></div></td></tr>
+                  <tr>
+                    <td colspan="2">
+                      <div class="empty-state" style="padding:20px;"><i data-lucide="folder-open"></i><p>No hay proyectos registrados aún</p></div>
+                    </td>
+                  </tr>
                 {% endfor %}
               </tbody>
             </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="shield-alert"></i>Pendientes y Control</div>
+              <span class="stats-block-meta">Acción rápida</span>
+            </div>
+            <div class="bento-status-list">
+              <div class="bento-status-row" onclick="showSection('verificacionEmpresasSection')">
+                <span><i data-lucide="building"></i> Empresas por verificar</span>
+                <strong>{{ total_empresas_en_revision|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('verificacionDevsSection')">
+                <span><i data-lucide="id-card"></i> Devs por verificar</span>
+                <strong>{{ total_desarrolladores_en_revision|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('disputasSection')">
+                <span><i data-lucide="scale"></i> Disputas activas</span>
+                <strong>{{ total_disputas_activas|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" data-testid="metric-usuarios-inactivos" onclick="showSection('usersSection')">
+                <span><i data-lucide="user-x"></i> Usuarios Inactivos</span>
+                <strong>{{ usuarios_inactivos }}</strong>
+              </div>
+              <div class="bento-status-row" data-testid="metric-usuarios-suspendidos" onclick="showSection('usersSection')">
+                <span><i data-lucide="shield-ban"></i> Usuarios Suspendidos</span>
+                <strong>{{ usuarios_suspendidos }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('projectsSection')">
+                <span><i data-lucide="alert-triangle"></i> Proyectos en Retraso</span>
+                <strong>{{ p_ret }}</strong>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -476,76 +416,121 @@
         <div class="page-header">
           <div>
             <div class="page-title">Monitor Maestro de Proyectos</div>
-            <div class="page-subtitle">Supervisión y moderación de todos los proyectos activos</div>
           </div>
         </div>
 
-        <!-- Search + Filters for Projects -->
-        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="projectSearch" placeholder="🔍 Buscar proyecto..." oninput="debouncedFilterProjects()"
-            style="flex:1; min-width:200px; padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-          <select id="projectEstadoFilter" onchange="filterProjects()"
-            style="padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-            <option value="">Todos los estados</option>
-            <option value="publicado">Publicado</option>
-            <option value="en_desarrollo">En Desarrollo</option>
-            <option value="en_revision">En Revisión</option>
-            <option value="finalizado">Finalizado</option>
-            <option value="rechazado">Rechazado</option>
-          </select>
-          <span id="projectsResultCount" style="font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('projectsSection')">
+            <i data-lucide="folder-kanban"></i> Proyectos
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('categoriesSection')">
+            <i data-lucide="tags"></i> Categorías
+          </button>
         </div>
 
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Proyecto</th>
-                <th>Empresa</th>
-                <th>Estado</th>
-                <th>Desarrolladores / Hitos</th>
-                <th>Moderación</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in proyectos_todos %}
-                <tr data-titulo="{{ p.titulo }}" data-empresa="{{ p.empresa.username }}" data-estado="{{ p.estado }}">
-                  <td>
-                    <strong>{{ p.titulo }}</strong><br>
-                    <small style="color:var(--text-muted);">{{ p.vacantes }} vacantes</small>
-                  </td>
-                  <td style="color:var(--text-secondary);">{{ p.empresa.username }}</td>
-                  <td><span class="badge badge-gray">{{ p.get_estado_display|upper }}</span></td>
-                  <td>
-                    {% if p.contratos_activos %}
-                      <div style="display:flex;flex-direction:column;gap:4px;">
-                        {% for contrato in p.contratos_activos %}
-                          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--page-bg);padding:4px 10px;border-radius:6px;font-size:12px;border-left:3px solid #111;">
-                            <span><strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong></span>
-                            <span style="color:var(--text-muted);">{{ contrato.hitos_completados }}/{{ contrato.total_hitos }}</span>
-                          </div>
-                        {% endfor %}
-                      </div>
-                    {% else %}
-                      <span style="color:var(--text-muted);font-style:italic;font-size:12px;">Sin desarrolladores</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <div style="display:flex;gap:6px;">
-                      <button type="button" class="btn btn-secondary btn-sm"
-                              data-chat-open data-receptor="{{ p.empresa.id }}" data-proyecto="0"
-                              data-nombre="{{ p.empresa.nombre|default:p.empresa.username }}">
-                        <i data-lucide="comments"></i>
-                      </button>
-                      <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="btn btn-secondary btn-sm">
-                        <i data-lucide="eye"></i>
-                      </a>
-                    </div>
-                  </td>
+        <!-- Banda resumen de proyectos -->
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total proyectos</span>
+            <strong class="users-summary-val">{{ total_proyectos }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Disponibles</span>
+            <strong class="users-summary-val">{{ p_pub }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">En Desarrollo</span>
+            <strong class="users-summary-val">{{ p_des }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Finalizados / Retraso</span>
+            <strong class="users-summary-val">{{ p_fin }} <small>/ {{ p_ret }}</small></strong>
+          </div>
+        </div>
+
+        <!-- Contenedor unificado: filtros + tabla -->
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-role-pills" role="group" aria-label="Filtrar proyectos por estado">
+              <button type="button" class="users-role-pill project-estado-pill is-active" onclick="setAdminProjectEstadoPill('', this)">Todos</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('publicado', this)">Publicados</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('en_desarrollo', this)">En Desarrollo</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('finalizado', this)">Finalizados</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('rechazado', this)">Rechazados</button>
+            </div>
+
+            <div class="users-shell-controls">
+              <div class="users-search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="projectSearch" placeholder="Buscar proyecto o empresa..." oninput="debouncedFilterProjects()">
+              </div>
+              <select id="projectEstadoFilter" class="users-select" onchange="filterProjects()" style="display:none;" aria-hidden="true">
+                <option value="">Todos los estados</option>
+                <option value="publicado">Publicado</option>
+                <option value="en_desarrollo">En Desarrollo</option>
+                <option value="en_revision">En Revisión</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="rechazado">Rechazado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table">
+              <thead>
+                <tr>
+                  <th>Proyecto</th>
+                  <th>Empresa</th>
+                  <th>Estado</th>
+                  <th>Desarrolladores / Hitos</th>
+                  <th style="text-align:right;">Moderación</th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for p in proyectos_todos %}
+                  <tr data-titulo="{{ p.titulo }}" data-empresa="{{ p.empresa.username }}" data-estado="{{ p.estado }}">
+                    <td>
+                      <div class="user-cell-username">{{ p.titulo }}</div>
+                      <div class="user-cell-handle">{{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</div>
+                    </td>
+                    <td class="user-cell-email">{{ p.empresa.username }}</td>
+                    <td>{{ p.get_estado_display|upper }}</td>
+                    <td>
+                      {% if p.contratos_activos %}
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                          {% for contrato in p.contratos_activos %}
+                            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:5px 10px;border-radius:6px;font-size:12px;border:1px solid var(--border-dim);">
+                              <span><strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong></span>
+                              <span style="color:var(--text-muted);font-family:var(--font-mono);">{{ contrato.hitos_completados }}/{{ contrato.total_hitos }}</span>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span style="color:var(--text-muted);font-size:12px;">Sin desarrolladores</span>
+                      {% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                      <div class="user-actions-group">
+                        <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="user-icon-btn" title="Ver avances">
+                          <i data-lucide="eye"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="folder-open"></i><p>No hay proyectos registrados aún</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="users-shell-footer">
+            <span id="projectsResultCount" class="users-result-count">{{ proyectos_todos|length }} proyectos registrados</span>
+          </div>
         </div>
 
         {% if proyectos_pendientes_regularizacion %}
@@ -553,7 +538,7 @@
             <div class="page-title" style="font-size:16px;">Regularizar cierres históricos</div>
             <p>Solo si existe evidencia verificable de la fecha real de cierre. El plazo de valoración corre desde esa fecha, no desde el registro administrativo.</p>
             {% for proyecto in proyectos_pendientes_regularizacion %}
-              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}">
+              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}" data-admin-confirm="true" data-confirm-title="Registrar cierre histórico" data-confirm-message="¿Confirmas que existe evidencia verificable para registrar el cierre histórico del proyecto {{ proyecto.titulo|escape }}?" data-confirm-ok="Registrar cierre">
                 {% csrf_token %}
                 <strong>{{ proyecto.titulo }}</strong> — {{ proyecto.empresa.username }}
                 <label>Fecha y hora real de cierre <input type="datetime-local" name="fecha_cierre" required></label>
@@ -709,10 +694,10 @@
                   <span class="badge badge-{% if p.prioridad == 'alta' %}danger{% elif p.prioridad == 'media' %}warning{% else %}info{% endif %}" style="font-family:var(--font-mono); font-size:10.5px;">
                     {{ p.prioridad|upper }}
                   </span>
-                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px;">
                     <i data-lucide="users" style="width:11px; height:11px;"></i> {{ p.num_postulaciones }} postulantes
                   </span>
-                  <span class="badge badge-gray" style="font-family:var(--font-mono); font-size:10.5px; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px;">
                     <i data-lucide="door-open" style="width:11px; height:11px;"></i> {{ p.vacantes_disponibles }} de {{ p.vacantes }} libres
                   </span>
                 </div>
@@ -753,11 +738,6 @@
                 </div>
 
                 <div style="display:inline-flex; gap:6px;">
-                  <button type="button" class="btn btn-secondary btn-sm" title="Chat con empresa"
-                          data-chat-open data-receptor="{{ p.empresa.id }}" data-proyecto="0"
-                          data-nombre="{{ p.empresa.nombre|default:p.empresa.username }}">
-                    <i data-lucide="message-square" style="width:13px; height:13px;"></i>
-                  </button>
                   <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="btn btn-primary btn-sm" title="Ver avances y gestión">
                     <i data-lucide="eye" style="width:13px; height:13px; margin-right:4px;"></i> Ver
                   </a>
@@ -784,15 +764,8 @@
         </div>
       </section>
 
-      <!-- Chat Central (panel tipo WhatsApp: lista a la izquierda, conversación a la derecha) -->
+      <!-- Chat Central (panel ampliado tipo dev) -->
       <section id="chatSection" class="section-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Centro de Mensajería Global</div>
-            <div class="page-subtitle">Conversaciones activas con todos los perfiles del sistema</div>
-          </div>
-        </div>
-
         <div class="jd-chat" data-chat-root data-send-url="{% url 'api_enviar' %}"
              data-session-url="{% url 'api_sesion' %}"
              data-yo-id="{{ request.user.id }}"
@@ -808,7 +781,13 @@
               <button type="button" class="jd-chat-item"
                       data-url="{% url 'api_conversacion' conv.usuario.id %}"
                       data-receptor="{{ conv.usuario.id }}" data-proyecto="0">
-                <span class="jd-chat-avatar">{{ conv.usuario.username|slice:":1"|upper }}</span>
+                <span class="jd-chat-avatar">
+                  {% if conv.foto_url %}
+                    <img src="{{ conv.foto_url }}" alt="{{ conv.usuario.username }}" onerror="this.parentElement.textContent='{{ conv.usuario.username|slice:":1"|upper|escapejs }}'">
+                  {% else %}
+                    {{ conv.usuario.username|slice:":1"|upper }}
+                  {% endif %}
+                </span>
                 <span class="jd-chat-item-body">
                   <span class="jd-chat-item-top">
                     <span class="jd-chat-name">{{ conv.usuario.username }}</span>
@@ -825,6 +804,7 @@
               </div>
               {% endfor %}
             </div>
+            <div class="jd-chat-resizer" id="adminChatListResizer" role="separator" aria-orientation="vertical" aria-label="Redimensionar lista de conversaciones"></div>
           </aside>
 
           <section class="jd-chat-panel">
@@ -872,113 +852,296 @@
         <div class="page-header">
           <div>
             <div class="page-title">Directorio de Usuarios</div>
-            <div class="page-subtitle">Gestión y control de acceso a la plataforma</div>
           </div>
-          <button class="btn btn-primary" onclick="openCreateUserModal()">
+        </div>
+
+        <!-- Tabs de Usuarios + Acción Principal -->
+        <div class="admin-tabs admin-tabs--with-action" role="tablist">
+          <div class="admin-tabs-group">
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="switchUsersTab('directorio', this)">
+              <i data-lucide="users"></i> Directorio
+            </button>
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="switchUsersTab('desempeno', this)">
+              <i data-lucide="star"></i> Desempeño y Alertas
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openCreateUserModal()">
             <i data-lucide="user-plus"></i> Nuevo Usuario
           </button>
         </div>
 
-        <!-- Search + Filters + Bulk Actions -->
-        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="userSearch" placeholder="🔍 Buscar usuario..." oninput="debouncedFilterUsers()"
-            style="flex:1; min-width:200px; padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-          <select id="userRoleFilter" onchange="filterUsers()"
-            style="padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-            <option value="">Todos los roles</option>
-            <option value="desarrollador">Desarrollador</option>
-            <option value="empresa">Empresa</option>
-            <option value="administrador">Administrador</option>
-          </select>
-          <select id="userStatusFilter" onchange="filterUsers()"
-            style="padding:8px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-            <option value="">Todos los estados</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo / Suspendido</option>
-          </select>
-          <form method="get" action="{% url 'dashboard_admin' %}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            <input type="hidden" name="section" value="usersSection">
-            <label style="font-size:12px; color:var(--text-muted);">Registro desde</label>
-            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde"
-              style="padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-            <label style="font-size:12px; color:var(--text-muted);">hasta</label>
-            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta"
-              style="padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); color:var(--text-primary);">
-            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-          </form>
-          <div id="bulkActions" style="display:none; gap:8px;">
-            <button class="btn btn-success btn-sm" onclick="bulkToggleUsers('activate')"><i data-lucide="check"></i> Activar</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkToggleUsers('suspend')"><i data-lucide="ban"></i> Suspender</button>
-            <span id="bulkCount" style="font-size:12px; color:var(--text-muted);"></span>
+        <div id="usersTabDirectorio" class="admin-tab-panel is-active">
+        <!-- Resumen compacto de usuarios (estilo Stripe/Vercel) -->
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total cuentas</span>
+            <strong class="users-summary-val">{{ total_usuarios }}</strong>
           </div>
-          <span id="usersResultCount" style="font-size:12px; color:var(--text-muted); white-space:nowrap;"></span>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Desarrolladores</span>
+            <strong class="users-summary-val">{{ total_devs }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Empresas</span>
+            <strong class="users-summary-val">{{ total_empresas }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Restringidos / Inactivos</span>
+            <strong class="users-summary-val">{{ usuarios_suspendidos }} <small>/ {{ usuarios_inactivos }}</small></strong>
+          </div>
         </div>
 
-        <div class="table-wrapper">
-          <table class="data-table" id="usersTable">
-            <thead>
-              <tr>
-                <th style="width:40px;"><input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers(this)"></th>
-                <th>Usuario / Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Registro</th>
-                <th style="text-align:center;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for u in usuarios_todos %}
-                <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
-                  <td><input type="checkbox" class="user-checkbox" value="{{ u.id }}" onchange="updateBulkActions()"></td>
-                  <td>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                      <div class="user-avatar" style="width:32px;height:32px;font-size:12px;background:#374151;">
-                        {{ u.username|slice:":1"|upper }}
-                      </div>
-                      <div>
-                        <strong>{{ u.username }}</strong><br>
-                        <small style="color:var(--text-muted);">{{ u.nombre|default:"—" }}</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td style="color:var(--text-secondary);">{{ u.email }}</td>
-                  <td>
-                    <span class="badge {% if u.rol == 'administrador' %}badge-dark{% elif u.rol == 'empresa' %}badge-info{% else %}badge-gray{% endif %}">
-                      {{ u.get_rol_display }}
-                    </span>
-                  </td>
-                  <td style="color:var(--text-secondary);">{{ u.date_joined|date:"d/m/Y" }}</td>
-                  <td style="text-align:center; white-space:nowrap;">
-                    <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
-                      {% csrf_token %}
-                      <button type="button"
-                        onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
-                        style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px;"
-                        title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
-                        {% if u.is_active %}
-                          <i style="color:var(--success);" data-lucide="toggle-on"></i>
-                        {% else %}
-                          <i style="color:var(--text-muted);" data-lucide="toggle-off"></i>
-                        {% endif %}
-                      </button>
-                    </form>
-                    <button onclick="openEditUserModal({{ u.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
-                      <i data-lucide="pencil"></i>
-                    </button>
-                    <button onclick="deleteUser({{ u.id }}, '{{ u.username }}')" style="border:none;background:none;cursor:pointer;font-size:16px; color:var(--danger);" title="Eliminar">
-                      <i data-lucide="trash-2"></i>
-                    </button>
-                  </td>
+        <!-- Contenedor unificado: filtros + tabla + footer -->
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-role-pills" role="group" aria-label="Filtrar por rol">
+              <button type="button" class="users-role-pill is-active" onclick="setAdminUserRolePill('', this)">Todos</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('desarrollador', this)">Desarrolladores</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('empresa', this)">Empresas</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('administrador', this)">Admins</button>
+            </div>
+
+            <div class="users-shell-controls">
+              <div class="users-search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="userSearch" placeholder="Buscar nombre, @usuario o correo..." oninput="debouncedFilterUsers()">
+              </div>
+              <select id="userRoleFilter" class="users-select" onchange="filterUsers()" style="display:none;" aria-hidden="true">
+                <option value="">Todos los roles</option>
+                <option value="desarrollador">Desarrollador</option>
+                <option value="empresa">Empresa</option>
+                <option value="administrador">Administrador</option>
+              </select>
+              <select id="userStatusFilter" class="users-select" onchange="filterUsers()">
+                <option value="">Estado: Todos</option>
+                <option value="active">Solo Activos</option>
+                <option value="inactive">Inactivos / Suspendidos</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="users-shell-subbar">
+            <form method="get" action="{% url 'dashboard_admin' %}" class="users-date-form" onsubmit="event.preventDefault(); filterUsers();">
+              <input type="hidden" name="section" value="usersSection">
+              <span class="users-date-label"><i data-lucide="calendar"></i> Registro</span>
+              <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde" class="users-date-input">
+              <span class="users-date-sep">→</span>
+              <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta" class="users-date-input">
+              <button type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()">Aplicar</button>
+            </form>
+          </div>
+
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table" id="usersTable"
+                   data-api-usuarios-url="{% url 'api_usuarios' %}"
+                   data-current-user-id="{{ request.user.id }}"
+                   data-toggle-url-template="{% url 'admin_toggle_usuario' 0 %}">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Alta</th>
+                  <th style="text-align:right;">Acciones</th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for u in usuarios_todos %}
+                  <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
+                    <td>
+                      <div class="user-cell">
+                        <div class="user-cell-avatar">{{ u.nombre|default:u.username|slice:":1"|upper }}</div>
+                        <div>
+                          <div class="user-cell-username">{{ u.nombre|default:u.username }}</div>
+                          <div class="user-cell-handle">@{{ u.username }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="user-cell-email">{{ u.email }}</td>
+                    <td>
+                      {{ u.get_rol_display }}
+                    </td>
+                    <td>
+                      {% if u.is_active %}
+                        <span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>
+                      {% else %}
+                        <span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>
+                      {% endif %}
+                    </td>
+                    <td class="user-cell-date">{{ u.date_joined|date:"d M Y" }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                      {% if u.id == request.user.id %}
+                        <span style="color:var(--text-muted);font-size:12px;">Tu cuenta</span>
+                      {% elif u.rol == 'administrador' %}
+                        <span style="color:var(--text-muted);font-size:12px;">Protegido</span>
+                      {% else %}
+                        <div class="user-actions-group">
+                          <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
+                            {% csrf_token %}
+                            <button type="button" class="user-icon-btn {% if u.is_active %}is-active{% endif %}"
+                              onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
+                              title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
+                              {% if u.is_active %}
+                                <i data-lucide="toggle-right"></i>
+                              {% else %}
+                                <i data-lucide="toggle-left"></i>
+                              {% endif %}
+                            </button>
+                          </form>
+                          <button type="button" class="user-icon-btn" onclick="openEditUserModal({{ u.id }})" title="Editar">
+                            <i data-lucide="pencil"></i>
+                          </button>
+                          <button type="button" class="user-icon-btn is-danger" onclick="deleteUser({{ u.id }}, '{{ u.username }}')" title="Eliminar">
+                            <i data-lucide="trash-2"></i>
+                          </button>
+                        </div>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="users"></i><p>No se encontraron usuarios</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="users-shell-footer">
+            <span id="usersResultCount" class="users-result-count">{{ usuarios_todos|length }} usuarios en directorio</span>
+          </div>
+        </div>
+        </div>
+
+        <div id="usersTabDesempeno" class="admin-tab-panel" hidden>
+          <!-- Rankings de desempeño -->
+          <div class="grid-2col">
+            <!-- Ranking talento -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="card-title-icon" data-lucide="star"></i>Talento Destacado</div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div class="label-section">Mejor Calificados</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for dev in ranking_talento %}
+                      <tr>
+                        <td>{{ dev.0 }}</td>
+                        <td class="rating-cell rating-cell--top">★ {{ dev.2 }}</td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="label-section label-danger">Talento en Alerta</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for dev in ranking_bajo %}
+                      <tr>
+                        <td>{{ dev.0 }}</td>
+                        <td class="rating-cell rating-cell--danger">★ {{ dev.2 }}</td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Ranking empresas -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="card-title-icon" data-lucide="building"></i>Desempeño de Empresas</div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div class="label-section">Mejor Calificadas</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for emp in ranking_empresas %}
+                      <tr>
+                        <td>{{ emp.1|default:emp.0 }}</td>
+                        <td class="rating-cell rating-cell--info">★ {{ emp.2 }}</td>
+                        <td style="text-align:right;">
+                          <button type="button" class="btn btn-secondary btn-sm"
+                                  data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                  data-nombre="{{ emp.1|default:emp.0 }}"><i data-lucide="message-square"></i></button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="label-section label-warning">Empresas en Bajo</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for emp in ranking_empresas_bajo %}
+                      <tr>
+                        <td>{{ emp.1|default:emp.0 }}</td>
+                        <td class="rating-cell rating-cell--warning">★ {{ emp.2 }}</td>
+                        <td style="text-align:right;">
+                          <button type="button" class="btn btn-secondary btn-sm rating-cell--warning"
+                                  data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                  data-nombre="{{ emp.1|default:emp.0 }}">Mediar</button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historial de reseñas -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="messages-square"></i>Historial de Reseñas</div>
+              <div class="card-subtitle">Monitor de comentarios entre Empresas y Desarrolladores</div>
+            </div>
+            <div class="table-wrapper" style="margin-top:0;border:none;box-shadow:none;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Evaluador</th>
+                    <th>Evaluado</th>
+                    <th>Nota</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in resenas_auditoria %}
+                    <tr>
+                      <td>{{ r.0 }} <span style="font-size:10px;color:var(--text-muted);">({{ r.4|upper }})</span></td>
+                      <td>{{ r.1 }}</td>
+                      <td style="text-align:center;"><span class="rating-pill">★ {{ r.2 }}</span></td>
+                      <td style="font-style:italic;color:var(--text-secondary);">"{{ r.3|truncatechars:60 }}"</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="4"><div class="empty-state" style="padding:20px;"><i data-lucide="file-x"></i><p>No hay reseñas registradas aún</p></div></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- Modal Doble Confirmación Suspender/Reactivar Usuario (SCRUM-407) -->
       <div id="toggleUserConfirmModal" class="modal-overlay" onclick="if(event.target===this)closeModal('toggleUserConfirmModal')">
-        <div class="modal-box" style="max-width:440px;">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('toggleUserConfirmModal')">&times;</button>
           <h3 id="toggleConfirmTitle" style="margin-bottom:10px; font-size:18px;">Confirmar acción</h3>
           <p id="toggleConfirmMessage" style="font-size:13.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:14px;"></p>
           <div style="background:var(--page-bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:13px;">
@@ -996,6 +1159,7 @@
       <!-- Modal Editar Usuario -->
       <div id="editUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('editUserModal')">
         <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('editUserModal')">&times;</button>
           <h3 style="margin-bottom:16px; font-size:18px;">Editar Usuario</h3>
           <form id="editUserForm">
             <input type="hidden" id="edit-id">
@@ -1006,6 +1170,10 @@
             <div class="form-group">
               <label class="form-label">Nombre</label>
               <input type="text" id="edit-nombre" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-identificacion">Identificación (CC / TI / NIT)</label>
+              <input type="text" id="edit-identificacion" class="form-input" placeholder="Ej: 1001234567 o 899.999.034-1" autocomplete="off">
             </div>
             <div class="form-group">
               <label class="form-label">Rol</label>
@@ -1026,8 +1194,13 @@
       <!-- Modal Crear Usuario -->
       <div id="createUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('createUserModal')">
         <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('createUserModal')">&times;</button>
           <h3 style="margin-bottom:16px; font-size:18px;">Nuevo Usuario</h3>
           <form id="createUserForm">
+            <div class="form-group">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" id="create-nombre" class="form-input" placeholder="Ej: Ana María Gómez" autocomplete="off">
+            </div>
             <div class="form-group">
               <label class="form-label">Username</label>
               <input type="text" id="create-username" class="form-input" required autocomplete="off">
@@ -1036,13 +1209,24 @@
               <label class="form-label">Email</label>
               <input type="email" id="create-email" class="form-input" required autocomplete="off">
             </div>
+            <div class="form-group" id="create-tipo-doc-group">
+              <label class="form-label">Tipo de documento</label>
+              <select id="create-tipo-doc" class="form-input" onchange="syncCreateUserDocField()">
+                <option value="nit">NIT (Empresa)</option>
+                <option value="cedula">Cédula</option>
+              </select>
+            </div>
+            <div class="form-group" id="create-identificacion-group">
+              <label class="form-label" id="create-identificacion-label">NIT</label>
+              <input type="text" id="create-identificacion" class="form-input" placeholder="Ej: 899.999.034-1" required autocomplete="off">
+            </div>
             <div class="form-group">
               <label class="form-label">Contraseña</label>
               <input type="password" id="create-password" class="form-input" required autocomplete="new-password">
             </div>
             <div class="form-group">
               <label class="form-label">Rol</label>
-              <select id="create-rol" class="form-input" required>
+              <select id="create-rol" class="form-input" required onchange="syncCreateUserDocField()">
                 <option value="empresa">Empresa</option>
                 <option value="desarrollador">Desarrollador</option>
                 <option value="administrador">Administrador</option>
@@ -1056,14 +1240,109 @@
         </div>
       </div>
 
+      <!-- Revisar Cancelaciones (tab dentro de Mediación y Disputas) -->
+      <section id="cancelacionesSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mediación y Disputas</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('disputasSection')">
+            <i data-lucide="scale"></i> Disputas
+          </button>
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('cancelacionesSection')">
+            <i data-lucide="file-x"></i> Cancelaciones
+          </button>
+        </div>
+
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total solicitudes</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_admin|length }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Pendientes de revisión</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_pendientes_count }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Aprobadas / Rechazadas</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_resueltas_count }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Estado</span>
+            <strong class="users-summary-val" style="font-size:14px;color:var(--accent);">Integrado</strong>
+          </div>
+        </div>
+
+        <div class="users-table-shell">
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table">
+              <thead>
+                <tr>
+                  <th>Proyecto</th>
+                  <th>Solicitante</th>
+                  <th>Causal</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th style="text-align:right;">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sol in solicitudes_cancelacion_admin %}
+                  <tr>
+                    <td>
+                      <div class="user-cell-username">{{ sol.contratacion.proyecto.titulo }}</div>
+                      <div class="user-cell-handle">{{ sol.motivo|truncatechars:60 }}</div>
+                    </td>
+                    <td class="user-cell-email">{{ sol.solicitante.nombre|default:sol.solicitante.username }}</td>
+                    <td>{{ sol.get_causal_display }}</td>
+                    <td>
+                      {% if sol.estado == 'pendiente_revision' %}
+                        <span class="status-pill status-pill--inactive">Pendiente</span>
+                      {% elif sol.estado == 'aprobada' %}
+                        <span class="status-pill status-pill--active">Aprobada</span>
+                      {% else %}
+                        {{ sol.get_estado_display }}
+                      {% endif %}
+                    </td>
+                    <td class="user-cell-date">{{ sol.fecha_creacion|date:"d M Y" }}</td>
+                    <td style="text-align:right;">
+                      <a href="{% url 'solicitudes_cancelacion' %}" class="btn btn-secondary btn-sm">Revisar</a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="file-x"></i><p>No hay solicitudes de cancelación registradas</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- Categorías de Solución -->
       <section id="categoriesSection" class="section-v">
         <div class="page-header">
           <div>
             <div class="page-title">Categorías de Solución</div>
-            <div class="page-subtitle">Administra los tipos de solución disponibles para los proyectos</div>
           </div>
-          <button class="btn btn-primary" onclick="openCategoryModal()">
+        </div>
+
+        <div class="admin-tabs admin-tabs--with-action" role="tablist">
+          <div class="admin-tabs-group">
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('projectsSection')">
+              <i data-lucide="folder-kanban"></i> Proyectos
+            </button>
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('categoriesSection')">
+              <i data-lucide="tags"></i> Categorías
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openCategoryModal()">
             <i data-lucide="plus"></i> Nueva Categoría
           </button>
         </div>
@@ -1088,9 +1367,7 @@
                   <td style="color:var(--text-secondary);">{{ c.descripcion|default:"—" }}</td>
                   <td style="text-align:center;">{{ c.proyectos_count }}</td>
                   <td>
-                    <span class="badge {% if c.activo %}badge-success{% else %}badge-gray{% endif %}">
-                      {% if c.activo %}Activa{% else %}Inactiva{% endif %}
-                    </span>
+                    {% if c.activo %}<span class="badge badge-success">Activa</span>{% else %}<span style="color:var(--text-muted);">Inactiva</span>{% endif %}
                   </td>
                   <td style="text-align:center; white-space:nowrap;">
                     <button onclick="openCategoryModal({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
@@ -1116,8 +1393,12 @@
       <!-- Modal Crear/Editar Categoría -->
       <div id="categoryModal" class="modal-overlay" onclick="if(event.target===this)closeModal('categoryModal')">
         <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('categoryModal')">&times;</button>
           <h3 id="categoryModalTitle" style="margin-bottom:16px; font-size:18px;">Nueva Categoría</h3>
-          <form id="categoryForm">
+          <form id="categoryForm"
+                data-url-crear="{% url 'api_categoria_crear' %}"
+                data-url-actualizar="{% url 'api_categoria_actualizar' 0 %}"
+                data-url-toggle="{% url 'api_categoria_toggle' 0 %}">
             {% csrf_token %}
             <input type="hidden" id="category-id">
             <div class="form-group">
@@ -1150,53 +1431,128 @@
         <div class="page-header">
           <div>
             <div class="page-title">Registro de Auditoría</div>
-            <div class="page-subtitle">Historial de todas las acciones críticas en la base de datos</div>
           </div>
         </div>
-        <div class="table-wrapper">
-          <table class="data-table">
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('auditSection')">
+            <i data-lucide="shield-check"></i> Registro de Auditoría
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('auditChatsSection')">
+            <i data-lucide="shield-alert"></i> Auditoría de Chats
+          </button>
+        </div>
+
+        <form id="auditLogsForm" data-api-url="{% url 'api_auditoria' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Usuario</label><input type="text" name="usuario" class="form-input" placeholder="username o Sistema" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Tabla afectada</label>
+              <input type="text" name="tabla" class="form-input" list="auditTablasList" placeholder="Ej. usuarios" autocomplete="off">
+              <datalist id="auditTablasList"></datalist>
+            </div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Acción / Detalle</label><input type="text" name="q" class="form-input" placeholder="Buscar texto..." autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Desde</label><input type="date" name="fecha_desde" class="form-input"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Hasta</label><input type="date" name="fecha_hasta" class="form-input"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color, rgba(255,255,255,0.08));">
+            <button type="button" id="auditResetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Limpiar</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Filtrar</button>
+          </div>
+        </form>
+
+        <div class="users-table-shell">
+          <div class="users-table-scroll">
+          <table class="data-table users-pro-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Usuario</th>
                 <th>Acción Realizada</th>
                 <th>Tabla</th>
+                <th style="text-align:center;">Registro</th>
                 <th style="text-align:center;">Fecha y Hora</th>
+                <th style="text-align:center;">Detalle</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="auditLogsBody">
               {% for log in logs_auditoria %}
                 <tr>
                   <td style="color:var(--text-muted);font-size:12px;">#{{ log.0 }}</td>
-                  <td><strong>{{ log.1 }}</strong></td>
+                  <td><strong>{{ log.1|default:"Sistema" }}</strong></td>
                   <td>{{ log.2 }}</td>
-                  <td><span class="badge badge-gray">{{ log.3 }}</span></td>
+                  <td>{{ log.3|default:"—" }}</td>
+                  <td style="text-align:center;color:var(--text-muted);">—</td>
                   <td style="text-align:center;color:var(--text-secondary);">{{ log.4|date:"d/m/Y H:i:s" }}</td>
+                  <td style="text-align:center;color:var(--text-muted);">—</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" style="text-align:center;color:var(--text-muted);">No hay registros de auditoría.</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         </div>
+        <div id="auditLogsPager" style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;"></div>
       </section>
+
+      <!-- Modal Detalle Log de Auditoría -->
+      <div id="auditLogDetailModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditLogDetailModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditLogDetailModal')">&times;</button>
+          <h3 id="auditLogModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
+          <div id="auditLogModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
+          <div style="margin-bottom:12px;">
+            <strong style="font-size:12px;color:var(--text-secondary);">Acción</strong>
+            <div id="auditLogModalAction" style="white-space:pre-wrap;word-break:break-word;margin-top:4px;"></div>
+          </div>
+          <div class="audit-diff-grid">
+            <div>
+              <strong style="font-size:12px;color:var(--text-secondary);">Valor Anterior</strong>
+              <pre id="auditLogModalPrev" class="audit-diff-pre"></pre>
+            </div>
+            <div>
+              <strong style="font-size:12px;color:var(--text-secondary);">Valor Nuevo</strong>
+              <pre id="auditLogModalNext" class="audit-diff-pre"></pre>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditLogDetailModal')">Cerrar</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Auditoría de Chats -->
       <section id="auditChatsSection" class="section-v">
         <div class="page-header">
           <div>
             <div class="page-title">Auditoría de Chats</div>
-            <div class="page-subtitle">Inspección de conversaciones privadas y grupales</div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:16px;border-left:4px solid var(--warning, #f59e0b);">
-          <i data-lucide="alert-triangle"></i>
-          Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('auditSection')">
+            <i data-lucide="shield-check"></i> Registro de Auditoría
+          </button>
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('auditChatsSection')">
+            <i data-lucide="shield-alert"></i> Auditoría de Chats
+          </button>
         </div>
-        <form id="auditChatsForm" class="card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
-          <div class="form-group"><label class="form-label">Remitente</label><input type="text" name="remitente" class="form-input" autocomplete="off"></div>
-          <div class="form-group"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>
-          <div class="form-group"><label class="form-label">Proyecto (título o ID)</label><input type="text" name="proyecto" class="form-input" autocomplete="off"></div>
-          <div class="form-group"><label class="form-label">Texto</label><input type="text" name="q" class="form-input" autocomplete="off"></div>
-          <div class="form-group" style="align-self:end;"><button type="submit" class="btn btn-primary btn-full"><i data-lucide="search"></i> Buscar / Auditar</button></div>
+        <form id="auditChatsForm" data-api-url="{% url 'admin_auditar_mensajes' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Remitente</label><input type="text" name="remitente" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Proyecto (título o ID)</label><input type="text" name="proyecto" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Texto</label><input type="text" name="q" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Desde</label><input type="date" name="fecha_desde" class="form-input"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Hasta</label><input type="date" name="fecha_hasta" class="form-input"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color, rgba(255,255,255,0.08));">
+            <button type="reset" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Limpiar</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Buscar / Auditar</button>
+          </div>
         </form>
         <div class="table-wrapper">
           <table class="data-table" id="auditChatsTable">
@@ -1218,9 +1574,25 @@
         <div id="auditChatsPager" style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;"></div>
       </section>
 
+      <!-- Modal Aviso Privacidad Auditoría de Chats -->
+      <div id="auditChatsNoticeModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatsNoticeModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatsNoticeModal')">&times;</button>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--warning, #f59e0b);padding-right:32px;">
+            <i data-lucide="alert-triangle"></i>
+            <h3 style="margin:0;font-size:17px;color:var(--text-primary);">Aviso de Auditoría y Privacidad</h3>
+          </div>
+          <p style="margin:0 0 20px;line-height:1.5;color:var(--text-secondary);">
+            Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
+          </p>
+          <button type="button" class="btn btn-primary btn-full" onclick="closeModal('auditChatsNoticeModal')">Entendido</button>
+        </div>
+      </div>
+
       <!-- Modal Mensaje Auditado -->
       <div id="auditChatModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatModal')">
         <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatModal')">&times;</button>
           <h3 id="auditChatModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
           <div id="auditChatModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
           <div id="auditChatModalBody" style="white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;"></div>
@@ -1234,38 +1606,61 @@
       <section id="disputasSection" class="section-v">
         <div class="page-header">
           <div>
-            <div class="page-title">
-              Mediación y Disputas
-              <span class="badge bg-danger">{{ total_disputas_activas }}</span>
-            </div>
-            <div class="page-subtitle">Disputas activas pendientes de mediación</div>
+            <div class="page-title">Mediación y Disputas</div>
           </div>
-          <span class="btn btn-primary" style="cursor:default;">
-            <i data-lucide="gavel"></i> Centro de Mediación
-          </span>
         </div>
-        <div class="card">
-          {% if disputas_activas %}
-          <table style="width:100%;">
-            <thead>
-              <tr><th>ID</th><th>Proyecto</th><th>Iniciado por</th><th>Estado</th><th>Mediador</th><th></th></tr>
-            </thead>
-            <tbody>
-              {% for d in disputas_activas %}
-              <tr>
-                <td>#{{ d.pk }}</td>
-                <td>{{ d.proyecto.titulo }}</td>
-                <td>{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
-                <td>{{ d.get_estado_display }}</td>
-                <td>{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}Sin asignar{% endif %}</td>
-                <td><a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary">Ingresar a Sala</a></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          {% else %}
-          <p style="margin:0;">No hay disputas activas.</p>
-          {% endif %}
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('disputasSection')">
+            <i data-lucide="scale"></i> Disputas
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('cancelacionesSection')">
+            <i data-lucide="file-x"></i> Cancelaciones
+          </button>
+        </div>
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="disputasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('disputasSearch', '#disputasSection .users-pro-table tbody')">
+            </div>
+          </div>
+          <div class="users-table-scroll">
+            <div class="table-wrapper">
+              <table class="data-table users-pro-table">
+                <thead>
+                  <tr>
+                    <th style="width:70px;">ID</th>
+                    <th>Proyecto</th>
+                    <th>Iniciado por</th>
+                    <th>Estado</th>
+                    <th>Mediador</th>
+                    <th style="text-align:right;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in disputas_activas %}
+                    <tr>
+                      <td class="user-cell-date">#{{ d.pk }}</td>
+                      <td><div class="user-cell-username">{{ d.proyecto.titulo }}</div></td>
+                      <td class="user-cell-email">{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
+                      <td>{{ d.get_estado_display }}</td>
+                      <td class="user-cell-email">{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}<span style="color:var(--text-muted);">Sin asignar</span>{% endif %}</td>
+                      <td style="text-align:right;">
+                        <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary btn-sm">Ingresar a Sala</a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6">
+                        <div class="empty-state" style="padding:36px;"><i data-lucide="scale"></i><p>No hay disputas activas</p></div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1273,15 +1668,19 @@
       <section id="verificacionEmpresasSection" class="section-v">
         <div class="page-header">
           <div>
-            <div class="page-title">
-              Verificación de Empresas
-              <span class="badge bg-danger">{{ total_empresas_en_revision }}</span>
-            </div>
+            <div class="page-title">Verificación de Empresas</div>
             <div class="page-subtitle">Solicitudes de verificación de identidad pendientes de revisión</div>
           </div>
         </div>
         <div class="card">
+          <div class="admin-quick-search-wrap">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="verifEmpresasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifEmpresasSearch', '#verificacionEmpresasSection table tbody')">
+            </div>
+          </div>
           {% if empresas_en_revision %}
+          <div class="table-wrapper">
           <table style="width:100%;">
             <thead>
               <tr><th>Empresa</th><th>Tipo</th><th>Documento</th><th>Razón Social</th><th>Soporte</th><th>Triaje Asistido</th><th>Acciones</th></tr>
@@ -1289,7 +1688,12 @@
             <tbody>
               {% for e in empresas_en_revision %}
               <tr>
-                <td>{{ e.usuario.nombre|default:e.usuario.username }}</td>
+                <td>
+                  <div>{{ e.usuario.nombre|default:e.usuario.username }}</div>
+                  <div style="font-size:11px;margin-top:2px;{% if e.intentos_verificacion >= 2 %}color:#dc2626;font-weight:600;{% else %}color:var(--text-muted);{% endif %}">
+                    Rechazos: {{ e.intentos_verificacion }}/3{% if e.intentos_verificacion >= 2 %} (último intento){% endif %}
+                  </div>
+                </td>
                 <td>{% if e.tipo_persona == 'juridica' %}Jurídica{% else %}Natural{% endif %}</td>
                 <td>{{ e.tipo_documento }} {{ e.documento_completo }}</td>
                 <td>{{ e.razon_social|default:"—" }}</td>
@@ -1344,12 +1748,12 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" style="display:inline-block;margin-bottom:6px;">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Aprobar verificación de empresa" data-confirm-message="¿Confirmas que deseas aprobar la verificación de identidad de {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="aprobar">
                     <button type="submit" class="btn btn-primary">Aprobar</button>
                   </form>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="solicitar_documento">
                     <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
@@ -1362,6 +1766,7 @@
               {% endfor %}
             </tbody>
           </table>
+          </div>
           {% else %}
           <p style="margin:0;">No hay solicitudes de verificación en revisión.</p>
           {% endif %}
@@ -1372,42 +1777,59 @@
       <section id="verificacionDevsSection" class="section-v">
         <div class="page-header">
           <div>
-            <div class="page-title">
-              Verificación de Talento SENA (Aprendices y Egresados)
-              <span class="badge bg-danger">{{ total_desarrolladores_en_revision }}</span>
-            </div>
-            <div class="page-subtitle">Solicitudes manuales de verificación de aprendices y egresados pendientes de resolución</div>
+            <div class="page-title">Verificación de Talento SENA</div>
           </div>
         </div>
-        <div class="card">
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('verificacionDevsSection')">
+            <i data-lucide="user-check"></i> Solicitudes
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('fichasSenaSection')">
+            <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
+          </button>
+        </div>
+
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="verifDevsSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifDevsSearch', '#verificacionDevsSection .users-pro-table tbody')">
+            </div>
+          </div>
+          <div class="users-table-scroll">
           {% if desarrolladores_en_revision %}
-          <table style="width:100%;">
+          <div class="table-wrapper">
+          <table class="data-table users-pro-table">
             <thead>
-              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Triaje Asistido (Local)</th><th>Acciones</th></tr>
+              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Triaje Asistido</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {% for d in desarrolladores_en_revision %}
               <tr>
                 <td>
-                  <strong>{{ d.usuario.nombre|default:d.usuario.username }}</strong><br>
-                  <small class="text-muted">@{{ d.usuario.username }} - {{ d.usuario.email }}</small>
+                  <div class="user-cell-username">{{ d.usuario.nombre|default:d.usuario.username }}</div>
+                  <div class="user-cell-handle">@{{ d.usuario.username }} · {{ d.usuario.email }}</div>
+                  <div style="font-size:11px;margin-top:2px;{% if d.intentos_verificacion >= 2 %}color:#dc2626;font-weight:600;{% else %}color:var(--text-muted);{% endif %}">
+                    Rechazos: {{ d.intentos_verificacion }}/3{% if d.intentos_verificacion >= 2 %} (último intento){% endif %}
+                  </div>
                 </td>
                 <td>
                   {% if d.condicion_sena == 'egresado' %}
-                    <span class="badge bg-success" style="font-size:11px;"><i data-lucide="graduation-cap"></i>Egresado SENA</span>
+                    <span class="status-pill status-pill--active">Egresado SENA</span>
                   {% else %}
-                    <span class="badge bg-info text-dark" style="font-size:11px;"><i data-lucide="id-card"></i>Aprendiz</span>
+                    Aprendiz
                   {% endif %}
                 </td>
-                <td><span class="badge bg-secondary">{{ d.ficha|default:"—" }}</span></td>
-                <td>{{ d.programa_formacion|default:"—" }}</td>
+                <td>{{ d.ficha|default:"—" }}</td>
+                <td class="user-cell-email">{{ d.programa_formacion|default:"—" }}</td>
                 <td>
                   {% if d.documento_soporte %}
-                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
-                    <i data-lucide="{% if d.condicion_sena == 'egresado' %}graduation-cap{% else %}file-text{% endif %}" class="me-1"></i>
+                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                    <i data-lucide="{% if d.condicion_sena == 'egresado' %}graduation-cap{% else %}file-text{% endif %}"></i>
                     {% if d.condicion_sena == 'egresado' %}Ver Diploma{% else %}Ver Soporte{% endif %}
                   </a>
-                  {% else %}Sin documento{% endif %}
+                  {% else %}<span style="color:var(--text-muted);font-size:12px;">Sin documento</span>{% endif %}
                 </td>
                 <td>
                   {% if d.dictamen_ia %}
@@ -1455,12 +1877,12 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" style="display:inline-block;margin-bottom:6px;">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Aprobar talento SENA" data-confirm-message="¿Confirmas que deseas aprobar la verificación de {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="aprobar">
                     <button type="submit" class="btn btn-primary btn-sm">Aprobar</button>
                   </form>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="solicitar_documento">
                     <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento SENA" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
@@ -1473,9 +1895,11 @@
               {% endfor %}
             </tbody>
           </table>
+          </div>
           {% else %}
-          <p style="margin:0;">No hay solicitudes manuales de aprendices o egresados en revisión.</p>
+          <div class="empty-state" style="padding:36px;"><i data-lucide="user-check"></i><p>No hay solicitudes manuales de aprendices o egresados en revisión</p></div>
           {% endif %}
+          </div>
         </div>
       </section>
 
@@ -1483,80 +1907,68 @@
       <section id="fichasSenaSection" class="section-v">
         <div class="page-header">
           <div>
-            <div class="page-title">
-              Lista Blanca Oficial de Fichas SENA
-              <span class="badge bg-primary">{{ total_fichas_sena }}</span>
-            </div>
-            <div class="page-subtitle">Gestión de fichas activas autorizadas para verificación automática instantánea</div>
+            <div class="page-title">Verificación de Talento SENA</div>
           </div>
         </div>
 
-        <!-- SCRUM-311: mecanismo oficial de verificación SENA -->
-        <div class="card" style="margin-bottom:24px;" data-testid="badge-modo-verificacion-sena" data-modo="{{ sena_modo_verificacion }}">
-          <h3 class="h5 mb-2"><i data-lucide="shield-halved"></i> Mecanismo Oficial de Verificación SENA</h3>
-          {% if sena_modo_verificacion == 'pasarela_externa' %}
-          <p style="margin:0;">
-            <span class="badge bg-success"><i data-lucide="plug"></i> Pasarela externa conectada</span>
-            <small class="text-muted d-block mt-2">
-              Se consulta la pasarela institucional configurada en <code>SENA_API_URL</code>
-              ({% if sena_api_url %}{{ sena_api_url }}{% else %}no configurada{% endif %}).
-              Si la pasarela no responde, la verificación se resuelve con el padrón institucional local.
-            </small>
-          </p>
-          {% else %}
-          <p style="margin:0;">
-            <span class="badge bg-primary"><i data-lucide="database"></i> Padrón Institucional Local (Lista Blanca Oficial)</span>
-            <small class="text-muted d-block mt-2">
-              No existe API pública oficial de SOFIA Plus / SENA. Por ello, la lista blanca local
-              (<code>FichaSena</code>) es la fuente oficial y primaria de verificación de fichas en JobDevs.
-              <code>SENA_API_URL</code> es sólo una pasarela institucional externa opcional.
-            </small>
-          </p>
-          {% endif %}
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('verificacionDevsSection')">
+            <i data-lucide="user-check"></i> Solicitudes
+          </button>
+          <button type="button" id="senaTabBtnFichas" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('fichasSenaSection')">
+            <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
+          </button>
         </div>
 
-        <div class="card" style="margin-bottom:24px;">
-          <h3 class="h5 mb-3"><i data-lucide="plus-circle"></i> Registrar Nueva Ficha SENA</h3>
-          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;">
+        <div id="senaPanelFichas">
+        <div id="formNuevaFichaWrap" class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <div class="card-title"><i class="card-title-icon" data-lucide="plus-circle"></i>Registrar Nueva Ficha SENA</div>
+          </div>
+          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;">
             {% csrf_token %}
             <div>
-              <label class="form-label" style="font-weight:600;">Número de Ficha *</label>
-              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-input">
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Programa de Formación *</label>
-              <input type="text" name="programa_formacion" required placeholder="Ej: ADSO" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Programa de Formación *</label>
+              <input type="text" name="programa_formacion" required placeholder="Ej: ADSO" class="form-input">
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Regional</label>
-              <input type="text" name="regional" placeholder="Ej: Distrito Capital" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Regional</label>
+              <input type="text" name="regional" placeholder="Ej: Distrito Capital" class="form-input">
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Centro de Formación</label>
-              <input type="text" name="centro_formacion" placeholder="Ej: CSF" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Centro de Formación</label>
+              <input type="text" name="centro_formacion" placeholder="Ej: CSF" class="form-input">
             </div>
             <div>
-              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;">
+              <button type="submit" class="btn btn-primary" style="width:100%;">
                 <i data-lucide="save"></i> Guardar Ficha
               </button>
             </div>
           </form>
         </div>
 
-        <div class="card">
-          <h3 class="h5 mb-3"><i data-lucide="list"></i> Catálogo de Fichas Registradas</h3>
+        <div class="users-table-shell" style="margin-bottom:16px;">
+          <div class="users-shell-top">
+            <div class="card-title" style="margin:0;"><i class="card-title-icon" data-lucide="list"></i>Catálogo de Fichas Registradas</div>
+            <span class="users-result-count">{{ total_fichas_sena }} fichas</span>
+          </div>
+          <div class="users-table-scroll">
           {% if fichas_sena %}
-          <table style="width:100%;">
+          <table class="data-table users-pro-table">
             <thead>
-              <tr><th>Ficha</th><th>Programa</th><th>Regional / Centro</th><th>Estado</th><th>Acción</th></tr>
+              <tr><th>Ficha</th><th>Programa</th><th>Regional / Centro</th><th>Estado</th><th style="text-align:right;">Acción</th></tr>
             </thead>
             <tbody>
               {% for f in fichas_sena %}
               <tr>
-                <td><strong>{{ f.numero_ficha }}</strong></td>
-                <td>{{ f.programa_formacion }}</td>
-                <td>
-                  <small>{{ f.regional|default:"—" }}<br>{{ f.centro_formacion|default:"—" }}</small>
+                <td>{{ f.numero_ficha }}</td>
+                <td><div class="user-cell-username">{{ f.programa_formacion }}</div></td>
+                <td class="user-cell-email">
+                  {{ f.regional|default:"—" }} · {{ f.centro_formacion|default:"—" }}
                 </td>
                 <td>
                   {% if f.activa %}
@@ -1566,7 +1978,7 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" style="display:inline;">
+                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" data-admin-confirm="true" data-confirm-title="{% if f.activa %}Desactivar ficha SENA{% else %}Activar ficha SENA{% endif %}" data-confirm-message="{% if f.activa %}¿Confirmas que deseas desactivar la ficha {{ f.numero_ficha|escape }}?{% else %}¿Confirmas que deseas activar la ficha {{ f.numero_ficha|escape }}?{% endif %}" data-confirm-ok="{% if f.activa %}Desactivar{% else %}Activar{% endif %}" {% if f.activa %}data-confirm-danger="true"{% endif %} style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm {% if f.activa %}btn-warning{% else %}btn-success{% endif %}">
                       {% if f.activa %}Desactivar{% else %}Activar{% endif %}
@@ -1578,26 +1990,23 @@
             </tbody>
           </table>
           {% else %}
-          <p style="margin:0;">No hay fichas registradas aún en la lista blanca.</p>
+          <div class="empty-state" style="padding:36px;"><i data-lucide="id-card"></i><p>No hay fichas registradas aún en la lista blanca</p></div>
           {% endif %}
+          </div>
+        </div>
         </div>
 
         <!-- SCRUM-225 (RF 9.1.2): excepciones individuales justificadas -->
-        <div class="card" style="margin-top:24px;">
-          <h3 class="h5 mb-3">
-            <i data-lucide="shield-halved"></i> Excepciones Autorizadas de Ficha
-            <span class="badge bg-secondary">{{ total_excepciones_fichas_sena }}</span>
-          </h3>
-          <p class="project-card-sub" style="margin-bottom:16px;">
-            Autoriza de forma individual y auditada la verificación automática de un aprendiz
-            cuya ficha aún no está en el padrón oficial. Las excepciones vencidas o revocadas
-            no habilitan la verificación.
-          </p>
-          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end;" data-testid="form-nueva-excepcion-sena">
+        <div id="senaPanelExcepciones" style="margin-top:24px;">
+        <div id="formNuevaExcepcionWrap" class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <div class="card-title"><i class="card-title-icon" data-lucide="shield-check"></i>Autorizar Excepción de Ficha</div>
+          </div>
+          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;" data-testid="form-nueva-excepcion-sena">
             {% csrf_token %}
             <div>
-              <label class="form-label" style="font-weight:600;">Desarrollador *</label>
-              <select name="desarrollador_id" required class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Desarrollador *</label>
+              <select name="desarrollador_id" required class="form-input">
                 <option value="">Selecciona un desarrollador</option>
                 {% for perfil_id, nombre, username in desarrolladores_para_excepcion %}
                 <option value="{{ perfil_id }}">{{ nombre|default:username }} ({{ username }})</option>
@@ -1605,20 +2014,20 @@
               </select>
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Número de Ficha *</label>
-              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-numero-ficha-excepcion">
+              <label class="form-label">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-input" data-testid="input-numero-ficha-excepcion">
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Justificación *</label>
-              <input type="text" name="justificacion" required placeholder="Motivo avalado por coordinación" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
+              <label class="form-label">Justificación *</label>
+              <input type="text" name="justificacion" required placeholder="Motivo avalado por coordinación" class="form-input">
             </div>
             <div>
-              <label class="form-label" style="font-weight:600;">Días de vigencia</label>
-              <input type="number" name="dias_vigencia" min="1" placeholder="Sin vencimiento" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-dias-vigencia-excepcion">
+              <label class="form-label">Días de vigencia</label>
+              <input type="number" name="dias_vigencia" min="1" placeholder="Sin vencimiento" class="form-input" data-testid="input-dias-vigencia-excepcion">
             </div>
             <div>
-              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-crear-excepcion-sena">
-                <i data-lucide="plus"></i> Autorizar excepción
+              <button type="submit" class="btn btn-primary" style="width:100%;" data-testid="btn-crear-excepcion-sena">
+                <i data-lucide="plus"></i> Guardar Excepción
               </button>
             </div>
           </form>
@@ -1653,7 +2062,7 @@
                 </td>
                 <td>
                   {% if e.activa %}
-                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" style="display:inline;">
+                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" data-admin-confirm="true" data-confirm-title="Revocar excepción de ficha SENA" data-confirm-message="¿Confirmas que deseas revocar la excepción de la ficha {{ e.numero_ficha|escape }} para {{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username|escape }}?" data-confirm-ok="Revocar" data-confirm-danger="true" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-warning" data-testid="btn-revocar-excepcion-sena">Revocar</button>
                   </form>
@@ -1666,38 +2075,9 @@
             </tbody>
           </table>
           {% else %}
-          <p style="margin:0;" data-testid="tabla-excepciones-sena-vacia">No hay excepciones autorizadas aún.</p>
+          <div class="empty-state" style="padding:36px;" data-testid="tabla-excepciones-sena-vacia"><i data-lucide="shield-check"></i><p>No hay excepciones autorizadas aún</p></div>
           {% endif %}
         </div>
-      </section>
-
-      <!-- Logs técnicos del servidor (SCRUM-317 / HU-A18) -->
-      <section id="logsTecnicosSection" class="section-v">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Logs Técnicos del Servidor</div>
-            <div class="page-subtitle">Últimas líneas de jobdevs.log (solo lectura)</div>
-          </div>
-        </div>
-        <div class="card">
-          <div style="display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin-bottom:16px;">
-            <div>
-              <label class="form-label" style="font-weight:600;" for="visor-logs-lineas">Líneas</label>
-              <select id="visor-logs-lineas" class="form-control" data-testid="selector-lineas-logs"
-                      style="padding:8px 12px;border:1px solid #ccc;border-radius:6px;">
-                <option value="50">50</option>
-                <option value="100" selected>100</option>
-                <option value="200">200</option>
-                <option value="500">500</option>
-              </select>
-            </div>
-            <button type="button" class="btn btn-primary" data-testid="btn-refrescar-logs"
-                    onclick="cargarLogsTecnicos()">
-              <i data-lucide="rotate-cw"></i> Refrescar
-            </button>
-          </div>
-          <pre id="visor-logs-output" data-testid="visor-logs-tecnicos"
-               style="margin:0;padding:16px;background:#0f172a;color:#e2e8f0;border-radius:8px;max-height:560px;overflow:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;">Cargando logs técnicos...</pre>
         </div>
       </section>
 
@@ -1706,56 +2086,140 @@
         <div class="page-header">
           <div>
             <div class="page-title">Generación de Reportes Oficiales</div>
-            <div class="page-subtitle">Exportación de datos en formatos compatibles</div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
-          <div class="card">
-            <div style="font-size:28px;margin-bottom:14px;">📊</div>
-            <div class="project-card-title" style="margin-bottom:8px;">Reporte de Proyectos</div>
-            <div class="project-card-sub" style="margin-bottom:20px;">
-              Exporta el listado completo de necesidades tecnológicas y estados actuales.
+        <div class="reports-list-shell">
+          <form method="get" action="{% url 'reporte_proyectos_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="file-spreadsheet"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Proyectos</div>
+                <div class="report-row-sub">Necesidades tecnológicas, vacantes y estados actuales.</div>
+              </div>
             </div>
-            <a href="{% url 'reporte_proyectos_csv' %}" class="btn btn-primary btn-full">
-              <i data-lucide="download"></i> Descargar Excel (.csv)
-            </a>
-          </div>
-          <div class="card">
-            <div style="font-size:28px;margin-bottom:14px;">🎓</div>
-            <div class="project-card-title" style="margin-bottom:8px;">Reporte de Aprendices</div>
-            <div class="project-card-sub" style="margin-bottom:20px;">
-              Estadísticas de desempeño y calificaciones de desarrolladores registrados.
+            <div class="report-row-filters">
+              <select name="estado" class="form-input" title="Estado del proyecto" aria-label="Estado del proyecto">
+                <option value="">Todos los estados</option>
+                <option value="publicado">Publicado</option>
+                <option value="en_desarrollo">En desarrollo</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
             </div>
-            <a href="{% url 'reporte_aprendices_csv' %}" class="btn btn-primary btn-full">
-              <i data-lucide="download"></i> Descargar Excel (.csv)
-            </a>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:24px;">
-          <h3 class="h5 mb-3"><i data-lucide="eraser"></i> Mantenimiento del Sistema</h3>
-          <p class="project-card-sub" style="margin-bottom:16px;">
-            Elimina notificaciones antiguas para optimizar el espacio y el rendimiento de la base de datos.
-            Cada ejecución queda registrada en el log de auditoría.
-          </p>
-          <form method="post" action="{% url 'admin_depurar_notificaciones' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end;">
-            {% csrf_token %}
-            <div>
-              <label class="form-label" style="font-weight:600;">Días de antigüedad mínima</label>
-              <input type="number" name="dias" min="0" value="90" class="form-control" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:6px;" data-testid="input-dias-depuracion">
-            </div>
-            <div>
-              <label class="form-label" style="font-weight:600;display:flex;align-items:center;gap:8px;">
-                <input type="checkbox" name="incluir_no_leidas" data-testid="checkbox-incluir-no-leidas">
-                Incluir notificaciones no leídas
-              </label>
-            </div>
-            <div>
-              <button type="submit" class="btn btn-primary" style="width:100%;height:38px;" data-testid="btn-depurar-notificaciones">
-                <i data-lucide="trash-2"></i> Depurar notificaciones
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
               </button>
             </div>
           </form>
+
+          <form method="get" action="{% url 'reporte_aprendices_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="graduation-cap"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Aprendices</div>
+                <div class="report-row-sub">Desempeño, fichas y calificaciones de desarrolladores.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_empresas_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="building-2"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Empresas</div>
+                <div class="report-row-sub">Directorio de empresas, NIT, proyectos y reputación.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_auditoria_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="shield-check"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Auditoría</div>
+                <div class="report-row-sub">Historial trazable de acciones y eventos del sistema.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="text" name="tabla" class="form-input" placeholder="Tabla / módulo (ej. usuarios)" title="Tabla o módulo" aria-label="Tabla o módulo" autocomplete="off">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_mensual_pdf' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="file-text"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Mensual Ejecutivo</div>
+                <div class="report-row-sub">Resumen mensual de usuarios, proyectos y contrataciones.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="month" name="mes" value="{% now 'Y-m' %}" placeholder="AAAA-MM" class="form-input" title="Mes del reporte" aria-label="Mes del reporte">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i data-lucide="file-down"></i> Descargar PDF
+              </button>
+            </div>
+          </form>
+
+          <div class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="printer"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Vista de Impresión</div>
+                <div class="report-row-sub">Vista optimizada para imprimir o guardar como PDF.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <span class="report-row-note">Consolidado HTML imprimible</span>
+            </div>
+            <div class="report-row-actions">
+              <a href="{% url 'reporte_vista_impresion' %}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <i data-lucide="external-link"></i> Abrir
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1764,196 +2228,20 @@
 </div>
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
-<script src="{% static 'administrador/script/administrador.js' %}"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v8"></script>
-<script>
-  (function () {
-    const CATEGORY_API = {
-      crear: "{% url 'api_categoria_crear' %}",
-      actualizar: "{% url 'api_categoria_actualizar' 0 %}",
-      toggle: "{% url 'api_categoria_toggle' 0 %}"
-    };
-    const apiUrl = (tpl, id) => tpl.replace('/0/', '/' + id + '/');
-    const csrf = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const reload = () => { window.location.href = '?section=categoriesSection'; };
-
-    async function sendCategory(url, method, payload) {
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
-          body: JSON.stringify(payload || {})
-        });
-        const result = await response.json().catch(() => ({}));
-        if (response.ok) { reload(); }
-        else { (window.adminNotify || console.error)(result.error || 'No se pudo completar la operación.'); }
-      } catch (err) { (window.adminNotify || console.error)('Error de red.'); }
-    }
-
-    window.openCategoryModal = function (id) {
-      const form = document.getElementById('categoryForm');
-      form.reset();
-      document.getElementById('category-id').value = id || '';
-      const slugGroup = document.getElementById('category-slug-group');
-      if (id) {
-        const row = document.querySelector('#categoriesTable tr[data-id="' + id + '"]');
-        document.getElementById('categoryModalTitle').textContent = 'Editar Categoría';
-        document.getElementById('category-nombre').value = row.dataset.nombre;
-        document.getElementById('category-slug').value = row.dataset.slug;
-        document.getElementById('category-slug').disabled = true;
-        document.getElementById('category-descripcion').value = row.dataset.descripcion;
-        document.getElementById('category-activo').checked = row.dataset.activo === 'true';
-      } else {
-        document.getElementById('categoryModalTitle').textContent = 'Nueva Categoría';
-        document.getElementById('category-slug').disabled = false;
-        document.getElementById('category-activo').checked = true;
-      }
-      document.getElementById('categoryModal').classList.add('open');
-    };
-
-    window.toggleCategory = function (id) {
-      sendCategory(apiUrl(CATEGORY_API.toggle, id), 'POST');
-    };
-
-    document.getElementById('categoryForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const id = document.getElementById('category-id').value;
-      const payload = {
-        nombre: document.getElementById('category-nombre').value,
-        descripcion: document.getElementById('category-descripcion').value,
-        activo: document.getElementById('category-activo').checked
-      };
-      if (id) {
-        sendCategory(apiUrl(CATEGORY_API.actualizar, id), 'PUT', payload);
-      } else {
-        const slug = document.getElementById('category-slug').value.trim();
-        if (slug) payload.slug = slug;
-        sendCategory(CATEGORY_API.crear, 'POST', payload);
-      }
-    });
-  })();
-</script>
-
-<script>
-  (function () {
-    const AUDIT_URL = "{% url 'admin_auditar_mensajes' %}";
-    const form = document.getElementById('auditChatsForm');
-    const body = document.getElementById('auditChatsBody');
-    const pager = document.getElementById('auditChatsPager');
-    let mensajes = [];
-
-    function cell(text) {
-      const td = document.createElement('td');
-      td.textContent = text;
-      return td;
-    }
-
-    function render(data) {
-      mensajes = data.mensajes;
-      body.innerHTML = '';
-      if (!mensajes.length) {
-        const tr = document.createElement('tr');
-        const td = cell('No se encontraron mensajes.');
-        td.colSpan = 6; td.style.textAlign = 'center';
-        tr.appendChild(td); body.appendChild(tr);
-      }
-      mensajes.forEach(function (m, i) {
-        const tr = document.createElement('tr');
-        tr.appendChild(cell(new Date(m.fecha_envio).toLocaleString('es-CO')));
-        tr.appendChild(cell(m.remitente_nombre + ' (@' + m.remitente_username + ')'));
-        tr.appendChild(cell(m.es_grupal ? 'Grupal de Proyecto'
-          : 'Privado: ' + m.receptor_nombre + ' (@' + m.receptor_username + ')'));
-        tr.appendChild(cell(m.proyecto_titulo || '—'));
-        tr.appendChild(cell(m.contenido.length > 80 ? m.contenido.slice(0, 80) + '…' : m.contenido));
-        const td = document.createElement('td');
-        td.style.textAlign = 'center';
-        const btn = document.createElement('button');
-        btn.type = 'button'; btn.className = 'btn btn-secondary';
-        btn.innerHTML = '<i data-lucide="eye"></i>';
-        btn.title = 'Ver mensaje completo';
-        btn.addEventListener('click', function () { openAuditChatModal(i); });
-        td.appendChild(btn); tr.appendChild(td);
-        body.appendChild(tr);
-      });
-      pager.innerHTML = '';
-      if (data.total_paginas > 1) {
-        const prev = document.createElement('button');
-        prev.type = 'button'; prev.className = 'btn btn-secondary'; prev.textContent = 'Anterior';
-        prev.disabled = data.pagina <= 1;
-        prev.addEventListener('click', function () { search(data.pagina - 1); });
-        const next = document.createElement('button');
-        next.type = 'button'; next.className = 'btn btn-secondary'; next.textContent = 'Siguiente';
-        next.disabled = data.pagina >= data.total_paginas;
-        next.addEventListener('click', function () { search(data.pagina + 1); });
-        const label = document.createElement('span');
-        label.textContent = 'Página ' + data.pagina + ' de ' + data.total_paginas + ' (' + data.total + ' mensajes)';
-        pager.append(prev, label, next);
-      }
-    }
-
-    async function search(page) {
-      const params = new URLSearchParams(new FormData(form));
-      params.set('format', 'json');
-      if (page) params.set('page', page);
-      try {
-        const response = await fetch(AUDIT_URL + '?' + params.toString(), {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!response.ok) { (window.adminNotify || console.error)('No se pudo completar la auditoría.'); return; }
-        render(await response.json());
-      } catch (err) { (window.adminNotify || console.error)('Error de red.'); }
-    }
-
-    window.openAuditChatModal = function (i) {
-      const m = mensajes[i];
-      document.getElementById('auditChatModalTitle').textContent = m.titulo || 'Mensaje #' + m.id;
-      document.getElementById('auditChatModalMeta').textContent =
-        new Date(m.fecha_envio).toLocaleString('es-CO') + ' · De @' + m.remitente_username +
-        ' → ' + (m.es_grupal ? 'Chat grupal' : '@' + m.receptor_username) +
-        (m.proyecto_titulo ? ' · Proyecto: ' + m.proyecto_titulo : '');
-      document.getElementById('auditChatModalBody').textContent = m.contenido;
-      document.getElementById('auditChatModal').classList.add('open');
-    };
-
-    form.addEventListener('submit', function (e) { e.preventDefault(); search(1); });
-  })();
-</script>
-<script>
-  (function () {
-    const LOGS_URL = "{% url 'visor_logs_tecnicos' %}";
-
-    window.cargarLogsTecnicos = async function () {
-      const salida = document.getElementById('visor-logs-output');
-      const selector = document.getElementById('visor-logs-lineas');
-      if (!salida) return;
-      const lineas = selector ? selector.value : 100;
-      try {
-        const response = await fetch(LOGS_URL + '?format=json&lineas=' + encodeURIComponent(lineas), {
-          headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-        });
-        if (!response.ok) {
-          salida.textContent = 'No se pudieron cargar los logs técnicos (HTTP ' + response.status + ').';
-          return;
-        }
-        const data = await response.json();
-        salida.textContent = (data.lineas || []).join('\n');
-        salida.scrollTop = salida.scrollHeight;
-      } catch (err) {
-        salida.textContent = 'Error de red al consultar los logs técnicos.';
-      }
-    };
-
-    const selector = document.getElementById('visor-logs-lineas');
-    if (selector) selector.addEventListener('change', window.cargarLogsTecnicos);
-  })();
-</script>
+<script type="module" src="{% static 'administrador/script/administrador.js' %}?v=20261126_mod1"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v23"></script>
-<script>
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-</script>
+<script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
+<!-- Overlay de Spinner al Cerrar Sesión (Idéntico a Dev/Empresa) -->
+<div id="logoutSpinnerOverlay" class="logout-spinner-overlay" aria-hidden="true" style="display:none;">
+  <div class="logout-spinner-box">
+    <div class="spinner" aria-hidden="true">
+      <div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <span class="logout-spinner-label">Cerrando sesión...</span>
+  </div>
+</div>
 </body>
 </html>
