@@ -1,0 +1,141 @@
+{% load i18n %}
+
+      <!-- Ofertas -->
+      <section id="ofertas" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</h1>
+          </div>
+          <button class="btn-corp-primary" onclick="abrirModal()">
+            <i data-lucide="plus"></i>
+            <span>{% trans "Nueva Convocatoria" %}</span>
+          </button>
+        </div>
+
+        <!-- Barra de búsqueda, filtros y resumen -->
+        <div class="offers-toolbar-corp">
+          <div class="offers-toolbar-controls">
+            <div class="offers-search-wrap">
+              <i data-lucide="search"></i>
+              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)">
+            </div>
+            <div class="offers-filter-bar" role="group" aria-label="{% trans "Filtrar por modalidad" %}">
+              <button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">{% trans "Todas" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">{% trans "Remoto" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">{% trans "Presencial" %}</button>
+              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">{% trans "Híbrido" %}</button>
+            </div>
+          </div>
+          <div class="offers-stats-wrap">
+            <span class="offers-stat-item">
+              {% blocktrans with total=mis_ofertas|length count counter=mis_ofertas|length %}<strong>{{ total }}</strong> activa{% plural %}<strong>{{ total }}</strong> activas{% endblocktrans %}
+            </span>
+            <span class="offers-stat-dot" aria-hidden="true">·</span>
+            <span class="offers-stat-item">
+              {% blocktrans with total=total_vacantes_ofertas|default:0 count counter=total_vacantes_ofertas|default:0 %}<strong>{{ total }}</strong> vacante{% plural %}<strong>{{ total }}</strong> vacantes{% endblocktrans %}
+            </span>
+            <span class="offers-stat-dot" aria-hidden="true">·</span>
+            <span class="offers-stat-item">
+              {% blocktrans with total=total_postulaciones count counter=total_postulaciones %}<strong>{{ total }}</strong> postulante{% plural %}<strong>{{ total }}</strong> postulantes{% endblocktrans %}
+            </span>
+          </div>
+        </div>
+
+        <div class="offers-grid-corp">
+          {% for proyecto in mis_ofertas %}
+            <div class="offer-card-corp" data-modalidad="{{ proyecto.modalidad|default:'remoto' }}">
+              <div class="offer-top">
+                <div class="offer-badges-row">
+                  <span class="offer-badge-category">
+                    <i data-lucide="layers"></i>
+                    {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% elif proyecto.get_tipo_solucion_display %}{{ proyecto.get_tipo_solucion_display }}{% else %}{% trans "Tecnología" %}{% endif %}
+                  </span>
+                  {% if proyecto.cierra_pronto %}
+                    <span class="offer-badge-deadline" data-testid="badge-cierra-pronto"><i data-lucide="alert-circle"></i> {% trans "Cierra pronto" %}</span>
+                  {% endif %}
+                </div>
+
+                <div class="offer-title">{{ proyecto.titulo }}</div>
+
+                <div class="offer-meta">
+                  {% if proyecto.modalidad %}
+                    <span><i data-lucide="map-pin"></i> {{ proyecto.get_modalidad_display|default:proyecto.modalidad|title }}</span>
+                    <span>·</span>
+                  {% endif %}
+                  <span><i data-lucide="calendar"></i> {% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Reciente" %}{% endif %}</span>
+                  {% if proyecto.fecha_limite %}
+                    <span>·</span>
+                    <span><i data-lucide="clock"></i> {% trans "Cierra:" %} {{ proyecto.fecha_limite|date:"d M, Y" }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Mini Embudo de la Convocatoria -->
+              <div class="offer-mini-funnel-corp">
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num" style="{% if proyecto.num_pendientes > 0 %}color:var(--corp-warning);{% endif %}">{{ proyecto.num_pendientes|default:0 }}</div>
+                  <div class="offer-funnel-label">{% trans "Por Evaluar" %}</div>
+                </div>
+                <div class="offer-funnel-sep"></div>
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num" style="{% if proyecto.num_negociaciones > 0 %}color:var(--corp-info);{% endif %}">{{ proyecto.num_negociaciones|default:0 }}</div>
+                  <div class="offer-funnel-label">{% trans "Negociando" %}</div>
+                </div>
+                <div class="offer-funnel-sep"></div>
+                <div class="offer-funnel-stat">
+                  <div class="offer-funnel-num">{{ proyecto.vacantes|default:1 }}</div>
+                  <div class="offer-funnel-label">{% trans "Vacantes" %}</div>
+                </div>
+              </div>
+
+              <div class="offer-footer-corp">
+                <div class="offer-actions">
+                  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+                     class="btn-corp-action primary"
+                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     title="{% trans "Revisar candidatos de esta convocatoria en el embudo" %}">
+                    <i data-lucide="users"></i>
+                    <span>{% trans "Ver Candidatos" %} {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
+                  </a>
+                  {% if not proyecto.num_contratos_activos %}
+                  <a href="{% url 'editar_proyecto' proyecto.id %}"
+                     class="btn-corp-action secondary"
+                     {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
+                     onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                     {% endif %}
+                     title="{% if proyecto.num_contratos or proyecto.num_negociaciones %}{% trans 'Editar título y prioridad' %}{% else %}{% trans 'Editar especificaciones de la oferta sin salir del panel' %}{% endif %}">
+                    <i data-lucide="square-pen"></i>
+                    <span>{% trans "Editar" %}</span>
+                  </a>
+                  {% endif %}
+                  {% if not proyecto.num_contratos %}
+                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}" aria-label="{% trans "Retirar publicación" %}">
+                      <i data-lucide="ban"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              {% if proyecto.puede_reabrir %}
+              <form method="post" action="{% url 'reabrir_postulaciones' proyecto.id %}" class="offer-reopen-strip" aria-label="{% trans 'Ampliar cierre de postulaciones' %}">
+                {% csrf_token %}
+                <label for="reabrir-{{ proyecto.id }}" class="offer-reopen-label">{% trans "Nuevo cierre:" %}</label>
+                <input id="reabrir-{{ proyecto.id }}" name="fecha_limite" type="date" min="{{ fecha_minima_reapertura }}" required class="offer-reopen-input" aria-label="{% trans 'Nueva fecha de cierre de postulaciones' %}">
+                <button type="submit" class="btn-corp-action secondary">{% trans "Reabrir" %}</button>
+              </form>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border);">
+              <i data-lucide="megaphone"></i>
+              <p>{% trans "No tienes ofertas publicadas actualmente." %}</p>
+              <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:14px;">
+                <i data-lucide="plus"></i> {% trans "Publicar primera convocatoria" %}
+              </button>
+            </div>
+          {% endfor %}
+          <div id="ofertasSinResultados" class="activity-empty" style="display:none; grid-column:1/-1;"><i data-lucide="search-x"></i><p>{% trans "No se encontraron convocatorias para los filtros seleccionados." %}</p></div>
+        </div>
+      </section>

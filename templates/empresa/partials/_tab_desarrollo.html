@@ -1,0 +1,216 @@
+{% load i18n %}
+
+      <!-- EN Desarrollo -->
+      <section id="desarrollo" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">{% trans "Proyectos en Marcha" %}</h1>
+          </div>
+        </div>
+        <div class="dev-list-corp">
+          {% for proyecto in en_desarrollo_v %}
+            <div class="dev-card-corp">
+              <div class="dev-card-header">
+                <div>
+                  <div class="dev-card-title">{{ proyecto.titulo }}</div>
+                  <div class="dev-card-team">
+                    <span class="dev-chip-team">
+                      <i data-lucide="users"></i>
+                      <strong>{% trans "Equipo:" %}</strong> {% if proyecto.desarrolladores %}{{ proyecto.desarrolladores }}{% else %}{% trans "Asignando..." %}{% endif %}
+                    </span>
+                    {% if proyecto.vacantes_disponibles > 0 %}
+                      <span class="dev-chip-vacancies">
+                        <i data-lucide="user-plus"></i>
+                        {% blocktrans with vac=proyecto.vacantes_disponibles count counter=proyecto.vacantes_disponibles %}{{ vac }} vacante disponible{% plural %}{{ vac }} vacantes disponibles{% endblocktrans %}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="dev-badge-deadline">
+                  <i data-lucide="calendar-check-2"></i>
+                  <span>{% if proyecto.fecha_fin %}{% trans "Cumplimiento:" %} {{ proyecto.fecha_fin|date:"d M, Y" }}{% else %}{% trans "Sin fecha de cumplimiento" %}{% endif %}{% if proyecto.cumplimiento_vencido %} — {% trans "Cumplimiento vencido" %}{% endif %}</span>
+                </div>
+              </div>
+
+              <!-- Barra de progreso hitos -->
+              {% if proyecto.hitos_totales > 0 %}
+                <div class="milestone-progress-box">
+                  <div class="milestone-progress-header">
+                    <span><i data-lucide="flag" style="margin-right:6px; color:var(--corp-brand);"></i>{% trans "Progreso de Hitos y Entregables" %}</span>
+                    <span>{% blocktrans with done=proyecto.hitos_completados total=proyecto.hitos_totales %}<strong>{{ done }}</strong> de {{ total }} completados{% endblocktrans %} ({% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%)</span>
+                  </div>
+                  <div class="milestone-track">
+                    <div class="milestone-fill" style="width:{% widthratio proyecto.hitos_completados proyecto.hitos_totales 100 %}%;"></div>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if proyecto.avance_pendiente %}
+              <!-- ALERTA DE ENTREGA PENDIENTE DE REVISIÓN -->
+              <div class="deliverable-alert-corp" data-testid="alerta-avance-pendiente-empresa">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                      <i data-lucide="package-check" style="color:var(--corp-warning); width:18px; height:18px;"></i>
+                      <span>{% blocktrans with dev=proyecto.avance_pendiente.desarrollador_nombre hito=proyecto.avance_pendiente.entregable_titulo %}<strong>{{ dev }}</strong> subió la entrega del «{{ hito }}»{% endblocktrans %}</span>
+                    </div>
+                    <p style="font-size:13px; color:var(--corp-slate-700); margin:6px 0 0 0; line-height:1.4;">
+                      {{ proyecto.avance_pendiente.descripcion }}
+                    </p>
+                    {% if proyecto.avance_pendiente.archivo_adjunto or proyecto.avance_pendiente.archivo_url %}
+                      <div style="display:flex; gap:10px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                        {% if proyecto.avance_pendiente.archivo_adjunto %}
+                          <a href="{{ proyecto.avance_pendiente.archivo_adjunto }}" target="_blank" download class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 8px;">
+                            <i data-lucide="download"></i>
+                            <span>{% trans "Descargar Archivo Adjunto" %}</span>
+                          </a>
+                        {% endif %}
+                        {% if proyecto.avance_pendiente.archivo_url %}
+                          <a href="{{ proyecto.avance_pendiente.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 8px;">
+                            <i data-lucide="external-link"></i>
+                            <span>{% trans "Ver Enlace Externo" %}</span>
+                          </a>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <button type="button" class="btn-corp-action primary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})" style="flex-shrink:0;">
+                    <i data-lucide="clipboard-check"></i>
+                    <span>{% trans "Revisar y Calificar" %}</span>
+                  </button>
+                </div>
+
+                <!-- Formulario in-situ desplegable para aprobar o rechazar -->
+                <div id="form-revision-{{ proyecto.avance_pendiente.id }}" class="deliverable-review-form" style="display:none;">
+                  <form method="post" action="{% url 'revisar_avance' proyecto.avance_pendiente.id %}" onsubmit="return validarRechazoAvance(this, event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#desarrollo">
+                    <div style="font-size:12px; font-weight:700; color:var(--corp-slate-800); margin-bottom:6px; text-transform:uppercase;">
+                      {% trans "Dictamen de la Empresa" %}
+                    </div>
+                    <textarea name="comentario" class="form-input-corp" rows="2" aria-label="{% trans "Comentario o feedback para el desarrollador" %}" placeholder="{% trans "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..." %}" style="font-size:12.5px; margin-bottom:10px;"></textarea>
+                    <div style="display:flex; justify-content:flex-end; gap:8px;">
+                      <button type="button" class="btn-corp-action secondary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})">
+                        {% trans "Cancelar" %}
+                      </button>
+                      <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm">
+                        <i data-lucide="x"></i>
+                        <span>{% trans "Solicitar Ajustes" %}</span>
+                      </button>
+                      <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm">
+                        <i data-lucide="check"></i>
+                        <span>{% trans "Aprobar y Liberar Hito" %}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if proyecto.lista_hitos %}
+              <!-- MINI-ROADMAP DE HITOS -->
+              <div class="roadmap-box-corp">
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-500); display:flex; justify-content:space-between; align-items:center;">
+                  <span><i data-lucide="map" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i>{% trans "Roadmap de Hitos del Proyecto" %}</span>
+                  <span>{% blocktrans with total=proyecto.hitos_totales count counter=proyecto.hitos_totales %}{{ total }} hito{% plural %}{{ total }} hitos{% endblocktrans %}</span>
+                </div>
+                <div class="roadmap-steps-grid">
+                  {% for hito in proyecto.lista_hitos %}
+                    <div class="roadmap-step-card {% if hito.estado == 'completado' %}is-done{% elif hito.estado == 'en_revision' %}is-review{% else %}is-pending{% endif %}">
+                      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                        {% if hito.estado == 'completado' %}
+                          <span style="color:var(--corp-brand); font-weight:700;">{% trans "Completado" %}</span>
+                          <i data-lucide="check-circle-2" style="width:12px; height:12px; color:var(--corp-brand);"></i>
+                        {% elif hito.estado == 'en_revision' %}
+                          <span style="color:var(--corp-warning); font-weight:700;">{% trans "En Revisión" %}</span>
+                          <i data-lucide="clock" style="width:12px; height:12px; color:var(--corp-warning);"></i>
+                        {% else %}
+                          <span style="color:var(--corp-slate-500);">{% trans "Pendiente" %}</span>
+                          <i data-lucide="circle" style="width:12px; height:12px; color:var(--corp-slate-400);"></i>
+                        {% endif %}
+                      </div>
+                      <div style="font-size:13px; font-weight:600; color:var(--corp-slate-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ hito.titulo }}">
+                        {{ hito.titulo }}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="dev-card-actions">
+                {% if proyecto.vacantes_disponibles > 0 %}
+                  <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}"
+                     class="btn-corp-action primary"
+                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     title="{% blocktrans with vac=proyecto.vacantes_disponibles count counter=proyecto.vacantes_disponibles %}{{ vac }} vacante disponible{% plural %}{{ vac }} vacantes disponibles{% endblocktrans %}">
+                    <i data-lucide="user-plus"></i>
+                    <span>{% trans "Ver Candidatos" %} ({{ proyecto.vacantes_disponibles }})</span>
+                  </a>
+                  <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                    <i data-lucide="list-checks"></i>
+                    <span>{% trans "Gestionar Hitos" %}</span>
+                  </a>
+                {% else %}
+                  <a href="{% url 'gestionar_hitos' proyecto.proyecto_id %}" class="btn-corp-action primary">
+                    <i data-lucide="list-checks"></i>
+                    <span>{% trans "Gestionar Hitos" %}</span>
+                  </a>
+                {% endif %}
+
+                {% if proyecto.hitos_completados == proyecto.hitos_totales and proyecto.hitos_totales > 0 %}
+                  <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}"
+                     class="btn-corp-action success"
+                     onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
+                    <i data-lucide="check-check"></i>
+                    <span>{% trans "Finalizar Proyecto" %}</span>
+                  </a>
+                {% endif %}
+
+                {% if proyecto.num_desarrolladores >= 2 %}
+                  <a href="{% url 'sala_chat_grupal' proyecto.proyecto_id %}" class="btn-corp-action secondary">
+                    <i data-lucide="messages-square"></i>
+                    <span>{% trans "Chat Grupal" %}</span>
+                  </a>
+                {% endif %}
+
+                <details class="dev-more-actions">
+                  <summary class="btn-corp-action secondary">
+                    <i data-lucide="more-horizontal"></i>
+                    <span>{% trans "Más acciones" %}</span>
+                  </summary>
+                  <div class="dev-more-menu" role="menu">
+                    {% if proyecto.permite_edicion_basica %}
+                      <a href="{% url 'editar_proyecto' proyecto.proyecto_id %}" class="dev-more-item" role="menuitem" title="{% trans 'Editar título y prioridad' %}">
+                        <i data-lucide="square-pen"></i><span>{% trans "Editar datos básicos" %}</span>
+                      </a>
+                    {% endif %}
+                    {% if proyecto.num_desarrolladores >= 2 %}
+                      <a href="{% url 'gestionar_equipos' proyecto.proyecto_id %}" class="dev-more-item" role="menuitem">
+                        <i data-lucide="users"></i><span>{% trans "Grupos" %}</span>
+                      </a>
+                    {% endif %}
+                    {% if proyecto.hitos_completados != proyecto.hitos_totales or proyecto.hitos_totales == 0 %}
+                      <span class="dev-more-item is-disabled" aria-disabled="true" title="{% trans 'Requiere completar todos los hitos' %}">
+                        <i data-lucide="check-check"></i><span>{% trans "Finalizar" %}</span>
+                      </span>
+                    {% endif %}
+                    <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}"
+                       class="dev-more-item is-danger"
+                       role="menuitem"
+                       onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                       title="{% trans 'Iniciar mediación por conflicto formal' %}">
+                      <i data-lucide="gavel"></i><span>{% trans "Reportar Disputa" %}</span>
+                    </a>
+                  </div>
+                </details>
+              </div>
+            </div>
+          {% empty %}
+            <div class="activity-empty" style="background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg);">
+              <i data-lucide="folder-kanban"></i>
+              <p>{% trans "No hay proyectos en desarrollo actualmente." %}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </section>

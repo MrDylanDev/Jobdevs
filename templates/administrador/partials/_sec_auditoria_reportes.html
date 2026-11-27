@@ -1,0 +1,263 @@
+{% load static %}
+      <!-- Auditoría -->
+      <section id="auditSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Registro de Auditoría</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('auditSection')">
+            <i data-lucide="shield-check"></i> Registro de Auditoría
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('auditChatsSection')">
+            <i data-lucide="shield-alert"></i> Auditoría de Chats
+          </button>
+        </div>
+
+        <form id="auditLogsForm" data-api-url="{% url 'api_auditoria' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Usuario</label><input type="text" name="usuario" class="form-input" placeholder="username o Sistema" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Tabla afectada</label>
+              <input type="text" name="tabla" class="form-input" list="auditTablasList" placeholder="Ej. usuarios" autocomplete="off">
+              <datalist id="auditTablasList"></datalist>
+            </div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Acción / Detalle</label><input type="text" name="q" class="form-input" placeholder="Buscar texto..." autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Desde</label><input type="date" name="fecha_desde" class="form-input"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Hasta</label><input type="date" name="fecha_hasta" class="form-input"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color, rgba(255,255,255,0.08));">
+            <button type="button" id="auditResetBtn" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Limpiar</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Filtrar</button>
+          </div>
+        </form>
+
+        <div class="users-table-shell">
+          <div class="users-table-scroll">
+          <table class="data-table users-pro-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Acción Realizada</th>
+                <th>Tabla</th>
+                <th style="text-align:center;">Registro</th>
+                <th style="text-align:center;">Fecha y Hora</th>
+                <th style="text-align:center;">Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogsBody">
+              {% for log in logs_auditoria %}
+                <tr>
+                  <td style="color:var(--text-muted);font-size:12px;">#{{ log.0 }}</td>
+                  <td><strong>{{ log.1|default:"Sistema" }}</strong></td>
+                  <td>{{ log.2 }}</td>
+                  <td>{{ log.3|default:"—" }}</td>
+                  <td style="text-align:center;color:var(--text-muted);">—</td>
+                  <td style="text-align:center;color:var(--text-secondary);">{{ log.4|date:"d/m/Y H:i:s" }}</td>
+                  <td style="text-align:center;color:var(--text-muted);">—</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" style="text-align:center;color:var(--text-muted);">No hay registros de auditoría.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        </div>
+        <div id="auditLogsPager" style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;"></div>
+      </section>
+
+      <!-- Auditoría de Chats -->
+      <section id="auditChatsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Auditoría de Chats</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('auditSection')">
+            <i data-lucide="shield-check"></i> Registro de Auditoría
+          </button>
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('auditChatsSection')">
+            <i data-lucide="shield-alert"></i> Auditoría de Chats
+          </button>
+        </div>
+        <form id="auditChatsForm" data-api-url="{% url 'admin_auditar_mensajes' %}" class="card" style="margin-bottom:16px;padding:18px 20px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;">
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Remitente</label><input type="text" name="remitente" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Receptor</label><input type="text" name="receptor" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Proyecto (título o ID)</label><input type="text" name="proyecto" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Texto</label><input type="text" name="q" class="form-input" autocomplete="off"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Desde</label><input type="date" name="fecha_desde" class="form-input"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Hasta</label><input type="date" name="fecha_hasta" class="form-input"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color, rgba(255,255,255,0.08));">
+            <button type="reset" class="btn btn-secondary"><i data-lucide="rotate-ccw"></i> Limpiar</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="search"></i> Buscar / Auditar</button>
+          </div>
+        </form>
+        <div class="table-wrapper">
+          <table class="data-table" id="auditChatsTable">
+            <thead>
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Remitente</th>
+                <th>Destinatario</th>
+                <th>Proyecto</th>
+                <th>Extracto del Mensaje</th>
+                <th style="text-align:center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="auditChatsBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Use el formulario para iniciar una auditoría.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="auditChatsPager" style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;"></div>
+      </section>
+
+      <!-- Reportes -->
+      <section id="reportsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Generación de Reportes Oficiales</div>
+          </div>
+        </div>
+        <div class="reports-list-shell">
+          <form method="get" action="{% url 'reporte_proyectos_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="file-spreadsheet"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Proyectos</div>
+                <div class="report-row-sub">Necesidades tecnológicas, vacantes y estados actuales.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <select name="estado" class="form-input" title="Estado del proyecto" aria-label="Estado del proyecto">
+                <option value="">Todos los estados</option>
+                <option value="publicado">Publicado</option>
+                <option value="en_desarrollo">En desarrollo</option>
+                <option value="finalizado">Finalizado</option>
+              </select>
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_aprendices_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="graduation-cap"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Aprendices</div>
+                <div class="report-row-sub">Desempeño, fichas y calificaciones de desarrolladores.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_empresas_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="building-2"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Empresas</div>
+                <div class="report-row-sub">Directorio de empresas, NIT, proyectos y reputación.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_auditoria_csv' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="shield-check"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Auditoría</div>
+                <div class="report-row-sub">Historial trazable de acciones y eventos del sistema.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="text" name="tabla" class="form-input" placeholder="Tabla / módulo (ej. usuarios)" title="Tabla o módulo" aria-label="Tabla o módulo" autocomplete="off">
+              <input type="date" name="fecha_desde" class="form-input" title="Fecha desde" aria-label="Fecha desde">
+              <input type="date" name="fecha_hasta" class="form-input" title="Fecha hasta" aria-label="Fecha hasta">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" name="formato" value="csv" class="btn btn-primary btn-sm">
+                <i data-lucide="file-spreadsheet"></i> Excel
+              </button>
+              <button type="submit" name="formato" value="pdf" class="btn btn-secondary btn-sm">
+                <i data-lucide="file-down"></i> PDF
+              </button>
+            </div>
+          </form>
+
+          <form method="get" action="{% url 'reporte_mensual_pdf' %}" class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="file-text"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Mensual Ejecutivo</div>
+                <div class="report-row-sub">Resumen mensual de usuarios, proyectos y contrataciones.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <input type="month" name="mes" value="{% now 'Y-m' %}" placeholder="AAAA-MM" class="form-input" title="Mes del reporte" aria-label="Mes del reporte">
+            </div>
+            <div class="report-row-actions">
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i data-lucide="file-down"></i> Descargar PDF
+              </button>
+            </div>
+          </form>
+
+          <div class="report-row">
+            <div class="report-row-info">
+              <span class="report-row-icon"><i data-lucide="printer"></i></span>
+              <div class="report-row-text">
+                <div class="report-row-title">Vista de Impresión</div>
+                <div class="report-row-sub">Vista optimizada para imprimir o guardar como PDF.</div>
+              </div>
+            </div>
+            <div class="report-row-filters">
+              <span class="report-row-note">Consolidado HTML imprimible</span>
+            </div>
+            <div class="report-row-actions">
+              <a href="{% url 'reporte_vista_impresion' %}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <i data-lucide="external-link"></i> Abrir
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>

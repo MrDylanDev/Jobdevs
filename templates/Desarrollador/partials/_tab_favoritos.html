@@ -1,0 +1,119 @@
+      <!-- Favoritos (Modernizado con estética Cyber Tech de Explorar) -->
+      <div id="favoritos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="heart" style="color:var(--danger, #ef4444); width:24px; height:24px; fill:var(--danger, #ef4444);"></i>
+              Mis Proyectos Favoritos
+            </div>
+            <div class="page-subtitle">Oportunidades guardadas para postularte antes de que se agoten las vacantes</div>
+          </div>
+        </div>
+
+        <div class="cards-grid" id="devFavoritosGrid">
+          {% for fav in favoritos %}
+            {% with p=fav.proyecto %}
+            <div class="project-card dev-explore-card" id="favCard_{{ p.id }}">
+              <div>
+                <div class="explore-card-top">
+                  <div class="explore-card-tags">
+                    <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
+                    {% if p.modalidad %}<span class="meta-dot">·</span><span class="tag-modalidad"><i data-lucide="{% if p.modalidad == 'remoto' %}wifi{% elif p.modalidad == 'hibrido' %}split{% else %}map-pin{% endif %}" style="width:12px; height:12px;"></i> {{ p.get_modalidad_display|default:p.modalidad }}{% if p.ciudad and p.modalidad != 'remoto' %} · {{ p.ciudad }}{% endif %}</span>{% endif %}
+                  </div>
+
+                  <!-- Botón Corazón para Desmarcar de Favoritos al Instante -->
+                  <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
+                    {% csrf_token %}
+                    <button type="submit"
+                            aria-label="Quitar de favoritos"
+                            title="Quitar de favoritos"
+                            class="fav-toggle-btn is-favorito">
+                      <i data-lucide="heart"></i>
+                    </button>
+                  </form>
+                </div>
+
+                <h3 class="dev-explore-title project-card-title">
+                  {{ p.titulo }}
+                </h3>
+
+                <div class="explore-meta-row">
+                  <span class="explore-meta-item prio-{% if p.prioridad == 'alta' %}alta{% elif p.prioridad == 'media' %}media{% else %}baja{% endif %}">Prioridad {{ p.get_prioridad_display|default:p.prioridad }}</span>
+                  <span class="meta-dot">·</span>
+                  <span class="explore-meta-item"><i data-lucide="door-open" style="width:12px; height:12px;"></i> {{ p.vacantes_disponibles }} libres</span>
+                  <span class="meta-dot">·</span>
+                  {% if p.fecha_limite %}
+                    <span class="explore-meta-item" title="Fecha límite de postulación"><i data-lucide="calendar" style="width:12px; height:12px;"></i> Cierra: {{ p.fecha_limite|date:'d/m/Y' }}</span>
+                  {% else %}
+                    <span class="explore-meta-item"><i data-lucide="calendar" style="width:12px; height:12px;"></i> Sin límite</span>
+                  {% endif %}
+                </div>
+
+                <p class="explore-card-desc project-desc">
+                  {{ p.descripcion|truncatewords:24 }}
+                </p>
+              </div>
+
+              <!-- Footer de la Card -->
+              <div class="explore-card-footer card-footer">
+                <div class="explore-empresa-info">
+                  <div class="explore-empresa-avatar user-avatar">
+                    {% if p.empresa.perfil_empresa.logo %}
+                      <img src="{{ p.empresa.perfil_empresa.logo.url }}" alt="">
+                    {% else %}
+                      {{ p.empresa.nombre|default:p.empresa.username|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
+                  <div style="min-width:0;">
+                    <div class="explore-empresa-name">
+                      {{ p.empresa.nombre|default:p.empresa.username }}
+                    </div>
+                    <div class="explore-empresa-sub">
+                      {% if p.empresa.perfil_empresa.es_verificada %}
+                        <span style="color:var(--accent); display:inline-flex; align-items:center; gap:3px;">
+                          <i data-lucide="check-circle" style="width:10px; height:10px;"></i> Verificada
+                        </span>
+                      {% else %}
+                        <span>Empresa</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="explore-actions">
+                  <button type="button" class="btn-cockpit"
+                          data-ver-proyecto
+                          data-url="{% url 'api_detalle_proyecto' p.id %}"
+                          title="Ver ficha completa del proyecto">
+                    <i data-lucide="eye"></i>
+                  </button>
+                  <button type="button" class="btn-cockpit primary"
+                          data-abrir-postulacion
+                          data-url="{% url 'postularse_a_proyecto' p.id %}"
+                          data-titulo="{{ p.titulo|escape }}"
+                          data-empresa="{{ p.empresa.nombre|default:p.empresa.username|escape }}"
+                          data-tipo="{{ p.get_tipo_solucion_display|default:p.tipo_solucion|escape }}"
+                          data-prioridad="{{ p.prioridad|upper|escape }}"
+                          data-vacantes="{{ p.vacantes_disponibles }}"
+                          data-cierre="{{ p.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                          data-descripcion="{{ p.descripcion|striptags|escape }}">
+                    <i data-lucide="send" style="width:12px; height:12px;"></i>
+                    <span>Postularme</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endwith %}
+          {% empty %}
+            <div class="cockpit-empty-state empty-state" style="grid-column:1 / -1; padding:48px 20px;">
+              <i data-lucide="heart" style="width:42px; height:42px; opacity:0.35; margin-bottom:14px; color:var(--text-muted);"></i>
+              <h3 style="font-size:16px; font-weight:700; margin:0 0 6px; color:var(--fg);">No tienes proyectos guardados</h3>
+              <p style="color:var(--text-muted); font-size:13px; max-width:380px; margin:0 0 18px; line-height:1.5;">Explora el catálogo de proyectos y haz clic en el corazón para guardar oportunidades y revisarlas más tarde.</p>
+              <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                <i data-lucide="compass"></i>
+                <span>Explorar Convocatorias</span>
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>

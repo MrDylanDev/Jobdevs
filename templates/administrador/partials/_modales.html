@@ -1,0 +1,192 @@
+{% load static %}
+      <!-- Modal Doble Confirmación Suspender/Reactivar Usuario (SCRUM-407) -->
+      <div id="toggleUserConfirmModal" class="modal-overlay" onclick="if(event.target===this)closeModal('toggleUserConfirmModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('toggleUserConfirmModal')">&times;</button>
+          <h3 id="toggleConfirmTitle" style="margin-bottom:10px; font-size:18px;">Confirmar acción</h3>
+          <p id="toggleConfirmMessage" style="font-size:13.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:14px;"></p>
+          <div style="background:var(--page-bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:13px;">
+            <div><strong>Usuario:</strong> <span id="toggleConfirmUserName"></span></div>
+            <div style="margin-top:4px;"><strong>Rol:</strong> <span id="toggleConfirmUserRole"></span></div>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('toggleUserConfirmModal')">Cancelar</button>
+            <button type="button" id="toggleConfirmSubmitBtn" class="btn btn-danger" onclick="confirmToggleUserAction()">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modales Crud Usuarios -->
+      <!-- Modal Editar Usuario -->
+      <div id="editUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('editUserModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('editUserModal')">&times;</button>
+          <h3 style="margin-bottom:16px; font-size:18px;">Editar Usuario</h3>
+          <form id="editUserForm">
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="edit-email" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="edit-nombre" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-identificacion">Identificación (CC / TI / NIT)</label>
+              <input type="text" id="edit-identificacion" class="form-input" placeholder="Ej: 1001234567 o 899.999.034-1" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rol</label>
+              <select id="edit-rol" class="form-input" required>
+                <option value="empresa">Empresa</option>
+                <option value="desarrollador">Desarrollador</option>
+                <option value="administrador">Administrador</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px;">
+              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('editUserModal')">Cancelar</button>
+              <button type="submit" class="btn btn-primary btn-full">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal Crear Usuario -->
+      <div id="createUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('createUserModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('createUserModal')">&times;</button>
+          <h3 style="margin-bottom:16px; font-size:18px;">Nuevo Usuario</h3>
+          <form id="createUserForm">
+            <div class="form-group">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" id="create-nombre" class="form-input" placeholder="Ej: Ana María Gómez" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input type="text" id="create-username" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="create-email" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group" id="create-tipo-doc-group">
+              <label class="form-label">Tipo de documento</label>
+              <select id="create-tipo-doc" class="form-input" onchange="syncCreateUserDocField()">
+                <option value="nit">NIT (Empresa)</option>
+                <option value="cedula">Cédula</option>
+              </select>
+            </div>
+            <div class="form-group" id="create-identificacion-group">
+              <label class="form-label" id="create-identificacion-label">NIT</label>
+              <input type="text" id="create-identificacion" class="form-input" placeholder="Ej: 899.999.034-1" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="create-password" class="form-input" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rol</label>
+              <select id="create-rol" class="form-input" required onchange="syncCreateUserDocField()">
+                <option value="empresa">Empresa</option>
+                <option value="desarrollador">Desarrollador</option>
+                <option value="administrador">Administrador</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px;">
+              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('createUserModal')">Cancelar</button>
+              <button type="submit" class="btn btn-primary btn-full">Crear</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal Crear/Editar Categoría -->
+      <div id="categoryModal" class="modal-overlay" onclick="if(event.target===this)closeModal('categoryModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('categoryModal')">&times;</button>
+          <h3 id="categoryModalTitle" style="margin-bottom:16px; font-size:18px;">Nueva Categoría</h3>
+          <form id="categoryForm"
+                data-url-crear="{% url 'api_categoria_crear' %}"
+                data-url-actualizar="{% url 'api_categoria_actualizar' 0 %}"
+                data-url-toggle="{% url 'api_categoria_toggle' 0 %}">
+            {% csrf_token %}
+            <input type="hidden" id="category-id">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="category-nombre" class="form-input" required maxlength="100" autocomplete="off">
+            </div>
+            <div class="form-group" id="category-slug-group">
+              <label class="form-label">Código / Slug <small style="color:var(--text-muted);">(opcional, se genera del nombre)</small></label>
+              <input type="text" id="category-slug" class="form-input" maxlength="50" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <textarea id="category-descripcion" class="form-input" style="min-height:80px;resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;">
+                <input type="checkbox" id="category-activo" checked> Categoría activa
+              </label>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px;">
+              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('categoryModal')">Cancelar</button>
+              <button type="submit" class="btn btn-primary btn-full">Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal Detalle Log de Auditoría -->
+      <div id="auditLogDetailModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditLogDetailModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditLogDetailModal')">&times;</button>
+          <h3 id="auditLogModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
+          <div id="auditLogModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
+          <div style="margin-bottom:12px;">
+            <strong style="font-size:12px;color:var(--text-secondary);">Acción</strong>
+            <div id="auditLogModalAction" style="white-space:pre-wrap;word-break:break-word;margin-top:4px;"></div>
+          </div>
+          <div class="audit-diff-grid">
+            <div>
+              <strong style="font-size:12px;color:var(--text-secondary);">Valor Anterior</strong>
+              <pre id="auditLogModalPrev" class="audit-diff-pre"></pre>
+            </div>
+            <div>
+              <strong style="font-size:12px;color:var(--text-secondary);">Valor Nuevo</strong>
+              <pre id="auditLogModalNext" class="audit-diff-pre"></pre>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditLogDetailModal')">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Aviso Privacidad Auditoría de Chats -->
+      <div id="auditChatsNoticeModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatsNoticeModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatsNoticeModal')">&times;</button>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--warning, #f59e0b);padding-right:32px;">
+            <i data-lucide="alert-triangle"></i>
+            <h3 style="margin:0;font-size:17px;color:var(--text-primary);">Aviso de Auditoría y Privacidad</h3>
+          </div>
+          <p style="margin:0 0 20px;line-height:1.5;color:var(--text-secondary);">
+            Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
+          </p>
+          <button type="button" class="btn btn-primary btn-full" onclick="closeModal('auditChatsNoticeModal')">Entendido</button>
+        </div>
+      </div>
+
+      <!-- Modal Mensaje Auditado -->
+      <div id="auditChatModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatModal')">
+        <div class="modal-box">
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatModal')">&times;</button>
+          <h3 id="auditChatModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
+          <div id="auditChatModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
+          <div id="auditChatModalBody" style="white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;"></div>
+          <div style="margin-top:20px;">
+            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditChatModal')">Cerrar</button>
+          </div>
+        </div>
+      </div>

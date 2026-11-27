@@ -1,0 +1,349 @@
+{% load i18n %}
+
+      <!-- Historial -->
+      <section id="historial" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">{% trans "Historial de Proyectos" %}</h1>
+          </div>
+        </div>
+
+        <!-- 3 Métricas de Balance Contable y Auditoría -->
+        <div class="ledger-metrics-grid">
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Capital Total Ejecutado" %}</span>
+              <span class="kpi-tag tag-brand">COP</span>
+            </div>
+            <div class="ledger-metric-val">${{ capital_ejecutado|floatformat:"0" }}</div>
+            <div class="ledger-metric-sub">{% trans "Fondos liberados contra hitos verificados" %}</div>
+          </div>
+
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Tasa de Cumplimiento" %}</span>
+              <span class="kpi-tag tag-brand">{{ tasa_cumplimiento_hitos }}%</span>
+            </div>
+            <div class="ledger-metric-val">{{ hitos_completados_total }} / {{ hitos_totales_total }}</div>
+            <div class="ledger-metric-sub">{% trans "Hitos aprobados estrictamente en cronograma" %}</div>
+          </div>
+
+          <div class="ledger-metric-card">
+            <div class="ledger-metric-head">
+              <span class="ledger-metric-label">{% trans "Talento Vinculado" %}</span>
+              <span class="kpi-tag tag-neutral">{% blocktrans count counter=total_devs_historicos %}{{ counter }} dev{% plural %}{{ counter }} devs{% endblocktrans %}</span>
+            </div>
+            <div class="ledger-metric-val">{{ tasa_recontratacion }}%</div>
+            <div class="ledger-metric-sub">{% trans "Índice de recontratación de talento SENA" %}</div>
+          </div>
+        </div>
+
+        <!-- Layout Analítico de 2 Columnas (Gráfica de Líneas 68% / Distribución y Puntualidad 32%) -->
+        <div class="ledger-analytics-split">
+          <!-- 1. Gráfica de Serie Temporal (Curva Dinámica Analítica) -->
+          <div class="ledger-chart-box mb-0-corp">
+            <div class="ledger-chart-header">
+              <div>
+                <div class="ledger-chart-title">
+                  <i data-lucide="trending-up" style="width:16px; height:16px; vertical-align:middle; color:var(--corp-brand); margin-right:6px;"></i>
+                  <span id="ledgerChartTitle">{% trans "Presupuesto Contratado (COP)" %}</span>
+                </div>
+                <div id="ledgerChartSub" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                  {% trans "Contratos digitales creados en los últimos 6 meses" %}
+                </div>
+              </div>
+              <div id="ledgerChartTotal" class="ledger-chart-total">
+                {% trans "Total:" %} ${{ capital_ejecutado|floatformat:"0" }} COP
+              </div>
+            </div>
+
+            <div class="ledger-chart-controls">
+              <div class="ledger-filter-pills" role="tablist" aria-label="{% trans 'Métricas del historial' %}">
+                <button type="button" class="ledger-filter-pill active" data-metric="contratado" onclick="seleccionarMetricaLedger('contratado', this)">
+                  {% trans "Presupuesto Contratado" %}
+                </button>
+                <button type="button" class="ledger-filter-pill" data-metric="liquidado" onclick="seleccionarMetricaLedger('liquidado', this)">
+                  {% trans "Hitos Aprobados (COP)" %}
+                </button>
+                <button type="button" class="ledger-filter-pill" data-metric="hitos_qty" onclick="seleccionarMetricaLedger('hitos_qty', this)">
+                  {% trans "Volumen de Hitos" %}
+                </button>
+              </div>
+              <div class="time-selector-corp" role="group" aria-label="{% trans 'Período temporal' %}">
+                <button type="button" class="time-tab-corp active" data-period="6m" onclick="seleccionarPeriodoLedger('6m', this)">
+                  {% trans "6 Meses" %}
+                </button>
+                <button type="button" class="time-tab-corp" data-period="12m" onclick="seleccionarPeriodoLedger('12m', this)">
+                  {% trans "12 Meses" %}
+                </button>
+              </div>
+            </div>
+
+            <div class="ledger-svg-wrap" style="position:relative;">
+              <!-- Tooltip Flotante Reactivo para la Curva de Líneas -->
+              <div id="ledgerLineTooltip" class="chart-floating-tooltip" style="display:none;">
+                <div class="tooltip-mes" style="font-size:12px; color:var(--corp-slate-400); text-transform:uppercase; font-weight:700;"></div>
+                <div class="tooltip-monto" style="font-size:15px; font-weight:800; color:#ffffff; font-family:'JetBrains Mono', monospace; margin:2px 0;"></div>
+                <div class="tooltip-sub" style="font-size:12px; color:var(--corp-brand-neon); font-weight:600;">{% trans "Presupuesto contratado" %}</div>
+              </div>
+
+              <svg id="ledgerChartSvg" viewBox="0 0 760 180" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;">
+                <defs>
+                  <linearGradient id="ledgerLineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="var(--corp-brand)" stop-opacity="0.22"></stop>
+                    <stop offset="100%" stop-color="var(--corp-brand)" stop-opacity="0.0"></stop>
+                  </linearGradient>
+                </defs>
+
+                <line x1="30" y1="20" x2="740" y2="20" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="65" x2="740" y2="65" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="110" x2="740" y2="110" stroke="var(--corp-border)" stroke-dasharray="3 3"></line>
+                <line x1="30" y1="150" x2="740" y2="150" stroke="var(--corp-border)"></line>
+
+                <path id="ledgerAreaPath" d="M 50,150 L 720,150 L 720,150 L 50,150 Z" fill="url(#ledgerLineGrad)"></path>
+                <path id="ledgerLinePath" d="M 50,150 L 720,150" fill="none" stroke="var(--corp-brand)" stroke-width="2.5" stroke-linecap="round"></path>
+
+                <g id="ledgerChartPoints"></g>
+                <g id="ledgerChartLabels"></g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Columna Lateral: Distribución Lineal + Puntualidad Sobria (Sin donas ni medidores redondos) -->
+          <div class="ledger-side-metrics">
+            <!-- 1. Distribución Lineal de Inversión (Estilo Barra Continua GitHub) -->
+            <div class="distribution-card-corp">
+              <div>
+                <div style="font-size:13.5px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                  <i data-lucide="layers" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                  {% trans "Inversión por Área" %}
+                </div>
+                <div style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                  {% trans "Distribución de capital ejecutado" %}
+                </div>
+              </div>
+
+              <!-- Barra horizontal segmentada interactiva con tooltip flotante al pasar el mouse -->
+              <div class="distribution-bar-track" aria-label="{% trans "Distribución de inversión por área" %}">
+                {% for item in breakdown_stack %}
+                  <div class="distribution-segment"
+                       style="width:{{ item.porcentaje }}%; background:{{ item.color }};"
+                       tabindex="0"
+                       role="progressbar"
+                       aria-valuenow="{{ item.porcentaje }}"
+                       aria-valuemin="0"
+                       aria-valuemax="100">
+                    <div class="segment-hover-card">
+                      <div class="hover-card-title">{{ item.label }}</div>
+                      <div class="hover-card-amount">${{ item.total|floatformat:"0" }} COP</div>
+                      <div class="hover-card-sub">{{ item.porcentaje }}% {% trans "del capital asignado" %}</div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Lista de filas limpias -->
+              <ul class="distribution-list-corp">
+                {% for item in breakdown_stack %}
+                  <li class="distribution-item-row">
+                    <span class="distribution-label-wrap">
+                      <span class="distribution-dot" style="background:{{ item.color }};"></span>
+                      <span>{{ item.label }}</span>
+                    </span>
+                    <span class="distribution-val-wrap">
+                      <strong style="color:var(--corp-slate-900);">${{ item.total|floatformat:"0" }}</strong>
+                      <span style="color:var(--corp-slate-500); font-size:12px;">({{ item.porcentaje }}%)</span>
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+
+              <!-- 2. Puntualidad en Cronogramas (integrado en la misma tarjeta) -->
+              <div style="border-top:1px solid var(--corp-border); padding-top:16px; margin-top:4px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <div style="font-size:13.5px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="calendar-check-2" style="width:15px; height:15px; color:var(--corp-brand);"></i>
+                    {% trans "Puntualidad en Entregas" %}
+                  </div>
+                  <div style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;">
+                    {% trans "Cumplimiento sobre plazos acordados" %}
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                    <span style="font-size:24px; font-weight:800; color:var(--corp-brand); font-variant-numeric:tabular-nums;">
+                      {{ tasa_cumplimiento_hitos }}%
+                    </span>
+                    <span class="text-corp-meta">
+                      {% blocktrans with done=hitos_completados_total total=hitos_totales_total %}{{ done }} de {{ total }} hitos a tiempo{% endblocktrans %}
+                    </span>
+                  </div>
+                  <!-- Barra de progreso lineal con tooltip flotante interactivo -->
+                  <div class="punctuality-bar-track" style="position:relative; height:8px; background:var(--corp-border); border-radius:999px; overflow:visible; cursor:pointer;" tabindex="0">
+                    <div style="height:100%; width:{{ tasa_cumplimiento_hitos }}%; background:var(--corp-brand); border-radius:999px;"></div>
+                    <div class="segment-hover-card" style="bottom:calc(100% + 10px);">
+                      <div class="hover-card-title">{% trans "Cumplimiento en Cronograma" %}</div>
+                      <div class="hover-card-amount">{{ tasa_cumplimiento_hitos }}% {% trans "a tiempo" %}</div>
+                      <div class="hover-card-sub">{% blocktrans with done=hitos_completados_total total=hitos_totales_total %}{{ done }} de {{ total }} hitos aprobados en plazo{% endblocktrans %}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de herramientas y listado unificados de Historial -->
+        {% with total_proyectos_historial=historial_por_estado.finalizado|add:historial_por_estado.rechazado|add:historial_por_estado.inactivo|add:historial_por_estado.en_disputa %}
+        <div class="history-unified-card">
+          <div class="history-toolbar-corp">
+          <h2 class="history-section-heading">{% trans "Proyectos Archivados" %}</h2>
+
+          <!-- SCRUM-228: filtros por estado del historial -->
+          <div class="segmented-filters-corp" aria-label="{% trans 'Filtros por estado del historial' %}">
+            <a href="?section=historial"
+               class="segmented-pill {% if not historial_estado_actual %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'todos', this); return false;">
+              <span>{% trans "Todos" %}</span>
+              <span class="pill-counter{% if total_proyectos_historial == 0 %} is-zero{% endif %}">{{ total_proyectos_historial }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=finalizado"
+               class="segmented-pill {% if historial_estado_actual == 'finalizado' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'finalizado', this); return false;">
+              <span>{% trans "Finalizados" %}</span>
+              <span class="pill-counter{% if historial_por_estado.finalizado == 0 %} is-zero{% endif %}">{{ historial_por_estado.finalizado }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=rechazado"
+               class="segmented-pill {% if historial_estado_actual == 'rechazado' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'rechazado', this); return false;">
+              <span>{% trans "Rechazados" %}</span>
+              <span class="pill-counter{% if historial_por_estado.rechazado == 0 %} is-zero{% endif %}">{{ historial_por_estado.rechazado }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=inactivo"
+               class="segmented-pill {% if historial_estado_actual == 'inactivo' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'inactivo', this); return false;">
+              <span>{% trans "Inactivos" %}</span>
+              <span class="pill-counter{% if historial_por_estado.inactivo == 0 %} is-zero{% endif %}">{{ historial_por_estado.inactivo }}</span>
+            </a>
+            <a href="?section=historial&amp;historial_estado=en_disputa"
+               class="segmented-pill {% if historial_estado_actual == 'en_disputa' %}is-active{% endif %}"
+               onclick="filtrarHistorialEnTiempoReal(event, 'en_disputa', this); return false;">
+              <span>{% trans "En disputa" %}</span>
+              <span class="pill-counter{% if historial_por_estado.en_disputa == 0 %} is-zero{% endif %}">{{ historial_por_estado.en_disputa }}</span>
+            </a>
+          </div>
+        </div>
+        {% endwith %}
+
+        <!-- Sub-pestaña 1: Historial de Proyectos -->
+        <div id="pane-historial-proyectos" class="history-tab-pane active">
+
+          <div class="history-grid-corp" data-testid="historial-inactivos">
+            {% for proyecto in historial_inactivos %}
+              <div class="history-card-corp" data-testid="card-historial-{{ proyecto.estado }}" data-historial-estado="{{ proyecto.estado }}">
+                <div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px;">
+                    <span class="history-status-badge {{ proyecto.estado }} mb-0-corp">
+                      {% if proyecto.estado == 'finalizado' %}
+                        <i data-lucide="check"></i>
+                      {% elif proyecto.estado == 'rechazado' %}
+                        <i data-lucide="x-circle"></i>
+                      {% elif proyecto.estado == 'en_disputa' %}
+                        <i data-lucide="scale"></i>
+                      {% else %}
+                        <i data-lucide="pause-circle"></i>
+                      {% endif %}
+                      <span>{{ proyecto.get_estado_display }}</span>
+                    </span>
+                    <span style="font-size:12px; color:var(--corp-slate-400);">
+                      <i data-lucide="calendar" style="margin-right:3px;"></i>{% if proyecto.fecha_publicacion %}{{ proyecto.fecha_publicacion|date:"d M, Y" }}{% else %}{% trans "Histórico" %}{% endif %}
+                    </span>
+                  </div>
+
+                  <div class="history-card-title">{{ proyecto.titulo }}</div>
+
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                    {% if proyecto.get_tipo_solucion_display or proyecto.categoria %}
+                      <span class="offer-badge-category">
+                        <i data-lucide="layers"></i> {% if proyecto.categoria %}{{ proyecto.categoria.nombre }}{% elif proyecto.get_tipo_solucion_display %}{{ proyecto.get_tipo_solucion_display }}{% else %}{% trans "Proyecto de software" %}{% endif %}
+                      </span>
+                    {% endif %}
+                    {% if proyecto.hitos_totales > 0 %}
+                      <span class="dev-chip-team">
+                        <i data-lucide="flag"></i> {{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }} {% trans "hitos" %}
+                      </span>
+                    {% endif %}
+                    {% if proyecto.num_desarrolladores > 0 %}
+                      <span class="dev-chip-team">
+                        <i data-lucide="users"></i> {% blocktrans with count=proyecto.num_desarrolladores count counter=proyecto.num_desarrolladores %}{{ count }} dev{% plural %}{{ count }} devs{% endblocktrans %}
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  {% if proyecto.contrataciones.all %}
+                    {% with c_first=proyecto.contrataciones.first %}
+                    <div class="history-ledger-talent" style="margin-bottom:12px;">
+                      <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="historial-avatar-corp">
+                          {{ c_first.desarrollador.nombre|default:c_first.desarrollador.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                          <div style="font-size:12.5px; font-weight:700; color:var(--corp-slate-900);">{{ c_first.desarrollador.nombre|default:c_first.desarrollador.username }}</div>
+                          <div class="text-corp-meta">
+                            {% if c_first.desarrollador.perfil_desarrollador.programa_formacion %}{{ c_first.desarrollador.perfil_desarrollador.programa_formacion }}{% else %}{% trans "Desarrollador SENA" %}{% endif %}
+                          </div>
+                        </div>
+                      </div>
+                      <div style="font-size:12px; font-weight:700; color:var(--corp-gold);">
+                        ★ {{ c_first.desarrollador.perfil_desarrollador.calificacion_promedio|default:"5.0" }}
+                      </div>
+                    </div>
+                    {% endwith %}
+                  {% endif %}
+                </div>
+
+                <div class="history-actions-col">
+                  <a href="{% url 'ver_avances' proyecto.id %}" class="btn-corp-action secondary" style="justify-content:center;">
+                    <i data-lucide="eye"></i>
+                    <span>{% trans "Ver Avances y Detalles" %}</span>
+                  </a>
+                  {% if proyecto.tiene_pendientes_calificar %}
+                    <a href="{% url 'finalizar_proyecto' proyecto.id %}"
+                       class="btn-corp-primary"
+                       style="justify-content:center; padding:8px 12px; font-size:12px;"
+                       onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
+                      <i data-lucide="star"></i>
+                      <span>{% trans "Calificar Equipo" %}</span>
+                    </a>
+                  {% endif %}
+                  {% if proyecto.estado == 'finalizado' %}
+                    <button type="button" class="btn-corp-primary" onclick="abrirModal()" style="justify-content:center; padding:8px 12px; font-size:12px;">
+                      <i data-lucide="sparkles"></i>
+                      <span>{% trans "Volver a Contratar" %}</span>
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            {% empty %}
+              <div class="history-empty-state-corp">
+                <div class="history-empty-icon">
+                  <i data-lucide="archive"></i>
+                </div>
+                <h2 class="history-empty-title">{% trans "No hay proyectos archivados en este momento" %}</h2>
+                <p class="history-empty-desc">
+                  {% trans "Los proyectos finalizados, rechazados, inactivos o resueltos tras una disputa se archivarán automáticamente aquí para su consulta y auditoría." %}
+                </p>
+              </div>
+            {% endfor %}
+            <div id="historialSinResultados" class="history-empty-state-corp" style="display:none;">
+              <div class="history-empty-icon">
+                <i data-lucide="history"></i>
+              </div>
+              <h2 class="history-empty-title">{% trans "No hay proyectos en este estado del historial." %}</h2>
+              <p class="history-empty-desc">{% trans "Prueba seleccionando otro filtro de estado para consultar tus proyectos archivados." %}</p>
+            </div>
+          </div>
+        </div>
+        </div>
+      </section>

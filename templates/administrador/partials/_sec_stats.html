@@ -1,0 +1,148 @@
+{% load static %}
+      <!-- Estadísticas (Bento Ejecutivo) -->
+      <section id="statsSection" class="section-v active">
+        <div class="page-header admin-dashboard-header">
+          <div>
+            <div class="page-title">Estadísticas de la Plataforma</div>
+          </div>
+        </div>
+
+        <!-- Fila fija de 4 KPIs -->
+        <div class="metrics-grid bento-kpi-row">
+          <div class="metric-card dark metric-card--clickable" onclick="showSection('usersSection')">
+            <div class="mc-header">
+              <div class="mc-label">Usuarios Totales</div>
+              <div class="mc-icon"><i data-lucide="users"></i></div>
+            </div>
+            <div class="mc-value">{{ total_usuarios }}</div>
+            <div class="mc-sub">{{ total_empresas }} empresas · {{ total_devs }} devs</div>
+          </div>
+          <div class="metric-card info metric-card--clickable" onclick="showSection('projectsSection')">
+            <div class="mc-header">
+              <div class="mc-label">En Desarrollo</div>
+              <div class="mc-icon"><i data-lucide="rocket"></i></div>
+            </div>
+            <div class="mc-value">{{ p_des }}</div>
+            <div class="mc-sub">{{ p_pub }} disponibles · {{ p_fin }} finalizados</div>
+          </div>
+          <div class="metric-card accent metric-card--clickable" onclick="showSection('projectsSection')">
+            <div class="mc-header">
+              <div class="mc-label">Postulaciones</div>
+              <div class="mc-icon"><i data-lucide="file-text"></i></div>
+            </div>
+            <div class="mc-value">{{ post_pen }}</div>
+            <div class="mc-sub">Pendientes de revisión</div>
+          </div>
+          <div class="metric-card danger metric-card--clickable" onclick="showSection('projectsSection')">
+            <div class="mc-header">
+              <div class="mc-label">En Retraso</div>
+              <div class="mc-icon"><i data-lucide="alert-triangle"></i></div>
+            </div>
+            <div class="mc-value">{{ p_ret }}</div>
+            <div class="mc-sub">Requieren seguimiento</div>
+          </div>
+        </div>
+
+        <!-- Bento Principal: 2/3 Gráfica de Líneas Interactiva + 1/3 Donut Comunidad -->
+        <div class="bento-main-grid mb-24" id="adminChartsGrid"
+             data-empresas="{{ total_empresas|default:0 }}"
+             data-devs="{{ total_devs|default:0 }}"
+             data-inactivos="{{ usuarios_inactivos|default:0 }}"
+             data-suspendidos="{{ usuarios_suspendidos|default:0 }}"
+             data-total-usuarios="{{ total_usuarios|default:0 }}"
+             data-p-pub="{{ p_pub|default:0 }}"
+             data-p-des="{{ p_des|default:0 }}"
+             data-p-fin="{{ p_fin|default:0 }}"
+             data-p-ret="{{ p_ret|default:0 }}"
+             data-post-pen="{{ post_pen|default:0 }}">
+          <div class="card admin-chart-card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="activity"></i><span id="adminLineChartTitle">Pipeline de Proyectos</span></div>
+              <div class="chart-cat-switcher" role="tablist" aria-label="Categoría de gráfica">
+                <button type="button" class="chart-cat-btn is-active" role="tab" aria-selected="true" onclick="switchAdminLineChart('proyectos', this)">Proyectos</button>
+                <button type="button" class="chart-cat-btn" role="tab" aria-selected="false" onclick="switchAdminLineChart('tendencia', this)">Tendencia (6m)</button>
+              </div>
+            </div>
+            <script type="application/json" id="adminTendenciaData">{{ tendencia_mensual_json|safe }}</script>
+            <div class="admin-line-wrap">
+              <svg id="adminLineChartSvg" class="admin-line-svg" viewBox="0 0 600 205" role="img" aria-label="Gráfica de líneas en tiempo real"></svg>
+              <div id="adminLineTooltip" class="admin-line-tooltip" hidden></div>
+            </div>
+          </div>
+
+          <div class="card admin-chart-card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="pie-chart"></i>Comunidad</div>
+              <span class="stats-block-meta">{{ total_usuarios }} cuentas</span>
+            </div>
+            <div class="admin-donut-wrap admin-donut-wrap--compact">
+              <svg class="admin-donut-svg" viewBox="0 0 180 180" aria-label="Distribución de usuarios">
+                <circle class="admin-donut-track" cx="90" cy="90" r="66"></circle>
+                <g id="adminUsersDonutSegments" transform="rotate(-90 90 90)"></g>
+                <text x="90" y="86" text-anchor="middle" class="admin-donut-total">{{ total_usuarios }}</text>
+                <text x="90" y="105" text-anchor="middle" class="admin-donut-label">CUENTAS</text>
+              </svg>
+              <ul class="admin-chart-legend" id="adminUsersLegend"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila inferior: Últimos Proyectos (1.4fr) + Estado de Cuentas (1fr) -->
+        <div class="bento-bottom-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="folder-open"></i>Últimos Proyectos</div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="showSection('projectsSection')">Ver todos</button>
+            </div>
+            <table class="data-table" style="margin-top:0;">
+              <tbody>
+                {% for p in proyectos_todos|slice:":5" %}
+                  <tr>
+                    <td><strong>{{ p.titulo }}</strong><br><small style="color:var(--text-muted);">{{ p.empresa.username }}</small></td>
+                    <td style="text-align:right;">{{ p.get_estado_display|upper }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="2">
+                      <div class="empty-state" style="padding:20px;"><i data-lucide="folder-open"></i><p>No hay proyectos registrados aún</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="shield-alert"></i>Pendientes y Control</div>
+              <span class="stats-block-meta">Acción rápida</span>
+            </div>
+            <div class="bento-status-list">
+              <div class="bento-status-row" onclick="showSection('verificacionEmpresasSection')">
+                <span><i data-lucide="building"></i> Empresas por verificar</span>
+                <strong>{{ total_empresas_en_revision|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('verificacionDevsSection')">
+                <span><i data-lucide="id-card"></i> Devs por verificar</span>
+                <strong>{{ total_desarrolladores_en_revision|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('disputasSection')">
+                <span><i data-lucide="scale"></i> Disputas activas</span>
+                <strong>{{ total_disputas_activas|default:0 }}</strong>
+              </div>
+              <div class="bento-status-row" data-testid="metric-usuarios-inactivos" onclick="showSection('usersSection')">
+                <span><i data-lucide="user-x"></i> Usuarios Inactivos</span>
+                <strong>{{ usuarios_inactivos }}</strong>
+              </div>
+              <div class="bento-status-row" data-testid="metric-usuarios-suspendidos" onclick="showSection('usersSection')">
+                <span><i data-lucide="shield-ban"></i> Usuarios Suspendidos</span>
+                <strong>{{ usuarios_suspendidos }}</strong>
+              </div>
+              <div class="bento-status-row" onclick="showSection('projectsSection')">
+                <span><i data-lucide="alert-triangle"></i> Proyectos en Retraso</span>
+                <strong>{{ p_ret }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>

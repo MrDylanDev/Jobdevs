@@ -1,0 +1,291 @@
+{% load static %}
+      <!-- Usuarios -->
+      <section id="usersSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Directorio de Usuarios</div>
+          </div>
+        </div>
+
+        <!-- Tabs de Usuarios + Acción Principal -->
+        <div class="admin-tabs admin-tabs--with-action" role="tablist">
+          <div class="admin-tabs-group">
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="switchUsersTab('directorio', this)">
+              <i data-lucide="users"></i> Directorio
+            </button>
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="switchUsersTab('desempeno', this)">
+              <i data-lucide="star"></i> Desempeño y Alertas
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openCreateUserModal()">
+            <i data-lucide="user-plus"></i> Nuevo Usuario
+          </button>
+        </div>
+
+        <div id="usersTabDirectorio" class="admin-tab-panel is-active">
+        <!-- Resumen compacto de usuarios (estilo Stripe/Vercel) -->
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total cuentas</span>
+            <strong class="users-summary-val">{{ total_usuarios }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Desarrolladores</span>
+            <strong class="users-summary-val">{{ total_devs }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Empresas</span>
+            <strong class="users-summary-val">{{ total_empresas }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Restringidos / Inactivos</span>
+            <strong class="users-summary-val">{{ usuarios_suspendidos }} <small>/ {{ usuarios_inactivos }}</small></strong>
+          </div>
+        </div>
+
+        <!-- Contenedor unificado: filtros + tabla + footer -->
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-role-pills" role="group" aria-label="Filtrar por rol">
+              <button type="button" class="users-role-pill is-active" onclick="setAdminUserRolePill('', this)">Todos</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('desarrollador', this)">Desarrolladores</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('empresa', this)">Empresas</button>
+              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('administrador', this)">Admins</button>
+            </div>
+
+            <div class="users-shell-controls">
+              <div class="users-search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="userSearch" placeholder="Buscar nombre, @usuario o correo..." oninput="debouncedFilterUsers()">
+              </div>
+              <select id="userRoleFilter" class="users-select" onchange="filterUsers()" style="display:none;" aria-hidden="true">
+                <option value="">Todos los roles</option>
+                <option value="desarrollador">Desarrollador</option>
+                <option value="empresa">Empresa</option>
+                <option value="administrador">Administrador</option>
+              </select>
+              <select id="userStatusFilter" class="users-select" onchange="filterUsers()">
+                <option value="">Estado: Todos</option>
+                <option value="active">Solo Activos</option>
+                <option value="inactive">Inactivos / Suspendidos</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="users-shell-subbar">
+            <form method="get" action="{% url 'dashboard_admin' %}" class="users-date-form" onsubmit="event.preventDefault(); filterUsers();">
+              <input type="hidden" name="section" value="usersSection">
+              <span class="users-date-label"><i data-lucide="calendar"></i> Registro</span>
+              <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde" class="users-date-input">
+              <span class="users-date-sep">→</span>
+              <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta" class="users-date-input">
+              <button type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()">Aplicar</button>
+            </form>
+          </div>
+
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table" id="usersTable"
+                   data-api-usuarios-url="{% url 'api_usuarios' %}"
+                   data-current-user-id="{{ request.user.id }}"
+                   data-toggle-url-template="{% url 'admin_toggle_usuario' 0 %}">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Alta</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in usuarios_todos %}
+                  <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
+                    <td>
+                      <div class="user-cell">
+                        <div class="user-cell-avatar">{{ u.nombre|default:u.username|slice:":1"|upper }}</div>
+                        <div>
+                          <div class="user-cell-username">{{ u.nombre|default:u.username }}</div>
+                          <div class="user-cell-handle">@{{ u.username }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="user-cell-email">{{ u.email }}</td>
+                    <td>
+                      {{ u.get_rol_display }}
+                    </td>
+                    <td>
+                      {% if u.is_active %}
+                        <span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>
+                      {% else %}
+                        <span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>
+                      {% endif %}
+                    </td>
+                    <td class="user-cell-date">{{ u.date_joined|date:"d M Y" }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                      {% if u.id == request.user.id %}
+                        <span style="color:var(--text-muted);font-size:12px;">Tu cuenta</span>
+                      {% elif u.rol == 'administrador' %}
+                        <span style="color:var(--text-muted);font-size:12px;">Protegido</span>
+                      {% else %}
+                        <div class="user-actions-group">
+                          <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
+                            {% csrf_token %}
+                            <button type="button" class="user-icon-btn {% if u.is_active %}is-active{% endif %}"
+                              onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
+                              title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
+                              {% if u.is_active %}
+                                <i data-lucide="toggle-right"></i>
+                              {% else %}
+                                <i data-lucide="toggle-left"></i>
+                              {% endif %}
+                            </button>
+                          </form>
+                          <button type="button" class="user-icon-btn" onclick="openEditUserModal({{ u.id }})" title="Editar">
+                            <i data-lucide="pencil"></i>
+                          </button>
+                          <button type="button" class="user-icon-btn is-danger" onclick="deleteUser({{ u.id }}, '{{ u.username }}')" title="Eliminar">
+                            <i data-lucide="trash-2"></i>
+                          </button>
+                        </div>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="users"></i><p>No se encontraron usuarios</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="users-shell-footer">
+            <span id="usersResultCount" class="users-result-count">{{ usuarios_todos|length }} usuarios en directorio</span>
+          </div>
+        </div>
+        </div>
+
+        <div id="usersTabDesempeno" class="admin-tab-panel" hidden>
+          <!-- Rankings de desempeño -->
+          <div class="grid-2col">
+            <!-- Ranking talento -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="card-title-icon" data-lucide="star"></i>Talento Destacado</div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div class="label-section">Mejor Calificados</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for dev in ranking_talento %}
+                      <tr>
+                        <td>{{ dev.0 }}</td>
+                        <td class="rating-cell rating-cell--top">★ {{ dev.2 }}</td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="label-section label-danger">Talento en Alerta</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for dev in ranking_bajo %}
+                      <tr>
+                        <td>{{ dev.0 }}</td>
+                        <td class="rating-cell rating-cell--danger">★ {{ dev.2 }}</td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Ranking empresas -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="card-title-icon" data-lucide="building"></i>Desempeño de Empresas</div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div class="label-section">Mejor Calificadas</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for emp in ranking_empresas %}
+                      <tr>
+                        <td>{{ emp.1|default:emp.0 }}</td>
+                        <td class="rating-cell rating-cell--info">★ {{ emp.2 }}</td>
+                        <td style="text-align:right;">
+                          <button type="button" class="btn btn-secondary btn-sm"
+                                  data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                  data-nombre="{{ emp.1|default:emp.0 }}"><i data-lucide="message-square"></i></button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="label-section label-warning">Empresas en Bajo</div>
+                <table class="data-table" style="margin-top:0;">
+                  <tbody>
+                    {% for emp in ranking_empresas_bajo %}
+                      <tr>
+                        <td>{{ emp.1|default:emp.0 }}</td>
+                        <td class="rating-cell rating-cell--warning">★ {{ emp.2 }}</td>
+                        <td style="text-align:right;">
+                          <button type="button" class="btn btn-secondary btn-sm rating-cell--warning"
+                                  data-chat-open data-receptor="{{ emp.4 }}" data-proyecto="0"
+                                  data-nombre="{{ emp.1|default:emp.0 }}">Mediar</button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Sin alertas</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historial de reseñas -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="card-title-icon" data-lucide="messages-square"></i>Historial de Reseñas</div>
+              <div class="card-subtitle">Monitor de comentarios entre Empresas y Desarrolladores</div>
+            </div>
+            <div class="table-wrapper" style="margin-top:0;border:none;box-shadow:none;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Evaluador</th>
+                    <th>Evaluado</th>
+                    <th>Nota</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in resenas_auditoria %}
+                    <tr>
+                      <td>{{ r.0 }} <span style="font-size:10px;color:var(--text-muted);">({{ r.4|upper }})</span></td>
+                      <td>{{ r.1 }}</td>
+                      <td style="text-align:center;"><span class="rating-pill">★ {{ r.2 }}</span></td>
+                      <td style="font-style:italic;color:var(--text-secondary);">"{{ r.3|truncatechars:60 }}"</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="4"><div class="empty-state" style="padding:20px;"><i data-lucide="file-x"></i><p>No hay reseñas registradas aún</p></div></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>

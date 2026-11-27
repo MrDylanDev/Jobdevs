@@ -1,0 +1,258 @@
+{% load static %}
+      <!-- Proyectos -->
+      <section id="projectsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Monitor Maestro de Proyectos</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('projectsSection')">
+            <i data-lucide="folder-kanban"></i> Proyectos
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('categoriesSection')">
+            <i data-lucide="tags"></i> Categorías
+          </button>
+        </div>
+
+        <!-- Banda resumen de proyectos -->
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total proyectos</span>
+            <strong class="users-summary-val">{{ total_proyectos }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Disponibles</span>
+            <strong class="users-summary-val">{{ p_pub }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">En Desarrollo</span>
+            <strong class="users-summary-val">{{ p_des }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Finalizados / Retraso</span>
+            <strong class="users-summary-val">{{ p_fin }} <small>/ {{ p_ret }}</small></strong>
+          </div>
+        </div>
+
+        <!-- Contenedor unificado: filtros + tabla -->
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-role-pills" role="group" aria-label="Filtrar proyectos por estado">
+              <button type="button" class="users-role-pill project-estado-pill is-active" onclick="setAdminProjectEstadoPill('', this)">Todos</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('publicado', this)">Publicados</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('en_desarrollo', this)">En Desarrollo</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('finalizado', this)">Finalizados</button>
+              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('rechazado', this)">Rechazados</button>
+            </div>
+
+            <div class="users-shell-controls">
+              <div class="users-search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="projectSearch" placeholder="Buscar proyecto o empresa..." oninput="debouncedFilterProjects()">
+              </div>
+              <select id="projectEstadoFilter" class="users-select" onchange="filterProjects()" style="display:none;" aria-hidden="true">
+                <option value="">Todos los estados</option>
+                <option value="publicado">Publicado</option>
+                <option value="en_desarrollo">En Desarrollo</option>
+                <option value="en_revision">En Revisión</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="rechazado">Rechazado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table">
+              <thead>
+                <tr>
+                  <th>Proyecto</th>
+                  <th>Empresa</th>
+                  <th>Estado</th>
+                  <th>Desarrolladores / Hitos</th>
+                  <th style="text-align:right;">Moderación</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in proyectos_todos %}
+                  <tr data-titulo="{{ p.titulo }}" data-empresa="{{ p.empresa.username }}" data-estado="{{ p.estado }}">
+                    <td>
+                      <div class="user-cell-username">{{ p.titulo }}</div>
+                      <div class="user-cell-handle">{{ p.vacantes }} vacante{{ p.vacantes|pluralize }}</div>
+                    </td>
+                    <td class="user-cell-email">{{ p.empresa.username }}</td>
+                    <td>{{ p.get_estado_display|upper }}</td>
+                    <td>
+                      {% if p.contratos_activos %}
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                          {% for contrato in p.contratos_activos %}
+                            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:5px 10px;border-radius:6px;font-size:12px;border:1px solid var(--border-dim);">
+                              <span><strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong></span>
+                              <span style="color:var(--text-muted);font-family:var(--font-mono);">{{ contrato.hitos_completados }}/{{ contrato.total_hitos }}</span>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% else %}
+                        <span style="color:var(--text-muted);font-size:12px;">Sin desarrolladores</span>
+                      {% endif %}
+                    </td>
+                    <td style="text-align:right; white-space:nowrap;">
+                      <div class="user-actions-group">
+                        <a href="{% url 'ver_avances' p.id %}" data-abrir-avances data-url="{% url 'ver_avances' p.id %}" class="user-icon-btn" title="Ver avances">
+                          <i data-lucide="eye"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="folder-open"></i><p>No hay proyectos registrados aún</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="users-shell-footer">
+            <span id="projectsResultCount" class="users-result-count">{{ proyectos_todos|length }} proyectos registrados</span>
+          </div>
+        </div>
+
+        {% if proyectos_pendientes_regularizacion %}
+          <div style="margin-top:32px;" data-testid="regularizacion-cierres">
+            <div class="page-title" style="font-size:16px;">Regularizar cierres históricos</div>
+            <p>Solo si existe evidencia verificable de la fecha real de cierre. El plazo de valoración corre desde esa fecha, no desde el registro administrativo.</p>
+            {% for proyecto in proyectos_pendientes_regularizacion %}
+              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}" data-admin-confirm="true" data-confirm-title="Registrar cierre histórico" data-confirm-message="¿Confirmas que existe evidencia verificable para registrar el cierre histórico del proyecto {{ proyecto.titulo|escape }}?" data-confirm-ok="Registrar cierre">
+                {% csrf_token %}
+                <strong>{{ proyecto.titulo }}</strong> — {{ proyecto.empresa.username }}
+                <label>Fecha y hora real de cierre <input type="datetime-local" name="fecha_cierre" required></label>
+                <label>Justificación <textarea name="motivo" minlength="20" required></textarea></label>
+                <label>Referencia de evidencia <input type="text" name="referencia_evidencia" maxlength="300"></label>
+                <button type="submit" class="btn btn-secondary btn-sm">Registrar cierre</button>
+              </form>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if proyectos_cumplimiento_vencido %}
+          <div style="margin-top:32px;" data-testid="alertas-cumplimiento">
+            <div class="page-title" style="font-size:16px;color:var(--danger);">Fechas de cumplimiento vencidas</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>Proyecto</th><th>Empresa</th><th>Fecha de cumplimiento</th></tr></thead>
+                <tbody>
+                  {% for proyecto in proyectos_cumplimiento_vencido %}
+                    <tr><td>{{ proyecto.titulo }}</td><td>{{ proyecto.empresa.nombre }}</td><td>{{ proyecto.fecha_cumplimiento|date:"d M, Y" }}</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
+        <!-- Alertas de inactividad -->
+        {% if alertas_retraso %}
+          <div style="margin-top:32px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+              <i style="color:var(--danger);" data-lucide="alert-triangle"></i>
+              <div class="page-title" style="font-size:16px;color:var(--danger);">Proyectos con Alerta de Inactividad (&gt; {{ dias_alerta_retraso|default:15 }} días)</div>
+            </div>
+            <div class="table-wrapper" style="border-color:#fecaca;" data-testid="tabla-alertas-inactividad">
+              <table class="data-table">
+                <thead style="background:#fef2f2;">
+                  <tr>
+                    <th style="color:var(--danger);">Proyecto</th>
+                    <th style="color:var(--danger);">Empresa</th>
+                    <th style="color:var(--danger);">Desarrollador</th>
+                    <th style="color:var(--danger);">Inactividad</th>
+                    <th style="color:var(--danger);">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for alerta in alertas_retraso %}
+                    <tr>
+                      <td><strong>{{ alerta.0 }}</strong></td>
+                      <td>{{ alerta.1 }}</td>
+                      <td>{{ alerta.2 }}</td>
+                      <td style="color:var(--danger);font-weight:700;">{{ alerta.3 }} días</td>
+                      <td>
+                        <button type="button" class="btn btn-danger btn-sm"
+                                data-chat-open data-receptor="{{ alerta.4 }}" data-proyecto="0"
+                                data-nombre="{{ alerta.1 }}">Intervenir</button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Categorías de Solución -->
+      <section id="categoriesSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Categorías de Solución</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs admin-tabs--with-action" role="tablist">
+          <div class="admin-tabs-group">
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('projectsSection')">
+              <i data-lucide="folder-kanban"></i> Proyectos
+            </button>
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('categoriesSection')">
+              <i data-lucide="tags"></i> Categorías
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openCategoryModal()">
+            <i data-lucide="plus"></i> Nueva Categoría
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table" id="categoriesTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Código / Slug</th>
+                <th>Descripción</th>
+                <th style="text-align:center;">Proyectos</th>
+                <th>Estado</th>
+                <th style="text-align:center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in categorias_solucion %}
+                <tr data-id="{{ c.id }}" data-nombre="{{ c.nombre }}" data-slug="{{ c.slug }}" data-descripcion="{{ c.descripcion }}" data-activo="{{ c.activo|yesno:'true,false' }}">
+                  <td><strong>{{ c.nombre }}</strong></td>
+                  <td><code>{{ c.slug }}</code></td>
+                  <td style="color:var(--text-secondary);">{{ c.descripcion|default:"—" }}</td>
+                  <td style="text-align:center;">{{ c.proyectos_count }}</td>
+                  <td>
+                    {% if c.activo %}<span class="badge badge-success">Activa</span>{% else %}<span style="color:var(--text-muted);">Inactiva</span>{% endif %}
+                  </td>
+                  <td style="text-align:center; white-space:nowrap;">
+                    <button onclick="openCategoryModal({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
+                      <i data-lucide="pencil"></i>
+                    </button>
+                    <button onclick="toggleCategory({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px;" title="{% if c.activo %}Desactivar{% else %}Activar{% endif %}">
+                      {% if c.activo %}
+                        <i style="color:var(--success);" data-lucide="toggle-on"></i>
+                      {% else %}
+                        <i style="color:var(--text-muted);" data-lucide="toggle-off"></i>
+                      {% endif %}
+                    </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No hay categorías registradas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>

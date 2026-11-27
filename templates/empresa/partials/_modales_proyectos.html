@@ -1,0 +1,291 @@
+{% load i18n %}
+
+<!-- Modal nuevo proyecto -->
+<div id="modalProyecto" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalProyectoTitulo">
+  <div class="modal-box-corp">
+    <div class="modal-header-corp">
+      <h2 class="modal-title-corp" id="modalProyectoTitulo">{% trans "Nueva Convocatoria de Proyecto" %}</h2>
+      <button onclick="cerrarModal()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <form id="formCrearProyecto" method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
+      {% csrf_token %}
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="crear_titulo">{% trans "Título del Proyecto" %}</label>
+        <input type="text" id="crear_titulo" name="titulo" class="form-input-corp" placeholder="{% trans "Ej: Plataforma SaaS de Gestión de Inventario" %}" required>
+      </div>
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="crear_descripcion">{% trans "Descripción y Alcance" %}</label>
+        <textarea id="crear_descripcion" name="descripcion" class="form-input-corp" placeholder="{% trans "Describe los requerimientos y entregables esperados..." %}" required style="min-height:90px; resize:vertical;"></textarea>
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_tipo_solucion">{% trans "Tipo de Solución" %}</label>
+          <select id="crear_tipo_solucion" name="tipo_solucion" class="form-input-corp">
+            {% for c in categorias_solucion %}
+            <option value="{{ c.slug }}">{{ c.nombre }}</option>
+            {% empty %}
+            <option value="sitio_web">{% trans "Sitio Web" %}</option>
+            <option value="aplicacion_movil">{% trans "Aplicación Móvil" %}</option>
+            <option value="automatizacion">{% trans "Automatización" %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_prioridad">{% trans "Prioridad" %}</label>
+          <select id="crear_prioridad" name="prioridad" class="form-input-corp">
+            <option value="alta">{% trans "Alta" %}</option>
+            <option value="media" selected>{% trans "Media" %}</option>
+            <option value="baja">{% trans "Baja" %}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="modalidad_select_crear">{% trans "Modalidad de Trabajo" %}</label>
+          <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
+            <option value="remoto" selected>{% trans "Remoto (Nivel Nacional)" %}</option>
+            <option value="presencial">{% trans "Presencial" %}</option>
+            <option value="hibrido">{% trans "Híbrido" %}</option>
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_vacantes">{% trans "Vacantes" %}</label>
+          <input type="number" id="crear_vacantes" name="vacantes" class="form-input-corp" value="1" min="1" max="10">
+        </div>
+      </div>
+      <div class="form-group-corp" id="ciudad_group_crear" style="display:none;">
+        <label class="form-label-corp" for="ciudad_input_crear">{% trans "Ciudad o Sede del Proyecto" %}</label>
+        <input type="text" name="ciudad" id="ciudad_input_crear" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_fecha_limite">
+            <i data-lucide="calendar" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Cierre de postulaciones" %}
+          </label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="crear_fecha_limite"
+                 class="form-input-corp"
+                 min="{{ fecha_minima_reapertura }}"
+                 title="{% trans "Fecha límite hasta cuándo los desarrolladores pueden postularse" %}">
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="crear_fecha_cumplimiento">
+            <i data-lucide="calendar-check" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Fecha de cumplimiento" %}
+          </label>
+          <input type="date" name="fecha_cumplimiento" id="crear_fecha_cumplimiento" class="form-input-corp" required min="{{ fecha_minima_reapertura }}" title="{% trans "Fecha límite pactada para la entrega técnica final" %}">
+        </div>
+      </div>
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModal()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="send"></i> {% trans "Publicar Convocatoria" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal In-Situ de Contrato Digital (DocuSign Corporativo) -->
+<div id="modalContratoDigital" class="modal-overlay" aria-labelledby="contratoModalTitulo" role="dialog" aria-modal="true">
+  <div class="modal-box-corp contract-modal-box">
+    <div class="modal-header-corp contract-modal-header">
+      <div>
+        <h2 class="modal-title-corp" id="contratoModalTitulo">
+          <i data-lucide="file-signature"></i>
+          <span>{% trans "Contrato Digital" %}</span>
+        </h2>
+        <span class="contract-modal-subtitle">{% trans "Documento con validez jurídica y firma electrónica verificable" %}</span>
+      </div>
+      <button type="button" onclick="cerrarModalContrato()" class="modal-close-btn" aria-label="{% trans "Cerrar contrato digital" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="contratoModalBody" class="contract-modal-body">
+      <div class="drawer-loading">
+        <i data-lucide="loader-circle" class="corp-spin"></i>
+        <p>{% trans "Cargando expediente contractual..." %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Proyecto In-Situ (Mis Ofertas) -->
+<div id="modalEditarProyecto" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalEditarProyectoTitulo">
+  <div class="modal-box-corp">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalEditarProyectoTitulo">{% trans "Editar Oferta de Proyecto" %}</h2>
+        <span class="text-corp-meta">{% trans "Modifica las especificaciones de tu convocatoria" %}</span>
+      </div>
+      <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <form id="formEditarProyecto" method="post" action="" style="display:flex; flex-direction:column; gap:0;">
+      {% csrf_token %}
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="edit_titulo">{% trans "Título del Proyecto" %}</label>
+        <input type="text" id="edit_titulo" name="titulo" class="form-input-corp" required>
+      </div>
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="edit_descripcion">{% trans "Descripción y Alcance" %}</label>
+        <textarea id="edit_descripcion" name="descripcion" class="form-input-corp" rows="4" required style="min-height:90px; resize:vertical;"></textarea>
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_tipo_solucion">{% trans "Tipo de Solución" %}</label>
+          <select id="edit_tipo_solucion" name="tipo_solucion" class="form-input-corp">
+            {% for c in categorias_solucion %}
+            <option value="{{ c.slug }}">{{ c.nombre }}</option>
+            {% empty %}
+            <option value="sitio_web">{% trans "Sitio Web" %}</option>
+            <option value="aplicacion_movil">{% trans "Aplicación Móvil" %}</option>
+            <option value="automatizacion">{% trans "Automatización" %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_prioridad">{% trans "Prioridad" %}</label>
+          <select id="edit_prioridad" name="prioridad" class="form-input-corp">
+            <option value="alta">{% trans "Alta" %}</option>
+            <option value="media">{% trans "Media" %}</option>
+            <option value="baja">{% trans "Baja" %}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_modalidad">{% trans "Modalidad de Trabajo" %}</label>
+          <select id="edit_modalidad" name="modalidad" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'edit_ciudad_group')">
+            <option value="remoto">{% trans "Remoto (Nivel Nacional)" %}</option>
+            <option value="presencial">{% trans "Presencial" %}</option>
+            <option value="hibrido">{% trans "Híbrido" %}</option>
+          </select>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_vacantes">{% trans "Vacantes" %}</label>
+          <input type="number" id="edit_vacantes" name="vacantes" class="form-input-corp" min="1" max="10" required>
+        </div>
+      </div>
+      <div class="form-group-corp" id="edit_ciudad_group" style="display:none;">
+        <label class="form-label-corp" for="edit_ciudad">{% trans "Ciudad o Sede Presencial" %}</label>
+        <input type="text" id="edit_ciudad" name="ciudad" class="form-input-corp" placeholder="{% trans "Ej: Bogotá, D.C. / Medellín" %}">
+      </div>
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_fecha_limite">
+            <i data-lucide="calendar" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Cierre de postulaciones" %}
+          </label>
+          <input type="date"
+                 name="fecha_limite"
+                 id="edit_fecha_limite"
+                 class="form-input-corp">
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="edit_fecha_cumplimiento">
+            <i data-lucide="calendar-check" style="width:13px; height:13px; vertical-align:middle; margin-right:3px;"></i>
+            {% trans "Fecha de cumplimiento (opcional)" %}
+          </label>
+          <input type="date" name="fecha_cumplimiento" id="edit_fecha_cumplimiento" class="form-input-corp">
+        </div>
+      </div>
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="save"></i>
+          <span>{% trans "Guardar Cambios" %}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast flotante corporativo -->
+<div id="corpToast" class="corp-toast" role="status" aria-live="polite" data-msg-rechazo="{% trans "Debes escribir un comentario explicando los ajustes solicitados." %}">
+  <i data-lucide="check-circle-2" style="color:var(--corp-success);"></i>
+  <span>{% trans "Enlace del perfil público copiado al portapapeles" %}</span>
+</div>
+
+<!-- Drawer / Slide-Over de Candidatos In-Situ -->
+<div id="drawerCandidatos" class="drawer-overlay" role="dialog" aria-modal="true" aria-labelledby="drawerProjectTitle">
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <div>
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--corp-brand);">
+          <i data-lucide="users"></i> {% trans "Panel de Selección & Candidatos" %}
+        </div>
+        <h2 id="drawerProjectTitle" class="drawer-title">{% trans "Candidatos Postulados" %}</h2>
+      </div>
+      <div>
+        <button type="button" onclick="cerrarDrawerCandidatos()" class="modal-close-btn" aria-label="{% trans "Cerrar panel" %}">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido dinámico del Drawer -->
+    <div id="drawerContent" class="drawer-body">
+      <!-- Se inyecta con JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal Calificar Equipo (100% in-situ sin salir del panel) -->
+<div id="modalCalificarEquipo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalCalificarTitulo" onclick="if (event.target === this) cerrarModalCalificar()">
+  <div class="modal-box-corp" style="max-width: 520px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalCalificarTitulo">{% trans "Calificar al Desarrollador" %}</h2>
+        <div id="modalCalificarSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
+      </div>
+      <button type="button" onclick="cerrarModalCalificar()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modalCalificarBody"></div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación Bonito para Retirar Oferta -->
+<div id="modalConfirmarRetiro" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalConfirmarRetiroTitulo">
+  <div class="modal-confirm-box">
+    <div class="modal-confirm-icon">
+      <i data-lucide="alert-triangle"></i>
+    </div>
+    <h2 class="modal-confirm-title" id="modalConfirmarRetiroTitulo">{% trans "¿Deseas retirar esta convocatoria?" %}</h2>
+    <p class="modal-confirm-desc">
+      {% trans "La oferta" %} <strong id="nombreOfertaRetirar">{% trans "este proyecto" %}</strong> {% trans "dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos." %}
+    </p>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" onclick="cerrarModalConfirmarRetiro()" class="btn-corp-action secondary">
+        {% trans "Cancelar" %}
+      </button>
+      <button type="button" onclick="ejecutarRetiroConfirmado()" class="btn-corp-danger">
+        <i data-lucide="ban"></i>
+        <span>{% trans "Sí, retirar oferta" %}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Reportar Disputa In-Situ -->
+<div id="modalReportarDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalDisputaTitulo" onclick="if (event.target === this) cerrarModalDisputa()">
+  <div class="modal-box-corp" style="max-width: 640px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalDisputaTitulo">{% trans "Reportar Disputa Formal" %}</h2>
+        <div id="modalDisputaSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
+      </div>
+      <button type="button" onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modalDisputaBody"></div>
+  </div>
+</div>

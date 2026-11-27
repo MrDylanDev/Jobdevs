@@ -1,0 +1,346 @@
+{% load i18n %}
+
+<!-- Modal de Bienvenida para Cuentas Nuevas (Primera vez - Obligatorio con opción de no volver a mostrar) -->
+<div id="modalBienvenidaEmpresa" class="modal-overlay" style="display:none; backdrop-filter:blur(4px); background:rgba(0,0,0,0.75);" role="dialog" aria-modal="true" aria-labelledby="bienvenidaModalTitulo">
+  <div class="modal-box-corp" onclick="event.stopPropagation()" style="max-width:540px; text-align:center; padding:32px 28px; box-shadow:var(--corp-shadow-pop); border:1px solid var(--corp-border);">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--corp-brand-light); color:var(--corp-brand); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
+      <i data-lucide="sparkles" style="width:32px; height:32px;"></i>
+    </div>
+    <h2 id="bienvenidaModalTitulo" style="font-size:24px; font-weight:800; color:var(--corp-slate-900); margin:0 0 8px 0;">
+      {% trans "¡Te damos la bienvenida a JobDevs!" %}
+    </h2>
+    <p style="font-size:13.5px; color:var(--corp-slate-600); line-height:1.5; margin:0 0 24px 0;">
+      {% trans "Conecta con talento calificado SENA, formaliza acuerdos con contrato digital y paga de forma segura por hitos cumplidos." %}
+    </p>
+
+    <div style="background:var(--corp-surface-alt); border:1px solid var(--corp-border-subtle); border-radius:var(--corp-radius); padding:16px 18px; margin-bottom:20px; text-align:left; display:flex; flex-direction:column; gap:12px;">
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">1</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Completa los datos de tu empresa y solicita tu verificación oficial DIAN / RUT." %}</span>
+      </div>
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">2</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Publica tu primera convocatoria sin costo en minutos." %}</span>
+      </div>
+      <div class="flex-row-gap-12">
+        <span class="step-badge-corp">3</span>
+        <span style="font-size:13px; color:var(--corp-slate-800); font-weight:500;">{% trans "Evalúa candidatos en el embudo y contrata talento con respaldo contractual." %}</span>
+      </div>
+    </div>
+
+    <!-- Opción de No volver a mostrar -->
+    <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <input type="checkbox" id="chkNoVolverAMostrarBienvenida" style="width:16px; height:16px; accent-color:var(--corp-brand); cursor:pointer;">
+      <label for="chkNoVolverAMostrarBienvenida" style="font-size:12.5px; color:var(--corp-slate-600); cursor:pointer; user-select:none;">
+        {% trans "No volver a mostrar este mensaje de bienvenida" %}
+      </label>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalBienvenida()">
+        {% trans "Explorar Panel" %}
+      </button>
+      <button type="button" class="btn-corp-primary" onclick="empezarConvocatoriaDesdeBienvenida()">
+        <i data-lucide="plus-circle"></i>
+        <span>{% trans "Publicar Convocatoria" %}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Perfil In-Situ (LinkedIn Style) -->
+<div id="modalEditarPerfil" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalEditarPerfilTitulo">
+  <div class="modal-box-corp" style="max-width: 580px;">
+    <div class="modal-header-corp">
+      <div>
+        <h2 class="modal-title-corp" id="modalEditarPerfilTitulo" style="margin-bottom:2px;">{% trans "Editar Página de Empresa" %}</h2>
+        <span class="text-corp-meta">{% trans "Actualiza la presencia institucional y de contacto" %}</span>
+      </div>
+      <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <form method="post" action="{% url 'editar_perfil' %}" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:0;">
+      {% csrf_token %}
+      
+      <!-- Preview y carga de logo -->
+      <div class="logo-upload-preview">
+        <div id="logoPreviewBox" class="logo-preview-box">
+          {% if perfil.logo %}
+            <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
+          {% else %}
+            <i data-lucide="building-2"></i>
+          {% endif %}
+        </div>
+        <div style="flex:1;">
+          <label class="form-label-corp" for="perfil_logo" style="margin-bottom:3px;">{% trans "Logo de la Empresa" %}</label>
+          <input type="file" id="perfil_logo" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
+          <div style="font-size:12px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)." %}</div>
+        </div>
+      </div>
+
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_nombre_empresa">{% trans "Nombre Comercial" %}</label>
+          <input type="text" id="perfil_nombre_empresa" name="nombre_empresa" class="form-input-corp" value="{{ perfil.nombre_empresa|default:'' }}" placeholder="{% trans "Ej: TechCorp SAS" %}" required>
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_sector">{% trans "Sector o Industria" %}</label>
+          <input type="text" id="perfil_sector" name="sector" class="form-input-corp" value="{{ perfil.sector|default:'' }}" placeholder="{% trans "Ej: Software y Cloud" %}">
+        </div>
+      </div>
+
+      <div class="form-grid-2-corp">
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_ciudad">{% trans "Ciudad Sede" %}</label>
+          <input type="text" id="perfil_ciudad" name="ciudad" class="form-input-corp" value="{{ perfil.ciudad|default:'' }}" placeholder="{% trans "Ej: Bogotá, D.C." %}">
+        </div>
+        <div class="form-group-corp">
+          <label class="form-label-corp" for="perfil_telefono">{% trans "Teléfono de Contacto" %}</label>
+          <input type="text" id="perfil_telefono" name="telefono" class="form-input-corp" value="{{ perfil.telefono|default:'' }}" placeholder="{% trans "Ej: +57 300 123 4567" %}">
+        </div>
+      </div>
+
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="perfil_stack_interes">{% trans "Especialidades y Stack de Interés (Opcional)" %}</label>
+        <input type="text" id="perfil_stack_interes" name="stack_interes" class="form-input-corp" value="{{ perfil.stack_interes|default:'' }}" placeholder="{% trans "Ej: Python, Django, React, PostgreSQL, Docker, AWS, APIs REST" %}">
+        <div style="font-size:12px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Indica las tecnologías o áreas clave separadas por comas. No es obligatorio." %}</div>
+      </div>
+
+      <div class="form-group-corp">
+        <label class="form-label-corp" for="perfil_descripcion">{% trans 'Descripción Corporativa ("Acerca de")' %}</label>
+        <textarea id="perfil_descripcion" name="descripcion" class="form-input-corp" rows="4" placeholder="{% trans "Describe a qué se dedica la empresa, qué tecnologías utiliza y qué beneficios ofrece al talento..." %}" style="min-height:90px; resize:vertical;">{{ perfil.descripcion|default:'' }}</textarea>
+      </div>
+
+      <div class="modal-footer-corp">
+        <button type="button" onclick="cerrarModalPerfil()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="save"></i>
+          <span>{% trans "Guardar Cambios" %}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Todas las Valoraciones y Reseñas -->
+<div id="modalTodasValoraciones" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTodasValoracionesTitulo">
+  <div class="modal-box-corp" style="max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+    <div class="modal-header-corp" style="padding: 20px 24px; margin-bottom: 0;">
+      <div>
+        <h2 class="modal-title-corp" id="modalTodasValoracionesTitulo" style="margin-bottom: 3px;">{% trans "Expediente de Reputación y Valoraciones" %}</h2>
+        <span style="font-size: 12px; color: var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Registro completo de {{ total }} evaluación recibida de desarrolladores contratados{% plural %}Registro completo de {{ total }} evaluaciones recibidas de desarrolladores contratados{% endblocktrans %}</span>
+      </div>
+      <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros de Estrellas dentro del Modal -->
+    <div style="padding: 14px 24px; background: var(--corp-slate-50); border-bottom: 1px solid var(--corp-border); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+      <div style="flex: 1; min-width: 220px; position: relative;">
+        <input type="text"
+               class="form-input-corp"
+               aria-label="{% trans "Buscar reseñas por desarrollador o proyecto" %}"
+               placeholder="{% trans "Buscar por desarrollador o proyecto..." %}"
+               onkeyup="filtrarResenasModal(this)"
+               style="padding-left: 32px;">
+        <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
+      </div>
+
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button type="button" class="datepicker-preset-pill active" onclick="filtrarPorEstrellasModal(0, this)">{% blocktrans with total=total_valoraciones %}Todas ({{ total }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(5, this)">{% blocktrans with count=conteo_estrellas.5 %}5 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(4, this)">{% blocktrans with count=conteo_estrellas.4 %}4 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(3, this)">{% blocktrans with count=conteo_estrellas.3 %}3 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(1, this)">{% blocktrans with count=conteo_estrellas.1|add:conteo_estrellas.2 %}1-2 ★ ({{ count }}){% endblocktrans %}</button>
+      </div>
+    </div>
+
+    <!-- Lista scrolleable de todas las reseñas -->
+    <div id="modalResenasFeed" style="flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+      {% for valoracion in valoraciones_recibidas %}
+        <div class="review-card-corp modal-review-item" data-stars="{{ valoracion.puntuacion }}">
+          <div class="review-card-header">
+            <div class="review-author-wrap">
+              <div class="review-avatar-circle">
+                {% if valoracion.desarrollador.perfil_desarrollador.foto_perfil %}
+                  <img src="{{ valoracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ valoracion.desarrollador.username }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                {% else %}
+                  {{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="review-author">{{ valoracion.desarrollador.nombre|default:valoracion.desarrollador.username }}</div>
+                <span class="badge-verified-hire">
+                  <i data-lucide="check-circle-2"></i> {% trans "Contratación Verificada" %}
+                </span>
+              </div>
+            </div>
+
+            <div class="review-stars">
+              <span class="review-stars-score">{{ valoracion.puntuacion }}.0</span>
+              <span>{% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}</span>
+            </div>
+          </div>
+
+          <div class="review-project">
+            <i data-lucide="folder-kanban" style="color:var(--corp-slate-400);"></i>
+            <span>{% trans "Proyecto:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></span>
+          </div>
+
+          <div class="review-comment-box">
+            "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "El desarrollador calificó con puntaje positivo sin comentario adicional." %}{% endif %}"
+          </div>
+
+          {% if valoracion.fecha %}
+            <div class="review-date">
+              <i data-lucide="calendar-check-2" class="mr-1-corp"></i> {{ valoracion.fecha|date:"d M, Y H:i" }}
+            </div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="activity-empty">
+          <i data-lucide="star"></i>
+          <p>{% trans "No hay valoraciones registradas en la plataforma." %}</p>
+        </div>
+      {% endfor %}
+      <div id="noMatchResenas" class="activity-empty" style="display:none; padding:40px 10px;">
+        <i data-lucide="filter"></i>
+        <p>{% trans "No se encontraron valoraciones con los filtros aplicados." %}</p>
+      </div>
+    </div>
+
+    <!-- Footer modal -->
+    <div style="padding: 14px 24px; border-top: 1px solid var(--corp-border); display: flex; justify-content: flex-end; background: var(--corp-surface);">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">{% trans "Cerrar" %}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal In-Situ de Verificación de Identidad Empresarial -->
+<div id="modalVerificacionEmpresa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalVerificacionEmpresaTitulo">
+  <div class="modal-box-corp" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header-corp">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="verif-modal-icon">
+          <i data-lucide="shield-check" style="width:20px; height:20px;"></i>
+        </div>
+        <div>
+          <h2 class="modal-title-corp" id="modalVerificacionEmpresaTitulo" style="margin-bottom:2px;">{% trans "Verificación de Identidad Empresarial" %}</h2>
+          <span class="text-corp-meta">{% trans "Validación oficial de persona jurídica o natural con personería comercial" %}</span>
+        </div>
+      </div>
+      <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Estado Actual de Verificación -->
+    {% if perfil.estado_verificacion == 'verificada' %}
+      <div class="verif-card is-verificada">
+        <div class="verif-card-row">
+          <div class="verif-icon-circle is-verificada">
+            <i data-lucide="check" style="width:22px; height:22px;"></i>
+          </div>
+          <div>
+            <strong class="verif-card-title" style="display:block;">{% trans "¡Empresa Verificada con Éxito!" %}</strong>
+            <p class="verif-card-copy">{% trans "Tu empresa" %} <strong>{{ perfil.razon_social|default:perfil.nombre_empresa }}</strong> {% trans "cuenta con la insignia de confianza oficial." %}</p>
+            <span class="verif-card-meta">{% trans "Documento acreditado:" %} {{ perfil.tipo_documento }} {{ perfil.documento_completo }}</span>
+          </div>
+        </div>
+      </div>
+    {% elif perfil.estado_verificacion == 'en_revision' %}
+      <div class="verif-card is-en_revision">
+        <div class="verif-card-row">
+          <div class="verif-icon-circle is-en_revision">
+            <i data-lucide="clock" style="width:22px; height:22px;"></i>
+          </div>
+          <div>
+            <strong class="verif-card-title" style="display:block;">{% trans "Solicitud en Proceso de Revisión" %}</strong>
+            <p class="verif-card-copy">{% trans "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen." %}</p>
+            <div class="verif-card-meta">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong> · {% trans "Rechazos previos:" %} <strong>{{ perfil.intentos_verificacion }}/3</strong></div>
+            {% if perfil.documento_soporte %}
+              <div style="margin-top:8px;">
+                <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 10px;">
+                  <i data-lucide="file-text"></i> {% trans "Ver documento enviado" %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      {% if perfil.estado_verificacion == 'rechazada' %}
+        <div class="verif-card is-rechazada">
+          <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+            <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> {% trans "Tu solicitud anterior fue rechazada" %}
+          </strong>
+          {% if perfil.notas_auditoria %}<div><strong>{% trans "Motivo del mediador:" %}</strong> {{ perfil.notas_auditoria }}</div>{% endif %}
+          <div style="margin-top:4px;"><strong>{% trans "Rechazos acumulados:" %} {{ perfil.intentos_verificacion }} / 3.</strong> {% trans "Al 3.º rechazo la cuenta se depura automáticamente. Por favor corrige la información y vuelve a adjuntar el documento de soporte." %}</div>
+        </div>
+      {% else %}
+        <div class="verif-card is-info">
+          <i data-lucide="info" style="color:var(--corp-brand); width:18px; height:18px; flex-shrink:0;"></i>
+          <span>{% trans "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa." %} ({% trans "Intentos fallidos:" %} {{ perfil.intentos_verificacion }}/3)</span>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'solicitar_verificacion_empresa' %}" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#perfil">
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div class="form-group-corp mb-0-corp">
+            <label class="form-label-corp" for="modal_tipo_persona">{% trans "Tipo de persona" %}</label>
+            <select id="modal_tipo_persona" name="tipo_persona" class="form-input-corp" required>
+              {% for value, label in tipos_persona %}
+                <option value="{{ value }}" {% if perfil.tipo_persona == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-corp mb-0-corp">
+            <label class="form-label-corp" for="modal_tipo_documento">{% trans "Tipo de documento" %}</label>
+            <select id="modal_tipo_documento" name="tipo_documento" class="form-input-corp" required>
+              {% for value, label in tipos_documento %}
+                <option value="{{ value }}" {% if perfil.tipo_documento == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div class="form-group-corp mb-0-corp">
+            <label class="form-label-corp" for="modal_numero_documento">{% trans "Número de documento (sin DV)" %}</label>
+            <input type="text" id="modal_numero_documento" name="numero_documento" class="form-input-corp"
+                   value="{{ perfil.numero_documento|default:'' }}" placeholder="{% trans "Ej: 900123456" %}" required>
+            <span style="font-size:12px; color:var(--corp-slate-400); margin-top:3px; display:block;">{% trans "El dígito de verificación se calcula automáticamente." %}</span>
+          </div>
+          <div class="form-group-corp mb-0-corp">
+            <label class="form-label-corp" for="modal_razon_social">{% trans "Razón social oficial" %}</label>
+            <input type="text" id="modal_razon_social" name="razon_social" class="form-input-corp"
+                   value="{{ perfil.razon_social|default:perfil.nombre_empresa }}" placeholder="{% trans "Ej: Tech Solutions S.A.S." %}" required>
+          </div>
+        </div>
+
+        <div class="form-group-corp" style="margin-bottom:20px;">
+          <label class="form-label-corp" for="modal_documento_soporte">{% trans "Documento de soporte (Cámara de Comercio o RUT, PDF)" %}</label>
+          <input type="file" id="modal_documento_soporte" name="documento_soporte" accept="application/pdf,.pdf" class="form-input-corp" required>
+          {% if perfil.documento_soporte %}
+            <span style="font-size:12px; color:var(--corp-brand); margin-top:4px; display:block;">
+              <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> {% trans "Ya cuentas con un documento cargado previamente. Adjunta uno nuevo solo para actualizarlo." %}
+            </span>
+          {% endif %}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--corp-border); padding-top:16px;">
+          <button type="button" onclick="cerrarModalVerificacion()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+          <button type="submit" class="btn-corp-primary">
+            <i data-lucide="upload-cloud"></i>
+            <span>{% trans "Radicar Solicitud de Verificación" %}</span>
+          </button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
