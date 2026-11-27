@@ -471,6 +471,7 @@
 }
 
 .jdm-btn-primary:hover {
+  /* Fixed dark-safe green darker than --accent-dim so hover preserves WCAG AA contrast with white text in both themes */
   background: #00713f;
   border: none;
   color: #ffffff;

@@ -12,9 +12,12 @@ import {
 // ═══════════════════════════════════════════════
 // MODAL DE DISPUTAS
 // ═══════════════════════════════════════════════
+let disputaPrevFocusEl = null;
+
 export function abrirModalNuevaDisputaDev() {
   const m = document.getElementById('modalNuevaDisputa');
   if (!m) return;
+  disputaPrevFocusEl = document.activeElement;
   m.hidden = false;
   m.style.display = 'flex';
   m.classList.add('is-open');
@@ -37,6 +40,11 @@ export function cerrarModalNuevaDisputaDev() {
   m.classList.remove('is-open');
   m.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  const restoreEl = disputaPrevFocusEl || document.getElementById('btn-iniciar-disputa');
+  disputaPrevFocusEl = null;
+  if (restoreEl && typeof restoreEl.focus === 'function') {
+    try { restoreEl.focus(); } catch (err) {}
+  }
 }
 
 export const abrirModalDisputa = abrirModalNuevaDisputaDev;

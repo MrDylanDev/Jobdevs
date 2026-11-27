@@ -108,10 +108,33 @@ function ensureConfirmModal() {
   return confirmEl;
 }
 
+function trapTabInDialog(e, dialog) {
+  const focusables = Array.from(
+    dialog.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter(function (el) { return !el.hidden && el.offsetParent !== null; });
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey) {
+    if (document.activeElement === first || !dialog.contains(document.activeElement)) {
+      e.preventDefault();
+      last.focus();
+    }
+  } else {
+    if (document.activeElement === last || !dialog.contains(document.activeElement)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+}
+
 export function confirmarAccion(opciones) {
   if (typeof activeConfirmCleanup === 'function') {
     activeConfirmCleanup(false);
   }
+  const prevFocusEl = document.activeElement;
   const opts = typeof opciones === 'string' ? { mensaje: opciones } : (opciones || {});
   const modal = ensureConfirmModal();
   const titleEl = document.getElementById('jdmConfirmTitle');
@@ -141,6 +164,9 @@ export function confirmarAccion(opciones) {
       modal.hidden = true;
       modal.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey, true);
+      if (prevFocusEl && typeof prevFocusEl.focus === 'function') {
+        try { prevFocusEl.focus(); } catch (err) {}
+      }
       resolve(resultado);
     }
 
@@ -162,25 +188,7 @@ export function confirmarAccion(opciones) {
         limpiar(false);
       } else if (e.key === 'Tab') {
         const dialog = modal.querySelector('.jdm-confirm-card') || modal;
-        const focusables = Array.from(
-          dialog.querySelectorAll(
-            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-          )
-        ).filter(function (el) { return !el.hidden && el.offsetParent !== null; });
-        if (!focusables.length) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey) {
-          if (document.activeElement === first || !dialog.contains(document.activeElement)) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (document.activeElement === last || !dialog.contains(document.activeElement)) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
+        trapTabInDialog(e, dialog);
       }
     }
 
@@ -233,6 +241,7 @@ export function ensureModal() {
 
   document.addEventListener('keydown', function (e) {
     if (!modalEl || modalEl.hidden) return;
+    if (confirmEl && !confirmEl.hidden) return;
     if (e.key === 'Escape') {
       if (modalEl.dataset.obligatorio === 'true') {
         e.preventDefault();
@@ -240,6 +249,9 @@ export function ensureModal() {
       }
       e.preventDefault();
       cerrarModal();
+    } else if (e.key === 'Tab') {
+      const dialog = document.getElementById('jdmCard') || modalEl;
+      trapTabInDialog(e, dialog);
     }
   });
 

@@ -438,7 +438,30 @@ class TestReportes:
         # encabezado + 3 filas de datos + 1 fila de advertencia
         assert len(filas) == 5
         assert filas[-1][1] == 'ADVERTENCIA'
-        assert '3' in filas[-1][2]
+        assert 'límite de 3 registros' in filas[-1][2]
+
+    def test_reporte_auditoria_sin_filtros_no_se_incluye_a_si_mismo(
+        self, admin_client, admin_user, monkeypatch
+    ):
+        from logs import views as logs_views
+
+        monkeypatch.setattr(logs_views, 'MAX_EXPORT_AUDITORIA', 2)
+        for i in range(2):
+            LogAuditoria.objects.create(
+                usuario=admin_user,
+                accion=f'Evento previo {i}',
+                tabla_afectada='proyectos',
+            )
+
+        res = admin_client.get(reverse('reporte_auditoria_csv'))
+        assert res.status_code == 200
+        assert res.get('X-Export-Truncated') is None
+        filas = list(csv.reader(io.StringIO(res.content.decode('utf-8-sig'))))
+        # encabezado + 2 eventos previos (sin incluir el log del propio reporte)
+        assert len(filas) == 3
+        acciones = [f[2] for f in filas[1:]]
+        assert all('Reporte de auditoría CSV' not in a for a in acciones)
+        assert set(acciones) == {'Evento previo 0', 'Evento previo 1'}
 
     def test_badge_estado_html_no_marca_inactivo_como_ok(self):
         from logs.pdf_reports import _badge_estado_html

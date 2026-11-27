@@ -493,6 +493,11 @@ def reporte_auditoria_csv(request):
 
     formato = request.GET.get('formato', 'csv').strip().lower()
     etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
+    registros = list(qs[:MAX_EXPORT_AUDITORIA + 1])
+    truncado = len(registros) > MAX_EXPORT_AUDITORIA
+    if truncado:
+        registros = registros[:MAX_EXPORT_AUDITORIA]
+
     _registrar_auditoria_reporte(
         request.user,
         f'Reporte de auditoría {etiqueta_formato}',
@@ -500,10 +505,6 @@ def reporte_auditoria_csv(request):
     )
 
     if formato == 'pdf':
-        registros = list(qs[:MAX_EXPORT_AUDITORIA + 1])
-        truncado = len(registros) > MAX_EXPORT_AUDITORIA
-        if truncado:
-            registros = registros[:MAX_EXPORT_AUDITORIA]
         encabezados = ['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Fecha y Hora']
         filas_datos = [
             [
@@ -547,11 +548,7 @@ def reporte_auditoria_csv(request):
 
     writer = csv.writer(response)
     writer.writerow(['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Valor Anterior', 'Valor Nuevo', 'Fecha y Hora'])
-    truncado = False
-    for idx, log in enumerate(qs[:MAX_EXPORT_AUDITORIA + 1].iterator(chunk_size=500)):
-        if idx >= MAX_EXPORT_AUDITORIA:
-            truncado = True
-            break
+    for log in registros:
         writer.writerow([
             log.id,
             _csv_safe(log.usuario.username if log.usuario else 'Sistema'),

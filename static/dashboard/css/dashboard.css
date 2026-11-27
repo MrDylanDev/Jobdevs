@@ -422,6 +422,10 @@ ul { list-style: none; }
 }
 
 /* Badge de notificación en nav */
+.sidebar .nav-item .badge {
+  margin-left: auto;
+}
+
 .nav-badge {
   margin-left: auto;
   background: var(--accent);

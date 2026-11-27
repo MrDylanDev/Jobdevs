@@ -260,7 +260,33 @@ function _renderUsersTableRows(users, roleFilter) {
         const statusHtml = isActive
           ? '<span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>'
           : '<span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>';
-        const fechaRegistro = String(u.date_joined || '').slice(0, 10);
+        let fechaRegistro = '';
+        let fechaDisplay = '—';
+        if (u.date_joined) {
+          const parsedDate = new Date(u.date_joined);
+          if (!Number.isNaN(parsedDate.getTime())) {
+            fechaRegistro = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'America/Bogota',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(parsedDate);
+            const parts = new Intl.DateTimeFormat('es-CO', {
+              timeZone: 'America/Bogota',
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }).formatToParts(parsedDate);
+            const day = parts.find((p) => p.type === 'day')?.value || '';
+            const rawMonth = (parts.find((p) => p.type === 'month')?.value || '').replace(/\.$/, '');
+            const month = rawMonth ? rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1) : '';
+            const year = parts.find((p) => p.type === 'year')?.value || '';
+            fechaDisplay = `${day} ${month} ${year}`.trim() || fechaRegistro;
+          } else {
+            fechaRegistro = String(u.date_joined).slice(0, 10);
+            fechaDisplay = fechaRegistro || '—';
+          }
+        }
 
         return (
           `<tr data-username="${escapeAdminHtml(u.username || '')}" data-nombre="${escapeAdminHtml(u.nombre || '')}" ` +
@@ -273,7 +299,7 @@ function _renderUsersTableRows(users, roleFilter) {
             `<td class="user-cell-email">${escapeAdminHtml(u.email || '')}</td>` +
             `<td>${escapeAdminHtml(rolLabel)}</td>` +
             `<td>${statusHtml}</td>` +
-            `<td class="user-cell-date">${escapeAdminHtml(fechaRegistro || '—')}</td>` +
+            `<td class="user-cell-date">${escapeAdminHtml(fechaDisplay)}</td>` +
             `<td style="text-align:right; white-space:nowrap;">${actionsHtml}</td>` +
           `</tr>`
         );

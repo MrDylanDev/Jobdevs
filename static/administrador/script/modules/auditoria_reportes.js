@@ -542,19 +542,36 @@ function initAuditLogs() {
     }
   }
 
+  let logsRequestSeq = 0;
+  let activeLogsController = null;
+
   async function loadLogs(page) {
+    const seq = ++logsRequestSeq;
+    if (activeLogsController) {
+      try {
+        activeLogsController.abort();
+      } catch (e) {}
+    }
+    activeLogsController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+
     const params = new URLSearchParams(new FormData(form));
     if (page) params.set('page', page);
     try {
       const response = await fetch(auditLogsUrl + '?' + params.toString(), {
         headers: { Accept: 'application/json' },
+        signal: activeLogsController ? activeLogsController.signal : undefined,
       });
+      if (seq !== logsRequestSeq) return;
       if (!response.ok) {
         adminNotify('No se pudo cargar el registro de auditoría.');
         return;
       }
-      render(await response.json());
+      const data = await response.json();
+      if (seq !== logsRequestSeq) return;
+      render(data);
     } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      if (seq !== logsRequestSeq) return;
       adminNotify('Error de red al cargar auditoría.');
     }
   }
