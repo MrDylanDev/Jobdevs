@@ -2,8 +2,6 @@ import csv
 from collections import deque
 from datetime import datetime
 
-import pymupdf
-
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, JsonResponse
@@ -17,11 +15,32 @@ from contrataciones.models import Contratacion
 from proyectos.models import Proyecto, Valoracion
 from usuarios.models import Usuario, PerfilDesarrollador, PerfilEmpresa
 from logs.models import LogAuditoria
+from logs.pdf_reports import render_reporte_mensual_pdf, render_reporte_tabla_pdf
 
 
 def _exigir_admin(request):
     if request.user.rol != 'administrador':
         raise PermissionDenied
+
+
+def _csv_safe(value):
+    text = '' if value is None else str(value)
+    if text and text[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + text
+    return text
+
+
+def _registrar_auditoria_reporte(user, nombre, filtros=None):
+    detalle = ''
+    if filtros:
+        activos = ', '.join(f'{k}={v}' for k, v in filtros.items() if v)
+        if activos:
+            detalle = f' [{activos}]'
+    LogAuditoria.objects.create(
+        usuario=user,
+        accion=f'Generó {nombre}{detalle}'[:300],
+        tabla_afectada='reportes',
+    )
 
 
 @login_required
@@ -90,35 +109,46 @@ def reporte_mensual_pdf(request):
         return JsonResponse({'error': 'El mes debe usar el formato AAAA-MM.'}, status=400)
 
     filtros = {'year': mes.year, 'month': mes.month}
-    usuarios = Usuario.objects.filter(
+    usuarios_qs = Usuario.objects.filter(
         date_joined__year=filtros['year'],
         date_joined__month=filtros['month'],
-    ).count()
-    proyectos = Proyecto.objects.filter(
+    )
+    proyectos_qs = Proyecto.objects.filter(
         fecha_publicacion__year=filtros['year'],
         fecha_publicacion__month=filtros['month'],
-    ).count()
-    contrataciones = Contratacion.objects.filter(
+    )
+    contrataciones_qs = Contratacion.objects.filter(
         fecha_inicio__year=filtros['year'],
         fecha_inicio__month=filtros['month'],
-    ).count()
+    )
 
-    documento = pymupdf.open()
-    pagina = documento.new_page()
-    lineas = [
-        f"Reporte mensual JobDevs - {mes_texto}",
-        f"Usuarios registrados: {usuarios}",
-        f"Proyectos publicados: {proyectos}",
-        f"Contrataciones realizadas: {contrataciones}",
+    usuarios = usuarios_qs.count()
+    proyectos = proyectos_qs.count()
+    contrataciones = contrataciones_qs.count()
+
+    desglose_roles = [
+        ('Desarrolladores', usuarios_qs.filter(rol='desarrollador').count()),
+        ('Empresas', usuarios_qs.filter(rol='empresa').count()),
+        ('Administradores', usuarios_qs.filter(rol='administrador').count()),
     ]
-    for indice, linea in enumerate(lineas):
-        pagina.insert_text((72, 72 + indice * 28), linea, fontsize=14 if indice == 0 else 11)
-    contenido = documento.tobytes()
-    documento.close()
+    desglose_proyectos = [
+        ('Publicado', proyectos_qs.filter(estado='publicado').count()),
+        ('En desarrollo', proyectos_qs.filter(estado='en_desarrollo').count()),
+        ('Finalizado', proyectos_qs.filter(estado='finalizado').count()),
+        ('Cancelado', proyectos_qs.filter(estado='cancelado').count()),
+    ]
 
-    response = HttpResponse(contenido, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="reporte_mensual_{mes_texto}.pdf"'
-    return response
+    _registrar_auditoria_reporte(request.user, 'Reporte mensual PDF', {'mes': mes_texto})
+
+    return render_reporte_mensual_pdf(
+        mes_texto=mes_texto,
+        usuario_gen=request.user.username or 'Administrador',
+        usuarios=usuarios,
+        proyectos=proyectos,
+        contrataciones=contrataciones,
+        desglose_roles=desglose_roles,
+        desglose_proyectos=desglose_proyectos,
+    )
 
 @login_required
 def reporte_proyectos_csv(request):
@@ -126,32 +156,87 @@ def reporte_proyectos_csv(request):
     if request.user.rol != 'administrador':
         return redirect('inicio')
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="reporte_proyectos_tem.csv"'
-
-    writer = csv.writer(response)
-    # Encabezados simplificados
-    writer.writerow(['Título', 'Empresa', 'Tipo', 'Prioridad', 'Estado', 'Desarrolladores', 'Vacantes Totales', 'Fecha Publicación'])
+    estado = request.GET.get('estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
     # Traemos proyectos con su empresa y calculamos métricas en una sola ráfaga SQL
     proyectos = Proyecto.objects.select_related('empresa', 'categoria').annotate(
         num_devs=Count('contrataciones', filter=Q(contrataciones__estado='activa'))
     ).order_by('-fecha_publicacion')
+    if estado:
+        proyectos = proyectos.filter(estado=estado)
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        proyectos = proyectos.filter(fecha_publicacion__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        proyectos = proyectos.filter(fecha_publicacion__date__lte=fecha_hasta_parsed)
 
+    formato = request.GET.get('formato', 'csv').strip().lower()
+    etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
+    _registrar_auditoria_reporte(
+        request.user,
+        f'Reporte de proyectos {etiqueta_formato}',
+        {'estado': estado, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta},
+    )
+
+    encabezados = ['Título', 'Empresa', 'Tipo', 'Prioridad', 'Estado', 'Desarrolladores', 'Vacantes Totales', 'Fecha Publicación']
+    filas_datos = []
     for p in proyectos:
-        # Intentar obtener nombre comercial de la empresa si existe
         nombre_empresa = getattr(p.empresa, 'perfil_empresa', None)
         empresa_display = nombre_empresa.nombre_empresa if nombre_empresa and nombre_empresa.nombre_empresa else p.empresa.nombre
-
-        writer.writerow([
-            p.titulo, 
-            empresa_display, 
-            p.get_tipo_solucion_display(), 
-            p.get_prioridad_display(), 
-            p.get_estado_display(), 
+        filas_datos.append([
+            p.titulo,
+            empresa_display,
+            p.get_tipo_solucion_display(),
+            p.get_prioridad_display(),
+            p.get_estado_display(),
             p.num_devs,
             p.vacantes,
-            p.fecha_publicacion.strftime('%d/%m/%Y %H:%M')
+            p.fecha_publicacion.strftime('%d/%m/%Y %H:%M'),
+        ])
+
+    if formato == 'pdf':
+        filtros_txt = ', '.join(
+            f'{k}={v}' for k, v in (('estado', estado), ('desde', fecha_desde), ('hasta', fecha_hasta)) if v
+        )
+        total_vacantes = sum(f[6] for f in filas_datos)
+        total_devs = sum(f[5] for f in filas_datos)
+        return render_reporte_tabla_pdf(
+            codigo='JD-REP-PROY',
+            titulo='Reporte de Proyectos',
+            subtitulo='Listado oficial de necesidades tecnológicas y estados actuales',
+            usuario_gen=request.user.username or 'Administrador',
+            filtros_texto=filtros_txt,
+            kpis=[
+                ('Proyectos listados', len(filas_datos), 'Total según filtros aplicados'),
+                ('Vacantes totales', total_vacantes, 'Cupos solicitados por empresas'),
+                ('Aprendices vinculados', total_devs, 'Contrataciones activas actuales'),
+            ],
+            encabezados=encabezados,
+            filas=filas_datos,
+            filename='reporte_proyectos.pdf',
+            numeric_cols=(5, 6),
+            badge_cols=(3, 4),
+        )
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="reporte_proyectos_tem.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(encabezados)
+    for fila in filas_datos:
+        writer.writerow([
+            _csv_safe(fila[0]),
+            _csv_safe(fila[1]),
+            _csv_safe(fila[2]),
+            _csv_safe(fila[3]),
+            _csv_safe(fila[4]),
+            fila[5],
+            fila[6],
+            fila[7],
         ])
     return response
 
@@ -161,11 +246,8 @@ def reporte_aprendices_csv(request):
     if request.user.rol != 'administrador':
         return redirect('inicio')
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="reporte_aprendices_tem.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow(['Usuario', 'Nombre', 'Programa', 'Ficha', 'Promedio', 'Proyectos'])
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
     aprendices = PerfilDesarrollador.objects.select_related('usuario').annotate(
         promedio_estrellas=Coalesce(
@@ -177,15 +259,71 @@ def reporte_aprendices_csv(request):
             output_field=FloatField()
         )
     ).order_by('usuario__username')
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        aprendices = aprendices.filter(usuario__date_joined__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        aprendices = aprendices.filter(usuario__date_joined__date__lte=fecha_hasta_parsed)
 
-    for a in aprendices:
-        writer.writerow([
+    formato = request.GET.get('formato', 'csv').strip().lower()
+    etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
+    _registrar_auditoria_reporte(
+        request.user,
+        f'Reporte de aprendices {etiqueta_formato}',
+        {'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta},
+    )
+
+    encabezados = ['Usuario', 'Nombre', 'Programa', 'Ficha', 'Promedio', 'Proyectos']
+    filas_datos = [
+        [
             a.usuario.username,
             a.usuario.nombre,
             a.programa_formacion or '-',
             a.ficha or '-',
             round(a.promedio_estrellas, 2),
-            a.num_proyectos_completados
+            a.num_proyectos_completados,
+        ]
+        for a in aprendices
+    ]
+
+    if formato == 'pdf':
+        filtros_txt = ', '.join(
+            f'{k}={v}' for k, v in (('desde', fecha_desde), ('hasta', fecha_hasta)) if v
+        )
+        prom_global = round(sum(f[4] for f in filas_datos) / len(filas_datos), 2) if filas_datos else 0.0
+        total_completados = sum(f[5] for f in filas_datos)
+        return render_reporte_tabla_pdf(
+            codigo='JD-REP-APR',
+            titulo='Reporte de Aprendices',
+            subtitulo='Estadísticas de desempeño, fichas SENA y calificaciones de desarrolladores',
+            usuario_gen=request.user.username or 'Administrador',
+            filtros_texto=filtros_txt,
+            kpis=[
+                ('Aprendices registrados', len(filas_datos), 'Talento SENA en el listado'),
+                ('Promedio general', f'{prom_global} ★', 'Calificación media de empresas'),
+                ('Proyectos completados', total_completados, 'Entregas acumuladas'),
+            ],
+            encabezados=encabezados,
+            filas=filas_datos,
+            filename='reporte_aprendices.pdf',
+            numeric_cols=(4, 5),
+        )
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="reporte_aprendices_tem.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(encabezados)
+    for fila in filas_datos:
+        writer.writerow([
+            _csv_safe(fila[0]),
+            _csv_safe(fila[1]),
+            _csv_safe(fila[2]),
+            _csv_safe(fila[3]),
+            fila[4],
+            fila[5],
         ])
     return response
 
@@ -194,6 +332,8 @@ def reporte_vista_impresion(request):
     """Vista optimizada para imprimir reportes generales"""
     if request.user.rol != 'administrador':
         return redirect('inicio')
+
+    _registrar_auditoria_reporte(request.user, 'Vista de impresión de reportes')
     
     context = {
         'proyectos': Proyecto.objects.select_related('empresa', 'categoria').order_by('-fecha_publicacion'),
@@ -208,13 +348,10 @@ def reporte_empresas_csv(request):
     """Generar reporte de todas las empresas en CSV (Excel) (SCRUM-177 / sin N+1)"""
     if request.user.rol != 'administrador':
         return redirect('inicio')
-        
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="reporte_empresas_tem.csv"'
-    
-    writer = csv.writer(response)
-    writer.writerow(['Empresa', 'NIT', 'Sector', 'Ciudad', 'Telefono', 'Email', 'Proyectos Publicados', 'Reputación (★)'])
-    
+
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+
     empresas = PerfilEmpresa.objects.select_related('usuario').annotate(
         proyectos_count=Count('usuario__proyectos_empresa', distinct=True),
         promedio_estrellas=Coalesce(
@@ -226,9 +363,24 @@ def reporte_empresas_csv(request):
             output_field=FloatField()
         )
     ).order_by('usuario__username')
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        empresas = empresas.filter(usuario__date_joined__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        empresas = empresas.filter(usuario__date_joined__date__lte=fecha_hasta_parsed)
 
-    for e in empresas:
-        writer.writerow([
+    formato = request.GET.get('formato', 'csv').strip().lower()
+    etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
+    _registrar_auditoria_reporte(
+        request.user,
+        f'Reporte de empresas {etiqueta_formato}',
+        {'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta},
+    )
+
+    encabezados = ['Empresa', 'NIT', 'Sector', 'Ciudad', 'Telefono', 'Email', 'Proyectos Publicados', 'Reputación (★)']
+    filas_datos = [
+        [
             e.nombre_empresa or e.usuario.username,
             e.usuario.identificacion or '-',
             e.sector or '-',
@@ -236,9 +388,138 @@ def reporte_empresas_csv(request):
             e.telefono or '-',
             e.usuario.email,
             e.proyectos_count,
-            round(e.promedio_estrellas, 2)
+            round(e.promedio_estrellas, 2),
+        ]
+        for e in empresas
+    ]
+
+    if formato == 'pdf':
+        filtros_txt = ', '.join(
+            f'{k}={v}' for k, v in (('desde', fecha_desde), ('hasta', fecha_hasta)) if v
+        )
+        total_pub = sum(f[6] for f in filas_datos)
+        prom_rep = round(sum(f[7] for f in filas_datos) / len(filas_datos), 2) if filas_datos else 0.0
+        return render_reporte_tabla_pdf(
+            codigo='JD-REP-EMP',
+            titulo='Reporte de Empresas',
+            subtitulo='Directorio institucional de empresas registradas, publicaciones y reputación',
+            usuario_gen=request.user.username or 'Administrador',
+            filtros_texto=filtros_txt,
+            kpis=[
+                ('Empresas registradas', len(filas_datos), 'Aliados productivos en el listado'),
+                ('Proyectos publicados', total_pub, 'Oportunidades totales registradas'),
+                ('Reputación promedio', f'{prom_rep} ★', 'Evaluación media de aprendices'),
+            ],
+            encabezados=encabezados,
+            filas=filas_datos,
+            filename='reporte_empresas.pdf',
+            numeric_cols=(6, 7),
+        )
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="reporte_empresas_tem.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(encabezados)
+    for fila in filas_datos:
+        writer.writerow([
+            _csv_safe(fila[0]),
+            _csv_safe(fila[1]),
+            _csv_safe(fila[2]),
+            _csv_safe(fila[3]),
+            _csv_safe(fila[4]),
+            _csv_safe(fila[5]),
+            fila[6],
+            fila[7],
         ])
-        
+
+    return response
+
+
+@login_required
+def reporte_auditoria_csv(request):
+    """Generar reporte de registros de auditoría en CSV o PDF."""
+    if request.user.rol != 'administrador':
+        return redirect('inicio')
+
+    tabla = request.GET.get('tabla', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+
+    qs = LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora', '-id')
+    if tabla:
+        qs = qs.filter(tabla_afectada__icontains=tabla)
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        qs = qs.filter(fecha_hora__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        qs = qs.filter(fecha_hora__date__lte=fecha_hasta_parsed)
+
+    registros = list(qs[:5000])
+
+    formato = request.GET.get('formato', 'csv').strip().lower()
+    etiqueta_formato = 'PDF' if formato == 'pdf' else 'CSV'
+    _registrar_auditoria_reporte(
+        request.user,
+        f'Reporte de auditoría {etiqueta_formato}',
+        {'tabla': tabla, 'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta},
+    )
+
+    encabezados = ['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Fecha y Hora']
+    filas_datos = [
+        [
+            f'#{log.id}',
+            log.usuario.username if log.usuario else 'Sistema',
+            log.accion,
+            log.tabla_afectada or '-',
+            '' if log.registro_id is None else f'#{log.registro_id}',
+            timezone.localtime(log.fecha_hora).strftime('%d/%m/%Y %H:%M:%S') if log.fecha_hora else '-',
+        ]
+        for log in registros
+    ]
+
+    if formato == 'pdf':
+        filtros_txt = ', '.join(
+            f'{k}={v}' for k, v in (('tabla', tabla), ('desde', fecha_desde), ('hasta', fecha_hasta)) if v
+        )
+        usuarios_distintos = len({f[1] for f in filas_datos})
+        tablas_distintas = len({f[3] for f in filas_datos if f[3] != '-'})
+        return render_reporte_tabla_pdf(
+            codigo='JD-REP-AUD',
+            titulo='Reporte de Auditoría',
+            subtitulo='Trazabilidad institucional de acciones administrativas y del sistema',
+            usuario_gen=request.user.username or 'Administrador',
+            filtros_texto=filtros_txt,
+            kpis=[
+                ('Eventos registrados', len(filas_datos), 'Total según filtros aplicados'),
+                ('Usuarios / Actores', usuarios_distintos, 'Actores distintos en el período'),
+                ('Módulos auditados', tablas_distintas, 'Tablas afectadas registradas'),
+            ],
+            encabezados=encabezados,
+            filas=filas_datos,
+            filename='reporte_auditoria.pdf',
+            numeric_cols=(0, 4),
+        )
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="reporte_auditoria_tem.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Valor Anterior', 'Valor Nuevo', 'Fecha y Hora'])
+    for log in registros:
+        writer.writerow([
+            log.id,
+            _csv_safe(log.usuario.username if log.usuario else 'Sistema'),
+            _csv_safe(log.accion),
+            _csv_safe(log.tabla_afectada or ''),
+            '' if log.registro_id is None else log.registro_id,
+            _csv_safe(log.valor_anterior or ''),
+            _csv_safe(log.valor_nuevo or ''),
+            timezone.localtime(log.fecha_hora).strftime('%d/%m/%Y %H:%M:%S') if log.fecha_hora else '',
+        ])
     return response
 
 
