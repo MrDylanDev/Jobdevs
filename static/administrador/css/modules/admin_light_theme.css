@@ -1,0 +1,172 @@
+/* ==========================================================================
+   JobDevs — Panel Administrador: Corporate Light Theme & Reduced Motion
+   ========================================================================== */
+
+/* ========== CORPORATE LIGHT THEME OVERRIDE ([data-theme="light"]) ========== */
+/* Tokens y componentes compartidos en modo claro heredados de dashboard.css;
+   aquí sólo van overrides específicos del panel Administrador. */
+:root[data-theme="light"] {
+  --bg-darker:      #e2e8f0;
+  --border-dim:     #d8dee4;
+  --border-mid:     #cbd5e1;
+  --border-high:    #94a3b8;
+
+  --shadow-sm:      0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md:      0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg:      0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+:root[data-theme="light"] .sidebar-footer-note {
+  border-top-color: var(--border);
+}
+:root[data-theme="light"] .users-summary-val,
+:root[data-theme="light"] .report-row-title,
+:root[data-theme="light"] .admin-legend-val,
+:root[data-theme="light"] .bento-status-row strong {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .nav-item.active {
+  color: var(--accent);
+}
+
+:root[data-theme="light"] .top-header.top-header--minimal {
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+:root[data-theme="light"] .notif-btn:hover,
+:root[data-theme="light"] .user-chip:hover {
+  background: #f8fafc;
+  border-color: var(--border-mid);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+:root[data-theme="light"] .metric-card {
+  box-shadow: var(--shadow-sm);
+}
+:root[data-theme="light"] .metric-card:hover {
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-md);
+}
+:root[data-theme="light"] .metric-card .mc-icon {
+  background: #f1f5f9;
+  color: var(--accent);
+}
+
+:root[data-theme="light"] .users-pro-table thead th,
+:root[data-theme="light"] .users-summary-strip,
+:root[data-theme="light"] .users-shell-footer,
+:root[data-theme="light"] .user-dropdown-header {
+  background: #f8fafc;
+}
+:root[data-theme="light"] .users-table-shell {
+  background: #ffffff;
+}
+:root[data-theme="light"] .users-pro-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+:root[data-theme="light"] input[type="text"],
+:root[data-theme="light"] input[type="email"],
+:root[data-theme="light"] input[type="password"],
+:root[data-theme="light"] input[type="date"],
+:root[data-theme="light"] input[type="number"],
+:root[data-theme="light"] select,
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] .users-select,
+:root[data-theme="light"] .users-date-input,
+:root[data-theme="light"] .users-search-box input {
+  background: #ffffff;
+  border-color: var(--border-mid);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] input:focus,
+:root[data-theme="light"] select:focus,
+:root[data-theme="light"] textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 113, 63, 0.15);
+  background: #ffffff;
+}
+
+:root[data-theme="light"] .modal-close-btn {
+  color: #64748b;
+}
+:root[data-theme="light"] .modal-close-btn:hover {
+  background: #f1f5f9;
+  border-color: #d8dee4;
+  color: #0f172a;
+}
+:root[data-theme="light"] .audit-diff-pre {
+  background: #f8fafc;
+  border: 1px solid #d8dee4;
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .users-role-pill:hover,
+:root[data-theme="light"] .admin-tab-btn:hover,
+:root[data-theme="light"] .chart-cat-btn:hover,
+:root[data-theme="light"] .user-dropdown-item:hover,
+:root[data-theme="light"] .bento-status-row:hover {
+  color: var(--text-primary);
+  background: #f1f5f9;
+}
+:root[data-theme="light"] .users-role-pill.is-active,
+:root[data-theme="light"] .admin-tab-btn.is-active,
+:root[data-theme="light"] .chart-cat-btn.is-active {
+  background: #ffffff;
+  color: var(--accent);
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-sm);
+}
+
+:root[data-theme="light"] .role-chip {
+  background: #f1f5f9;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .status-pill--active,
+:root[data-theme="light"] .badge-success,
+:root[data-theme="light"] .bg-success {
+  color: var(--accent);
+}
+:root[data-theme="light"] .user-icon-btn {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .user-icon-btn:hover {
+  background: #f1f5f9;
+  color: var(--text-primary);
+  border-color: var(--border-mid);
+}
+:root[data-theme="light"] .admin-donut-total {
+  fill: var(--text-primary);
+}
+:root[data-theme="light"] .admin-donut-track {
+  stroke: #e2e8f0;
+}
+:root[data-theme="light"] .admin-line-tooltip {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-line-path {
+    animation: none !important;
+  }
+}
