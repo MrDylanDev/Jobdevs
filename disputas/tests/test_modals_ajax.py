@@ -281,3 +281,293 @@ def test_abrir_disputa_htmx_con_accept_json_preserva_json(client):
     assert data['ok'] is True
     assert 'categorias' in data
 
+
+@pytest.mark.django_db
+def test_abrir_disputa_htmx_jdm_target_usa_jdmBody(client):
+    """S6: GET con HX-Request y jdm=1 usa hx-target=#jdmBody sin romper S5."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_jdm', email='emp_s6_jdm@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_jdm', email='dev_s6_jdm@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto <script>alert(6)</script>', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(dev)
+    resp = client.get(
+        reverse('disputas:abrir_disputa', args=[proyecto.id]) + '?jdm=1',
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'hx-target="#jdmBody"' in html
+    assert 'data-modal-title=' in html
+    assert 'data-jdm-close' in html
+    assert 'name="jdm" value="1"' in html
+    assert '<script>alert(6)</script>' not in html
+
+
+@pytest.mark.django_db
+def test_detalle_disputa_htmx_get_retorna_partial_sala_con_xss_escapado(client):
+    """S6: GET detalle_disputa con HX-Request retorna partial de sala con XSS escapado."""
+    from disputas.models import MensajeDisputa
+
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_sala', email='emp_s6_sala@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_sala', email='dev_s6_sala@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    admin = Usuario.objects.create_user(
+        username='adm_s6_sala', email='adm_s6_sala@test.com', password='Password123!',
+        rol='administrador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto <script>xss()</script>', descripcion='Desc', empresa=empresa,
+        estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos',
+        motivo='Motivo <img src=x onerror=alert(1)> suficientemente largo ' * 2,
+        estado='abierta',
+    )
+    MensajeDisputa.objects.create(
+        disputa=disputa, emisor=dev, contenido='Mensaje <b>malicioso</b> <script>bad()</script>',
+    )
+
+    client.force_login(admin)
+    resp = client.get(
+        reverse('disputas:detalle_disputa', args=[disputa.id]),
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="jdmDisputaChat"' in html
+    assert 'id="jdmFormDisputaMsg"' in html
+    assert 'id="jdmFormResolverDisputa"' in html
+    assert 'hx-target="#jdmBody"' in html
+    assert 'data-modal-title=' in html
+    assert '<script>xss()</script>' not in html
+    assert '<script>bad()</script>' not in html
+    assert '<img src=x onerror=alert(1)>' not in html
+    for codigo, _ in Disputa.RESOLUCION:
+        assert f'value="{codigo}"' in html
+
+
+@pytest.mark.django_db
+def test_detalle_disputa_htmx_con_accept_json_preserva_json(client):
+    """S6: Accept: application/json preserva JSON en detalle_disputa incluso con HX-Request."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_djson', email='emp_s6_djson@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_djson', email='dev_s6_djson@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S6 JSON', descripcion='Desc', empresa=empresa, estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos', motivo='Motivo de prueba largo ' * 4, estado='abierta',
+    )
+
+    client.force_login(dev)
+    resp = client.get(
+        reverse('disputas:detalle_disputa', args=[disputa.id]),
+        HTTP_HX_REQUEST='true',
+        HTTP_ACCEPT='application/json',
+    )
+    assert resp.status_code == 200
+    assert resp['Content-Type'].startswith('application/json')
+    data = resp.json()
+    assert data['ok'] is True
+    assert data['disputa']['id'] == disputa.id
+
+
+@pytest.mark.django_db
+def test_enviar_mensaje_disputa_htmx_post_exito_rerenderiza_y_emite_toast(client):
+    """S6: POST HTMX a enviar_mensaje_disputa re-renderiza sala con el nuevo mensaje y HX-Trigger toast."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_msg', email='emp_s6_msg@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_msg', email='dev_s6_msg@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S6 Msg', descripcion='Desc', empresa=empresa, estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos', motivo='Motivo de prueba largo ' * 4, estado='abierta',
+    )
+
+    client.force_login(dev)
+    resp = client.post(
+        reverse('disputas:enviar_mensaje_disputa', args=[disputa.id]),
+        data={'contenido': 'Adjunto evidencia <script>alert(9)</script>'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="jdmDisputaChat"' in html
+    assert 'Adjunto evidencia &lt;script&gt;alert(9)&lt;/script&gt;' in html
+    assert '<script>alert(9)</script>' not in html
+    assert 'HX-Trigger' in resp
+    triggers = json.loads(resp['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'success'
+
+
+@pytest.mark.django_db
+def test_enviar_mensaje_disputa_htmx_post_vacio_retorna_error_y_toast(client):
+    """S6: POST HTMX con mensaje vacío re-renderiza sala con error y toast de error."""
+    from disputas.models import MensajeDisputa
+
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_merr', email='emp_s6_merr@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_merr', email='dev_s6_merr@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S6 Msg Err', descripcion='Desc', empresa=empresa, estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos', motivo='Motivo de prueba largo ' * 4, estado='abierta',
+    )
+
+    client.force_login(dev)
+    resp = client.post(
+        reverse('disputas:enviar_mensaje_disputa', args=[disputa.id]),
+        data={'contenido': '   '},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert 'El mensaje no puede estar vacío.' in html
+    assert MensajeDisputa.objects.filter(disputa=disputa).count() == 0
+    assert 'HX-Trigger' in resp
+    triggers = json.loads(resp['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'error'
+
+
+@pytest.mark.django_db
+def test_resolver_disputa_htmx_post_exito_emite_hx_trigger(client):
+    """S6: POST HTMX a resolver_disputa resuelve la disputa y emite HX-Trigger toast + cierre."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_res', email='emp_s6_res@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_res', email='dev_s6_res@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    admin = Usuario.objects.create_user(
+        username='adm_s6_res', email='adm_s6_res@test.com', password='Password123!',
+        rol='administrador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S6 Res', descripcion='Desc', empresa=empresa, estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos', motivo='Motivo de prueba largo ' * 4, estado='abierta',
+    )
+
+    client.force_login(admin)
+    resp = client.post(
+        reverse('disputas:resolver_disputa', args=[disputa.id]),
+        data={
+            'resolucion': Disputa.RESOLUCION[0][0],
+            'dictamen': 'Dictamen arbitral fundado en las evidencias presentadas por ambas partes.',
+        },
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    disputa.refresh_from_db()
+    assert disputa.estado == 'resuelta'
+    assert 'HX-Trigger' in resp
+    triggers = json.loads(resp['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'success'
+    assert 'jobdevs:disputa-resuelta' in triggers
+
+
+@pytest.mark.django_db
+def test_resolver_disputa_htmx_post_invalido_rerenderiza_con_error(client):
+    """S6: POST HTMX inválido en resolver_disputa re-renderiza sala con error y no resuelve."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s6_rerr', email='emp_s6_rerr@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s6_rerr', email='dev_s6_rerr@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    admin = Usuario.objects.create_user(
+        username='adm_s6_rerr', email='adm_s6_rerr@test.com', password='Password123!',
+        rol='administrador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S6 Res Err', descripcion='Desc', empresa=empresa, estado='en_disputa',
+    )
+    contratacion = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+    disputa = Disputa.objects.create(
+        proyecto=proyecto, contratacion=contratacion, iniciado_por=dev,
+        categoria='retencion_fondos', motivo='Motivo de prueba largo ' * 4, estado='abierta',
+    )
+
+    client.force_login(admin)
+    resp = client.post(
+        reverse('disputas:resolver_disputa', args=[disputa.id]),
+        data={'resolucion': 'invalida', 'dictamen': ''},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="jdmFormResolverDisputa"' in html
+    assert 'jdm-error' in html
+    disputa.refresh_from_db()
+    assert disputa.estado == 'abierta'
+    assert 'HX-Trigger' in resp
+    triggers = json.loads(resp['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'error'
+
+

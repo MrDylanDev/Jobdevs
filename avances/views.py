@@ -1,9 +1,11 @@
+import json
 import os
 import zipfile
 from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -26,11 +28,23 @@ def _es_ajax(request):
     return (
         request.headers.get('x-requested-with') == 'XMLHttpRequest'
         or 'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
     )
+
+
+def _es_htmx(request):
+    return request.headers.get('HX-Request') == 'true' and not _es_ajax(request)
 
 
 def _json_error(msg, status=400):
     return JsonResponse({'ok': False, 'error': msg, 'mensaje': msg}, status=status)
+
+
+def _htmx_error(msg, status=400):
+    return HttpResponse(
+        f'<div class="jdm-error"><i data-lucide="alert-triangle"></i><span>{escape(msg)}</span></div>',
+        status=status,
+    )
 
 
 def _validar_archivo_adjunto(archivo):
@@ -74,18 +88,22 @@ def _validar_archivo_adjunto(archivo):
 @login_required
 def registrar_avance(request, proyecto_id):
     is_ajax = _es_ajax(request)
+    is_htmx = _es_htmx(request)
 
     if request.user.rol != 'desarrollador':
         msg = "Solo los desarrolladores pueden registrar avances."
         if is_ajax:
             return _json_error(msg, status=403)
+        if is_htmx:
+            return _htmx_error(msg, status=403)
         messages.error(request, msg)
         return redirect('inicio')
 
-    if is_ajax:
+    if is_ajax or is_htmx:
         proyecto = Proyecto.objects.filter(id=proyecto_id).first()
         if not proyecto:
-            return _json_error("El proyecto no existe.", status=404)
+            msg = "El proyecto no existe."
+            return _json_error(msg, status=404) if is_ajax else _htmx_error(msg, status=404)
     else:
         proyecto = get_object_or_404(Proyecto, id=proyecto_id)
 
@@ -95,6 +113,8 @@ def registrar_avance(request, proyecto_id):
         msg = "No tienes un contrato activo para este proyecto."
         if is_ajax:
             return _json_error(msg, status=403)
+        if is_htmx:
+            return _htmx_error(msg, status=403)
         messages.error(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
@@ -106,6 +126,8 @@ def registrar_avance(request, proyecto_id):
         msg = f"Ya no puedes subir más avances para el proyecto '{proyecto.titulo}', pues ya no se encuentra en estado de desarrollo."
         if is_ajax:
             return _json_error(msg, status=400)
+        if is_htmx:
+            return _htmx_error(msg, status=400)
         messages.warning(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
 
@@ -127,13 +149,19 @@ def registrar_avance(request, proyecto_id):
             msg = f"El proyecto '{proyecto.titulo}' aún no tiene hitos definidos por la empresa."
             if is_ajax:
                 return _json_error(msg, status=400)
+            if is_htmx:
+                return _htmx_error(msg, status=400)
             messages.warning(request, msg)
         else:
             msg = f"Todos los hitos del proyecto '{proyecto.titulo}' ya han sido entregados o están en revisión."
             if is_ajax:
                 return _json_error(msg, status=400)
+            if is_htmx:
+                return _htmx_error(msg, status=400)
             messages.info(request, msg)
         return redirect(reverse('dashboard_desarrollador') + '?section=activos')
+
+    url_registrar = reverse('registrar_avance', args=[proyecto.id])
 
     if request.method == 'GET' and is_ajax:
         return JsonResponse({
@@ -146,7 +174,7 @@ def registrar_avance(request, proyecto_id):
                 {'id': h.id, 'titulo': h.titulo, 'descripcion': h.descripcion or ''}
                 for h in hitos_pendientes
             ],
-            'url_registrar': reverse('registrar_avance', args=[proyecto.id]),
+            'url_registrar': url_registrar,
         })
 
     form_data = {
@@ -155,9 +183,26 @@ def registrar_avance(request, proyecto_id):
         'archivo_url': '',
     }
 
+    if request.method == 'GET' and is_htmx:
+        return render(request, 'avances/partials/_modal_registrar_avance.html', {
+            'proyecto': proyecto,
+            'hitos_pendientes': hitos_pendientes,
+            'form_data': form_data,
+            'url_registrar': url_registrar,
+            'error': None,
+        })
+
     def _responder_error(msg_error):
         if is_ajax:
             return JsonResponse({'status': 'error', 'error': msg_error}, status=400)
+        if is_htmx:
+            return render(request, 'avances/partials/_modal_registrar_avance.html', {
+                'proyecto': proyecto,
+                'hitos_pendientes': hitos_pendientes,
+                'form_data': form_data,
+                'url_registrar': url_registrar,
+                'error': msg_error,
+            }, status=200)
         messages.error(request, msg_error)
         return render(request, 'avances/registrar.html', {
             'proyecto': proyecto,
@@ -264,11 +309,19 @@ def registrar_avance(request, proyecto_id):
                     messages.info(request, "¡Felicidades! Has enviado el último hito. El proyecto ha pasado a Revisión Final.")
 
             redirect_target = reverse('dashboard_desarrollador') + '?section=activos'
-            messages.success(request, "¡Hito completado y avance registrado exitosamente!")
+            msg_exito = '¡Hito completado y avance registrado exitosamente!'
+            if is_htmx:
+                response = HttpResponse('')
+                response['HX-Trigger'] = json.dumps({
+                    'jobdevs:toast': {'tipo': 'success', 'mensaje': msg_exito},
+                    'jobdevs:avance-registrado': {'proyecto_id': proyecto.id},
+                })
+                return response
+            messages.success(request, msg_exito)
             if is_ajax:
                 return JsonResponse({
                     'status': 'ok',
-                    'mensaje': '¡Hito completado y avance registrado exitosamente!',
+                    'mensaje': msg_exito,
                     'redirect_url': redirect_target,
                 })
             return redirect(redirect_target)
@@ -399,11 +452,13 @@ def revisar_avance(request, avance_id):
 @login_required
 def ver_avances(request, proyecto_id):
     es_ajax = _es_ajax(request)
+    es_htmx = _es_htmx(request)
 
-    if es_ajax:
+    if es_ajax or es_htmx:
         proyecto = Proyecto.objects.filter(id=proyecto_id).first()
         if not proyecto:
-            return _json_error("El proyecto no existe.", status=404)
+            msg = "El proyecto no existe."
+            return _json_error(msg, status=404) if es_ajax else _htmx_error(msg, status=404)
     else:
         proyecto = get_object_or_404(Proyecto, id=proyecto_id)
 
@@ -419,6 +474,8 @@ def ver_avances(request, proyecto_id):
         msg = "No tienes permisos para ver los avances de este proyecto."
         if es_ajax:
             return _json_error(msg, status=403)
+        if es_htmx:
+            return _htmx_error(msg, status=403)
         messages.error(request, msg)
         if request.user.rol == 'desarrollador':
             return redirect('dashboard_desarrollador')
@@ -437,7 +494,7 @@ def ver_avances(request, proyecto_id):
     hitos_completados = progreso['hitos_completados'] or 0
     hitos_totales = progreso['hitos_totales'] or 0
 
-    if es_ajax:
+    if es_ajax or es_htmx:
         avances_data = []
         for a in avances:
             avances_data.append({
@@ -452,18 +509,39 @@ def ver_avances(request, proyecto_id):
                 'fecha': a.fecha_hora.strftime('%d/%m/%Y %H:%M'),
                 'estado': a.estado,
                 'estado_label': a.get_estado_display(),
-                'observaciones': a.observaciones or '',
+                'observaciones': getattr(a, 'comentario_revision', None) or '',
             })
 
-        hitos_data = []
-        for h in proyecto.entregables.all().order_by('fecha_creacion'):
-            hitos_data.append({
+        hitos_qs = proyecto.entregables.all().order_by('fecha_creacion')
+        progreso_pct = round((hitos_completados / hitos_totales) * 100) if hitos_totales else 0
+        puede_registrar = (request.user.rol == 'desarrollador' and proyecto.estado == 'en_desarrollo')
+        registrar_url = reverse('registrar_avance', args=[proyecto.id])
+        empresa_nombre = proyecto.empresa.nombre or proyecto.empresa.username
+
+        if es_htmx:
+            return render(request, 'avances/partials/_modal_ver_avances.html', {
+                'proyecto': proyecto,
+                'empresa_nombre': empresa_nombre,
+                'estado_label': proyecto.get_estado_display(),
+                'progreso_pct': progreso_pct,
+                'hitos_completados': hitos_completados,
+                'hitos_totales': hitos_totales,
+                'hitos': hitos_qs,
+                'avances_items': avances_data,
+                'puede_registrar': puede_registrar,
+                'registrar_url': registrar_url,
+            })
+
+        hitos_data = [
+            {
                 'id': h.id,
                 'titulo': h.titulo,
                 'descripcion': h.descripcion or '',
                 'estado': h.estado,
                 'estado_label': h.get_estado_display(),
-            })
+            }
+            for h in hitos_qs
+        ]
 
         return JsonResponse({
             'ok': True,
@@ -472,15 +550,15 @@ def ver_avances(request, proyecto_id):
                 'titulo': proyecto.titulo,
                 'estado': proyecto.estado,
                 'estado_label': proyecto.get_estado_display(),
-                'progreso': round((hitos_completados / hitos_totales) * 100) if hitos_totales else 0,
+                'progreso': progreso_pct,
                 'hitos_completados': hitos_completados,
                 'hitos_totales': hitos_totales,
-                'empresa': proyecto.empresa.nombre or proyecto.empresa.username,
+                'empresa': empresa_nombre,
             },
             'hitos': hitos_data,
             'avances': avances_data,
-            'puede_registrar': (request.user.rol == 'desarrollador' and proyecto.estado == 'en_desarrollo'),
-            'registrar_url': reverse('registrar_avance', args=[proyecto.id]),
+            'puede_registrar': puede_registrar,
+            'registrar_url': registrar_url,
         })
 
     # Datos del sub-tab "Hitos del Proyecto" para alternar sin recargar la página (solo empresa)

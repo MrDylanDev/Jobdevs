@@ -1,0 +1,47 @@
+<div class="jdm-registrar-avance-partial"
+     data-modal-kicker="GESTIÓN DE ENTREGABLES"
+     data-modal-title="Registrar Avance Técnico"
+     data-modal-subtitle="Proyecto: {{ proyecto.titulo }}">
+  <form id="jdmFormAvance"
+        method="post"
+        action="{{ url_registrar }}"
+        hx-post="{{ url_registrar }}"
+        hx-target="#jdmBody"
+        hx-swap="innerHTML"
+        hx-encoding="multipart/form-data"
+        enctype="multipart/form-data"
+        novalidate>
+    {% csrf_token %}
+
+    {% if error %}
+      <div id="jdmAvanceError" class="jdm-error" role="alert"><i data-lucide="alert-circle"></i><span>{{ error }}</span></div>
+    {% else %}
+      <div id="jdmAvanceError" class="jdm-error" style="display:none;" role="alert"></div>
+    {% endif %}
+
+    <div class="jdm-form-group">
+      <label class="jdm-form-label" for="jdmHitoSelect">Hito correspondiente <span class="req">*</span></label>
+      <select id="jdmHitoSelect" name="entregable_id" class="jdm-select" required>
+        <option value="">-- Selecciona el hito a reportar --</option>
+        {% for h in hitos_pendientes %}
+          <option value="{{ h.id }}" {% if form_data.entregable_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.titulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="jdm-form-group">
+      <label class="jdm-form-label" for="jdmDescAvance">Descripción detallada del avance realizado <span class="req">*</span></label>
+      <textarea id="jdmDescAvance" name="descripcion" class="jdm-textarea" placeholder="Explica qué implementaste, pruebas realizadas y consideraciones técnicas…" required>{{ form_data.descripcion }}</textarea>
+    </div>
+
+    <div class="jdm-form-group">
+      <label class="jdm-form-label" for="jdmUrlAvance">URL de evidencia o repositorio (opcional si adjuntas archivo)</label>
+      <input type="url" id="jdmUrlAvance" name="archivo_url" class="jdm-input" placeholder="https://github.com/... o enlace a demo" value="{{ form_data.archivo_url }}">
+    </div>
+
+    <div class="jdm-form-group">
+      <label class="jdm-form-label" for="jdmArchivoAvance">Archivo adjunto (ZIP, PDF, imagen, max 10MB)</label>
+      <input type="file" id="jdmArchivoAvance" name="archivo_adjunto" class="jdm-input" style="padding:6px;">
+    </div>
+  </form>
+</div>

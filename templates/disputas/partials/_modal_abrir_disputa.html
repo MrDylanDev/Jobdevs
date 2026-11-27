@@ -3,11 +3,15 @@
       id="form-disputa"
       action="{{ url_abrir }}"
       hx-post="{{ url_abrir }}"
-      hx-target="#modalDisputaBody"
+      hx-target="{{ modal_target|default:'#modalDisputaBody' }}"
       hx-swap="innerHTML"
       hx-encoding="multipart/form-data"
+      data-modal-kicker="ARBITRAJE CONTRACTUAL"
+      data-modal-title="Apertura de Mediación Formal"
+      data-modal-subtitle="Proyecto: {{ proyecto.titulo }} · Empresa: {{ empresa_nombre }}"
       novalidate>
   {% csrf_token %}
+  {% if is_jdm %}<input type="hidden" name="jdm" value="1">{% endif %}
 
   <div class="form-group-corp">
     <label for="categoria" class="form-label-corp" style="display:flex; align-items:center; gap:6px;">
@@ -87,7 +91,11 @@
   {% endif %}
 
   <div class="disp-actions">
-    <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">Cancelar</button>
+    {% if is_jdm %}
+      <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>
+    {% else %}
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">Cancelar</button>
+    {% endif %}
     <button type="submit" id="btn-submit-disputa" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
       <i data-lucide="gavel"></i>
       <span>Iniciar Mediación Formal</span>
