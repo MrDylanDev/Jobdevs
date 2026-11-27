@@ -2275,7 +2275,7 @@
         <div class="jdm-form-label" style="margin-bottom:10px;">
           <i data-lucide="handshake"></i> Proponer Terminación de Mutuo Acuerdo
         </div>
-        <form id="formProponerCancelacionDev" action="{% url 'cancelar_contratacion' contratos_cancelables_dev.0.id %}" method="post" class="jd-form">
+        <form id="formProponerCancelacionDev" action="{% url 'cancelar_contratacion' contratos_cancelables_dev.0.id %}" data-url-template="{% url 'cancelar_contratacion' 0 %}" method="post" class="jd-form">
           {% csrf_token %}
           <div class="jd-field">
             <label class="jd-label" for="cancelContratoSelect">Seleccionar Contrato Activo</label>

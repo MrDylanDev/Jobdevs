@@ -47,9 +47,12 @@ export function cerrarModalPerfilDev() {
 // ═══════════════════════════════════════════════
 // MODAL FLOTANTE: VERIFICACIÓN SENA
 // ═══════════════════════════════════════════════
+let _verifModalLastFocus = null;
+
 export function abrirVerificacion() {
   const modal = document.getElementById('modalVerificacion');
   if (!modal) return;
+  _verifModalLastFocus = document.activeElement;
   sincronizarCsrf(modal);
   modal.classList.add('is-open');
   modal.setAttribute('aria-hidden', 'false');
@@ -64,11 +67,15 @@ export function abrirVerificacion() {
 
 export function cerrarVerificacion() {
   const modal = document.getElementById('modalVerificacion');
-  if (!modal) return;
+  if (!modal || !modal.classList.contains('is-open')) return;
   _cleanupModalFocusTrap();
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  if (_verifModalLastFocus && typeof _verifModalLastFocus.focus === 'function') {
+    _verifModalLastFocus.focus();
+  }
+  _verifModalLastFocus = null;
 }
 
 export function limpiarErroresVerificacion(form) {
@@ -118,6 +125,7 @@ export function initPerfilVerificacion() {
       }
 
       try {
+        sincronizarCsrf(formPerfil);
         const formData = new FormData(formPerfil);
         const response = await fetch(formPerfil.action || window.location.href, {
           method: 'POST',
@@ -266,6 +274,9 @@ export function initPerfilVerificacion() {
     if (submit) {
       submit.disabled = true;
       submit.innerHTML = '<i data-lucide="loader-2"></i> Enviando...';
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     }
 
     try {

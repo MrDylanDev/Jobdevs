@@ -89,8 +89,17 @@ function showTooltip(evt, pt, label) {
 
   tip.style.display = 'block';
   const rect = wrap.getBoundingClientRect();
-  let left = (evt.clientX - rect.left);
-  let top = (evt.clientY - rect.top) - 10;
+  let clientX = evt && typeof evt.clientX === 'number' ? evt.clientX : null;
+  let clientY = evt && typeof evt.clientY === 'number' ? evt.clientY : null;
+  if (clientX === null || clientY === null) {
+    const targetRect = evt && evt.target && typeof evt.target.getBoundingClientRect === 'function'
+      ? evt.target.getBoundingClientRect()
+      : rect;
+    clientX = targetRect.left + targetRect.width / 2;
+    clientY = targetRect.top + targetRect.height / 2;
+  }
+  let left = (clientX - rect.left);
+  let top = (clientY - rect.top) - 10;
   if (left + 140 > rect.width) left = Math.max(8, left - 150);
   if (top < 30) top = 30;
   tip.style.left = left + 'px';
@@ -185,10 +194,16 @@ function renderChart(mode) {
     c.setAttribute('r', pt.valor > 0 ? '4.5' : '3');
     c.setAttribute('class', 'chart-data-dot');
     c.setAttribute('stroke', isGold ? '#f59e0b' : '#00e676');
+    const ariaVal = metric === 'calificacion'
+      ? (pt.valor > 0 ? Number(pt.valor).toFixed(1) + ' estrellas' : 'sin valoraciones')
+      : String(pt.valor) + ' ' + labelText;
+    c.setAttribute('aria-label', (pt.fecha || pt.etiqueta) + ': ' + ariaVal);
     c.setAttribute('tabindex', '0');
     c.addEventListener('mouseenter', function (e) { showTooltip(e, pt, labelText); });
     c.addEventListener('mousemove', function (e) { showTooltip(e, pt, labelText); });
     c.addEventListener('mouseleave', hideTooltip);
+    c.addEventListener('focus', function (e) { showTooltip(e, pt, labelText); });
+    c.addEventListener('blur', hideTooltip);
     dotsG.appendChild(c);
   });
 
@@ -226,7 +241,7 @@ export function cambiarMetricaGrafica(metric, btn) {
   } else if (metric === 'calificacion') {
     if (title) title.textContent = 'Evolución de Calificación y Reputación';
     const vals = rawData.map(function (p) { return p.calificacion || 0; }).filter(function (v) { return v > 0; });
-    const avg = vals.length ? (vals.reduce(function (a, b) { return a + b; }, 0) / vals.length).toFixed(1) : '5.0';
+    const avg = vals.length ? (vals.reduce(function (a, b) { return a + b; }, 0) / vals.length).toFixed(1) : '—';
     if (kpiVal) {
       kpiVal.removeAttribute('data-target-val');
       kpiVal.textContent = avg;

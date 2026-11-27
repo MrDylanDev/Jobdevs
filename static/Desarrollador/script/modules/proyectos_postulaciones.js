@@ -27,7 +27,7 @@ export function filterDevExplore() {
   const cat = (catSelect ? catSelect.value : '').toLowerCase().trim();
   const prio = (prioSelect ? prioSelect.value : '').toLowerCase().trim();
 
-  const cards = document.querySelectorAll('.dev-explore-card');
+  const cards = document.querySelectorAll('#devExploreGrid .dev-explore-card');
 
   cards.forEach(card => {
     const titulo = card.getAttribute('data-titulo') || '';

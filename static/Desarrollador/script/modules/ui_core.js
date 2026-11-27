@@ -361,7 +361,10 @@ export function initChatListResizerDev() {
   try {
     const saved = parseInt(localStorage.getItem(STORAGE_KEY) || '', 10);
     if (Number.isFinite(saved) && saved >= MIN_WIDTH) {
-      chat.style.setProperty('--jd-chat-list-width', clampWidth(saved) + 'px');
+      chat.style.setProperty(
+        '--jd-chat-list-width',
+        (chat.getBoundingClientRect().width > 0 ? clampWidth(saved) : Math.min(saved, MAX_WIDTH)) + 'px'
+      );
     }
   } catch (e) {}
 

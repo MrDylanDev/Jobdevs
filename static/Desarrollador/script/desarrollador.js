@@ -87,8 +87,6 @@ onReady(function () {
 // Garantizar re-render de Lucide si el evento load aún no ha ocurrido
 if (document.readyState !== 'complete') {
   window.addEventListener('load', function () {
-    const s = new URLSearchParams(window.location.search).get('section');
-    if (s) verSeccion(s);
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }

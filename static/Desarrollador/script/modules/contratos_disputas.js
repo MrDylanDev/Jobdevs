@@ -14,23 +14,29 @@ import {
 // ═══════════════════════════════════════════════
 export function abrirModalNuevaDisputaDev() {
   const m = document.getElementById('modalNuevaDisputa');
-  if (m) {
-    m.hidden = false;
-    m.style.display = 'flex';
-    m.classList.add('is-open');
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
+  if (!m) return;
+  m.hidden = false;
+  m.style.display = 'flex';
+  m.classList.add('is-open');
+  m.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
   }
+  const focusTarget = m.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusTarget) focusTarget.focus();
+  _setupModalFocusTrap(m, cerrarModalNuevaDisputaDev);
 }
 
 export function cerrarModalNuevaDisputaDev() {
   const m = document.getElementById('modalNuevaDisputa');
-  if (m) {
-    m.hidden = true;
-    m.style.display = 'none';
-    m.classList.remove('is-open');
-  }
+  if (!m || m.hidden) return;
+  _cleanupModalFocusTrap();
+  m.hidden = true;
+  m.style.display = 'none';
+  m.classList.remove('is-open');
+  m.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
 }
 
 export const abrirModalDisputa = abrirModalNuevaDisputaDev;
@@ -110,6 +116,10 @@ export function filtrarDisputasEnTiempoReal(event, estado, btn) {
 export function abrirModalCancelacionDev() {
   const modal = document.getElementById('modalCancelacionDev');
   if (!modal) return;
+  const selectEl = modal.querySelector('#cancelContratoSelect');
+  if (selectEl) {
+    actualizarActionCancelacion(selectEl);
+  }
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
@@ -133,7 +143,12 @@ export function cerrarModalCancelacionDev() {
 export function actualizarActionCancelacion(selectEl) {
   const form = document.getElementById('formProponerCancelacionDev');
   if (form && selectEl && selectEl.value) {
-    form.action = '/contrataciones/cancelar/' + selectEl.value + '/';
+    const template = form.getAttribute('data-url-template');
+    if (template) {
+      form.action = template.replace('/0/', '/' + selectEl.value + '/');
+    } else {
+      form.action = '/contrataciones/cancelar/' + selectEl.value + '/';
+    }
   }
 }
 
