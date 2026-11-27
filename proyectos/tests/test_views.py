@@ -1061,6 +1061,137 @@ class TestFinalizarProyecto:
             puntuacion=5,
         ).exists()
 
+    def test_finalizar_proyecto_htmx_get_retorna_partial_modal(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: GET con HX-Request devuelve _modal_finalizar_proyecto.html con controles de estrellas."""
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto
+
+        desarrollador_user.nombre = 'Dev <script>alert(1)</script>'
+        desarrollador_user.save(update_fields=['nombre'])
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.get(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        html = resp.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formCalificarModal"' in html
+        assert 'hx-post=' in html
+        assert 'hx-target="#modalCalificarBody"' in html
+        assert 'class="corp-star-rating"' in html
+        assert '<script>alert(1)</script>' not in html
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+
+    def test_finalizar_proyecto_htmx_post_error_rerenderiza_partial(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: POST HTMX con error de validación re-renderiza el partial con .msg-error."""
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Error Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.post(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            {'puntuacion': '5', 'comentario': 'Corto'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        html = resp.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formCalificarModal"' in html
+        assert 'class="msg-error"' in html
+        assert not Valoracion.objects.filter(proyecto=proyecto).exists()
+
+    def test_finalizar_proyecto_htmx_post_exito_retorna_hx_trigger(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: POST HTMX exitoso guarda valoración y devuelve 200 con HX-Trigger."""
+        import json
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Exito Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.post(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            {
+                'puntuacion': '5',
+                'comentario': 'Excelente trabajo técnico, comunicación clara y entregas a tiempo.',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        assert Valoracion.objects.filter(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            rol_evaluador='empresa',
+            puntuacion=5,
+        ).exists()
+        assert 'HX-Trigger' in resp
+        triggers = json.loads(resp['HX-Trigger'])
+        assert 'jobdevs:toast' in triggers
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:calificacion-guardada' in triggers
+
 
 class TestCalificarEmpresa:
     """RF 5.2.2: el desarrollador califica a la empresa con comentario obligatorio."""

@@ -1,0 +1,74 @@
+{% if solo_mensaje %}
+  <div class="drawer-loading" style="padding:24px 16px;">
+    {% if error %}
+      <div id="calificarModalError" class="msg-error" role="alert" style="margin-bottom:14px;">{{ error }}</div>
+    {% endif %}
+    <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cerrar</button>
+  </div>
+{% elif todos_calificados %}
+  <div class="drawer-loading" style="padding:28px 16px;">
+    <p>Todos los colaboradores de este proyecto ya fueron calificados.</p>
+    <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()" style="margin-top:12px;">Cerrar</button>
+  </div>
+{% elif not desarrollador %}
+  <form id="formCalificarModal"
+        method="post"
+        action="{{ action_url }}"
+        hx-post="{{ action_url }}"
+        hx-target="#modalCalificarBody"
+        hx-swap="innerHTML">
+    {% csrf_token %}
+    {% if error %}
+      <div id="calificarModalError" class="msg-error" role="alert" style="margin-bottom:12px;">{{ error }}</div>
+    {% endif %}
+    <p style="font-size:13.5px; color:var(--corp-slate-600); margin:0 0 18px;">
+      Todos los colaboradores han sido calificados. Confirma el cierre oficial del proyecto <strong>{{ proyecto.titulo }}</strong>.
+    </p>
+    <div class="modal-footer-corp">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cancelar</button>
+      <button type="submit" class="btn-corp-primary">Confirmar y Finalizar</button>
+    </div>
+  </form>
+{% else %}
+  <div class="calificar-dev-summary">
+    <div class="calificar-dev-label">Calificando a</div>
+    <div class="calificar-dev-name">{{ desarrollador.nombre|default:desarrollador.username }}</div>
+    {% if restantes > 0 %}
+      <div class="calificar-dev-restantes">Faltan {{ restantes }} colaboradores por calificar.</div>
+    {% endif %}
+  </div>
+  <form id="formCalificarModal"
+        method="post"
+        action="{{ action_url }}"
+        hx-post="{{ action_url }}"
+        hx-target="#modalCalificarBody"
+        hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="form-group-corp" style="text-align:center;">
+      <div class="form-label-corp" style="margin-bottom:8px;">Puntuación del Desarrollador</div>
+      <div class="corp-star-rating">
+        <input type="radio" name="puntuacion" value="5" id="modalStar5" {% if puntuacion == '5' %}checked{% endif %} required><label for="modalStar5" title="5">★</label>
+        <input type="radio" name="puntuacion" value="4" id="modalStar4" {% if puntuacion == '4' %}checked{% endif %}><label for="modalStar4" title="4">★</label>
+        <input type="radio" name="puntuacion" value="3" id="modalStar3" {% if puntuacion == '3' %}checked{% endif %}><label for="modalStar3" title="3">★</label>
+        <input type="radio" name="puntuacion" value="2" id="modalStar2" {% if puntuacion == '2' %}checked{% endif %}><label for="modalStar2" title="2">★</label>
+        <input type="radio" name="puntuacion" value="1" id="modalStar1" {% if puntuacion == '1' %}checked{% endif %}><label for="modalStar1" title="1">★</label>
+      </div>
+    </div>
+    <div class="form-group-corp">
+      <label class="form-label-corp" for="modalCalificarComentario">Comentarios sobre el desempeño</label>
+      <textarea id="modalCalificarComentario" name="comentario" class="form-input-corp" rows="4" required minlength="20" maxlength="2000" placeholder="Describe tu experiencia trabajando con este desarrollador (mínimo 20 caracteres)...">{{ comentario|default:'' }}</textarea>
+    </div>
+    {% if error %}
+      <div id="calificarModalError" class="msg-error" role="alert" style="margin-bottom:12px;">{{ error }}</div>
+    {% else %}
+      <div id="calificarModalError" class="msg-error" role="alert" style="display:none; margin-bottom:12px;"></div>
+    {% endif %}
+    <div class="modal-footer-corp">
+      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cancelar</button>
+      <button type="submit" class="btn-corp-primary">
+        <i data-lucide="star"></i>
+        <span>Enviar Calificación</span>
+      </button>
+    </div>
+  </form>
+{% endif %}

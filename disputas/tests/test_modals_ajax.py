@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from pathlib import Path
 
@@ -135,3 +136,148 @@ def test_ver_contrato_digital_ajax_retorna_estructura_compatible_con_modal(clien
     assert data['contrato']['id'] == contrato.id
     assert isinstance(data['contrato']['clausulas'], list)
     assert len(data['contrato']['clausulas']) == 2
+
+
+@pytest.mark.django_db
+def test_abrir_disputa_htmx_get_retorna_partial_modal(client):
+    """S5: GET con HX-Request devuelve el partial _modal_abrir_disputa.html."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s5_get', email='emp_s5_get@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s5_get', email='dev_s5_get@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto <script>alert(1)</script>', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(empresa)
+    resp = client.get(
+        reverse('disputas:abrir_disputa', args=[proyecto.id]),
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="form-disputa"' in html
+    assert 'hx-post=' in html
+    assert 'hx-target="#modalDisputaBody"' in html
+    assert 'id="char-count"' in html
+    assert 'id="confirma_intento_previo"' in html
+
+
+@pytest.mark.django_db
+def test_abrir_disputa_htmx_post_error_rerenderiza_partial(client):
+    """S5: POST HTMX con error de validación re-renderiza el partial con mensaje de error."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s5_err', email='emp_s5_err@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s5_err', email='dev_s5_err@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S5 Error', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(empresa)
+    resp = client.post(
+        reverse('disputas:abrir_disputa', args=[proyecto.id]),
+        data={'categoria': 'incumplimiento_contractual', 'motivo': ''},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="form-disputa"' in html
+    assert 'Debes indicar el motivo de la disputa.' in html
+    assert not Disputa.objects.filter(proyecto=proyecto).exists()
+
+
+@pytest.mark.django_db
+def test_abrir_disputa_htmx_post_exito_retorna_hx_trigger(client):
+    """S5: POST HTMX exitoso crea la disputa y retorna 200 con HX-Trigger."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s5_ok', email='emp_s5_ok@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s5_ok', email='dev_s5_ok@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S5 Exito', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(empresa)
+    motivo_valido = (
+        'El desarrollador incumplió los hitos pactados el día 10 de enero y no respondió '
+        'los mensajes de seguimiento enviados durante dos semanas consecutivas.'
+    )
+    resp = client.post(
+        reverse('disputas:abrir_disputa', args=[proyecto.id]),
+        data={
+            'categoria': 'incumplimiento_contractual',
+            'motivo': motivo_valido,
+            'evidencia_url': 'https://github.com/org/repo/issues/1',
+            'confirma_intento_previo': '1',
+            'confirma_gravedad': '1',
+            'acepta_sanciones': '1',
+        },
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    assert Disputa.objects.filter(proyecto=proyecto).exists()
+    assert 'HX-Trigger' in resp
+    triggers = json.loads(resp['HX-Trigger'])
+    assert 'jobdevs:toast' in triggers
+    assert triggers['jobdevs:toast']['tipo'] == 'success'
+    assert 'jobdevs:disputa-creada' in triggers
+
+
+@pytest.mark.django_db
+def test_abrir_disputa_htmx_con_accept_json_preserva_json(client):
+    """S5: Accept: application/json preserva el contrato JSON incluso con HX-Request."""
+    empresa = Usuario.objects.create_user(
+        username='emp_s5_json', email='emp_s5_json@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_s5_json', email='dev_s5_json@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto S5 JSON', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(empresa)
+    resp = client.get(
+        reverse('disputas:abrir_disputa', args=[proyecto.id]),
+        HTTP_HX_REQUEST='true',
+        HTTP_ACCEPT='application/json',
+    )
+    assert resp.status_code == 200
+    assert resp['Content-Type'].startswith('application/json')
+    data = resp.json()
+    assert data['ok'] is True
+    assert 'categorias' in data
+

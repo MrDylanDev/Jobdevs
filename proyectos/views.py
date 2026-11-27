@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
@@ -280,17 +280,40 @@ def finalizar_proyecto(request, proyecto_id):
     La vista se queda con permisos, parseo del input y mensajes; las reglas de
     negocio (estado, hitos, cupos, transiciones) viven en proyectos/services.py.
     """
+    wants_json = (
+        'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
+        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    )
+    es_htmx = request.headers.get('HX-Request') == 'true' and not wants_json
+
     if request.user.rol != 'empresa':
+        if es_htmx:
+            return render(
+                request,
+                'proyectos/partials/_modal_finalizar_proyecto.html',
+                {'error': 'Acceso denegado.', 'solo_mensaje': True},
+                status=403,
+            )
         messages.error(request, "Acceso denegado.")
         return redirect('inicio')
 
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
+    action_url = reverse('finalizar_proyecto', args=[proyecto.id])
 
     if proyecto.estado == 'finalizado':
         try:
             services.validar_plazo_valoracion(proyecto)
         except ValidationError as exc:
-            messages.error(request, ' '.join(exc.messages))
+            err_msg = ' '.join(exc.messages)
+            if es_htmx:
+                return render(
+                    request,
+                    'proyectos/partials/_modal_finalizar_proyecto.html',
+                    {'proyecto': proyecto, 'error': err_msg, 'solo_mensaje': True},
+                    status=200,
+                )
+            messages.error(request, err_msg)
             return redirect('dashboard_empresa')
     else:
         # Prevalidación de UX para el cierre manual de compatibilidad.
@@ -298,6 +321,13 @@ def finalizar_proyecto(request, proyecto_id):
             services.validar_finalizacion(proyecto)
         except ValidationError as exc:
             motivo = ' '.join(exc.messages)
+            if es_htmx:
+                return render(
+                    request,
+                    'proyectos/partials/_modal_finalizar_proyecto.html',
+                    {'proyecto': proyecto, 'error': motivo, 'solo_mensaje': True},
+                    status=200,
+                )
             messages.error(request, motivo)
             if 'hitos definidos' in motivo:
                 return redirect('gestionar_hitos', proyecto_id=proyecto.id)
@@ -310,24 +340,74 @@ def finalizar_proyecto(request, proyecto_id):
         if request.method == 'POST':
             try:
                 services.finalizar_proyecto(proyecto.id, request.user)
-                messages.success(
-                    request,
-                    f"El proyecto '{proyecto.titulo}' fue finalizado. Ya puedes calificar al equipo.",
-                )
+                msg = f"El proyecto '{proyecto.titulo}' fue finalizado. Ya puedes calificar al equipo."
+                if es_htmx:
+                    pendientes_post = services.desarrolladores_pendientes(proyecto)
+                    if pendientes_post.exists():
+                        response = render(
+                            request,
+                            'proyectos/partials/_modal_finalizar_proyecto.html',
+                            {
+                                'proyecto': proyecto,
+                                'desarrollador': pendientes_post.first(),
+                                'restantes': pendientes_post.count() - 1,
+                                'action_url': action_url,
+                            },
+                        )
+                        response['HX-Trigger'] = json.dumps({
+                            'jobdevs:toast': {'tipo': 'success', 'mensaje': msg},
+                        })
+                        return response
+                    response = HttpResponse('')
+                    response['HX-Trigger'] = json.dumps({
+                        'jobdevs:toast': {'tipo': 'success', 'mensaje': msg},
+                        'jobdevs:calificacion-guardada': {
+                            'proyecto_id': proyecto.id,
+                            'reload_hash': 'historial',
+                        },
+                    })
+                    return response
+                messages.success(request, msg)
             except (PermissionDenied, ValidationError) as exc:
-                messages.error(request, ' '.join(getattr(exc, 'messages', [str(exc)])))
+                err_msg = ' '.join(getattr(exc, 'messages', [str(exc)]))
+                if es_htmx:
+                    return render(
+                        request,
+                        'proyectos/partials/_modal_finalizar_proyecto.html',
+                        {
+                            'proyecto': proyecto,
+                            'desarrollador': None,
+                            'restantes': 0,
+                            'action_url': action_url,
+                            'error': err_msg,
+                        },
+                        status=200,
+                    )
+                messages.error(request, err_msg)
             return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
-        return render(request, 'proyectos/finalizar.html', {
+        template = (
+            'proyectos/partials/_modal_finalizar_proyecto.html'
+            if es_htmx else 'proyectos/finalizar.html'
+        )
+        return render(request, template, {
             'proyecto': proyecto,
             'desarrollador': None,
             'restantes': 0,
+            'action_url': action_url,
         })
 
     pendientes = services.desarrolladores_pendientes(proyecto)
 
     # Proyecto ya cerrado: las valoraciones no gobiernan la transición de estado.
     if not pendientes.exists():
+        if es_htmx:
+            return render(
+                request,
+                'proyectos/partials/_modal_finalizar_proyecto.html',
+                {'proyecto': proyecto, 'todos_calificados': True},
+                status=200,
+            )
         messages.info(request, "Todos los colaboradores ya fueron calificados.")
         return redirect('dashboard_empresa')
 
@@ -336,44 +416,105 @@ def finalizar_proyecto(request, proyecto_id):
     restantes = pendientes.count() - 1
 
     if request.method == 'POST':
+        puntuacion = request.POST.get('puntuacion')
+        comentario = request.POST.get('comentario', '')
+        err_msg = None
         try:
             finalizado, restantes = services.valorar_y_finalizar_si_ultima(
                 proyecto_id=proyecto.id,
                 desarrollador_id=desarrollador.id,
-                puntuacion=request.POST.get('puntuacion'),
-                comentario=request.POST.get('comentario', ''),
+                puntuacion=puntuacion,
+                comentario=comentario,
                 ejecutado_por=request.user,
             )
         except PermissionDenied as exc:
-            messages.error(request, str(exc))
-            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
+            err_msg = str(exc)
         except ValidationError as exc:
-            messages.error(request, ' '.join(exc.messages))
-            return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
+            err_msg = ' '.join(exc.messages)
         except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
+            err_msg = f"Error: {str(e)}"
+
+        if err_msg is not None:
+            if es_htmx:
+                return render(
+                    request,
+                    'proyectos/partials/_modal_finalizar_proyecto.html',
+                    {
+                        'proyecto': proyecto,
+                        'desarrollador': desarrollador,
+                        'restantes': restantes,
+                        'action_url': action_url,
+                        'puntuacion': puntuacion or '',
+                        'comentario': comentario,
+                        'error': err_msg,
+                    },
+                    status=200,
+                )
+            messages.error(request, err_msg)
             return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
         if finalizado:
-            messages.success(
-                request,
+            msg = (
                 f"¡Excelente! Has calificado a todo el equipo y el proyecto "
                 f"'{proyecto.titulo}' ha finalizado."
             )
+            if es_htmx:
+                response = HttpResponse('')
+                response['HX-Trigger'] = json.dumps({
+                    'jobdevs:toast': {'tipo': 'success', 'mensaje': msg},
+                    'jobdevs:calificacion-guardada': {
+                        'proyecto_id': proyecto.id,
+                        'reload_hash': 'historial',
+                    },
+                })
+                return response
+            messages.success(request, msg)
             return redirect('dashboard_empresa')
 
-        messages.success(
-            request,
+        msg = (
             f"Calificación registrada para {desarrollador.username}. "
             + (f"Quedan {restantes} por calificar." if restantes > 0 else "Era el último colaborador.")
         )
+        if es_htmx:
+            pendientes_post = services.desarrolladores_pendientes(proyecto)
+            if pendientes_post.exists():
+                response = render(
+                    request,
+                    'proyectos/partials/_modal_finalizar_proyecto.html',
+                    {
+                        'proyecto': proyecto,
+                        'desarrollador': pendientes_post.first(),
+                        'restantes': pendientes_post.count() - 1,
+                        'action_url': action_url,
+                    },
+                )
+                response['HX-Trigger'] = json.dumps({
+                    'jobdevs:toast': {'tipo': 'success', 'mensaje': msg},
+                })
+                return response
+            response = HttpResponse('')
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'success', 'mensaje': msg},
+                'jobdevs:calificacion-guardada': {
+                    'proyecto_id': proyecto.id,
+                    'reload_hash': 'historial',
+                },
+            })
+            return response
+
+        messages.success(request, msg)
         # Recargamos la misma vista para el siguiente desarrollador
         return redirect('finalizar_proyecto', proyecto_id=proyecto.id)
 
-    return render(request, 'proyectos/finalizar.html', {
+    template = (
+        'proyectos/partials/_modal_finalizar_proyecto.html'
+        if es_htmx else 'proyectos/finalizar.html'
+    )
+    return render(request, template, {
         'proyecto': proyecto,
         'desarrollador': desarrollador,
-        'restantes': restantes
+        'restantes': restantes,
+        'action_url': action_url,
     })
 
 
