@@ -56,15 +56,36 @@
             <div class="users-shell-controls">
               <div class="users-search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="userSearch" placeholder="Buscar nombre, @usuario o correo..." oninput="debouncedFilterUsers()">
+                <input type="text" id="userSearch" name="q" placeholder="Buscar nombre, @usuario o correo..."
+                       hx-get="{% url 'api_usuarios' %}"
+                       hx-target="#usersTableBody"
+                       hx-swap="innerHTML"
+                       hx-trigger="input changed delay:300ms, change"
+                       hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
+                       hx-sync="this:replace"
+                       oninput="if(!window.htmx) debouncedFilterUsers()">
               </div>
-              <select id="userRoleFilter" class="users-select" onchange="filterUsers()" style="display:none;" aria-hidden="true">
+              <select id="userRoleFilter" name="rol" class="users-select"
+                      hx-get="{% url 'api_usuarios' %}"
+                      hx-target="#usersTableBody"
+                      hx-swap="innerHTML"
+                      hx-trigger="change"
+                      hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
+                      hx-sync="this:replace"
+                      onchange="if(!window.htmx) filterUsers()" style="display:none;" aria-hidden="true">
                 <option value="">Todos los roles</option>
                 <option value="desarrollador">Desarrollador</option>
                 <option value="empresa">Empresa</option>
                 <option value="administrador">Administrador</option>
               </select>
-              <select id="userStatusFilter" class="users-select" onchange="filterUsers()">
+              <select id="userStatusFilter" name="estado" class="users-select"
+                      hx-get="{% url 'api_usuarios' %}"
+                      hx-target="#usersTableBody"
+                      hx-swap="innerHTML"
+                      hx-trigger="change"
+                      hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
+                      hx-sync="this:replace"
+                      onchange="if(!window.htmx) filterUsers()">
                 <option value="">Estado: Todos</option>
                 <option value="active">Solo Activos</option>
                 <option value="inactive">Inactivos / Suspendidos</option>
@@ -76,9 +97,21 @@
             <form method="get" action="{% url 'dashboard_admin' %}" class="users-date-form" onsubmit="event.preventDefault(); filterUsers();">
               <input type="hidden" name="section" value="usersSection">
               <span class="users-date-label"><i data-lucide="calendar"></i> Registro</span>
-              <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde" class="users-date-input">
+              <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde" class="users-date-input"
+                     hx-get="{% url 'api_usuarios' %}"
+                     hx-target="#usersTableBody"
+                     hx-swap="innerHTML"
+                     hx-trigger="change"
+                     hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
+                     hx-sync="this:replace">
               <span class="users-date-sep">→</span>
-              <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta" class="users-date-input">
+              <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" data-testid="filtro-fecha-hasta" class="users-date-input"
+                     hx-get="{% url 'api_usuarios' %}"
+                     hx-target="#usersTableBody"
+                     hx-swap="innerHTML"
+                     hx-trigger="change"
+                     hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
+                     hx-sync="this:replace">
               <button type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()">Aplicar</button>
             </form>
           </div>
@@ -98,66 +131,8 @@
                   <th style="text-align:right;">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
-                {% for u in usuarios_todos %}
-                  <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
-                    <td>
-                      <div class="user-cell">
-                        <div class="user-cell-avatar">{{ u.nombre|default:u.username|slice:":1"|upper }}</div>
-                        <div>
-                          <div class="user-cell-username">{{ u.nombre|default:u.username }}</div>
-                          <div class="user-cell-handle">@{{ u.username }}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="user-cell-email">{{ u.email }}</td>
-                    <td>
-                      {{ u.get_rol_display }}
-                    </td>
-                    <td>
-                      {% if u.is_active %}
-                        <span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>
-                      {% else %}
-                        <span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>
-                      {% endif %}
-                    </td>
-                    <td class="user-cell-date">{{ u.date_joined|date:"d M Y" }}</td>
-                    <td style="text-align:right; white-space:nowrap;">
-                      {% if u.id == request.user.id %}
-                        <span style="color:var(--text-muted);font-size:12px;">Tu cuenta</span>
-                      {% elif u.rol == 'administrador' %}
-                        <span style="color:var(--text-muted);font-size:12px;">Protegido</span>
-                      {% else %}
-                        <div class="user-actions-group">
-                          <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
-                            {% csrf_token %}
-                            <button type="button" class="user-icon-btn {% if u.is_active %}is-active{% endif %}"
-                              onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
-                              title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
-                              {% if u.is_active %}
-                                <i data-lucide="toggle-right"></i>
-                              {% else %}
-                                <i data-lucide="toggle-left"></i>
-                              {% endif %}
-                            </button>
-                          </form>
-                          <button type="button" class="user-icon-btn" onclick="openEditUserModal({{ u.id }})" title="Editar">
-                            <i data-lucide="pencil"></i>
-                          </button>
-                          <button type="button" class="user-icon-btn is-danger" onclick="deleteUser({{ u.id }}, '{{ u.username }}')" title="Eliminar">
-                            <i data-lucide="trash-2"></i>
-                          </button>
-                        </div>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="6">
-                      <div class="empty-state" style="padding:36px;"><i data-lucide="users"></i><p>No se encontraron usuarios</p></div>
-                    </td>
-                  </tr>
-                {% endfor %}
+              <tbody id="usersTableBody">
+                {% include 'administrador/partials/_tabla_usuarios.html' with usuarios=usuarios_todos %}
               </tbody>
             </table>
           </div>

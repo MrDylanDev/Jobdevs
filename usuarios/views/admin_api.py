@@ -30,9 +30,9 @@ def api_usuarios(request):
     if request.user.rol != 'administrador':
         return JsonResponse({'error': 'Acceso denegado. Solo administradores pueden listar usuarios.'}, status=403)
 
-    q = request.GET.get('q', '').strip()
+    q = (request.GET.get('q') or request.GET.get('search') or '').strip()
     rol = request.GET.get('rol', '').strip()
-    estado = request.GET.get('estado', '').strip()
+    estado = (request.GET.get('estado') or request.GET.get('activo') or '').strip()
     fecha_desde = request.GET.get('fecha_desde', '').strip()
     fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
@@ -46,7 +46,11 @@ def api_usuarios(request):
         )
     if rol:
         qs = qs.filter(rol=rol)
-    if estado:
+    if estado == 'active':
+        qs = qs.filter(estado='activo')
+    elif estado == 'inactive':
+        qs = qs.exclude(estado='activo')
+    elif estado:
         qs = qs.filter(estado=estado)
 
     # SCRUM-226 (RF 1.3.3): filtro por rango de fecha de registro.
@@ -56,6 +60,19 @@ def api_usuarios(request):
         qs = qs.filter(date_joined__date__gte=fecha_desde_parsed)
     if fecha_hasta_parsed:
         qs = qs.filter(date_joined__date__lte=fecha_hasta_parsed)
+
+    es_htmx = (
+        request.headers.get('HX-Request') == 'true'
+        and request.GET.get('format') != 'json'
+        and 'application/json' not in request.headers.get('Accept', '')
+    )
+    if es_htmx:
+        usuarios_qs = list(qs.order_by('-date_joined', '-id'))
+        return render(request, 'administrador/partials/_tabla_usuarios.html', {
+            'usuarios': usuarios_qs,
+            'is_htmx': True,
+            'request': request,
+        })
 
     limit = request.GET.get('limit')
     page = request.GET.get('page')

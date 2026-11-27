@@ -1,0 +1,62 @@
+{% for u in usuarios %}
+  <tr data-username="{{ u.username }}" data-nombre="{{ u.nombre|default:'' }}" data-email="{{ u.email }}" data-rol="{{ u.rol }}" data-active="{{ u.is_active|yesno:'active,inactive' }}" data-fecha-registro="{{ u.date_joined|date:'Y-m-d' }}" data-id="{{ u.id }}">
+    <td>
+      <div class="user-cell">
+        <div class="user-cell-avatar">{{ u.nombre|default:u.username|slice:":1"|upper }}</div>
+        <div>
+          <div class="user-cell-username">{{ u.nombre|default:u.username }}</div>
+          <div class="user-cell-handle">@{{ u.username }}</div>
+        </div>
+      </div>
+    </td>
+    <td class="user-cell-email">{{ u.email }}</td>
+    <td>
+      {{ u.get_rol_display }}
+    </td>
+    <td>
+      {% if u.is_active %}
+        <span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>
+      {% else %}
+        <span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>
+      {% endif %}
+    </td>
+    <td class="user-cell-date">{{ u.date_joined|date:"d M Y" }}</td>
+    <td style="text-align:right; white-space:nowrap;">
+      {% if u.id == request.user.id %}
+        <span style="color:var(--text-muted);font-size:12px;">Tu cuenta</span>
+      {% elif u.rol == 'administrador' %}
+        <span style="color:var(--text-muted);font-size:12px;">Protegido</span>
+      {% else %}
+        <div class="user-actions-group">
+          <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
+            {% csrf_token %}
+            <button type="button" class="user-icon-btn {% if u.is_active %}is-active{% endif %}"
+              onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
+              title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
+              {% if u.is_active %}
+                <i data-lucide="toggle-right"></i>
+              {% else %}
+                <i data-lucide="toggle-left"></i>
+              {% endif %}
+            </button>
+          </form>
+          <button type="button" class="user-icon-btn" onclick="openEditUserModal({{ u.id }})" title="Editar">
+            <i data-lucide="pencil"></i>
+          </button>
+          <button type="button" class="user-icon-btn is-danger" onclick="deleteUser({{ u.id }}, '{{ u.username|escapejs }}')" title="Eliminar">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
+      {% endif %}
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="6">
+      <div class="empty-state" style="padding:36px;"><i data-lucide="users"></i><p>No se encontraron usuarios con esos filtros.</p></div>
+    </td>
+  </tr>
+{% endfor %}
+{% if is_htmx %}
+<span id="usersResultCount" hx-swap-oob="innerHTML">Mostrando {{ usuarios|length }} usuarios</span>
+{% endif %}
