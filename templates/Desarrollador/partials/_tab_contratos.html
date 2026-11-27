@@ -1,0 +1,330 @@
+      <!-- Ancla de compatibilidad para enlaces o tests de postulaciones -->
+      <div id="postulaciones" class="seccion-v" style="display:none;" hidden></div>
+
+      <!-- Contratos & Postulaciones (Sección Unificada) -->
+      <div id="contratos" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="file-signature" style="color:var(--accent); width:24px; height:24px;"></i>
+              Contratos & Postulaciones
+            </div>
+            <div class="page-subtitle">Acuerdos formales, firmas electrónicas y seguimiento de candidaturas</div>
+          </div>
+        </div>
+
+        <!-- Subpestañas superiores fluidas -->
+        <div class="contratos-subtabs-bar" role="tablist" aria-label="Vistas de Contratos y Postulaciones">
+          <button type="button" class="contratos-subtab-btn active" id="tabBtnContratoContratos" role="tab" aria-selected="true" onclick="switchContratosSubTab('contratos', this)">
+            <i data-lucide="file-signature"></i>
+            <span>Contratos Digitales</span>
+            <span class="contratos-subtab-count">{{ total_contratos_digitales }}</span>
+          </button>
+          <button type="button" class="contratos-subtab-btn" id="tabBtnContratoPostulaciones" role="tab" aria-selected="false" onclick="switchContratosSubTab('postulaciones', this)">
+            <i data-lucide="send"></i>
+            <span>Candidaturas en Evaluación</span>
+            <span class="contratos-subtab-count">{{ postulaciones_revision_count }}</span>
+          </button>
+        </div>
+
+        <!-- Panel 1: Contratos Digitales -->
+        <div id="contratos-pane-contratos" class="contratos-pane" style="display:block;">
+          <!-- Ribbon Ejecutivo Financiero Continuo -->
+          <div class="contratos-ribbon">
+            <div class="contratos-ribbon-segment">
+              <span class="ribbon-label">Total Acordado</span>
+              <div class="ribbon-val-row">
+                <span class="ribbon-currency">$</span>
+                <span class="ribbon-number">{{ presupuesto_total_dev_formateado|default:"0" }}</span>
+                <span class="ribbon-unit">COP</span>
+              </div>
+            </div>
+
+            <div class="contratos-ribbon-divider" aria-hidden="true"></div>
+
+            <div class="contratos-ribbon-segment">
+              <span class="ribbon-label">Firmas Requeridas</span>
+              <div class="ribbon-val-row">
+                <span class="ribbon-number">{{ contratos_pendientes_firma_count|default:"0" }}</span>
+                <span class="ribbon-unit">{% if contratos_pendientes_firma_count == 1 %}pendiente{% else %}pendientes{% endif %}</span>
+              </div>
+            </div>
+
+            <div class="contratos-ribbon-divider" aria-hidden="true"></div>
+
+            <div class="contratos-ribbon-segment">
+              <span class="ribbon-label">Contratos en Curso</span>
+              <div class="ribbon-val-row">
+                <span class="ribbon-number">{{ contratos_vigentes_count|default:"0" }}</span>
+                <span class="ribbon-unit">{% if contratos_vigentes_count == 1 %}activo{% else %}activos{% endif %}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de Tarjetas de Contrato Digital Estructuradas -->
+          <div class="contratos-list">
+            {% for contrato in mis_contratos_digitales %}
+              <div class="contract-card {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}needs-signature{% endif %}">
+                <!-- 1. Cabecera compacta: Empresa, Código e Insignia a la izquierda | Estado a la derecha -->
+                <div class="contract-card-header">
+                  <div class="contract-empresa-info">
+                    <div class="contract-empresa-avatar">
+                      {% if contrato.postulacion.proyecto.empresa.perfil_empresa.logo %}
+                        <img src="{{ contrato.postulacion.proyecto.empresa.perfil_empresa.logo.url }}" alt="{{ contrato.postulacion.proyecto.empresa.nombre }}">
+                      {% else %}
+                        {{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username|slice:":1"|upper }}
+                      {% endif %}
+                    </div>
+                    <div class="contract-header-meta">
+                      <div class="contract-empresa-name">
+                        <span>{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}</span>
+                        {% if contrato.postulacion.proyecto.empresa.perfil_empresa.es_verificada %}
+                          <span class="badge contract-badge-verificada">
+                            <i data-lucide="check-circle" style="width:10px; height:10px; color:var(--accent);"></i> Verificada
+                          </span>
+                        {% endif %}
+                      </div>
+                      <span class="contract-code-tag">Contrato #{{ contrato.id }}</span>
+                    </div>
+                  </div>
+
+                  <div class="contract-header-status">
+                    {% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}
+                      <span class="badge contract-badge-negociacion">
+                        <i data-lucide="file-signature" style="width:12px; height:12px;"></i> En Negociación · Por firmar
+                      </span>
+                    {% elif contrato.firmado_desarrollador and contrato.firmado_empresa %}
+                      <span class="badge contract-badge-formalizado">
+                        <i data-lucide="check-circle-2" style="width:12px; height:12px; color:var(--accent);"></i> Vigente
+                      </span>
+                    {% else %}
+                      <span class="badge contract-badge-estado">
+                        {{ contrato.get_estado_display }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- 2. Título del Proyecto -->
+                <h3 class="contract-title">{{ contrato.postulacion.proyecto.titulo }}</h3>
+
+                <!-- 3. Especificaciones Financieras Compactas -->
+                <div class="contract-specs-clean">
+                  <span class="contract-monto-text">{{ contrato.monto_formateado }}</span>
+                  <span class="contract-sep">·</span>
+                  <span><i data-lucide="credit-card"></i> {{ contrato.get_forma_pago_display }}</span>
+                  {% if contrato.medio_pago %}
+                    <span class="contract-sep">·</span>
+                    <span><i data-lucide="wallet"></i> {{ contrato.get_medio_pago_display }}</span>
+                  {% endif %}
+                </div>
+
+                <!-- 4. Barra de Firmas y Acciones Unificadas -->
+                <div class="contract-card-footer">
+                  <div class="contract-signatures-compact">
+                    <span class="contract-sig-item">
+                      <span class="party-label">Empresa:</span>
+                      {% if contrato.firmado_empresa %}
+                        <span class="contract-signed-badge"><i data-lucide="check"></i> Firmó</span>
+                      {% else %}
+                        <span class="contract-pending-badge"><i data-lucide="clock"></i> Pendiente</span>
+                      {% endif %}
+                    </span>
+                    <span class="contract-sep">·</span>
+                    <span class="contract-sig-item">
+                      <span class="party-label">Tú:</span>
+                      {% if contrato.firmado_desarrollador %}
+                        <span class="contract-signed-badge"><i data-lucide="check"></i> Firmaste</span>
+                      {% else %}
+                        <span class="contract-urgent-badge"><i data-lucide="alert-circle"></i> Por firmar</span>
+                      {% endif %}
+                    </span>
+                  </div>
+
+                  <div class="contract-footer-actions">
+                    <button type="button" class="btn-cockpit" title="Chatear con la empresa"
+                            data-chat-open data-receptor="{{ contrato.postulacion.proyecto.empresa_id }}"
+                            data-proyecto="{{ contrato.postulacion.proyecto.id }}"
+                            data-nombre="{{ contrato.postulacion.proyecto.empresa.nombre|default:contrato.postulacion.proyecto.empresa.username }}">
+                      <i data-lucide="message-square"></i>
+                      <span>Chat</span>
+                    </button>
+
+                    <a href="{% url 'ver_contrato_digital' contrato.id %}" data-abrir-contrato data-url="{% url 'ver_contrato_digital' contrato.id %}" class="btn btn-primary btn-sm" title="Revisar términos y firmar digitalmente">
+                      <i data-lucide="file-signature"></i>
+                      <span>{% if not contrato.firmado_desarrollador and contrato.postulacion.estado == 'en_negociacion' %}Firmar Contrato{% else %}Ver Contrato{% endif %}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="cockpit-empty-state empty-state">
+                <i data-lucide="file-text" style="width:36px; height:36px; margin-bottom:12px; opacity:0.4;"></i>
+                <p style="font-weight:600; font-size:15px; margin-bottom:4px;">No tienes contratos vigentes en este momento</p>
+                <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Cuando una empresa inicie negociación en tus postulaciones, tus contratos aparecerán aquí para su firma y seguimiento.</p>
+                <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                  <i data-lucide="compass"></i>
+                  <span>Explorar Proyectos Disponibles</span>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Paginación de Contratos Digitales (8 por página) -->
+          {% if contratos_digitales_page.has_other_pages %}
+            <nav class="dev-pagination-wrap" aria-label="Paginación de contratos digitales" style="margin-top: 14px;">
+              <div class="dev-pagination-list">
+                {% if contratos_digitales_page.has_previous %}
+                  <a href="?seccion=contratos&amp;page_contratos={{ contratos_digitales_page.previous_page_number }}#contratos" class="dev-page-btn dev-page-nav-btn" aria-label="Página anterior">
+                    <i data-lucide="chevron-left"></i>
+                    <span>Anterior</span>
+                  </a>
+                {% else %}
+                  <span class="dev-page-btn dev-page-nav-btn is-disabled">
+                    <i data-lucide="chevron-left"></i>
+                    <span>Anterior</span>
+                  </span>
+                {% endif %}
+
+                {% for num in contratos_digitales_page.paginator.page_range %}
+                  {% if contratos_digitales_page.number == num %}
+                    <span class="dev-page-btn is-active" aria-current="page">{{ num }}</span>
+                  {% elif num > contratos_digitales_page.number|add:'-3' and num < contratos_digitales_page.number|add:'3' %}
+                    <a href="?seccion=contratos&amp;page_contratos={{ num }}#contratos" class="dev-page-btn">{{ num }}</a>
+                  {% endif %}
+                {% endfor %}
+
+                {% if contratos_digitales_page.has_next %}
+                  <a href="?seccion=contratos&amp;page_contratos={{ contratos_digitales_page.next_page_number }}#contratos" class="dev-page-btn dev-page-nav-btn" aria-label="Página siguiente">
+                    <span>Siguiente</span>
+                    <i data-lucide="chevron-right"></i>
+                  </a>
+                {% else %}
+                  <span class="dev-page-btn dev-page-nav-btn is-disabled">
+                    <span>Siguiente</span>
+                    <i data-lucide="chevron-right"></i>
+                  </span>
+                {% endif %}
+              </div>
+
+              <div class="dev-pagination-meta">
+                Página {{ contratos_digitales_page.number }} de {{ contratos_digitales_page.paginator.num_pages }} · {{ total_contratos_digitales }} contratos registrados
+              </div>
+            </nav>
+          {% endif %}
+
+          <!-- Pie de Sección: Enlace a Historial y Solicitudes de Terminación -->
+          <div style="margin-top:24px; padding-top:16px; border-top:1px dashed var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="font-size:12px; color:var(--text-muted);">
+              ¿Buscas contratos anteriores concluidos o cancelados?
+              <a href="#completados" onclick="verSeccion('completados'); switchHistorialTab('contratos', document.getElementById('tabBtnHistContratos')); return false;" class="archived-contracts-link" style="color:#94a3b8; text-decoration:none; font-weight:600; margin-left:4px;">
+                Ver Contratos Archivados en Historial
+              </a>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <a href="{% url 'solicitudes_cancelacion' %}" style="display:none;" data-testid="solicitudes-cancelacion-fallback"></a>
+              {% if cancelaciones_pendientes_dev_count > 0 %}
+                <span class="badge badge-warning" style="font-size:11px;"><i data-lucide="alert-triangle"></i> {{ cancelaciones_pendientes_dev_count }} solicitud pendiente</span>
+              {% endif %}
+              <button type="button" class="btn-cockpit" onclick="abrirModalCancelacionDev()" title="Gestionar acuerdos y solicitudes de terminación">
+                <i data-lucide="file-x"></i>
+                <span>Solicitudes de terminación</span>
+                {% if cancelaciones_pendientes_dev_count > 0 %}
+                  <span class="nav-badge" style="position:static; margin-left:4px;">{{ cancelaciones_pendientes_dev_count }}</span>
+                {% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Postulaciones Enviadas (En Evaluación) -->
+        <div id="contratos-pane-postulaciones" class="contratos-pane" style="display:none;">
+          <div data-testid="postulaciones-vigentes" style="margin-bottom:28px;">
+            <div class="label-section" style="margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+              <div class="candidaturas-header-left" style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="send" style="width:15px; height:15px;"></i>
+                <span style="font-weight:700;">Candidaturas en evaluación</span>
+              </div>
+              <span class="badge candidaturas-count-badge">
+                {{ postulaciones_revision_count }} en revisión
+              </span>
+            </div>
+
+            <div class="post-list post-list-compact">
+              {% for post in postulaciones_en_evaluacion %}
+                <article class="post-row-compact">
+                  <!-- Línea 1: Empresa + Fecha a la izquierda | Estado a la derecha -->
+                  <div class="post-compact-line-1">
+                    <div class="post-compact-empresa">
+                      <div class="post-compact-avatar">
+                        {% if post.proyecto.empresa.perfil_empresa.logo %}
+                          <img src="{{ post.proyecto.empresa.perfil_empresa.logo.url }}" alt="">
+                        {% else %}
+                          {{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username|slice:":1"|upper }}
+                        {% endif %}
+                      </div>
+                      <div class="post-compact-meta">
+                        <a href="{% url 'detalle_empresa' post.proyecto.empresa.id %}" data-abrir-empresa data-url="{% url 'detalle_empresa' post.proyecto.empresa.id %}" class="post-compact-empresa-link" title="Ver perfil institucional">
+                          <span>{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</span>
+                          <i data-lucide="arrow-up-right" style="width:11px; height:11px; opacity:0.6;"></i>
+                        </a>
+                        <span class="post-compact-date">· Postulado el {{ post.fecha|date:"d/m/Y" }} (hace {{ post.fecha|timesince }})</span>
+                      </div>
+                    </div>
+
+                    <div class="post-status-pill">
+                      <span class="post-status-dot is-pendiente"></span>
+                      <span class="post-status-text">Pendiente de evaluación</span>
+                    </div>
+                  </div>
+
+                  <!-- Línea 2: Título + Tags a la izquierda | Botón Ver a la derecha -->
+                  <div class="post-compact-line-2">
+                    <div class="post-compact-project-info">
+                      <h3 class="post-compact-title">{{ post.proyecto.titulo }}</h3>
+                      <div class="post-tags-row">
+                        <span class="post-tag"><i data-lucide="layers"></i> {{ post.proyecto.get_tipo_solucion_display }}</span> <span class="meta-dot">·</span> <span class="post-tag"><i data-lucide="map-pin"></i> {{ post.proyecto.get_modalidad_display }}</span>
+                        {% if not post.contrato_digital %}
+                          <span class="meta-dot">·</span>
+                          <span class="post-tag" style="color:#64748b;">
+                            <i data-lucide="clock" style="color:#64748b;"></i> Esperando contrato
+                          </span>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="post-actions-group">
+                      <button type="button" class="btn-cockpit" data-ver-proyecto data-url="{% url 'api_detalle_proyecto' post.proyecto.id %}" title="Ver proyecto">
+                        <i data-lucide="eye"></i>
+                        <span>Ver</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              {% empty %}
+                <div class="cockpit-empty-state empty-state empty-state-actionable" style="padding:36px 20px;">
+                  <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+                  <p style="font-weight:600; font-size:15px; margin-bottom:4px;">No tienes candidaturas en evaluación</p>
+                  <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Explora proyectos disponibles en el catálogo y postula tu talento.</p>
+                  <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                    <i data-lucide="compass"></i>
+                    <span>Explorar Proyectos Disponibles</span>
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div style="margin-top:20px; padding-top:16px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <span>¿Buscas tus postulaciones cerradas o no seleccionadas?</span>
+            <button type="button" class="btn-cockpit" onclick="verSeccion('completados'); switchHistorialTab('postulaciones', document.getElementById('tabBtnHistPostulaciones'));">
+              <i data-lucide="history"></i>
+              <span>Ver Postulaciones Rechazadas en Historial</span>
+              {% if postulaciones_historial_count > 0 %}
+                <span class="nav-badge" style="position:static; margin-left:4px;">{{ postulaciones_historial_count }}</span>
+              {% endif %}
+            </button>
+          </div>
+        </div>
+      </div>

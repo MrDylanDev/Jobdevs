@@ -1,0 +1,206 @@
+      <!-- Explorar Proyectos (Sección Integrada) -->
+      <div id="explorar" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title" style="display:flex; align-items:center; gap:10px;">
+              <i data-lucide="compass" style="color:var(--accent); width:24px; height:24px;"></i>
+              Explorar Catálogo de Proyectos
+            </div>
+            <div class="page-subtitle">Encuentra oportunidades reales, filtra por especialidad y postula tu talento</div>
+          </div>
+        </div>
+
+        <!-- Barra de Búsqueda y Filtros Moderna -->
+        <div class="explore-toolbar">
+          <div class="explore-filter-group search-group">
+            <label class="explore-filter-label" for="devExploreSearch">Buscar por palabra clave</label>
+            <div class="explore-search-input-wrap">
+              <i data-lucide="search"></i>
+              <input type="text" id="devExploreSearch" class="explore-search-input" placeholder="Título, empresa, stack o tecnología...">
+            </div>
+          </div>
+
+          <div class="explore-filter-group">
+            <label class="explore-filter-label" for="devExploreCategory">Tipo de Solución</label>
+            <select id="devExploreCategory" class="explore-select">
+              <option value="">Todas las categorías</option>
+              {% for c in categorias_solucion %}
+                <option value="{{ c.slug }}">{{ c.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="explore-filter-group">
+            <label class="explore-filter-label" for="devExplorePriority">Prioridad</label>
+            <select id="devExplorePriority" class="explore-select">
+              <option value="">Todas</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+
+          <button type="button" class="explore-reset-btn" id="devExploreResetBtn" onclick="resetDevExploreFilters()" title="Restablecer filtros">
+            <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i>
+            <span>Limpiar</span>
+          </button>
+        </div>
+
+        <!-- Grid de Proyectos Cyber Tech -->
+        <div class="cards-grid" id="devExploreGrid">
+          {% for p in proyectos_explorar %}
+            <div class="project-card dev-explore-card"
+                 id="exploreCard_{{ p.id }}"
+                 data-id="{{ p.id }}"
+                 data-titulo="{{ p.titulo|lower }}"
+                 data-desc="{{ p.descripcion|lower }}"
+                 data-tipo="{{ p.tipo_solucion|lower }}"
+                 data-prioridad="{{ p.prioridad|lower }}"
+                 data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}">
+              
+              <div>
+                <div class="explore-card-top">
+                  <div class="explore-card-tags">
+                    <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
+                    {% if p.modalidad %}<span class="meta-dot">·</span><span class="tag-modalidad"><i data-lucide="{% if p.modalidad == 'remoto' %}wifi{% elif p.modalidad == 'hibrido' %}split{% else %}map-pin{% endif %}" style="width:12px; height:12px;"></i> {{ p.get_modalidad_display|default:p.modalidad }}{% if p.ciudad and p.modalidad != 'remoto' %} · {{ p.ciudad }}{% endif %}</span>{% endif %}
+                  </div>
+                  
+                  <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
+                    {% csrf_token %}
+                    <button type="submit"
+                            aria-label="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            title="{% if p.id in favoritos_ids %}Quitar de favoritos{% else %}Guardar en favoritos{% endif %}"
+                            class="fav-toggle-btn {% if p.id in favoritos_ids %}is-favorito{% endif %}">
+                      {% if p.id in favoritos_ids %}
+                        <i style="color:var(--danger, #ef4444); fill:var(--danger, #ef4444);" data-lucide="heart"></i>
+                      {% else %}
+                        <i style="color:var(--text-muted); fill:none;" data-lucide="heart"></i>
+                      {% endif %}
+                    </button>
+                  </form>
+                </div>
+
+                <h3 class="dev-explore-title project-card-title">
+                  {{ p.titulo }}
+                </h3>
+
+                <div class="explore-meta-row">
+                  <span class="explore-meta-item prio-{% if p.prioridad == 'alta' %}alta{% elif p.prioridad == 'media' %}media{% else %}baja{% endif %}">Prioridad {{ p.get_prioridad_display|default:p.prioridad }}</span>
+                  <span class="meta-dot">·</span>
+                  <span class="explore-meta-item"><i data-lucide="users" style="width:12px; height:12px;"></i> {{ p.num_postulaciones }} postulantes</span>
+                  <span class="meta-dot">·</span>
+                  <span class="explore-meta-item"><i data-lucide="door-open" style="width:12px; height:12px;"></i> {{ p.vacantes_disponibles }} libres</span>
+                  {% if p.fecha_publicacion %}<span class="meta-dot">·</span><span class="explore-meta-item"><i data-lucide="clock" style="width:12px; height:12px;"></i> hace {{ p.fecha_publicacion|timesince }}</span>{% endif %}
+                </div>
+
+                <p class="explore-card-desc project-desc">
+                  {{ p.descripcion }}
+                </p>
+              </div>
+
+              <!-- Footer de la Card -->
+              <div class="explore-card-footer card-footer">
+                <div class="explore-empresa-info">
+                  <div class="explore-empresa-avatar user-avatar">
+                    {% if p.empresa.perfil_empresa.logo %}
+                      <img src="{{ p.empresa.perfil_empresa.logo.url }}" alt="{{ p.empresa.nombre }}">
+                    {% else %}
+                      {{ p.empresa.nombre|default:p.empresa.username|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
+                  <div style="min-width:0;">
+                    <div class="explore-empresa-name">
+                      {{ p.empresa.nombre|default:p.empresa.username }}
+                    </div>
+                    <div class="explore-empresa-sub">
+                      {% if p.empresa_reputacion > 0 %}
+                        <i data-lucide="star" style="width:11px; height:11px; color:#f59e0b; fill:#f59e0b;"></i>
+                        <span style="color:#f59e0b; font-weight:600;">{{ p.empresa_reputacion|floatformat:1 }}</span>
+                      {% else %}
+                        <span>Empresa nueva</span>
+                      {% endif %}
+                      {% if p.empresa.perfil_empresa.es_verificada %}
+                        <span style="color:var(--accent); display:inline-flex; align-items:center;" title="Empresa Verificada">
+                          <i data-lucide="check-circle" style="width:11px; height:11px; margin-left:2px;"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="explore-actions">
+                  <button type="button" class="btn-cockpit"
+                          data-ver-proyecto
+                          data-url="{% url 'api_detalle_proyecto' p.id %}"
+                          title="Ver ficha completa del proyecto">
+                    <i data-lucide="eye"></i>
+                  </button>
+                  <button type="button" class="btn-cockpit primary"
+                          data-abrir-postulacion
+                          data-url="{% url 'postularse_a_proyecto' p.id %}"
+                          data-titulo="{{ p.titulo|escape }}"
+                          data-empresa="{{ p.empresa.nombre|default:p.empresa.username|escape }}"
+                          data-tipo="{{ p.get_tipo_solucion_display|default:p.tipo_solucion|escape }}"
+                          data-prioridad="{{ p.prioridad|upper|escape }}"
+                          data-vacantes="{{ p.vacantes_disponibles }}"
+                          data-cierre="{{ p.fecha_limite|date:'d M Y'|default:'Sin límite' }}"
+                          data-descripcion="{{ p.descripcion|striptags|escape }}">
+                    <i data-lucide="send" style="width:12px; height:12px;"></i>
+                    <span>Postularme</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          {% empty %}
+            <div class="cockpit-empty-state empty-state" style="grid-column:1 / -1;">
+              <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
+              <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No hay proyectos disponibles en este momento</p>
+              <p style="color:var(--text-muted); font-size:13px;">Vuelve a consultar pronto o revisa tus proyectos activos.</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Paginación de 15 proyectos por página con números -->
+        {% if proyectos_explorar_page.has_other_pages %}
+          <nav class="dev-pagination-wrap" aria-label="Paginación del catálogo de proyectos">
+            <div class="dev-pagination-list">
+              {% if proyectos_explorar_page.has_previous %}
+                <a href="?seccion=explorar&amp;page={{ proyectos_explorar_page.previous_page_number }}#explorar" class="dev-page-btn dev-page-nav-btn" aria-label="Página anterior">
+                  <i data-lucide="chevron-left"></i>
+                  <span>Anterior</span>
+                </a>
+              {% else %}
+                <span class="dev-page-btn dev-page-nav-btn is-disabled">
+                  <i data-lucide="chevron-left"></i>
+                  <span>Anterior</span>
+                </span>
+              {% endif %}
+
+              {% for num in proyectos_explorar_page.paginator.page_range %}
+                {% if proyectos_explorar_page.number == num %}
+                  <span class="dev-page-btn is-active" aria-current="page">{{ num }}</span>
+                {% elif num > proyectos_explorar_page.number|add:'-3' and num < proyectos_explorar_page.number|add:'3' %}
+                  <a href="?seccion=explorar&amp;page={{ num }}#explorar" class="dev-page-btn">{{ num }}</a>
+                {% endif %}
+              {% endfor %}
+
+              {% if proyectos_explorar_page.has_next %}
+                <a href="?seccion=explorar&amp;page={{ proyectos_explorar_page.next_page_number }}#explorar" class="dev-page-btn dev-page-nav-btn" aria-label="Página siguiente">
+                  <span>Siguiente</span>
+                  <i data-lucide="chevron-right"></i>
+                </a>
+              {% else %}
+                <span class="dev-page-btn dev-page-nav-btn is-disabled">
+                  <span>Siguiente</span>
+                  <i data-lucide="chevron-right"></i>
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="dev-pagination-meta">
+              Página {{ proyectos_explorar_page.number }} de {{ proyectos_explorar_page.paginator.num_pages }} · {{ proyectos_explorar_total }} proyectos disponibles
+            </div>
+          </nav>
+        {% endif %}
+      </div>

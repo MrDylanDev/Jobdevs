@@ -1,0 +1,556 @@
+<!-- Modal flotante: Verificación SENA (mismo lenguaje visual que el login de la landing) -->
+<div class="jd-modal" id="modalVerificacion" role="dialog" aria-modal="true" aria-labelledby="modalVerificacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-verificacion></div>
+  <div class="jd-modal-card">
+    <div class="jd-modal-header">
+      <div>
+        <div class="jd-modal-kicker">CERTIFICACIÓN Y VALIDACIÓN SENA</div>
+        <h2 class="jd-modal-title" id="modalVerificacionTitulo">Verificación de Identidad SENA</h2>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-verificacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-modal-status">
+        <span class="jd-modal-status-label">Estado actual</span>
+        <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-secondary{% endif %}" data-verificacion-badge>
+          <i data-lucide="{% if perfil.es_verificado_sena %}check-circle{% elif perfil.estado_verificacion == 'en_revision' %}hourglass{% else %}id-card{% endif %}"></i>
+          {{ perfil.badge_info.label }}
+        </span>
+      </div>
+
+      <div class="jd-inline-feedback" data-verificacion-feedback hidden></div>
+
+      {% if perfil.es_verificado_sena %}
+        <div class="jd-callout jd-callout-success">
+          <i data-lucide="check-circle"></i>
+          <div>
+            <strong>Identidad SENA verificada</strong>
+            <p>Tu perfil como aprendiz SENA está completamente verificado y habilitado para postularte a proyectos.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+          </div>
+        </div>
+      {% elif perfil.estado_verificacion == 'en_revision' %}
+        <div class="jd-callout jd-callout-warning">
+          <i data-lucide="hourglass"></i>
+          <div>
+            <strong>Solicitud en revisión</strong>
+            <p>Tu solicitud de verificación se encuentra en revisión por el equipo administrativo del SENA.</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }} · Rechazos previos: {{ perfil.intentos_verificacion }}/3</p>
+            {% if perfil.documento_soporte %}
+              <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="jd-link">
+                <i data-lucide="file-text"></i> Ver documento enviado
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        {% if perfil.estado_verificacion == 'rechazado' %}
+          <div class="jd-callout jd-callout-danger">
+            <i data-lucide="alert-triangle"></i>
+            <div>
+              <strong>Solicitud rechazada</strong>
+              <p>Tu solicitud anterior fue rechazada.{% if perfil.notas_auditoria %} Motivo: {{ perfil.notas_auditoria }}{% endif %}</p>
+              <p class="jd-callout-meta">Rechazos acumulados: <strong>{{ perfil.intentos_verificacion }} de 3</strong>. Al 3.º rechazo la cuenta se depura automáticamente. Verifica tu ficha o adjunta un documento legible y vuelve a enviarla.</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="jd-callout jd-callout-info">
+            <i data-lucide="info"></i>
+            <div>
+              <strong>Verifica tu condición de aprendiz SENA</strong>
+              <p>Podrás postularte a proyectos reales y obtener la insignia oficial. Tienes hasta 3 intentos de verificación documental ({{ perfil.intentos_verificacion }}/3 usados).</p>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if errores %}
+          <div class="jd-inline-feedback is-error">Por favor revisa los campos marcados a continuación.</div>
+        {% endif %}
+
+        <div class="jd-tabs" role="tablist" aria-label="Método de verificación">
+          <button type="button" class="jd-tab active" data-verificacion-tab="auto" role="tab" aria-selected="true">
+            <i data-lucide="zap"></i> Aprendiz (Lista Blanca)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="manual" role="tab" aria-selected="false">
+            <i data-lucide="id-card"></i> Aprendiz (Carnet / Certificado)
+          </button>
+          <button type="button" class="jd-tab" data-verificacion-tab="egresado" role="tab" aria-selected="false">
+            <i data-lucide="graduation-cap"></i> Egresado SENA (Diploma)
+          </button>
+        </div>
+
+        <!-- Automática -->
+        <div class="jd-tab-panel active" data-verificacion-panel="auto" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="automatica">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_auto">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_auto" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+              <div class="jd-help">Se verificará automáticamente contra el catálogo oficial de fichas activas registradas en la plataforma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_auto">Programa de Formación (Opcional)</label>
+              <input type="text" name="programa_formacion" id="id_programa_auto" class="jd-input" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)">
+              <div class="jd-error" data-error-para="programa_formacion"></div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i data-lucide="check-circle"></i> Verificar ficha ahora
+            </button>
+          </form>
+        </div>
+
+        <!-- Manual aprendiz -->
+        <div class="jd-tab-panel" data-verificacion-panel="manual" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="aprendiz">
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_manual">Número de Ficha SENA <span class="jd-required">*</span></label>
+              <input type="text" name="ficha" id="id_ficha_manual" class="jd-input {% if errores.ficha %}is-invalid{% endif %}" value="{{ valores.ficha }}" placeholder="Ej: 2670123" required>
+              <div class="jd-error" data-error-para="ficha">{% if errores.ficha %}{{ errores.ficha }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_manual">Programa de Formación <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_manual" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_documento_soporte">Documento de Soporte (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_documento_soporte" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Adjunta tu carnet de aprendiz o certificado de matrícula/estudio en formato PDF (máximo 5 MB).</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i data-lucide="paper-plane"></i> Enviar solicitud de aprendiz
+            </button>
+          </form>
+        </div>
+
+        <!-- Egresado -->
+        <div class="jd-tab-panel" data-verificacion-panel="egresado" role="tabpanel">
+          <form method="post" action="{% url 'solicitar_verificacion_desarrollador' %}" enctype="multipart/form-data" data-verificacion-form novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="origen" value="dashboard">
+            <input type="hidden" name="metodo" value="manual">
+            <input type="hidden" name="condicion_sena" value="egresado">
+
+            <div class="jd-callout jd-callout-info jd-callout-compact">
+              <i data-lucide="info"></i>
+              <div>
+                <strong>¿Eres egresado titulado del SENA?</strong>
+                <p>Adjunta tu diploma o acta de grado oficial descargada de SofíaPlus para obtener la insignia de <strong>Egresado SENA</strong>.</p>
+              </div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_programa_egresado">Programa Técnico o Tecnológico Culminado <span class="jd-required">*</span></label>
+              <input type="text" name="programa_formacion" id="id_programa_egresado" class="jd-input {% if errores.programa_formacion %}is-invalid{% endif %}" value="{{ valores.programa_formacion }}" placeholder="Ej: Tecnólogo en Análisis y Desarrollo de Software (ADSO)" required>
+              <div class="jd-error" data-error-para="programa_formacion">{% if errores.programa_formacion %}{{ errores.programa_formacion }}{% endif %}</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_ficha_egresado">Número de Ficha Antigua (Opcional)</label>
+              <input type="text" name="ficha" id="id_ficha_egresado" class="jd-input" value="{{ valores.ficha }}" placeholder="Ej: 2142345 (opcional si no la recuerdas)">
+              <div class="jd-error" data-error-para="ficha"></div>
+              <div class="jd-help">Si no recuerdas tu número de ficha, puedes dejarlo en blanco. Lo validaremos con tu diploma.</div>
+            </div>
+
+            <div class="jd-field">
+              <label class="jd-label" for="id_soporte_egresado">Diploma o Acta de Grado (PDF) <span class="jd-required">*</span></label>
+              <input type="file" name="documento_soporte" id="id_soporte_egresado" class="jd-input jd-input-file {% if errores.documento_soporte %}is-invalid{% endif %}" accept=".pdf" required>
+              <div class="jd-error" data-error-para="documento_soporte">{% if errores.documento_soporte %}{{ errores.documento_soporte }}{% endif %}</div>
+              <div class="jd-help">Documento en formato PDF (máximo 5 MB) con código de verificación o firma oficial.</div>
+            </div>
+
+            <button type="submit" class="jd-submit">
+              <i data-lucide="graduation-cap"></i> Enviar diploma a revisión
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal flotante: Postularse a un proyecto (sin cambiar de página) -->
+<div class="jd-modal" id="modalPostulacion" role="dialog" aria-modal="true" aria-labelledby="modalPostulacionTitulo" aria-hidden="true">
+  <div class="jd-modal-backdrop" data-cerrar-postulacion></div>
+  <div class="jd-modal-card jd-modal-card-postulacion">
+    <div class="jd-modal-header">
+      <div style="min-width:0; flex:1;">
+        <div class="jd-modal-kicker">Candidatura de Proyecto</div>
+        <h2 class="jd-modal-title" id="modalPostulacionTitulo">Enviar postulación</h2>
+        <div class="jd-modal-sub">Completa tu carta de presentación y adjunta tu experiencia relevante</div>
+      </div>
+      <button type="button" class="jd-modal-close" data-cerrar-postulacion aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="jd-modal-body">
+      <div class="jd-postulacion-resumen">
+        <div class="jd-postulacion-tags">
+          <span class="jd-post-tag" data-postulacion-tipo>—</span>
+          <span class="meta-dot">·</span>
+          <span class="jd-post-tag" data-postulacion-prioridad>—</span>
+        </div>
+        <h3 class="jd-postulacion-titulo" data-postulacion-titulo>—</h3>
+        <p class="jd-postulacion-empresa" data-postulacion-empresa>—</p>
+        <div class="jd-postulacion-meta">
+          <span><i data-lucide="users"></i> <b data-postulacion-vacantes>—</b> vacantes libres</span>
+          <span><i data-lucide="calendar"></i> Cierre: <b data-postulacion-cierre>—</b></span>
+        </div>
+        <p class="jd-postulacion-desc" data-postulacion-descripcion></p>
+      </div>
+
+      <div class="jd-inline-feedback" data-postulacion-feedback hidden></div>
+      <button type="button" class="jd-submit" data-ir-verificacion hidden>
+        <i data-lucide="id-card"></i> Verificar mi ficha SENA
+      </button>
+
+      <form data-postulacion-form novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="origen" value="dashboard">
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_carta">Carta de presentación <span class="jd-required">*</span></label>
+          <textarea name="carta" id="id_post_carta" class="jd-input" rows="4" required
+                    placeholder="¿Por qué te interesa este proyecto y cómo planeas abordarlo?"></textarea>
+          <div class="jd-error" data-error-para="carta"></div>
+        </div>
+
+        <div class="jd-field">
+          <label class="jd-label" for="id_post_experiencia">Experiencia relevante</label>
+          <textarea name="experiencia" id="id_post_experiencia" class="jd-input" rows="3"
+                    placeholder="Tecnologías o proyectos similares que hayas realizado..."></textarea>
+          <div class="jd-help">Opcional, pero recomendado para destacar tu perfil.</div>
+        </div>
+
+        {% if perfil and perfil.portafolio_url %}
+          <div class="jd-field" style="margin-top:4px;">
+            <div class="modal-portafolio-notice">
+              <i data-lucide="link" style="width:14px; height:14px; flex-shrink:0;"></i>
+              <span style="line-height:1.4;">Se adjuntará automáticamente tu portafolio registrado: <strong style="word-break:break-all;">{{ perfil.portafolio_url }}</strong></span>
+            </div>
+          </div>
+        {% else %}
+          <div class="jd-field" style="margin-top:4px;">
+            <div class="modal-portafolio-notice is-empty">
+              <i data-lucide="info" style="width:14px; height:14px; flex-shrink:0;"></i>
+              <span>No tienes portafolio en tu perfil. Puedes registrarlo en <strong>Mi Perfil</strong> para respaldar tus candidaturas.</span>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="jd-modal-actions">
+          <button type="button" class="btn btn-secondary" data-cerrar-postulacion>Cancelar</button>
+          <button type="submit" class="jd-submit" data-postulacion-submit>
+            <i data-lucide="rocket"></i> Enviar candidatura
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal In-Situ de Solicitudes de Cancelación / Terminación (SCRUM) -->
+<div id="modalCancelacionDev" class="jdm-modal" hidden>
+  <div class="jdm-backdrop" onclick="cerrarModalCancelacionDev()"></div>
+  <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalCancelDevTitle">
+    <header class="jdm-header">
+      <div style="min-width:0; flex:1;">
+        <div class="jdm-kicker">Gestión Contractual</div>
+        <h2 class="jdm-title" id="modalCancelDevTitle">Terminación y Cancelación de Contrato</h2>
+        <div class="jdm-sub">Acuerdos bilaterales de terminación y causales de fuerza mayor</div>
+      </div>
+      <button type="button" class="jdm-close" onclick="cerrarModalCancelacionDev()" aria-label="Cerrar modal">&times;</button>
+    </header>
+
+    <div class="jdm-body">
+      <div class="contratos-security-banner" style="margin-bottom:18px;">
+        <div class="contratos-security-icon">
+          <i data-lucide="info"></i>
+        </div>
+        <div class="contratos-security-text">
+          <strong>Protocolo de Terminación Bilateral</strong>
+          <p>La terminación de mutuo acuerdo requiere la confirmación de ambas partes. El contrato y sus garantías permanecen activos hasta que se acepte formalmente o se resuelva mediante mediación.</p>
+        </div>
+      </div>
+
+      {% if solicitudes_cancelacion_dev %}
+        <div class="jdm-form-label" style="margin-bottom:10px;">
+          <i data-lucide="inbox"></i> Solicitudes Registradas
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+          {% for sol in solicitudes_cancelacion_dev %}
+            <div class="jdm-advance-card">
+              <div class="jdm-advance-head">
+                <div>
+                  <strong style="font-size:13.5px; color:var(--fg);">#{{ sol.id }} · {{ sol.contratacion.proyecto.titulo }}</strong>
+                  <div style="font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono);">
+                    Empresa: {{ sol.contratacion.empresa.nombre|default:sol.contratacion.empresa.username }} · Causal: {{ sol.get_causal_display }}
+                  </div>
+                </div>
+                <span class="badge {% if sol.estado == 'aprobada' %}badge-success{% elif sol.estado == 'rechazada' %}badge-danger{% else %}badge-warning{% endif %}" style="font-size:10.5px;">
+                  {{ sol.get_estado_display }}
+                </span>
+              </div>
+              <div class="jdm-advance-desc">
+                <strong>Motivo:</strong> {{ sol.motivo }}
+              </div>
+              {% if sol.estado == 'pendiente_acuerdo' and sol.solicitante_id != request.user.pk %}
+                <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+                  <form action="{% url 'resolver_solicitud_cancelacion' sol.id %}" method="post" style="display:flex; gap:8px; flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <button type="submit" name="decision" value="aprobar" class="btn-cockpit primary" style="background:var(--cancel-danger, #ef4444); border-color:var(--cancel-danger, #ef4444); color:#fff;">
+                      <i data-lucide="check"></i> Confirmar acuerdo y finalizar contrato
+                    </button>
+                    <button type="submit" name="decision" value="rechazar" class="btn-cockpit">
+                      <i data-lucide="x"></i> No confirmar acuerdo
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if contratos_cancelables_dev %}
+        <div class="jdm-form-label" style="margin-bottom:10px;">
+          <i data-lucide="handshake"></i> Proponer Terminación de Mutuo Acuerdo
+        </div>
+        <form id="formProponerCancelacionDev" action="{% url 'cancelar_contratacion' contratos_cancelables_dev.0.id %}" data-url-template="{% url 'cancelar_contratacion' 0 %}" method="post" class="jd-form">
+          {% csrf_token %}
+          <div class="jd-field">
+            <label class="jd-label" for="cancelContratoSelect">Seleccionar Contrato Activo</label>
+            <select id="cancelContratoSelect" name="contrato_id" class="jd-input" onchange="actualizarActionCancelacion(this)" required>
+              {% for c in contratos_cancelables_dev %}
+                <option value="{{ c.id }}">{{ c.proyecto.titulo }} — {{ c.empresa.nombre|default:c.empresa.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="jd-field">
+            <label class="jd-label" for="cancelCausalSelect">Causal de Terminación</label>
+            <select id="cancelCausalSelect" name="causal" class="jd-input" required>
+              <option value="acuerdo_mutuo">Acuerdo mutuo</option>
+              <option value="fuerza_mayor">Fuerza mayor (requiere acuerdo)</option>
+            </select>
+          </div>
+
+          <div class="jd-field">
+            <label class="jd-label" for="cancelMotivoInput">Explicación del Acuerdo</label>
+            <textarea id="cancelMotivoInput" name="motivo_cancelacion" class="jd-input" rows="3" minlength="10" maxlength="2000" placeholder="Describe los motivos por los cuales se propone la terminación (mínimo 10 caracteres)..." required></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button type="submit" class="btn-cockpit" style="color:var(--cancel-danger, #ef4444); border-color:rgba(239, 68, 68, 0.4);">
+              <i data-lucide="handshake"></i> Proponer acuerdo a la empresa
+            </button>
+          </div>
+        </form>
+      {% elif not solicitudes_cancelacion_dev %}
+        <div class="cockpit-empty-state empty-state">
+          <i data-lucide="check-circle" style="width:36px; height:36px; opacity:0.4;"></i>
+          <p style="font-weight:600; font-size:14px; margin-bottom:4px;">Sin contratos activos para cancelar</p>
+          <p style="font-size:12.5px; color:var(--text-muted); margin:0;">Solo se pueden proponer acuerdos de terminación sobre contrataciones activas fuera de mediación.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <footer class="jdm-footer" style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:12px; color:var(--text-muted);">
+        ¿Conflicto o incumplimiento grave? <a href="#disputas" style="color:var(--accent); text-decoration:none; font-weight:600;" onclick="cerrarModalCancelacionDev(); abrirModalNuevaDisputaDev(); return false;">Ir a Disputas</a>
+      </span>
+      <button type="button" class="btn-cockpit" onclick="cerrarModalCancelacionDev()">Cerrar</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal Flotante: Mi Perfil y Credencial SENA -->
+<div id="modalEditarPerfilDev" class="jdm-modal" hidden>
+  <div class="jdm-backdrop" onclick="cerrarModalPerfilDev()"></div>
+  <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalPerfilDevTitulo">
+    <header class="jdm-header">
+      <div style="min-width:0; flex:1;">
+        <div class="jdm-kicker">Mi Cuenta y Credenciales</div>
+        <h2 class="jdm-title" id="modalPerfilDevTitulo">Mi Perfil y Credencial SENA</h2>
+        <div class="jdm-sub">Actualiza tu información profesional y gestiona tu certificación</div>
+      </div>
+      <button type="button" class="jdm-close" onclick="cerrarModalPerfilDev()" aria-label="Cerrar modal">&times;</button>
+    </header>
+
+    <div class="jdm-body" style="padding:24px;">
+      <!-- Hero Header compacto -->
+      <div class="perfil-hero-card" style="margin-bottom:20px; padding:18px 20px;">
+        <div class="perfil-hero-left">
+          <div class="perfil-hero-avatar" id="perfilModalAvatar" style="width:56px; height:56px; font-size:20px;">
+            {% if perfil.foto_perfil %}
+              <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil">
+            {% else %}
+              {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+            {% endif %}
+          </div>
+          <div class="perfil-hero-details">
+            <div class="perfil-hero-name-row">
+              <strong style="font-size:17px; color:var(--fg);">{{ request.user.nombre|default:request.user.username }}</strong>
+              <span class="badge {% if perfil.es_verificado_sena %}badge-success{% elif perfil.estado_verificacion == 'en_revision' %}badge-warning{% elif perfil.estado_verificacion == 'rechazado' %}badge-danger{% else %}badge-gray{% endif %}" data-testid="badge-verificacion-sena-perfil" style="font-size:10.5px; padding:2px 7px;">
+                <i data-lucide="{% if perfil.es_verificado_sena %}check-circle{% elif perfil.estado_verificacion == 'en_revision' %}hourglass{% else %}id-card{% endif %}" style="width:11px; height:11px;"></i>
+                {{ perfil.badge_info.label }}
+              </span>
+            </div>
+            <div class="perfil-hero-meta">
+              <span>{{ request.user.email }}</span>
+              <span>·</span>
+              <span>Reputación: {% if calificacion_promedio > 0 %}★ {{ calificacion_promedio|floatformat:1 }}{% else %}Sin calificaciones{% endif %}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="perfil-modal-layout">
+        <!-- Formulario -->
+        <form id="formPerfilDev" method="post" action="{% url 'dashboard_desarrollador' %}" enctype="multipart/form-data" class="jd-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="perfil">
+
+          <div class="perfil-form-grid">
+            {% for field in perfil_form %}
+              <div class="jd-field {% if field.name == 'habilidades' or field.name == 'portafolio_url' %}perfil-form-full{% endif %}">
+                <label class="jd-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="jd-help">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="jd-error">{{ error }}</div>{% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </form>
+
+        <!-- Credencial SENA (Compacta) -->
+        <div class="sena-credential-card" style="padding:14px 16px; gap:10px;">
+          <div class="sena-credential-header" style="padding-bottom:8px; border-bottom:1px solid var(--border);">
+            <h3 class="sena-credential-title" style="font-size:13px; font-weight:700;">
+              <i data-lucide="id-card" style="color:#94a3b8; width:15px; height:15px;"></i>
+              <span>Credencial SENA</span>
+            </h3>
+          </div>
+
+          <dl class="jd-datalist" style="margin:0;">
+            <div><dt>Ficha</dt><dd style="font-family:var(--font-mono); font-weight:700;">{{ perfil.ficha|default:"Sin registrar" }}</dd></div>
+            <div><dt>Programa</dt><dd>{{ perfil.programa_formacion|default:"Sin registrar" }}</dd></div>
+            <div><dt>Condición</dt><dd>{{ perfil.get_condicion_sena_display|default:"Aprendiz" }}</dd></div>
+          </dl>
+
+          {% if not perfil.es_verificado_sena and perfil.estado_verificacion != 'en_revision' %}
+            <button type="button" class="btn-cockpit" style="width:100%; justify-content:center; margin-top:4px;" onclick="cerrarModalPerfilDev(); abrirVerificacion();">
+              <i data-lucide="shield-check"></i>
+              <span>{% if perfil.estado_verificacion == 'rechazado' %}Reenviar verificación SENA{% else %}Verificar cuenta SENA{% endif %}</span>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <footer class="jdm-footer" style="display:flex; justify-content:flex-end; gap:10px; padding:16px 26px;">
+      <button type="button" class="jdm-btn jdm-btn-secondary" onclick="cerrarModalPerfilDev()">Cerrar</button>
+      <button type="submit" form="formPerfilDev" id="btnGuardarPerfilDev" class="jdm-btn jdm-btn-primary">
+        <i data-lucide="save"></i>
+        <span>Guardar cambios</span>
+      </button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal In-Situ: Iniciar Mediación / Disputa Formal (SCRUM / Dev) -->
+<div id="modalNuevaDisputa" class="jdm-modal" hidden>
+  <div class="jdm-backdrop" onclick="cerrarModalNuevaDisputaDev()"></div>
+  <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalNuevaDisputaTitulo" style="max-width:680px;">
+    <header class="jdm-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding:22px 26px;">
+      <div>
+        <div class="jdm-kicker">
+          ARBITRAJE CONTRACTUAL &amp; MEDIACIÓN
+        </div>
+        <h2 id="modalNuevaDisputaTitulo" class="jdm-title" style="font-size:19px; font-weight:700; margin:0; line-height:1.3; letter-spacing:-0.01em;">
+          Iniciar Mediación Formal
+        </h2>
+        <div class="jdm-sub" style="font-size:13px; margin-top:6px;">
+          Resolución arbitral neutral y vinculante para proyectos en controversia
+        </div>
+      </div>
+      <button type="button" class="jdm-close" onclick="cerrarModalNuevaDisputaDev()" aria-label="Cerrar modal">&times;</button>
+    </header>
+
+    <div class="jdm-body" style="padding:22px 26px;">
+      <!-- Protocolo de Arbitraje (Card de respaldo técnico) -->
+      <div data-testid="protocolo-arbitraje-banner" class="disputas-protocolo-banner">
+        <div class="protocolo-banner-head">
+          <i data-lucide="shield-alert"></i>
+          <span>Protocolo de Arbitraje Oficial</span>
+        </div>
+        <p>
+          Las disputas son atendidas por un mediador administrativo neutral designado por la plataforma. Al abrirse el caso, las entregas de ese hito quedan en pausa temporal y ambas partes disponen de una Sala Virtual privada de deliberación hasta la emisión del dictamen final vinculante.
+        </p>
+      </div>
+
+      {% if proyectos_disputables %}
+        <div class="disputas-selector-header">
+          <span>Selecciona el proyecto en controversia</span>
+          <span>{{ proyectos_disputables|length }} disponible{{ proyectos_disputables|length|pluralize }}</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; max-height:260px; overflow-y:auto; padding-right:2px;">
+          {% for p in proyectos_disputables %}
+            <a href="{% url 'disputas:abrir_disputa' p.id %}"
+               data-abrir-formulario-disputa
+               data-url="{% url 'disputas:abrir_disputa' p.id %}"
+               onclick="cerrarModalNuevaDisputaDev();"
+               class="disp-proyecto-item-corp disp-proyecto-item">
+              <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                <div class="disp-proyecto-icon">
+                  <i data-lucide="folder-kanban" style="width:16px; height:16px;"></i>
+                </div>
+                <div style="min-width:0; flex:1;">
+                  <strong class="disp-proyecto-title">{{ p.titulo }}</strong>
+                  <div class="disp-proyecto-meta">
+                    <i data-lucide="building" style="width:12px; height:12px;"></i>
+                    <span>Empresa: <strong class="disp-empresa-name">{{ p.empresa.nombre|default:p.empresa.username }}</strong></span>
+                  </div>
+                </div>
+              </div>
+              <span class="btn-cockpit">
+                <span>Seleccionar</span>
+                <i data-lucide="arrow-right" style="width:13px; height:13px;"></i>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="cockpit-empty-state empty-state" style="padding:28px 20px; border-radius:8px;">
+          <i data-lucide="folder-open" style="width:36px; height:36px; opacity:0.4; margin-bottom:10px;"></i>
+          <p style="font-weight:600; font-size:14px; margin-bottom:4px;">No tienes proyectos elegibles para disputar</p>
+          <p style="font-size:12.5px; margin:0; line-height:1.5;">Solo se puede disputar un proyecto con contratación activa en desarrollo o en revisión.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <footer class="jdm-footer" style="padding:16px 26px; display:flex; justify-content:space-between; align-items:center;">
+      <button type="button" class="btn-cockpit" style="font-size:12px;" onclick="cerrarModalNuevaDisputaDev(); verSeccion('completados'); switchHistorialTab('disputas', document.getElementById('tabBtnHistDisputas'));">
+        <i data-lucide="archive"></i>
+        <span>Ver Historial de Disputas</span>
+      </button>
+      <button type="button" class="jdm-btn jdm-btn-secondary" onclick="cerrarModalNuevaDisputaDev()">Cerrar</button>
+    </footer>
+  </div>
+</div>

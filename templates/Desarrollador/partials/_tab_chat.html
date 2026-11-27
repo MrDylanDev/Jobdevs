@@ -1,0 +1,144 @@
+{% load static %}
+
+      <!-- Chat (Centro de Mensajes: Pantalla Completa estilo Empresa) -->
+      <div id="centro-chat" class="seccion-v">
+        <div class="jd-chat is-context-collapsed" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-session-url="{% url 'api_sesion' %}"
+             data-yo-id="{{ request.user.id }}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <button type="button" class="mobile-menu-toggle chat-mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú" style="display:none; margin-right:8px; padding:4px; background:transparent; border:none; color:var(--fg); cursor:pointer;">
+                <i data-lucide="menu"></i>
+              </button>
+              <span>Conversaciones</span>
+              <span class="jd-chat-count">{% if admin_id %}{{ conversaciones_chat|length|add:"1" }}{% else %}{{ conversaciones_chat|length }}{% endif %}</span>
+            </div>
+            <div class="jd-chat-items" data-chat-list>
+              {% if admin_id %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' admin_id %}"
+                      data-receptor="{{ admin_id }}" data-proyecto="0">
+                <span class="jd-chat-avatar" style="overflow:hidden; padding:0;">
+                  <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Soporte JobDevs" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                </span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">Soporte JobDevs</span>
+                  </span>
+                  <span class="jd-chat-preview">Asistencia técnica y administrativa</span>
+                </span>
+              </button>
+              {% endif %}
+
+              {% for conv in conversaciones_chat %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion_proyecto' conv.empresa_id conv.proyecto_id %}"
+                      data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
+                <span class="jd-chat-avatar">
+                  {% if conv.empresa_logo %}
+                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" onerror="this.parentElement.textContent='{{ conv.empresa_nombre|slice:":1"|upper|escapejs }}'">
+                  {% else %}
+                    {{ conv.empresa_nombre|slice:":1"|upper }}
+                  {% endif %}
+                </span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ conv.empresa_nombre }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ conv.titulo }}</span>
+                  {% if conv.es_negociacion %}
+                  <span class="jd-chat-tag">En negociación</span>
+                  {% endif %}
+                </span>
+              </button>
+              {% empty %}
+                {% if not admin_id %}
+                <div class="jd-chat-list-empty">
+                  <i data-lucide="messages-square"></i>
+                  <span>Sin conversaciones activas</span>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="jd-chat-resizer" id="chatListResizer" role="separator" aria-orientation="vertical" aria-label="Redimensionar lista de conversaciones"></div>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i data-lucide="message-square" style="width:36px; height:36px; margin-bottom:8px; opacity:0.5;"></i>
+              <p>Selecciona una conversación</p>
+              <span>Elige un contacto de la lista para ver el historial y enviar mensajes</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="Volver">
+                  <i data-lucide="arrow-left"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name-row">
+                    <div class="jd-chat-head-name" data-chat-name>—</div>
+                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" onclick="toggleChatContextSidebarDev()" title="Mostrar contexto del proyecto" aria-label="Alternar panel de contexto del proyecto">
+                      <i data-lucide="panel-right-open" style="width:16px; height:16px;"></i>
+                    </button>
+                  </div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
+                </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="Escribe un mensaje…" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="Enviar">
+                  <i data-lucide="send" style="width:15px; height:15px;"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i data-lucide="lock"></i> Este proyecto ha finalizado: el chat es de solo lectura.
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Columna Contextual del Proyecto (Detalles para el Dev) -->
+          <aside class="jd-chat-context" data-chat-context style="display:none;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="layers" style="width:14px; height:14px; color:#94a3b8;"></i>
+                <span>Contexto del Proyecto</span>
+              </div>
+              <button type="button" onclick="toggleChatContextSidebarDev()" title="Ocultar panel de contexto" aria-label="Ocultar panel de contexto" style="background:transparent; border:none; color:var(--fg-dim); cursor:pointer; padding:4px; display:flex; align-items:center; border-radius:4px;">
+                <i data-lucide="x" style="width:16px; height:16px;"></i>
+              </button>
+            </div>
+            <div class="jd-context-card">
+              <div class="jd-context-empresa" data-context-project-empresa style="font-size:12px; color:var(--text-secondary); margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="building" style="width:13px; height:13px; color:#64748b;"></i>
+                <span>—</span>
+              </div>
+              <div class="jd-context-title" data-context-project-title style="font-size:15px; font-weight:700; color:var(--fg); margin-bottom:6px;">—</div>
+              <span class="jd-context-badge" data-context-project-badge style="display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-family:var(--font-mono); background:rgba(0,230,118,0.12); color:var(--accent); margin-bottom:8px; width:fit-content;">En Desarrollo</span>
+              <div class="jd-context-desc" data-context-project-desc style="font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:10px; max-height:130px; overflow-y:auto; word-break:break-word;">—</div>
+              <div class="jd-context-meta" data-context-project-meta style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px; font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono);"></div>
+              <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px; display:flex; flex-direction:column; gap:8px;">
+                <button type="button" class="jd-context-btn" onclick="verSeccion('activos')">
+                  <i data-lucide="flag"></i>
+                  <span>Ver Hitos del Proyecto</span>
+                </button>
+                <button type="button" class="jd-context-btn secondary" onclick="verSeccion('completados')">
+                  <i data-lucide="file-signature"></i>
+                  <span>Ver Contratos Digitales</span>
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
