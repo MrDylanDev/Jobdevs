@@ -38,6 +38,11 @@ import {
   switchHistorialSubTab,
 } from './modules/perfil_evaluaciones.js';
 import { initAnalytics } from './modules/analytics.js';
+import { initLedgerChart } from './modules/ledger_chart.js';
+import {
+  initDashboardWidgets,
+  cerrarModalBienvenida,
+} from './modules/dashboard_widgets.js';
 
 onReady(function () {
   initUiCore();
@@ -47,6 +52,8 @@ onReady(function () {
   initContratosHitos();
   initPerfilEvaluaciones();
   initAnalytics();
+  initLedgerChart();
+  initDashboardWidgets();
 
   // Tecla Escape global para modales, drawers, popovers y menús contextuales
   document.addEventListener('keydown', function (e) {
@@ -59,7 +66,7 @@ onReady(function () {
       cerrarModalContrato();
       cerrarModalVerificacion();
       cerrarModalCalificar();
-      if (typeof window.cerrarModalBienvenida === 'function') window.cerrarModalBienvenida();
+      cerrarModalBienvenida();
       cerrarDrawerCandidatos();
       closeNotifPopover();
       closeUserMenu();
