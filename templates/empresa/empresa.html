@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261121_v27">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261126_v35">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=20261115_v11">
-  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261121_v1">
+  <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261121_v3">
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261121_v2">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v27">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261126_v33">
   <script>
     (function() {
       var tema = 'light';
@@ -54,7 +54,7 @@
         <i data-lucide="message-square"></i>
         <span>{% trans "Mensajes" %}</span>
         {% if mensajes_no_leidos > 0 %}
-          <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
+          <span class="nav-badge" data-mensajes-badge data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
         {% endif %}
       </button>
     </div>
@@ -213,7 +213,6 @@
 
       {% include 'partials/_flash_toasts.html' %}
 
-      <!-- Inicio / Dashboard -->
       <!-- Inicio / Dashboard (Command Center) -->
       {% include "empresa/partials/_tab_inicio.html" %}
 
@@ -250,7 +249,7 @@
                       data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
                 <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}">
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" onerror="this.parentElement.textContent='{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper|escapejs }}'">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}
@@ -1977,7 +1976,7 @@
           <div>
             <strong class="verif-card-title" style="display:block;">{% trans "Solicitud en Proceso de Revisión" %}</strong>
             <p class="verif-card-copy">{% trans "Tu documentación ya fue radicada y está siendo auditada por el equipo administrativo. Te notificaremos cuando se apruebe el dictamen." %}</p>
-            <div class="verif-card-meta">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong></div>
+            <div class="verif-card-meta">{% trans "Documento radicado:" %} <strong>{{ perfil.tipo_documento }} {{ perfil.documento_completo }}</strong> · {% trans "Rechazos previos:" %} <strong>{{ perfil.intentos_verificacion }}/3</strong></div>
             {% if perfil.documento_soporte %}
               <div style="margin-top:8px;">
                 <a href="{% url 'descargar_documento_soporte_empresa' perfil.id %}" target="_blank" rel="noopener" class="btn-corp-action secondary btn-sm" style="font-size:12px; padding:3px 10px;">
@@ -1995,12 +1994,12 @@
             <i data-lucide="alert-circle" style="width:16px; height:16px;"></i> {% trans "Tu solicitud anterior fue rechazada" %}
           </strong>
           {% if perfil.notas_auditoria %}<div><strong>{% trans "Motivo del mediador:" %}</strong> {{ perfil.notas_auditoria }}</div>{% endif %}
-          <div style="margin-top:4px;">{% trans "Por favor corrige la información y vuelve a adjuntar el documento de soporte." %}</div>
+          <div style="margin-top:4px;"><strong>{% trans "Rechazos acumulados:" %} {{ perfil.intentos_verificacion }} / 3.</strong> {% trans "Al 3.º rechazo la cuenta se depura automáticamente. Por favor corrige la información y vuelve a adjuntar el documento de soporte." %}</div>
         </div>
       {% else %}
         <div class="verif-card is-info">
           <i data-lucide="info" style="color:var(--corp-brand); width:18px; height:18px; flex-shrink:0;"></i>
-          <span>{% trans "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa." %}</span>
+          <span>{% trans "Adjunta tu certificado de Cámara de Comercio o RUT actualizado en formato PDF (máx. 5 MB) para validar la personería jurídica de tu empresa." %} ({% trans "Intentos fallidos:" %} {{ perfil.intentos_verificacion }}/3)</span>
         </div>
       {% endif %}
 
@@ -2585,10 +2584,10 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
   </div>
 </div>
 
-<script src="{% static 'empresa/script/empresa.js' %}?v=20261121_v1"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v8"></script>
+<script type="module" src="{% static 'empresa/script/empresa.js' %}?v=20261126_mod1"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v23"></script>
+<script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
 </body>
 </html>
