@@ -1356,3 +1356,110 @@ class TestApiDetalleProyecto:
         assert data['ok'] is False
         assert "No tienes permisos" in data['mensaje']
 
+    def test_htmx_retorna_partial_html_ficha_proyecto(self, dev_client, empresa_user):
+        from proyectos.models import Entregable, Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto HTMX Modal",
+            descripcion="Descripción renderizada desde Django",
+            estado="publicado",
+            vacantes=3,
+        )
+        Entregable.objects.create(
+            proyecto=proyecto,
+            titulo="Hito Inicial",
+            descripcion="Setup arquitectura",
+            estado="completado",
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        assert 'text/html' in response['Content-Type']
+        html = response.content.decode('utf-8')
+        assert 'data-jdp-partial' in html
+        assert 'Proyecto HTMX Modal' in html
+        assert 'Descripción renderizada desde Django' in html
+        assert 'jdp-status-row' in html
+        assert 'jdp-meta-grid' in html
+        assert 'Hito Inicial' in html
+        assert '1/1 completados (100%)' in html
+        assert 'Postularme' in html
+
+    def test_htmx_403_retorna_error_html_con_status_403(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Privado HTMX",
+            descripcion="No visible",
+            estado="inactivo",
+            vacantes=1,
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 403
+        assert 'text/html' in response['Content-Type']
+        html = response.content.decode('utf-8')
+        assert 'jdp-error' in html
+        assert 'No tienes permisos para ver este proyecto.' in html
+
+    def test_htmx_escapa_xss_en_titulo_y_descripcion(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='<script>alert("xss-title")</script>',
+            descripcion='<img src=x onerror=alert(1)>',
+            estado="publicado",
+            vacantes=1,
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<script>alert("xss-title")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss-title&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_htmx_con_accept_json_o_format_json_preserva_json(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Dual JSON",
+            descripcion="D",
+            estado="publicado",
+            vacantes=1,
+        )
+        url = reverse('api_detalle_proyecto', args=[proyecto.id])
+
+        resp_accept = dev_client.get(
+            url,
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert resp_accept.status_code == 200
+        assert resp_accept.json()['ok'] is True
+
+        resp_fmt = dev_client.get(
+            f"{url}?format=json",
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp_fmt.status_code == 200
+        assert resp_fmt.json()['ok'] is True
+

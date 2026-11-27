@@ -1104,8 +1104,21 @@ def api_detalle_proyecto(request, proyecto_id):
     tiene_postulacion = Postulacion.objects.filter(proyecto=proyecto, desarrollador=user).exists()
     es_publicado = proyecto.estado == 'publicado'
 
+    wants_htmx = (
+        request.headers.get('HX-Request') == 'true'
+        and 'application/json' not in request.headers.get('Accept', '')
+        and request.GET.get('format') != 'json'
+    )
+
     es_dev = user.rol == 'desarrollador' and (esta_contratado or tiene_postulacion or es_publicado)
     if not (es_admin or es_empresa or es_dev):
+        if wants_htmx:
+            return render(
+                request,
+                'proyectos/partials/_modal_detalle_proyecto.html',
+                {'error_mensaje': 'No tienes permisos para ver este proyecto.'},
+                status=403,
+            )
         return JsonResponse(
             {'ok': False, 'mensaje': 'No tienes permisos para ver este proyecto.'},
             status=403,
@@ -1212,7 +1225,7 @@ def api_detalle_proyecto(request, proyecto_id):
             'icono': 'users', 'estilo': 'secondary',
         })
 
-    return JsonResponse({
+    payload = {
         'ok': True,
         'proyecto': {
             'id': proyecto.id,
@@ -1251,4 +1264,7 @@ def api_detalle_proyecto(request, proyecto_id):
             'acepta_postulaciones': proyecto.acepta_postulaciones,
         },
         'acciones': acciones,
-    })
+    }
+    if wants_htmx:
+        return render(request, 'proyectos/partials/_modal_detalle_proyecto.html', payload)
+    return JsonResponse(payload)

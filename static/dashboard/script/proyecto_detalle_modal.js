@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    Modal compartido "Ver proyecto" — admin, empresa y desarrollador.
-   Consulta la ficha JSON y la pinta con diseño Cockpit de alta fidelidad.
+   Carga el partial HTML vía HTMX (`HX-Request: true`) en `#jdpModal`.
    ───────────────────────────────────────────────────────────── */
 (function () {
   'use strict';
@@ -16,11 +16,6 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
-  }
-
-  function estadoClass(estado) {
-    var permitidos = ['publicado', 'en_desarrollo', 'en_revision', 'finalizado', 'rechazado', 'inactivo', 'en_disputa', 'pendiente', 'completado', 'cancelada'];
-    return permitidos.indexOf(estado) !== -1 ? 'is-' + estado : '';
   }
 
   function refrescarIconos() {
@@ -116,25 +111,38 @@
 
     fetch(enlace.getAttribute('data-url'), {
       method: 'GET',
-      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      headers: { 'HX-Request': 'true', 'Accept': 'text/html' },
       credentials: 'same-origin',
       signal: controller.signal
     })
       .then(function (response) {
-        return response.json().catch(function () { return null; }).then(function (data) {
-          return { response: response, data: data };
+        return response.text().then(function (html) {
+          return { response: response, html: html };
         });
       })
       .then(function (result) {
-        var data = result.data;
-        if (!result.response.ok || !data || !data.ok) {
-          var mensaje = (data && data.mensaje) || (result.response.status === 403
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = result.html || '';
+        var partial = wrapper.querySelector('[data-jdp-partial]');
+
+        if (!result.response.ok || !partial || partial.getAttribute('data-jdp-partial') !== 'ok') {
+          if (partial && partial.getAttribute('data-jdp-partial') === 'error') {
+            modal.querySelector('#jdpTitulo').textContent = 'No se pudo abrir el proyecto';
+            modal.querySelector('[data-jdp-sub]').textContent = '';
+            body.innerHTML = '';
+            body.appendChild(partial);
+            footer.hidden = true;
+            refrescarIconos();
+            return;
+          }
+          var fallback = result.response.status === 403
             ? 'No tienes permisos para ver este proyecto.'
-            : 'No se pudo cargar la ficha del proyecto.');
-          mostrarError(mensaje);
+            : 'No se pudo cargar la ficha del proyecto.';
+          mostrarError(fallback);
           return;
         }
-        render(data);
+
+        hidratarPartial(partial);
       })
       .catch(function (error) {
         if (error && error.name === 'AbortError') return;
@@ -156,165 +164,43 @@
     refrescarIconos();
   }
 
-  function render(data) {
-    var p = data.proyecto || {};
-    var empresa = p.empresa || {};
+  function hidratarPartial(partial) {
+    var titulo = modal.querySelector('#jdpTitulo');
     var sub = modal.querySelector('[data-jdp-sub]');
-    modal.querySelector('#jdpTitulo').textContent = p.titulo || 'Proyecto';
-
-    // 1. Subtítulo con Empresa, Verificación, Calificación y Modalidad
-    var subHtml = '<div class="jdp-company-row">';
-    subHtml += '<span class="jdp-company-name"><i data-lucide="building"></i> ' + escapeHtml(empresa.nombre || '') + '</span>';
-    if (empresa.verificada) {
-      subHtml += '<span class="jdp-verified"><i data-lucide="badge-check"></i> ' + escapeHtml(empresa.badge || 'Verificada') + '</span>';
-    }
-    if (Number(empresa.calificacion) > 0) {
-      subHtml += '<span class="jdp-rating"><i data-lucide="star"></i> ' + Number(empresa.calificacion).toFixed(1) + '</span>';
-    }
-    if (p.modalidad) {
-      var modIcon = p.modalidad === 'remoto' ? 'wifi' : (p.modalidad === 'hibrido' ? 'split' : 'map-pin');
-      var ubicacionTexto = p.ubicacion_display ? escapeHtml(p.ubicacion_display) : (escapeHtml(p.modalidad_label || p.modalidad) + (p.ciudad && p.modalidad !== 'remoto' ? ' · ' + escapeHtml(p.ciudad) : ''));
-      subHtml += '<span class="jdp-modality"><i data-lucide="' + modIcon + '"></i> ' + ubicacionTexto + '</span>';
-    }
-    subHtml += '</div>';
-    sub.innerHTML = subHtml;
-
-    var html = '';
-
-    // 2. Fila de Badges de Estado
-    html += '<div class="jdp-status-row">';
-    html += '<span class="jdp-badge ' + estadoClass(p.estado) + '"><i data-lucide="check-circle-2"></i> ' + escapeHtml(p.estado_label || '') + '</span>';
-    if (p.tipo) {
-      html += '<span class="jdp-badge"><i data-lucide="layers"></i> ' + escapeHtml(p.tipo) + '</span>';
-    }
-    if (p.prioridad) {
-      var prioClass = p.prioridad === 'alta' ? 'is-alta' : (p.prioridad === 'media' ? 'is-media' : 'is-baja');
-      html += '<span class="jdp-badge ' + prioClass + '"><i data-lucide="alert-circle"></i> Prioridad ' + escapeHtml(p.prioridad_label || p.prioridad) + '</span>';
-    }
-    if (p.acepta_postulaciones && (p.vacantes_disponibles > 0 || p.vacantes_disponibles == null)) {
-      html += '<span class="jdp-badge is-open"><i data-lucide="door-open"></i> Convocatoria abierta</span>';
-    }
-    html += '</div>';
-
-    // 3. Grid de Especificaciones Clave (Sin redundancias)
-    html += '<div class="jdp-meta-grid">';
-    html += '<div class="jdp-meta-card">' +
-              '<span class="jdp-meta-label"><i data-lucide="users"></i> Vacantes</span>' +
-              '<span class="jdp-meta-value">' + (p.vacantes_disponibles != null ? p.vacantes_disponibles : 0) + ' de ' + (p.vacantes || 0) + ' libres</span>' +
-            '</div>';
-    html += '<div class="jdp-meta-card">' +
-              '<span class="jdp-meta-label"><i data-lucide="calendar"></i> Cierre</span>' +
-              '<span class="jdp-meta-value">' + escapeHtml(p.fecha_limite || 'Sin límite') + '</span>' +
-            '</div>';
-    html += '<div class="jdp-meta-card">' +
-              '<span class="jdp-meta-label"><i data-lucide="clock"></i> Publicado</span>' +
-              '<span class="jdp-meta-value">' + escapeHtml(p.fecha_publicacion || '—') + '</span>' +
-            '</div>';
-    html += '<div class="jdp-meta-card">' +
-              '<span class="jdp-meta-label"><i data-lucide="map-pin"></i> Modalidad</span>' +
-              '<span class="jdp-meta-value">' + escapeHtml(p.ubicacion_display || p.modalidad_label || 'Remoto') + '</span>' +
-            '</div>';
-    html += '</div>';
-
-    // 4. Descripción del Proyecto
-    html += '<div class="jdp-desc-card">';
-    html += '<h4 class="jdp-section-header"><i data-lucide="file-text"></i> Descripción de la Convocatoria</h4>';
-    html += '<div class="jdp-desc-text">' + escapeHtml(p.descripcion || 'Sin descripción detallada registrada.') + '</div>';
-    html += '</div>';
-
-    // 5. Hitos del Proyecto (Solo si la empresa definió hitos)
-    var totalHitos = p.hitos_totales || 0;
-    var hechosHitos = p.hitos_completados || 0;
-    if (totalHitos > 0 && p.hitos && p.hitos.length) {
-      html += '<section class="jdp-section">';
-      html += '<div class="jdp-section-title">' +
-                '<span><i data-lucide="list-checks"></i> Plan de Hitos del Proyecto</span>' +
-                '<span class="jdp-section-count">' + hechosHitos + '/' + totalHitos + ' completados (' + (Number(p.progreso) || 0) + '%)</span>' +
-              '</div>';
-      html += '<div class="jdp-progress-bar"><div class="jdp-progress-fill" style="width:' + Math.max(0, Math.min(100, Number(p.progreso) || 0)) + '%"></div></div>';
-      html += '<ul class="jdp-list">';
-      p.hitos.forEach(function (h, idx) {
-        var isDone = h.estado === 'completado';
-        var isRev = h.estado === 'en_revision';
-        var iconName = isDone ? 'check-circle-2' : (isRev ? 'clock' : 'circle');
-        html += '<li class="jdp-list-item ' + estadoClass(h.estado) + '">' +
-                  '<i data-lucide="' + iconName + '" class="jdp-list-icon"></i>' +
-                  '<div class="jdp-list-main">' +
-                    '<span class="jdp-list-title">' + (idx + 1) + '. ' + escapeHtml(h.titulo) + '</span>' +
-                    (h.descripcion ? '<span class="jdp-list-sub">' + escapeHtml(h.descripcion) + '</span>' : '') +
-                  '</div>' +
-                  '<span class="jdp-list-state">' + escapeHtml(h.estado_label || '') + '</span>' +
-                '</li>';
-      });
-      html += '</ul>';
-      html += '</section>';
-    }
-
-    // 6. Desarrolladores Contratados (Solo si hay contratados)
-    if (p.contrataciones && p.contrataciones.length > 0) {
-      html += '<section class="jdp-section">';
-      html += '<div class="jdp-section-title">' +
-                '<span><i data-lucide="users"></i> Desarrolladores Asignados</span>' +
-                '<span class="jdp-section-count">' + p.contrataciones.length + '</span>' +
-              '</div>';
-      html += '<div class="jdp-team">';
-      p.contrataciones.forEach(function (c) {
-        html += '<span class="jdp-chip"><i data-lucide="code-2"></i> ' + escapeHtml(c.desarrollador || c.username || '') +
-                ' <span class="jdp-list-state">' + escapeHtml(c.estado_label || '') + '</span></span>';
-      });
-      html += '</div>';
-      html += '</section>';
-    }
-
-    modal.querySelector('[data-jdp-body]').innerHTML = html;
-
-    // 7. Footer de Acciones
+    var body = modal.querySelector('[data-jdp-body]');
     var footer = modal.querySelector('[data-jdp-footer]');
-    var acciones = data.acciones || [];
-    var footerHtml = '';
-    acciones.forEach(function (a) {
-      var clase = a.estilo === 'primary' ? 'jdp-btn is-primary' : 'jdp-btn';
-      var esPostularse = a.label === 'Postularme';
-      var iconName = esPostularse ? 'rocket' : (a.icono || 'arrow-right');
 
-      if (esPostularse && typeof window.abrirModalPostulacion === 'function') {
-        footerHtml += '<button type="button" class="' + clase + '" data-jdp-postular-inline>' +
-          '<i data-lucide="' + iconName + '"></i> ' + escapeHtml(a.label) + '</button>';
-      } else {
-        footerHtml += '<a class="' + clase + '" href="' + escapeHtml(a.url || '#') + '">' +
-          '<i data-lucide="' + iconName + '"></i> ' + escapeHtml(a.label || 'Abrir') + '</a>';
-      }
-    });
-    footerHtml += '<button type="button" class="jdp-btn" data-jdp-close><i data-lucide="x"></i> Cerrar</button>';
-    footer.innerHTML = footerHtml;
-    footer.hidden = false;
+    titulo.textContent = partial.getAttribute('data-jdp-titulo') || 'Proyecto';
 
-    // Conectar botón inline de postulación si existe
+    var subTpl = partial.querySelector('template[data-jdp-slot="sub"]');
+    sub.innerHTML = subTpl ? subTpl.innerHTML : '';
+
+    var bodySlot = partial.querySelector('[data-jdp-slot="body"]');
+    body.innerHTML = bodySlot ? bodySlot.innerHTML : '';
+
+    var footerTpl = partial.querySelector('template[data-jdp-slot="footer"]');
+    footer.innerHTML = footerTpl ? footerTpl.innerHTML : '';
+    footer.hidden = !footer.innerHTML.trim();
+
     var postularBtn = footer.querySelector('[data-jdp-postular-inline]');
-    if (postularBtn) {
+    if (postularBtn && typeof window.abrirModalPostulacion === 'function') {
       postularBtn.addEventListener('click', function (e) {
         e.preventDefault();
         cerrar();
-        if (typeof window.abrirModalPostulacion === 'function') {
-          window.abrirModalPostulacion({
-            url: aPostulacionUrl(p.id),
-            titulo: p.titulo,
-            empresa: empresa.nombre || '',
-            tipo: p.tipo || '',
-            prioridad: (p.prioridad || '').toUpperCase(),
-            vacantes: p.vacantes_disponibles,
-            cierre: p.fecha_limite || '',
-            descripcion: p.descripcion || ''
-          });
-        }
+        window.abrirModalPostulacion({
+          url: postularBtn.getAttribute('data-postulacion-url'),
+          titulo: postularBtn.getAttribute('data-titulo') || '',
+          empresa: postularBtn.getAttribute('data-empresa') || '',
+          tipo: postularBtn.getAttribute('data-tipo') || '',
+          prioridad: postularBtn.getAttribute('data-prioridad') || '',
+          vacantes: Number(postularBtn.getAttribute('data-vacantes') || 0),
+          cierre: postularBtn.getAttribute('data-cierre') || '',
+          descripcion: postularBtn.getAttribute('data-descripcion') || ''
+        });
       });
     }
 
     refrescarIconos();
-  }
-
-  function aPostulacionUrl(proyectoId) {
-    return '/postulaciones/postularse/' + proyectoId + '/';
   }
 
   function cerrar() {
