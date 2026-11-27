@@ -13,6 +13,12 @@ from .registration_views import (
     registro_view,
 )
 
+from .public_views import (
+    legal_condiciones_view,
+    legal_privacidad_view,
+    legal_cookies_view,
+)
+
 from .profile_views import (
     editar_perfil,
 )
@@ -52,6 +58,7 @@ from .admin_api import (
     api_actualizar_usuario,
     api_eliminar_usuario,
     api_bulk_toggle,
+    api_auditoria,
 )
 
 from .verificacion_views import (

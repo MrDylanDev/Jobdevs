@@ -164,7 +164,11 @@ def test_scrum_407_408_admin_confirmacion_y_buscador_debounce():
     assert 'id="usersResultCount"' in html
     assert 'id="projectsResultCount"' in html
 
-    js = (base / 'static/administrador/script/administrador.js').read_text(encoding='utf-8')
+    admin_script_dir = base / 'static/administrador/script'
+    js = '\n'.join(
+        p.read_text(encoding='utf-8')
+        for p in [admin_script_dir / 'administrador.js', *sorted((admin_script_dir / 'modules').glob('*.js'))]
+    )
     assert 'function debounce(' in js
     assert 'openToggleUserConfirmModal' in js
     assert "modal.classList.add('open')" in js

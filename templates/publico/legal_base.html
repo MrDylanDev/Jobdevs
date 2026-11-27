@@ -1,0 +1,128 @@
+{% load static i18n idioma assets %}
+{% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'es-co' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}{% if IDIOMA == 'en' %}Official legal framework and policies of Jobdevs — Medellín, Colombia.{% else %}Marco legal y políticas oficiales de Jobdevs — Medellín, Colombia.{% endif %}{% endblock %}">
+  <title>{% block title %}{% if IDIOMA == 'en' %}Legal framework | Jobdevs{% else %}Marco legal | Jobdevs{% endif %}{% endblock %}</title>
+  <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script>
+    (function () {
+      var tema = 'dark';
+      try {
+        var guardado = localStorage.getItem('jobdevs-theme');
+        if (guardado === 'light' || guardado === 'dark') {
+          tema = guardado;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          tema = 'light';
+        }
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', tema);
+    })();
+  </script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{% asset 'publico/css/legal.css' %}">
+</head>
+<body>
+  <header class="legal-nav">
+    <div class="legal-nav-inner">
+      <a href="{% url 'inicio' %}" class="legal-brand" aria-label="{% if IDIOMA == 'en' %}Jobdevs — Home{% else %}Jobdevs — Inicio{% endif %}">
+        <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="Jobdevs" class="legal-brand-logo">
+        <span>Job<span class="legal-brand-accent">devs</span></span>
+      </a>
+
+      <div class="legal-nav-actions">
+        <a class="legal-lang-btn" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" aria-label="{% if IDIOMA == 'en' %}Switch language to Spanish{% else %}Cambiar idioma a inglés{% endif %}" title="{% if IDIOMA == 'en' %}Cambiar a Español{% else %}Switch to English{% endif %}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          <span>{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
+        </a>
+        <button type="button" class="legal-theme-btn" id="legalThemeToggle" aria-label="{% if IDIOMA == 'en' %}Toggle light or dark theme{% else %}Cambiar tema claro u oscuro{% endif %}" title="{% if IDIOMA == 'en' %}Switch between dark and light theme{% else %}Cambiar entre tema oscuro y claro{% endif %}">
+          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <a href="{% url 'inicio' %}" class="legal-btn-outline">{% if IDIOMA == 'en' %}Back to home{% else %}Volver al inicio{% endif %}</a>
+        {% if allow_public_registration %}
+        <a href="{% url 'registro' %}" class="legal-btn-primary">{% if IDIOMA == 'en' %}Create account{% else %}Crear cuenta{% endif %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <section class="legal-hero">
+    <div class="legal-hero-inner">
+      <h1>{% block legal_heading %}{% endblock %}</h1>
+      <p class="legal-hero-lead">{% block legal_lead %}{% endblock %}</p>
+      <div class="legal-meta">
+        {% if IDIOMA == 'en' %}
+        <span class="legal-meta-item"><strong>Last updated:</strong> April 20, 2026</span>
+        <span class="legal-meta-item"><strong>Jurisdiction:</strong> Republic of Colombia (Medellín, Antioquia)</span>
+        <span class="legal-meta-item"><strong>Version:</strong> 1.0</span>
+        <span class="legal-meta-item"><strong>Contact:</strong> contacto@jobdevs.co</span>
+        {% else %}
+        <span class="legal-meta-item"><strong>Última actualización:</strong> 20 de abril de 2026</span>
+        <span class="legal-meta-item"><strong>Jurisdicción:</strong> República de Colombia (Medellín, Antioquia)</span>
+        <span class="legal-meta-item"><strong>Versión:</strong> 1.0</span>
+        <span class="legal-meta-item"><strong>Contacto:</strong> contacto@jobdevs.co</span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <main class="legal-shell">
+    <aside class="legal-toc" aria-label="{% if IDIOMA == 'en' %}Table of contents{% else %}Tabla de contenido{% endif %}">
+      <div class="legal-toc-related">
+        <div class="legal-toc-related-label">{% if IDIOMA == 'en' %}Related documents{% else %}Documentos relacionados{% endif %}</div>
+        <a href="{% url 'legal_condiciones' %}" class="{% if legal_active == 'condiciones' %}is-active{% endif %}">{% if IDIOMA == 'en' %}Terms of Service{% else %}Condiciones del servicio{% endif %}</a>
+        <a href="{% url 'legal_privacidad' %}" class="{% if legal_active == 'privacidad' %}is-active{% endif %}">{% if IDIOMA == 'en' %}Privacy Policy{% else %}Política de privacidad{% endif %}</a>
+        <a href="{% url 'legal_cookies' %}" class="{% if legal_active == 'cookies' %}is-active{% endif %}">{% if IDIOMA == 'en' %}Cookie Policy{% else %}Política de cookies{% endif %}</a>
+      </div>
+
+      <div class="legal-toc-title">{% if IDIOMA == 'en' %}Contents{% else %}Contenido{% endif %}</div>
+      <ol class="legal-toc-list">
+        {% block legal_toc %}{% endblock %}
+      </ol>
+    </aside>
+
+    <article class="legal-article">
+      {% block legal_body %}{% endblock %}
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('legalThemeToggle');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var current = document.documentElement.getAttribute('data-theme') || 'dark';
+          var next = current === 'light' ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', next);
+          try { localStorage.setItem('jobdevs-theme', next); } catch (e) {}
+        });
+      }
+
+      var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.legal-toc-list a[href^="#"]'));
+      if (tocLinks.length && 'IntersectionObserver' in window) {
+        var map = {};
+        tocLinks.forEach(function (link) {
+          var id = link.getAttribute('href').slice(1);
+          var el = document.getElementById(id);
+          if (el) map[id] = { link: link, el: el };
+        });
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting && map[entry.target.id]) {
+              tocLinks.forEach(function (l) { l.classList.remove('is-current'); });
+              map[entry.target.id].link.classList.add('is-current');
+            }
+          });
+        }, { rootMargin: '-18% 0px -70% 0px', threshold: 0 });
+        Object.keys(map).forEach(function (id) { observer.observe(map[id].el); });
+      }
+    })();
+  </script>
+</body>
+</html>

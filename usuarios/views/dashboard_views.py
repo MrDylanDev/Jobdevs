@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField
 from django.db.models.functions import Coalesce
@@ -31,4 +32,11 @@ def inicio(request):
             'calificacion': round(p.calificacion, 1),
         })
 
-    return render(request, 'publico/index.html', {'casos_exito': casos_exito})
+    return render(
+        request,
+        'publico/index.html',
+        {
+            'casos_exito': casos_exito,
+            'allow_public_registration': getattr(settings, 'ALLOW_PUBLIC_REGISTRATION', True),
+        },
+    )

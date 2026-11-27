@@ -133,6 +133,76 @@ class TestApiConversacion:
         assert response.status_code == 200
         assert response.json()['mensajes'] == []
 
+    def test_devuelve_mensajes_no_leidos_cero_cuando_no_quedan_otros_sin_leer(
+        self, client, empresa_user, desarrollador_user, contratacion
+    ):
+        m1 = Mensaje.objects.create(
+            remitente=empresa_user,
+            receptor=desarrollador_user,
+            contenido='Primer mensaje no leído',
+            proyecto=contratacion.proyecto,
+        )
+        m2 = Mensaje.objects.create(
+            remitente=empresa_user,
+            receptor=desarrollador_user,
+            contenido='Segundo mensaje no leído',
+            proyecto=contratacion.proyecto,
+        )
+        client.force_login(desarrollador_user)
+
+        response = client.get(
+            reverse(
+                'api_conversacion_proyecto',
+                args=[empresa_user.id, contratacion.proyecto.id],
+            )
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['mensajes_no_leidos'] == 0
+        m1.refresh_from_db()
+        m2.refresh_from_db()
+        assert m1.leido is True
+        assert m2.leido is True
+
+    def test_devuelve_conteo_exacto_de_mensajes_no_leidos_restantes(
+        self, client, empresa_user, desarrollador_user, admin_user, contratacion
+    ):
+        msg_abierto = Mensaje.objects.create(
+            remitente=empresa_user,
+            receptor=desarrollador_user,
+            contenido='Mensaje de la conversación abierta',
+            proyecto=contratacion.proyecto,
+        )
+        msg_otro_general = Mensaje.objects.create(
+            remitente=empresa_user,
+            receptor=desarrollador_user,
+            contenido='Mensaje general sin leer',
+        )
+        msg_otro_admin = Mensaje.objects.create(
+            remitente=admin_user,
+            receptor=desarrollador_user,
+            contenido='Mensaje de soporte sin leer',
+        )
+        client.force_login(desarrollador_user)
+
+        response = client.get(
+            reverse(
+                'api_conversacion_proyecto',
+                args=[empresa_user.id, contratacion.proyecto.id],
+            )
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data['mensajes_no_leidos'] == 2
+        msg_abierto.refresh_from_db()
+        msg_otro_general.refresh_from_db()
+        msg_otro_admin.refresh_from_db()
+        assert msg_abierto.leido is True
+        assert msg_otro_general.leido is False
+        assert msg_otro_admin.leido is False
+
 
 class _FakeChannelLayer:
     """Captura los group_send sin depender de Redis."""

@@ -68,6 +68,12 @@
 
       {% include 'partials/_flash_toasts.html' %}
 
+      {% if registro_deshabilitado %}
+        <div class="alert alert-error" data-testid="registro-deshabilitado" role="alert">
+          <strong>{% trans "Registro público deshabilitado" %}</strong>
+          <p style="margin-top: 8px;">{% trans "El alta de aprendices y empresas es gestionada directamente por el administrador institucional del SENA. Si ya tienes cuenta, inicia sesión." %}</p>
+        </div>
+      {% else %}
       {% if form.rol.errors %}
         <div class="alert alert-error">
           <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12.01" y1="16" y2="16"/></svg>
@@ -101,7 +107,7 @@
           {% endif %}
         </div>
 
-        <div class="form-group" id="container_tipo_documento" style="display: none;">
+        <div class="form-group" id="container_tipo_documento">
           <label>{% trans "TIPO DE DOCUMENTO" %}</label>
           {{ form.tipo_documento }}
           {% if form.tipo_documento.errors %}
@@ -127,17 +133,17 @@
 
         <div id="container_desarrollador_academico">
           <div class="form-group {% if form.ficha.errors %}error{% endif %}">
-            <label for="id_ficha">{% trans "FICHA SENA (OPCIONAL)" %}</label>
+            <label for="id_ficha">{% trans "FICHA SENA" %}</label>
             {{ form.ficha }}
             {% if form.ficha.errors %}<ul class="errorlist">{% for error in form.ficha.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
           </div>
           <div class="form-group {% if form.programa_formacion.errors %}error{% endif %}">
-            <label for="id_programa_formacion">{% trans "PROGRAMA DE FORMACIÓN (OPCIONAL)" %}</label>
+            <label for="id_programa_formacion">{% trans "PROGRAMA DE FORMACIÓN" %}</label>
             {{ form.programa_formacion }}
             {% if form.programa_formacion.errors %}<ul class="errorlist">{% for error in form.programa_formacion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
           </div>
           <div class="form-group {% if form.habilidades.errors %}error{% endif %}">
-            <label for="id_habilidades">{% trans "HABILIDADES TÉCNICAS (OPCIONAL)" %}</label>
+            <label for="id_habilidades">{% trans "HABILIDADES TÉCNICAS" %}</label>
             {{ form.habilidades }}
             {% if form.habilidades.errors %}<ul class="errorlist">{% for error in form.habilidades.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
           </div>
@@ -145,7 +151,7 @@
 
         <div class="form-group full-width {% if form.identificacion.errors %}error{% endif %}">
           <label id="label_cedula">{% trans "NÚMERO DE IDENTIFICACIÓN" %}</label>
-          <input type="text" name="identificacion" value="{{ form.identificacion.value|default:'' }}" placeholder="{% trans "Ej: 1002345678" %}" required autocomplete="off">
+          <input type="text" name="identificacion" inputmode="numeric" value="{{ form.identificacion.value|default:'' }}" placeholder="{% trans "Ej: 1002345678" %}" required autocomplete="off">
           {% if form.identificacion.errors %}
             <ul class="errorlist">{% for error in form.identificacion.errors %}<li>{{ error }}</li>{% endfor %}</ul>
           {% endif %}
@@ -156,8 +162,6 @@
           <input type="date" name="fecha_nacimiento" value="{{ form.fecha_nacimiento.value|default:'' }}" required>
           {% if form.fecha_nacimiento.errors %}
             <ul class="errorlist">{% for error in form.fecha_nacimiento.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-          {% else %}
-            <small>{% trans "Recuerda que debes ser mayor de edad." %}</small>
           {% endif %}
         </div>
 
@@ -179,8 +183,33 @@
           {% endif %}
         </div>
 
+        <div class="form-group full-width legal-consent-group {% if form.acepta_terminos.errors %}error{% endif %}">
+          <label class="legal-consent-label" for="id_acepta_terminos">
+            <input
+              type="checkbox"
+              id="id_acepta_terminos"
+              name="acepta_terminos"
+              class="legal-consent-checkbox"
+              {% if form.acepta_terminos.value %}checked{% endif %}
+              required
+            >
+            <span class="legal-consent-text">
+              {% trans "Acepto las" %}
+              <a href="{% url 'legal_condiciones' %}" target="_blank" rel="noopener noreferrer">{% trans "Condiciones del servicio" %}</a>,
+              {% trans "la" %}
+              <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener noreferrer">{% trans "Política de privacidad" %}</a>
+              {% trans "y la" %}
+              <a href="{% url 'legal_cookies' %}" target="_blank" rel="noopener noreferrer">{% trans "Política de cookies" %}</a>.
+            </span>
+          </label>
+          {% if form.acepta_terminos.errors %}
+            <ul class="errorlist">{% for error in form.acepta_terminos.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+
         <button type="submit">{% trans "[ COMPLETAR REGISTRO ]" %}</button>
       </form>
+      {% endif %}
 
       <div class="login-link">
         {% trans "¿Ya tienes una cuenta?" %} <a href="{% url 'inicio' %}?login=1">{% trans "INICIA SESIÓN" %}</a>

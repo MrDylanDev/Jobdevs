@@ -55,6 +55,9 @@ msgstr "What it is"
 msgid "Cómo funciona"
 msgstr "How it works"
 
+msgid "Así funciona"
+msgstr "How it works —"
+
 #: templates/publico/index.html:77
 msgid "Roles"
 msgstr "Roles"
@@ -3581,3 +3584,206 @@ msgstr "%(m)s unread"
 
 msgid "Comunicación directa con soporte y talento SENA en tus proyectos activos"
 msgstr "Direct communication with support and SENA talent in your active projects"
+
+# ==================== PUBLIC LANDING (templates/publico/index.html) ====================
+
+msgid "Jobdevs — El sistema operativo del talento SENA. Contrata aprendices verificados o construye tu portafolio con proyectos reales: contratos digitales, hitos con evidencia y reputación verificable."
+msgstr "Jobdevs — The operating system for SENA talent. Hire verified apprentices or build your portfolio with real projects: digital contracts, milestone evidence, and verifiable reputation."
+
+msgid "Jobdevs — El sistema operativo del talento SENA"
+msgstr "Jobdevs — The operating system for SENA talent"
+
+msgid "Menú"
+msgstr "Menu"
+
+msgid "Software engineering team"
+msgstr "Software engineering team"
+
+msgid "Young SENA developers collaborating"
+msgstr "Young SENA developers collaborating"
+
+msgid "Tech leaders and companies"
+msgstr "Tech leaders and companies"
+
+msgid "100% de hitos completados. Cierre formal con sello digital verificable y calificación mutua."
+msgstr "100% of milestones completed. Formal closing with a verifiable digital seal and mutual rating."
+
+msgid "Compañías colombianas que ya construyen su software con aprendices y egresados SENA verificados a través de Jobdevs."
+msgstr "Colombian companies already building their software with verified SENA apprentices and graduates through Jobdevs."
+
+msgid "Selecciona tu rol para conocer el flujo, las herramientas y las garantías que Jobdevs tiene para ti."
+msgstr "Select your role to explore the workflow, tools, and guarantees Jobdevs offers you."
+
+msgid "y"
+msgstr "and"
+
+msgid "Aprendiz"
+msgstr "Apprentice"
+
+msgid "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de Jobdevs."
+msgstr "Companies that trusted SENA developers with building their critical platforms through Jobdevs."
+
+msgid "Caso anterior"
+msgstr "Previous story"
+
+msgid "Siguiente caso"
+msgstr "Next story"
+
+msgid "Software geoespacial para control de ganado"
+msgstr "Geospatial software for livestock tracking"
+
+msgid "Agrogeo Colombia"
+msgstr "Agrogeo Colombia"
+
+msgid "Geoespacial & Ganadería · 6 meses"
+msgstr "Geospatial & Livestock · 6 months"
+
+msgid "\"Desarrollaron un software geoespacial para el control y trazabilidad de ganado por lotes. Hoy monitoreamos todo el hato en tiempo real.\""
+msgstr "\"They developed geospatial software for batch-level livestock tracking and traceability. Today we monitor the entire herd in real time.\""
+
+msgid "Automatización de procesos DevQ"
+msgstr "DevQ process automation"
+
+msgid "AUTOMATIZACIÓN"
+msgstr "AUTOMATION"
+
+msgid "DevQ Sistemas"
+msgstr "DevQ Sistemas"
+
+msgid "Automatización & Backend · 4 meses"
+msgstr "Automation & Backend · 4 months"
+
+msgid "\"Nos ayudó a automatizar procesos operativos repetitivos e integrar reportes internos. Redujimos tiempos manuales desde la primera entrega.\""
+msgstr "\"It helped us automate repetitive operational workflows and integrate internal reporting. We cut manual work from the very first delivery.\""
+
+msgid "Carga manual"
+msgstr "Manual workload"
+
+msgid "Monitorización de sismos Medellín"
+msgstr "Medellín seismic monitoring"
+
+msgid "TIEMPO REAL"
+msgstr "REAL TIME"
+
+msgid "Alcaldía de Medellín"
+msgstr "City of Medellín"
+
+msgid "Monitorización Sísmica · 8 meses"
+msgstr "Seismic Monitoring · 8 months"
+
+msgid "\"Implementaron el software de monitorización de sismos para la Alcaldía de Medellín, con alertas tempranas y tableros geográficos en vivo.\""
+msgstr "\"They built the seismic monitoring software for the City of Medellín, featuring early warnings and live geographic dashboards.\""
+
+msgid "Monitoreo"
+msgstr "Monitoring"
+
+msgid "Sitio web para gimnasio"
+msgstr "Gym website"
+
+msgid "+CAPTACIÓN"
+msgstr "+LEADS"
+
+msgid "Zona Fit Gym"
+msgstr "Zona Fit Gym"
+
+msgid "Web & Publicidad · 3 meses"
+msgstr "Web & Marketing · 3 months"
+
+msgid "\"Crearon la página web de nuestro gimnasio con planes y agenda en línea. Nos ayudó a publicitarnos mejor y atraer nuevos clientes cada semana.\""
+msgstr "\"They built our gym's website with membership plans and online scheduling. It boosted our marketing and brings in new clients every week.\""
+
+msgid "Consultas"
+msgstr "Inquiries"
+
+msgid "Software empresarial venta de zapatos"
+msgstr "Enterprise footwear sales software"
+
+msgid "+INGRESOS"
+msgstr "+REVENUE"
+
+msgid "Calzado Urbano"
+msgstr "Calzado Urbano"
+
+msgid "Software Empresarial · 5 meses"
+msgstr "Enterprise Software · 5 months"
+
+msgid "\"Desarrollaron nuestro software empresarial para la venta de zapatos, control de tallas e inventario. Ordenó las sucursales y aumentó los ingresos.\""
+msgstr "\"They developed our enterprise software for footwear sales, size control, and inventory. It streamlined our branches and boosted revenue.\""
+
+msgid "Ingresos"
+msgstr "Revenue"
+
+msgid "Aplicación móvil bancaria"
+msgstr "Mobile banking app"
+
+msgid "MOBILE BANKING"
+msgstr "MOBILE BANKING"
+
+msgid "Banco Aliado"
+msgstr "Banco Aliado"
+
+msgid "Aplicación Móvil · 7 meses"
+msgstr "Mobile App · 7 months"
+
+msgid "\"Construyeron la aplicación móvil del banco para consultas, transferencias y validación segura, entregando cada hito con pruebas verificadas.\""
+msgstr "\"They built the bank's mobile app for balance checks, transfers, and secure verification, delivering every milestone with verified tests.\""
+
+msgid "Estabilidad"
+msgstr "Stability"
+
+msgid "Crear cuenta"
+msgstr "Create account"
+
+msgid "Redes sociales"
+msgstr "Social media"
+
+msgid "¿Qué es Jobdevs?"
+msgstr "What is Jobdevs?"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "Condiciones del servicio"
+msgstr "Terms of Service"
+
+msgid "Política de privacidad"
+msgstr "Privacy Policy"
+
+msgid "Política de cookies"
+msgstr "Cookie Policy"
+
+msgid "© 2026 Jobdevs"
+msgstr "© 2026 Jobdevs"
+
+msgid "Autenticación"
+msgstr "Authentication"
+
+msgid "Correo o usuario"
+msgstr "Email or username"
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "Mostrar contraseña"
+msgstr "Show password"
+
+msgid "Recuperar acceso"
+msgstr "Recover access"
+
+msgid "Correo electrónico"
+msgstr "Email address"
+
+msgid "Enviar instrucciones"
+msgstr "Send instructions"
+
+msgid "&larr; Volver al inicio de sesión"
+msgstr "&larr; Back to sign in"
+
+msgid "Autenticación segura"
+msgstr "Secure authentication"
+
+msgid "Enviando..."
+msgstr "Sending..."
+
+msgid "Ingresando..."
+msgstr "Signing in..."

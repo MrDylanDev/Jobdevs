@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/fichas-sena/excepciones/<int:excepcion_id>/revocar/', views.admin_revocar_excepcion_ficha_sena, name='admin_revocar_excepcion_ficha_sena'),
     path('admin/notificaciones/depurar/', views.admin_depurar_notificaciones, name='admin_depurar_notificaciones'),
     path('admin/configuracion/negociacion/', views.admin_actualizar_configuracion_negociacion, name='admin_actualizar_configuracion_negociacion'),
+    path('admin/auditoria/api/', views.api_auditoria, name='api_auditoria'),
     path('empresa/<int:perfil_id>/documento/', views.descargar_documento_soporte_empresa, name='descargar_documento_soporte_empresa'),
     path('empresa/verificacion/', views.solicitar_verificacion_empresa, name='solicitar_verificacion_empresa'),
     path('desarrollador/dashboard/', views.dashboard_desarrollador, name='dashboard_desarrollador'),
@@ -37,6 +38,11 @@ urlpatterns = [
     path('registro/', views.registro_view, name='registro'),
     path('recuperar/', views.recuperar_view, name='recuperar'),
     path('restablecer/<str:token>/', views.restablecer_view, name='restablecer'),
+
+    # Documentos Legales Públicos
+    path('legal/condiciones/', views.legal_condiciones_view, name='legal_condiciones'),
+    path('legal/privacidad/', views.legal_privacidad_view, name='legal_privacidad'),
+    path('legal/cookies/', views.legal_cookies_view, name='legal_cookies'),
 
     # APIs de Usuarios
     path('api/sesion/', views.api_sesion, name='api_sesion'),

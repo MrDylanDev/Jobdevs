@@ -29,11 +29,13 @@ class TestQueEsJobDevs:
         assert 'id="sistemas"' not in landing_html
 
     def test_navbar_apunta_a_que_es(self, landing_html):
-        assert re.search(r'<a href="#que-es">Qué es</a>', landing_html)
+        navbar = landing_html[landing_html.index('id="navbar"'):landing_html.index('id="inicio"')]
+        assert 'href="#inicio"' in navbar
+        assert 'href="#que-es"' not in navbar
 
     def test_titular_pregunta_que_es_jobdevs(self, bloque_que_es):
         assert re.search(r'<h2[^>]*class="sh-title"[^>]*>¿Qué es ', bloque_que_es)
-        assert 'JobDevs' in bloque_que_es
+        assert 'Jobdevs' in bloque_que_es
 
     def test_solo_un_parrafo_de_texto(self, bloque_que_es):
         parrafos = re.findall(r'<p class="desc-mono">([^<]+)</p>', bloque_que_es)
@@ -110,10 +112,16 @@ class TestQueEsJobDevs:
         bloque = landing_html[inicio:]
         assert 'cta-hero-content' in bloque
         assert 'id="tituloComenzar"' in bloque
-        assert re.search(r'<a href="[^"]*registro[^"]*" class="cta-hero-btn">\[ CREAR CUENTA \]</a>', bloque), (
-            'El botón debe apuntar al registro y decir CREAR CUENTA'
+        assert re.search(r'<a href="#" data-abrir-login class="cta-hero-btn">Iniciar sesión</a>', bloque), (
+            'Con registro público deshabilitado, el botón de cierre debe abrir el login'
         )
         assert 'booking-layout' not in bloque, 'La sección ya no usa el layout de paneles'
+
+        html_con_registro = render_to_string('publico/index.html', {'allow_public_registration': True})
+        bloque_registro = html_con_registro[html_con_registro.index('id="comenzar"'):]
+        assert re.search(r'<a href="[^"]*registro[^"]*" class="cta-hero-btn">Crear cuenta</a>', bloque_registro), (
+            'Con registro público habilitado, el botón debe apuntar al registro y decir Crear cuenta'
+        )
 
     def test_css_del_cierre(self):
         css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()

@@ -106,13 +106,13 @@ class TestTextosDelJs:
 
     def test_en_espanol_trae_los_textos_en_espanol(self, client):
         datos = self._json(client.get('/').content.decode())
-        assert datos['authTitle'] == 'AUTENTICACIÓN SEGURA'
-        assert datos['sending'] == '[ ENVIANDO... ]'
+        assert datos['authTitle'] == 'Autenticación segura'
+        assert datos['sending'] == 'Enviando...'
 
     def test_en_ingles_trae_los_textos_en_ingles(self, client):
         datos = self._json(client.get('/en/').content.decode())
-        assert datos['authTitle'] == 'SECURE AUTHENTICATION'
-        assert datos['sending'] == '[ SENDING... ]'
+        assert datos['authTitle'] == 'Secure authentication'
+        assert datos['sending'] == 'Sending...'
 
     def test_el_js_ya_no_hardcodea_los_titulos(self):
         from django.conf import settings
@@ -131,13 +131,13 @@ class TestUrlDeterminaElIdioma:
         respuesta = client.get('/', headers={'accept-language': 'en-US,en;q=0.9'})
         contenido = respuesta.content.decode()
         assert '<html lang="es-co">' in contenido
-        assert 'Qué es' in contenido and 'What it is' not in contenido
+        assert '¿Qué es' in contenido and 'What is' not in contenido
 
     def test_el_prefijo_ingles_ignora_accept_language_espanol(self, client):
         respuesta = client.get('/en/', headers={'accept-language': 'es-CO,es;q=0.9'})
         contenido = respuesta.content.decode()
         assert '<html lang="en">' in contenido
-        assert 'What it is' in contenido
+        assert 'What is' in contenido
 
     def test_el_middleware_esta_despues_del_de_idioma(self):
         middleware = settings.MIDDLEWARE

@@ -43,3 +43,11 @@ class TestChatInlineCliente:
         assert 'data-session-url' in source
         assert 'verificarSesion' in source
         assert 'api/sesion' in source or 'sessionUrl' in source
+
+    def test_actualiza_badge_sidebar_al_renderizar_conversacion(self):
+        source = _chat_inline_source()
+        inicio_render = source.index('function render(data)')
+        fin_render = source.index('\n    function ', inicio_render + 1)
+        cuerpo_render = source[inicio_render:fin_render]
+        assert "typeof data.mensajes_no_leidos === 'number'" in cuerpo_render
+        assert "document.querySelectorAll('[data-mensajes-badge]')" in cuerpo_render

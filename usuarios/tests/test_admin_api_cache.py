@@ -30,24 +30,40 @@ def _crear_admin(username):
 
 
 class TestCacheAdministradores:
-    def test_eliminar_admin_invalida_la_cache(self, admin_client, admin_user):
-        """Al eliminar un administrador, la lista cacheada no puede seguir conteniéndolo."""
+    def test_eliminar_admin_invalida_la_cache(self, admin_client, admin_user, desarrollador_user):
+        """No permite borrar otro admin (403); invalidar_cache_administradores limpia la caché y borrar no-admin audita."""
+        from usuarios.views.admin_api import invalidar_cache_administradores
+
         objetivo = _crear_admin('admin_a_borrar')
         # La lista se cachea al consultarla (get_admin_ids) y queda en memoria 5 minutos.
         assert objetivo.id in get_admin_ids()
 
-        response = admin_client.delete(reverse('api_eliminar_usuario', args=[objetivo.id]))
-        assert response.status_code == 200, response.content
+        # La política actual bloquea eliminar la cuenta de otro administrador.
+        response_admin = admin_client.delete(reverse('api_eliminar_usuario', args=[objetivo.id]))
+        assert response_admin.status_code == 403, response_admin.content
+        assert Usuario.objects.filter(id=objetivo.id).exists()
+        assert objetivo.id in get_admin_ids()
 
-        assert not Usuario.objects.filter(id=objetivo.id).exists()
-        assert objetivo.id not in get_admin_ids(), (
+        # Si el administrador deja de existir e invalidamos caché, desaparece de get_admin_ids().
+        objetivo_id = objetivo.id
+        objetivo.delete()
+        assert objetivo_id in get_admin_ids()
+        invalidar_cache_administradores()
+        assert objetivo_id not in get_admin_ids(), (
             'la lista cacheada de administradores sigue conteniendo al usuario eliminado'
         )
+
+        # Eliminar un usuario no-admin sí procede y registra LogAuditoria.
+        dev_id = desarrollador_user.id
+        dev_email = desarrollador_user.email
+        response_dev = admin_client.delete(reverse('api_eliminar_usuario', args=[dev_id]))
+        assert response_dev.status_code == 200, response_dev.content
+        assert not Usuario.objects.filter(id=dev_id).exists()
         log = LogAuditoria.objects.get(
-            tabla_afectada='usuarios', registro_id=objetivo.id
+            tabla_afectada='usuarios', registro_id=dev_id
         )
         assert log.valor_anterior == (
-            'email=admin_a_borrar@test.jobdevs; rol=administrador; estado=activo'
+            f'email={dev_email}; rol=desarrollador; estado=activo'
         )
         assert log.valor_nuevo == 'eliminado'
 

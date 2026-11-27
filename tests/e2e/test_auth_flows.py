@@ -146,6 +146,7 @@ class TestRegistroE2E:
         page.fill('input[name="fecha_nacimiento"]', '2000-05-15')
         page.fill('input[name="password1"]', 'E2ETest123!')
         page.fill('input[name="password2"]', 'E2ETest123!')
+        page.check('#id_acepta_terminos')
         # Default rol is desarrollador
 
         page.locator('button[type="submit"]').click(force=True)

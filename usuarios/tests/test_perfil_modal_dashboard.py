@@ -46,10 +46,10 @@ class TestPerfilIntegradoEnDashboard:
         assert html.count('data-verificacion-form') == 3
         assert html.count('value="dashboard"') >= 3
 
-    def test_banner_verificacion_usa_tema_oscuro(self, dev_client):
+    def test_banner_verificacion_no_aparece_en_navbar(self, dev_client):
         html = _dashboard(dev_client).content.decode()
-        assert 'jd-alert jd-alert-warning' in html
-        assert 'data-testid="alerta-verificacion-sena"' in html
+        assert 'data-testid="alerta-verificacion-sena"' not in html
+        assert 'id="modalVerificacion"' in html
 
     def test_seccion_inicial_desde_query(self, dev_client):
         response = _dashboard(dev_client, '?seccion=perfil')

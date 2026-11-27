@@ -29,7 +29,7 @@ def css():
 
 @pytest.fixture(scope='module')
 def html():
-    return render_to_string('publico/index.html')
+    return render_to_string('publico/index.html', {'allow_public_registration': True})
 
 
 def bloque_movil(css):

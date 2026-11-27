@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from datetime import date
 
 from usuarios.models import FichaSena
+from logs.models import LogAuditoria
 
 User = get_user_model()
 
@@ -28,6 +29,7 @@ class TestRegistroView:
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         assert response.url == reverse('dashboard_desarrollador')
@@ -48,6 +50,7 @@ class TestRegistroView:
             'programa_formacion': 'ADSO',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         perfil = User.objects.get(email='aprendiz.uno@test.jobdevs').perfil_desarrollador
@@ -69,7 +72,7 @@ class TestRegistroView:
             'username': 'nuevaempresa',
             'nombre': 'Nueva Empresa',
             'tipo_documento': 'nit',
-            'identificacion': '900123456-7',
+            'identificacion': '900123456-8',
             'sector': 'Fintech y Banca Digital',
             'ciudad': 'Bogotá D.C.',
             'email': 'empresanueva@test.jobdevs',
@@ -77,6 +80,7 @@ class TestRegistroView:
             'rol': 'empresa',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         assert response.url == reverse('dashboard_empresa')
@@ -171,6 +175,7 @@ class TestRegistroView:
             'programa_formacion': 'ADSO',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         user = User.objects.get(username='devconvalida')
@@ -189,6 +194,7 @@ class TestRegistroView:
             'rol': 'desarrollador',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         user = User.objects.get(username='devsinficha')
@@ -208,6 +214,7 @@ class TestRegistroView:
             'programa_formacion': 'Desconocido',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         user = User.objects.get(username='devfichano')
@@ -277,6 +284,7 @@ class TestRegistroView:
             'programa_formacion': 'Análisis y Desarrollo de Software',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         user = User.objects.get(username='devprogramasi')
@@ -314,6 +322,7 @@ class TestRegistroView:
             'programa_formacion': 'Desarrollo de Videojuegos',
             'password1': 'TestPass123!',
             'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         user = User.objects.get(username='devvideojuegos')
@@ -324,14 +333,14 @@ class TestRegistroView:
         User.objects.create_user(
             username='existente',
             email='existente@test.jobdevs',
-            identificacion='900999888-1',
+            identificacion='900999888-5',
             password='TestPassword123!',
         )
         response = client.post(reverse('registro'), {
             'username': 'intento_duplicado',
             'nombre': 'Empresa Clon',
             'tipo_documento': 'nit',
-            'identificacion': '900999888-1',
+            'identificacion': '900999888-5',
             'sector': 'Servicios',
             'ciudad': 'Cali',
             'email': 'clon@test.jobdevs',
@@ -357,6 +366,7 @@ class TestRegistroView:
             'rol': 'desarrollador',
             'password1': 'EmailPass123!',
             'password2': 'EmailPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         assert User.objects.filter(email='soloemail@test.jobdevs').exists()
@@ -402,6 +412,7 @@ class TestRegistroView:
             'rol': 'desarrollador',
             'password1': 'BienvenidoPass123!',
             'password2': 'BienvenidoPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         assert len(mail.outbox) == 1
@@ -424,7 +435,7 @@ class TestRegistroView:
             'username': 'bienvenida_empresa',
             'nombre': 'Empresa Digital SAS',
             'tipo_documento': 'nit',
-            'identificacion': '901234567-1',
+            'identificacion': '901234567-7',
             'sector': 'Software',
             'ciudad': 'Medellín',
             'email': 'contacto@digital.jobdevs',
@@ -432,6 +443,7 @@ class TestRegistroView:
             'rol': 'empresa',
             'password1': 'BienvenidoPass123!',
             'password2': 'BienvenidoPass123!',
+            'acepta_terminos': 'on',
         })
         assert response.status_code == 302
         assert len(mail.outbox) == 1
@@ -466,8 +478,310 @@ class TestRegistroView:
                 'rol': 'desarrollador',
                 'password1': 'TestPass123!',
                 'password2': 'TestPass123!',
+                'acepta_terminos': 'on',
             })
 
         assert response.status_code == 302
         assert response.url == reverse('dashboard_desarrollador')
         assert User.objects.filter(username='devbrokercaido').exists()
+
+    def test_registro_get_bloqueado_cuando_registro_publico_deshabilitado(self, client, settings):
+        """GET /registro/ returns 403 and institutional notice when ALLOW_PUBLIC_REGISTRATION is False."""
+        settings.ALLOW_PUBLIC_REGISTRATION = False
+        response = client.get(reverse('registro'))
+        assert response.status_code == 403
+        html = response.content.decode('utf-8')
+        assert 'registro-deshabilitado' in html
+        assert '<form method="post"' not in html
+
+    def test_registro_post_bloqueado_cuando_registro_publico_deshabilitado(self, client, settings):
+        """POST /registro/ returns 403 and creates no user when ALLOW_PUBLIC_REGISTRATION is False."""
+        settings.ALLOW_PUBLIC_REGISTRATION = False
+        count_before = User.objects.count()
+        response = client.post(reverse('registro'), {
+            'username': 'bloqueado_dev',
+            'nombre': 'Bloqueado Dev',
+            'tipo_documento': 'cedula',
+            'identificacion': '55443322',
+            'email': 'bloqueado@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 403
+        assert User.objects.count() == count_before
+        assert not User.objects.filter(username='bloqueado_dev').exists()
+
+    def test_landing_oculta_enlaces_registro_cuando_deshabilitado(self, client, settings):
+        """GET / hides /registro/ links when ALLOW_PUBLIC_REGISTRATION is False."""
+        settings.ALLOW_PUBLIC_REGISTRATION = False
+        response = client.get(reverse('inicio'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert f'href="{reverse("registro")}"' not in html
+
+    def test_registro_dev_cc_con_puntos_se_sanitiza(self, client):
+        """Dev registering with valid CC containing dots stores clean digits."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Dev CC Puntos',
+            'tipo_documento': 'cedula',
+            'identificacion': '1.020.304.050',
+            'email': 'devccpuntos@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(email='devccpuntos@test.jobdevs')
+        assert user.identificacion == '1020304050'
+
+    def test_registro_dev_ti_valido(self, client):
+        """Dev registering with valid 10-digit TI succeeds."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Dev TI Valido',
+            'tipo_documento': 'ti',
+            'identificacion': '1000234567',
+            'email': 'devtivalido@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(email='devtivalido@test.jobdevs')
+        assert user.identificacion == '1000234567'
+
+    def test_registro_dev_cc_invalida_rechazada(self, client):
+        """Dev with too-short or alphabetic CC is rejected."""
+        for bad_cc in ('12345', '12345ABC'):
+            response = client.post(reverse('registro'), {
+                'nombre': 'Dev CC Mala',
+                'tipo_documento': 'cedula',
+                'identificacion': bad_cc,
+                'email': f'devccmala_{bad_cc}@test.jobdevs',
+                'fecha_nacimiento': '2000-01-01',
+                'rol': 'desarrollador',
+                'password1': 'TestPass123!',
+                'password2': 'TestPass123!',
+            })
+            assert response.status_code == 200
+            assert 'identificacion' in response.context['form'].errors
+            assert not User.objects.filter(email=f'devccmala_{bad_cc}@test.jobdevs').exists()
+
+    def test_registro_empresa_ti_rechazada(self, client):
+        """Empresa registering with TI is rejected."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Empresa TI',
+            'tipo_documento': 'ti',
+            'identificacion': '1000234567',
+            'email': 'empresati@test.jobdevs',
+            'fecha_nacimiento': '1990-01-01',
+            'rol': 'empresa',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 200
+        assert 'tipo_documento' in response.context['form'].errors
+        assert not User.objects.filter(email='empresati@test.jobdevs').exists()
+
+    def test_registro_empresa_nit_dv_invalido_rechazada(self, client):
+        """Empresa with invalid DIAN NIT DV is rejected."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Empresa NIT Malo',
+            'tipo_documento': 'nit',
+            'identificacion': '899.999.034-9',
+            'email': 'empresanitmalo@test.jobdevs',
+            'fecha_nacimiento': '1990-01-01',
+            'rol': 'empresa',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+        assert response.status_code == 200
+        assert 'identificacion' in response.context['form'].errors
+        assert not User.objects.filter(email='empresanitmalo@test.jobdevs').exists()
+
+    def test_registro_empresa_con_cc_valida_aceptada(self, client):
+        """Empresa registering with valid CC is accepted."""
+        response = client.post(reverse('registro'), {
+            'nombre': 'Empresa Persona Natural',
+            'tipo_documento': 'cedula',
+            'identificacion': '79.123.456',
+            'email': 'empresacc@test.jobdevs',
+            'fecha_nacimiento': '1990-01-01',
+            'rol': 'empresa',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
+        })
+        assert response.status_code == 302
+        user = User.objects.get(email='empresacc@test.jobdevs')
+        assert user.identificacion == '79123456'
+        assert user.rol == 'empresa'
+
+    def test_registro_sin_aceptar_terminos_es_rechazado_y_no_crea_usuario_ni_log(self, client):
+        """POST /registro/ sin acepta_terminos falla validación y no crea usuario ni LogAuditoria."""
+        users_before = User.objects.count()
+        logs_before = LogAuditoria.objects.count()
+
+        response = client.post(reverse('registro'), {
+            'username': 'sinterminos',
+            'nombre': 'Sin Terminos',
+            'tipo_documento': 'cedula',
+            'identificacion': '1020304099',
+            'email': 'sinterminos@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+        })
+
+        assert response.status_code == 200
+        assert 'acepta_terminos' in response.context['form'].errors
+        assert User.objects.count() == users_before
+        assert LogAuditoria.objects.count() == logs_before
+        assert not User.objects.filter(email='sinterminos@test.jobdevs').exists()
+
+    def test_registro_con_aceptacion_legal_registra_auditoria(self, client):
+        """POST /registro/ con acepta_terminos crea el usuario y registra la aceptación en LogAuditoria."""
+        response = client.post(reverse('registro'), {
+            'username': 'conterminos',
+            'nombre': 'Con Terminos',
+            'tipo_documento': 'cedula',
+            'identificacion': '1020304088',
+            'email': 'conterminos@test.jobdevs',
+            'fecha_nacimiento': '2000-01-01',
+            'rol': 'desarrollador',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'acepta_terminos': 'on',
+        })
+
+        assert response.status_code == 302
+        user = User.objects.get(email='conterminos@test.jobdevs')
+        log = LogAuditoria.objects.filter(
+            usuario=user,
+            tabla_afectada='usuarios',
+            registro_id=user.id,
+        ).first()
+        assert log is not None
+        accion_lower = log.accion.lower()
+        assert 'condiciones del servicio' in accion_lower
+        assert 'privacidad' in accion_lower
+        assert 'cookies' in accion_lower
+
+    def test_registro_incluye_checkbox_y_enlaces_legales(self, client):
+        """GET /registro/ muestra el checkbox acepta_terminos y enlaces a las 3 páginas legales en nueva pestaña."""
+        response = client.get(reverse('registro'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert 'name="acepta_terminos"' in html
+        assert 'target="_blank"' in html
+        assert 'rel="noopener noreferrer"' in html
+        for url_name in ('legal_condiciones', 'legal_privacidad', 'legal_cookies'):
+            assert f'href="{reverse(url_name)}"' in html
+
+    def test_landing_footer_incluye_enlaces_legales(self, client):
+        """GET / incluye enlaces en el footer a las 3 páginas legales."""
+        response = client.get(reverse('inicio'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        for url_name in ('legal_condiciones', 'legal_privacidad', 'legal_cookies'):
+            assert f'href="{reverse(url_name)}"' in html
+
+
+class TestPaginasLegales:
+    """Tests for the 3 public legal pages (ES & EN)."""
+
+    def test_legal_condiciones_publica_y_completa(self, client):
+        response = client.get(reverse('legal_condiciones'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert 'Condiciones del servicio' in html
+        assert 'Ley 527 de 1999' in html
+        assert 'Modo Piloto' in html
+        assert 'Medellín' in html
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/en/legal/condiciones/"' in html
+        assert f'href="{reverse("legal_privacidad")}"' in html
+        assert f'href="{reverse("legal_cookies")}"' in html
+
+    def test_legal_privacidad_publica_y_completa(self, client):
+        response = client.get(reverse('legal_privacidad'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert 'Política de privacidad' in html
+        assert 'Ley 1581 de 2012' in html
+        assert 'Decreto 1377 de 2013' in html
+        assert 'Tarjeta de Identidad' in html
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/en/legal/privacidad/"' in html
+        assert f'href="{reverse("legal_condiciones")}"' in html
+        assert f'href="{reverse("legal_cookies")}"' in html
+
+    def test_legal_cookies_publica_y_completa(self, client):
+        response = client.get(reverse('legal_cookies'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert 'Política de cookies' in html
+        assert 'sessionid' in html
+        assert 'csrftoken' in html
+        assert 'django_language' in html
+        assert 'jobdevs-theme' in html
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/en/legal/cookies/"' in html
+        assert f'href="{reverse("legal_condiciones")}"' in html
+        assert f'href="{reverse("legal_privacidad")}"' in html
+
+    def test_legal_condiciones_en_ingles(self, client):
+        response = client.get('/en/legal/condiciones/')
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<html lang="en">' in html
+        assert 'Terms of Service' in html
+        assert 'Law 527 of 1999' in html
+        assert 'Pilot Mode' in html
+        assert 'escrow' in html.lower()
+        assert 'permanent deletion' in html.lower()
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/legal/condiciones/"' in html
+        assert 'href="/en/legal/privacidad/"' in html
+        assert 'href="/en/legal/cookies/"' in html
+
+    def test_legal_privacidad_en_ingles(self, client):
+        response = client.get('/en/legal/privacidad/')
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<html lang="en">' in html
+        assert 'Privacy Policy' in html
+        assert 'Law 1581 of 2012' in html
+        assert 'Decree 1377 of 2013' in html
+        assert 'Identity Card' in html
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/legal/privacidad/"' in html
+        assert 'href="/en/legal/condiciones/"' in html
+        assert 'href="/en/legal/cookies/"' in html
+
+    def test_legal_cookies_en_ingles(self, client):
+        response = client.get('/en/legal/cookies/')
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<html lang="en">' in html
+        assert 'Cookie Policy' in html
+        assert 'sessionid' in html
+        assert 'csrftoken' in html
+        assert 'django_language' in html
+        assert 'jobdevs-theme' in html
+        assert 'Marco legal completo de Jobdevs' not in html
+        assert 'legal-crosslinks' not in html
+        assert 'href="/legal/cookies/"' in html
+        assert 'href="/en/legal/condiciones/"' in html
+        assert 'href="/en/legal/privacidad/"' in html

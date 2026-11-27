@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from django.conf import settings
@@ -10,12 +11,18 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value, FloatField, F, Max
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from datetime import timedelta
 from django.core.paginator import Paginator
-from ..models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena, ExcepcionFichaSena
+from ..models import (
+    Usuario,
+    PerfilEmpresa,
+    PerfilDesarrollador,
+    FichaSena,
+    ExcepcionFichaSena,
+)
 from ..services_sena import normalizar_numero_ficha
 from ..decorators import requiere_usuario_activo
 from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
@@ -23,7 +30,7 @@ from proyectos.models import Proyecto, Valoracion, CategoriaSolucion, Regulariza
 from proyectos.services import regularizar_cierre_historico
 from postulaciones.models import Postulacion
 from postulaciones import services as postulaciones_services
-from contrataciones.models import Contratacion
+from contrataciones.models import Contratacion, SolicitudCancelacion
 from disputas.models import Disputa
 from notificaciones.models import Notificacion
 from notificaciones.services import depurar_notificaciones
@@ -169,7 +176,9 @@ def dashboard_admin(request):
          Q(remitente_id__in=admin_ids, receptor=OuterRef('pk')))
     ).order_by('-fecha_envio').values('id')[:1]
 
-    contactos = Usuario.objects.filter(id__in=u_ids).annotate(
+    contactos = Usuario.objects.filter(id__in=u_ids).select_related(
+        'perfil_empresa', 'perfil_desarrollador'
+    ).annotate(
         ultimo_mensaje_id=Subquery(ultimo_mensaje_sq)
     )
     
@@ -181,10 +190,20 @@ def dashboard_admin(request):
         ultimo_m = ultimos_mensajes.get(contacto.ultimo_mensaje_id)
         if ultimo_m:
             tiene_pendientes = (ultimo_m.remitente_id == contacto.id and not ultimo_m.leido)
+            foto_url = ''
+            if contacto.rol == 'empresa':
+                perfil = getattr(contacto, 'perfil_empresa', None)
+                if perfil and perfil.logo:
+                    foto_url = perfil.logo.url
+            elif contacto.rol == 'desarrollador':
+                perfil = getattr(contacto, 'perfil_desarrollador', None)
+                if perfil and perfil.foto_perfil:
+                    foto_url = perfil.foto_perfil.url
             conversaciones.append({
                 'usuario': contacto, 
                 'ultimo_mensaje': ultimo_m,
-                'pendiente': tiene_pendientes
+                'pendiente': tiene_pendientes,
+                'foto_url': foto_url,
             })
     conversaciones.sort(key=lambda x: x['ultimo_mensaje'].fecha_envio, reverse=True)
 
@@ -198,7 +217,7 @@ def dashboard_admin(request):
     ranking_top = list(desarrolladores_qs.filter(promedio__gte=4.0)
         .order_by('-promedio', '-proyectos_comp')[:5]
         .values_list('nombre', 'proyectos_comp', 'promedio', 'id'))
-    ranking_bajo = list(desarrolladores_qs.filter(promedio__lt=4.0)
+    ranking_bajo = list(desarrolladores_qs.filter(promedio__gt=0, promedio__lt=4.0)
         .order_by('promedio', 'proyectos_comp')[:5]
         .values_list('nombre', 'proyectos_comp', 'promedio', 'id'))
 
@@ -245,7 +264,7 @@ def dashboard_admin(request):
     ranking_empresas_top = list(empresas_qs.filter(promedio__gte=4.0)
         .order_by('-promedio', '-total_eval')[:5]
         .values_list('nombre', 'nombre_empresa', 'promedio', 'total_eval', 'id'))
-    ranking_empresas_bajo = list(empresas_qs.filter(promedio__lt=4.0)
+    ranking_empresas_bajo = list(empresas_qs.filter(promedio__gt=0, promedio__lt=4.0)
         .order_by('promedio', 'total_eval')[:5]
         .values_list('nombre', 'nombre_empresa', 'promedio', 'total_eval', 'id'))
 
@@ -315,7 +334,63 @@ def dashboard_admin(request):
     sena_api_url = getattr(settings, 'SENA_API_URL', os.environ.get('SENA_API_URL', ''))
     sena_modo_verificacion = 'pasarela_externa' if sena_api_url else 'padron_oficial'
 
+    def _tendencia_6_meses():
+        hoy = timezone.localdate()
+        meses_es = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        meses = []
+        y, m = hoy.year, hoy.month
+        for _ in range(6):
+            meses.append((y, m))
+            m -= 1
+            if m == 0:
+                m = 12
+                y -= 1
+        meses.reverse()
+        inicio_y, inicio_m = meses[0]
+        fecha_inicio = timezone.make_aware(
+            timezone.datetime(inicio_y, inicio_m, 1, 0, 0, 0)
+        )
+        u_rows = (
+            Usuario.objects.filter(date_joined__gte=fecha_inicio)
+            .annotate(mes=TruncMonth('date_joined'))
+            .values('mes')
+            .annotate(total=Count('id'))
+        )
+        p_rows = (
+            Proyecto.objects.filter(fecha_publicacion__gte=fecha_inicio)
+            .annotate(mes=TruncMonth('fecha_publicacion'))
+            .values('mes')
+            .annotate(total=Count('id'))
+        )
+        u_map = {(r['mes'].year, r['mes'].month): r['total'] for r in u_rows if r['mes']}
+        p_map = {(r['mes'].year, r['mes'].month): r['total'] for r in p_rows if r['mes']}
+        return [
+            {
+                'label': meses_es[mm - 1],
+                'usuarios': u_map.get((yy, mm), 0),
+                'proyectos': p_map.get((yy, mm), 0),
+            }
+            for yy, mm in meses
+        ]
+
+    solicitudes_cancelacion_admin = list(
+        SolicitudCancelacion.objects.select_related(
+            'contratacion__proyecto', 'contratacion__desarrollador',
+            'contratacion__proyecto__empresa', 'solicitante',
+        ).order_by('-fecha_creacion')[:50]
+    )
+    solicitudes_cancelacion_pendientes_count = sum(
+        1 for s in solicitudes_cancelacion_admin if s.estado == 'pendiente_revision'
+    )
+    solicitudes_cancelacion_resueltas_count = sum(
+        1 for s in solicitudes_cancelacion_admin if s.estado in ('aprobada', 'rechazada')
+    )
+
     context = {
+        'solicitudes_cancelacion_admin': solicitudes_cancelacion_admin,
+        'solicitudes_cancelacion_pendientes_count': solicitudes_cancelacion_pendientes_count,
+        'solicitudes_cancelacion_resueltas_count': solicitudes_cancelacion_resueltas_count,
+        'tendencia_mensual_json': json.dumps(_tendencia_6_meses()),
         'desarrolladores_en_revision': desarrolladores_en_revision,
         'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
         'fichas_sena': fichas_sena,
@@ -414,7 +489,15 @@ def admin_regularizar_cierre_proyecto(request, proyecto_id):
 def admin_toggle_usuario(request, usuario_id):
     if request.user.rol != 'administrador': return redirect('inicio')
     user = get_object_or_404(Usuario, id=usuario_id)
-    
+
+    if user.id == request.user.id:
+        messages.error(request, 'No puedes suspender tu propia cuenta.')
+        return redirect(f"{reverse('dashboard_admin')}?section=usersSection")
+
+    if user.rol == 'administrador':
+        messages.error(request, 'No puedes modificar la cuenta de otro administrador desde el panel.')
+        return redirect(f"{reverse('dashboard_admin')}?section=usersSection")
+
     if user.estado == 'activo':
         user.estado = 'inactivo'
         user.is_active = False

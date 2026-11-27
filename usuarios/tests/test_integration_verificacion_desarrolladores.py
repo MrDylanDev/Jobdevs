@@ -81,6 +81,7 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
             'programa_formacion': 'ADSO',
             'password1': 'SantiagoPass123!',
             'password2': 'SantiagoPass123!',
+            'acepta_terminos': 'on',
         }, follow=True)
         assert res_reg.status_code == 200
         assert res_reg.redirect_chain[-1][0] == reverse('dashboard_desarrollador')
@@ -133,6 +134,7 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
             'rol': 'desarrollador',
             'password1': 'ValentinaPass123!',
             'password2': 'ValentinaPass123!',
+            'acepta_terminos': 'on',
         }, follow=True)
         assert res_reg.status_code == 200
         dev = Usuario.objects.get(username='aprendiz_manual')
@@ -270,6 +272,7 @@ class TestWorkflowCompletoVerificacionDesarrolladorSena:
             'rol': 'desarrollador',
             'password1': 'LauraPass123!',
             'password2': 'LauraPass123!',
+            'acepta_terminos': 'on',
         })
         dev = Usuario.objects.get(username='egresada_laura')
         perfil = dev.perfil_desarrollador

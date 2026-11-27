@@ -1,0 +1,297 @@
+{% extends 'publico/legal_base.html' %}
+
+{% block title %}{% if IDIOMA == 'en' %}Cookie Policy & Local Storage | Jobdevs{% else %}Política de cookies y almacenamiento local | Jobdevs{% endif %}{% endblock %}
+{% block meta_description %}{% if IDIOMA == 'en' %}Jobdevs Cookie Policy and local storage technologies: technical details of sessionid, csrftoken, django_language, and interface preferences.{% else %}Política de cookies y tecnologías de almacenamiento local de Jobdevs: detalle técnico de sessionid, csrftoken, django_language y preferencias de interfaz.{% endif %}{% endblock %}
+{% block legal_eyebrow %}{% if IDIOMA == 'en' %}Legal document · 03{% else %}Documento legal · 03{% endif %}{% endblock %}
+{% block legal_heading %}{% if IDIOMA == 'en' %}Cookie Policy & Storage Technologies{% else %}Política de cookies y tecnologías de almacenamiento{% endif %}{% endblock %}
+{% block legal_lead %}{% if IDIOMA == 'en' %}This Cookie Policy explains clearly and technically which cookies and local storage mechanisms Jobdevs uses to operate securely, what information we do NOT collect for advertising purposes, and how you can manage or block these technologies from your browser.{% else %}Esta Política de cookies explica de manera clara y técnica qué cookies y mecanismos de almacenamiento local utiliza Jobdevs para operar de forma segura, qué información NO recolectamos con fines publicitarios y cómo puedes gestionar o bloquear estas tecnologías desde tu navegador.{% endif %}{% endblock %}
+
+{% block legal_toc %}
+{% if IDIOMA == 'en' %}
+  <li><a href="#sec-1">1. What are cookies and local storage?</a></li>
+  <li><a href="#sec-2">2. Applicable regulatory framework</a></li>
+  <li><a href="#sec-3">3. Classification of technologies used</a></li>
+  <li><a href="#sec-4">4. Technical inventory of cookies and storage</a></li>
+  <li><a href="#sec-5">5. Cookies Jobdevs does NOT use</a></li>
+  <li><a href="#sec-6">6. Security of essential cookies</a></li>
+  <li><a href="#sec-7">7. How to manage or delete cookies</a></li>
+  <li><a href="#sec-8">8. Consequences of disabling them</a></li>
+  <li><a href="#sec-9">9. Relationship with other policies</a></li>
+  <li><a href="#sec-10">10. Updates and contact</a></li>
+{% else %}
+  <li><a href="#sec-1">1. ¿Qué son las cookies y el almacenamiento local?</a></li>
+  <li><a href="#sec-2">2. Marco normativo aplicable</a></li>
+  <li><a href="#sec-3">3. Clasificación de tecnologías usadas</a></li>
+  <li><a href="#sec-4">4. Inventario técnico de cookies y almacenamiento</a></li>
+  <li><a href="#sec-5">5. Qué cookies NO utiliza Jobdevs</a></li>
+  <li><a href="#sec-6">6. Seguridad de las cookies esenciales</a></li>
+  <li><a href="#sec-7">7. Cómo gestionar o eliminar cookies</a></li>
+  <li><a href="#sec-8">8. Consecuencias de deshabilitarlas</a></li>
+  <li><a href="#sec-9">9. Relación con otras políticas</a></li>
+  <li><a href="#sec-10">10. Actualizaciones y contacto</a></li>
+{% endif %}
+{% endblock %}
+
+{% block legal_body %}
+{% if IDIOMA == 'en' %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> What are cookies and local storage?</h2>
+    <p><strong>Cookies</strong> are small text files that a website stores in your browser when you visit it. They allow the platform to remember essential technical information across pages, such as your authenticated session, selected language, or security tokens protecting against cyberattacks.</p>
+    <p>Additionally, modern browsers provide device-side storage technologies known as <strong><code>localStorage</code></strong> and <strong><code>sessionStorage</code></strong>. Unlike HTTP cookies, data stored in <code>localStorage</code> is not automatically sent with every request to the server; instead, it is used locally in your browser to remember interface preferences — such as light or dark theme — and prevent visual flicker while the page loads.</p>
+    <p>Depending on their duration, cookies may be <strong>session cookies</strong> (deleted when you close the browser) or <strong>persistent cookies</strong> (remaining for a defined period or until manually deleted). Depending on their origin, they may be <strong>first-party</strong> (managed directly by Jobdevs) or <strong>third-party</strong>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Applicable regulatory framework</h2>
+    <p>Jobdevs' use of cookies and local storage technologies is governed by the principles of transparency, legitimate purpose, minimization, and security set forth in <strong>Statutory Law 1581 of 2012</strong>, <strong>Decree 1377 of 2013</strong>, and international digital privacy best practices applicable in the Republic of Colombia.</p>
+    <p>Where strictly necessary cookies enable maintaining an authenticated session linked to your account, the associated processing is additionally governed by our <a href="{% url 'legal_privacidad' %}">Privacy Policy & Personal Data Processing</a>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Classification of technologies used by Jobdevs</h2>
+    <p>Jobdevs follows a strict minimization approach: we use exclusively two technical categories of browser storage:</p>
+    <ul>
+      <li><strong>Strictly necessary cookies (technical and security):</strong> Essential to authenticate users, maintain secure sessions, protect forms against Cross-Site Request Forgery (CSRF), and serve the platform in the user's chosen language. They require no commercial profiling and without them the platform cannot operate securely.</li>
+      <li><strong>Functional local storage (interface preferences):</strong> Data saved exclusively in the browser's <code>localStorage</code> to remember visual and ergonomic choices (light/dark theme and collapsed or expanded state of the dashboard sidebar).</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Detailed technical inventory</h2>
+    <p>The following table describes each cookie and local storage key used by Jobdevs, its specific technical purpose, estimated duration, and operational category:</p>
+
+    <div class="legal-table-wrap">
+      <table class="legal-table">
+        <thead>
+          <tr>
+            <th>Name / Key</th>
+            <th>Technology</th>
+            <th>Category</th>
+            <th>Technical purpose</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>sessionid</code></td>
+            <td>First-party HTTP cookie</td>
+            <td>Strictly necessary</td>
+            <td>Securely identifies the authenticated user session (Company, Developer, or Administrator) while navigating private dashboards.</td>
+            <td>Session or configured lifetime (until logout or expiration).</td>
+          </tr>
+          <tr>
+            <td><code>csrftoken</code></td>
+            <td>First-party HTTP cookie</td>
+            <td>Strictly necessary (Security)</td>
+            <td>Cryptographic token protecting against CSRF (<em>Cross-Site Request Forgery</em>) attacks on registration, login, contract signing, milestone, and messaging forms.</td>
+            <td>Up to 1 year or periodic security renewal.</td>
+          </tr>
+          <tr>
+            <td><code>django_language</code></td>
+            <td>First-party HTTP cookie</td>
+            <td>Strictly necessary (Functional)</td>
+            <td>Preserves the user's selected language (Spanish <code>es-co</code> or English <code>en</code>) when switching languages on the platform.</td>
+            <td>Session or persistent preference depending on browser settings.</td>
+          </tr>
+          <tr>
+            <td><code>jobdevs-theme</code></td>
+            <td>First-party <code>localStorage</code></td>
+            <td>Interface functional</td>
+            <td>Remembers the dark (<code>dark</code>) or light (<code>light</code>) theme preference before first paint to avoid visual flashing.</td>
+            <td>Persistent in the browser until manually changed or cleared.</td>
+          </tr>
+          <tr>
+            <td>Sidebar and dashboard view state</td>
+            <td>First-party <code>localStorage</code> / <code>sessionStorage</code></td>
+            <td>Interface functional</td>
+            <td>Preserves the visual state of the navigation sidebar (expanded or collapsed) and active dashboard tab to improve usability.</td>
+            <td>Persistent (<code>localStorage</code>) or tab-scoped temporary (<code>sessionStorage</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Cookies Jobdevs does NOT use</h2>
+    <div class="legal-callout">
+      <p><strong>Clean browsing commitment:</strong> Jobdevs does <strong>NOT use intrusive third-party behavioral advertising cookies</strong>, does NOT install remarketing pixels to track you across other websites, does NOT conduct commercial profiling unrelated to platform operation, and does <strong>NOT sell or transfer your browsing history</strong> to data brokers or ad networks.</p>
+    </div>
+    <p>The only standard external resource loaded on public pages consists of web fonts (Google Fonts) to ensure visual consistency, with no advertising trackers injected by Jobdevs.</p>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Security of essential cookies</h2>
+    <p>Authentication and security cookies issued by Jobdevs are configured following web security engineering best practices:</p>
+    <ul>
+      <li><strong><code>HttpOnly</code> on <code>sessionid</code>:</strong> Prevents client-side scripts from directly accessing the session cookie, mitigating session-hijacking risks in XSS attacks.</li>
+      <li><strong><code>SameSite</code>:</strong> Restricts automatic transmission of cookies in requests originating from external sites, reinforcing CSRF defense.</li>
+      <li><strong><code>Secure</code> in HTTPS environments:</strong> Ensures that in production sensitive cookies are transmitted exclusively over TLS-encrypted channels.</li>
+      <li><strong>Invalidation upon logout:</strong> Clicking the sign-out button immediately invalidates the active session on the server.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Managing, blocking, and deleting cookies in browsers</h2>
+    <p>You may review, restrict, block, or delete cookies and <code>localStorage</code> data at any time through your web browser settings. Below are the standard paths in the most widely used browsers:</p>
+    <ul>
+      <li><strong>Google Chrome:</strong> Settings &rarr; <em>Privacy and security</em> &rarr; <em>Third-party cookies</em> or <em>See all site data and permissions</em> &rarr; search for the Jobdevs domain to review or remove cookies and local storage.</li>
+      <li><strong>Mozilla Firefox:</strong> Settings &rarr; <em>Privacy &amp; Security</em> &rarr; <em>Cookies and Site Data</em> &rarr; <em>Manage Data</em> or <em>Clear Data</em>.</li>
+      <li><strong>Microsoft Edge:</strong> Settings &rarr; <em>Cookies and site permissions</em> &rarr; <em>Manage and delete cookies and site data</em> &rarr; <em>See all cookies and site data</em>.</li>
+      <li><strong>Apple Safari (macOS / iOS):</strong> Settings / Preferences &rarr; <em>Privacy</em> &rarr; <em>Manage Website Data</em> to remove cookies and local cache, or enable cookie blocking according to preference.</li>
+    </ul>
+    <p>You may also use private or incognito browsing windows so that your browser automatically deletes session cookies and temporary storage once all private windows are closed.</p>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Consequences of disabling essential cookies</h2>
+    <p>If you choose to block or delete strictly necessary cookies in your browser, you will still be able to read Jobdevs' public informational pages, but you will experience the following technical limitations:</p>
+    <ul>
+      <li><strong>Inability to sign in or stay signed in:</strong> Without the <code>sessionid</code> cookie, the platform cannot recognize you as an authenticated user or grant access to your Company, Developer, or Administrator dashboard.</li>
+      <li><strong>Security rejection of forms:</strong> Without the <code>csrftoken</code> cookie, the server will automatically reject any form submission (registration, login, project publishing, applications, contract signing, or milestone uploads) as a safeguard against request forgery.</li>
+      <li><strong>Loss of local preferences:</strong> Blocking <code>django_language</code> or <code>localStorage</code> causes the platform to reset language and visual theme (light/dark) to default values on each visit.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Relationship with the rest of the legal framework</h2>
+    <p>This Cookie Policy forms an integral part of Jobdevs' legal framework and should be read together with our <a href="{% url 'legal_condiciones' %}">Terms of Service</a> and our <a href="{% url 'legal_privacidad' %}">Privacy Policy & Personal Data Processing</a>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Updates and contact</h2>
+    <p>Jobdevs may update this Cookie Policy whenever new technical features are introduced or regulatory changes require it. The last updated date shown in the header will always indicate the current version.</p>
+    <p>If you have questions about the cookies or local storage used by Jobdevs, please write to us at <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a> (Medellín, Colombia).</p>
+  </section>
+{% else %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> ¿Qué son las cookies y el almacenamiento local?</h2>
+    <p>Las <strong>cookies</strong> son pequeños archivos de texto que un sitio web almacena en tu navegador cuando lo visitas. Permiten que la plataforma recuerde información técnica esencial entre una página y otra, como tu sesión autenticada, el idioma seleccionado o los tokens de protección contra ataques informáticos.</p>
+    <p>De manera complementaria, los navegadores modernos ofrecen tecnologías de almacenamiento en el dispositivo del usuario conocidas como <strong><code>localStorage</code></strong> y <strong><code>sessionStorage</code></strong>. A diferencia de las cookies HTTP, los datos guardados en <code>localStorage</code> no se envían automáticamente en cada petición al servidor, sino que se utilizan localmente en tu navegador para recordar preferencias de interfaz —como el tema claro u oscuro— y evitar parpadeos visuales al cargar la página.</p>
+    <p>Según su permanencia, las cookies pueden ser <strong>de sesión</strong> (se eliminan al cerrar el navegador) o <strong>persistentes</strong> (permanecen durante un plazo definido o hasta que las elimines manualmente). Según su origen, pueden ser <strong>propias</strong> (gestionadas directamente por Jobdevs) o <strong>de terceros</strong>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Marco normativo aplicable</h2>
+    <p>El uso de cookies y tecnologías de almacenamiento local por parte de Jobdevs se rige por los principios de transparencia, finalidad legítima, minimización y seguridad contemplados en la <strong>Ley Estatutaria 1581 de 2012</strong>, el <strong>Decreto 1377 de 2013</strong> y las buenas prácticas internacionales en privacidad digital aplicables en la República de Colombia.</p>
+    <p>Cuando las cookies estrictamente necesarias permiten mantener una sesión autenticada asociada a tu cuenta, el tratamiento vinculado se regula adicionalmente por nuestra <a href="{% url 'legal_privacidad' %}">Política de privacidad y Tratamiento de Datos Personales</a>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Clasificación de tecnologías utilizadas por Jobdevs</h2>
+    <p>Jobdevs aplica un enfoque estricto de minimización: utilizamos exclusivamente dos categorías técnicas de almacenamiento en navegador:</p>
+    <ul>
+      <li><strong>Cookies estrictamente necesarias (técnicas y de seguridad):</strong> Indispensables para autenticar usuarios, mantener sesiones seguras, proteger formularios contra falsificación de peticiones entre sitios (CSRF) y servir la plataforma en el idioma elegido por el usuario. No requieren perfilamiento comercial y sin ellas la plataforma no puede operar de forma segura.</li>
+      <li><strong>Almacenamiento local funcional (preferencias de interfaz):</strong> Datos guardados únicamente en el <code>localStorage</code> del navegador para recordar elecciones visuales y ergonómicas del usuario (tema claro/oscuro y estado contraído o expandido de la barra lateral en los paneles).</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Inventario técnico detallado</h2>
+    <p>La siguiente tabla describe cada cookie y clave de almacenamiento local que utiliza Jobdevs, su propósito técnico específico, su duración estimada y su carácter operativo:</p>
+
+    <div class="legal-table-wrap">
+      <table class="legal-table">
+        <thead>
+          <tr>
+            <th>Nombre / Clave</th>
+            <th>Tecnología</th>
+            <th>Categoría</th>
+            <th>Finalidad técnica</th>
+            <th>Duración</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>sessionid</code></td>
+            <td>Cookie HTTP propia</td>
+            <td>Estrictamente necesaria</td>
+            <td>Identifica de forma segura la sesión autenticada del usuario (Empresa, Desarrollador o Administrador) durante su navegación en los paneles privados.</td>
+            <td>Sesión o vigencia configurada (hasta cierre de sesión o expiración).</td>
+          </tr>
+          <tr>
+            <td><code>csrftoken</code></td>
+            <td>Cookie HTTP propia</td>
+            <td>Estrictamente necesaria (Seguridad)</td>
+            <td>Token criptográfico de protección contra ataques CSRF (<em>Cross-Site Request Forgery</em>) en formularios de registro, inicio de sesión, firma de contratos, hitos y mensajes.</td>
+            <td>Hasta 1 año o renovación periódica de seguridad.</td>
+          </tr>
+          <tr>
+            <td><code>django_language</code></td>
+            <td>Cookie HTTP propia</td>
+            <td>Estrictamente necesaria (Funcional)</td>
+            <td>Conserva el idioma seleccionado por el usuario (Español <code>es-co</code> o Inglés <code>en</code>) al cambiar de idioma en la plataforma.</td>
+            <td>Sesión o preferencia persistente según configuración del navegador.</td>
+          </tr>
+          <tr>
+            <td><code>jobdevs-theme</code></td>
+            <td><code>localStorage</code> propio</td>
+            <td>Funcional de interfaz</td>
+            <td>Recuerda la preferencia visual de tema oscuro (<code>dark</code>) o tema claro (<code>light</code>) antes del primer pintado de pantalla para evitar parpadeos.</td>
+            <td>Persistente en el navegador hasta cambio manual o limpieza de datos.</td>
+          </tr>
+          <tr>
+            <td>Estado del sidebar y vistas de panel</td>
+            <td><code>localStorage</code> / <code>sessionStorage</code> propio</td>
+            <td>Funcional de interfaz</td>
+            <td>Conserva el estado visual de la barra lateral de navegación (expandida o colapsada) y la pestaña activa en los paneles de control para mejorar la experiencia de uso.</td>
+            <td>Persistente (<code>localStorage</code>) o temporal de pestaña (<code>sessionStorage</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Qué cookies NO utiliza Jobdevs</h2>
+    <div class="legal-callout">
+      <p><strong>Compromiso de navegación limpia:</strong> Jobdevs <strong>NO utiliza cookies de publicidad comportamental invasiva de terceros</strong>, NO instala píxeles de remarketing para perseguirte en otros sitios web, NO realiza perfilamiento comercial ajeno al funcionamiento de la plataforma y <strong>NO vende ni cede tu historial de navegación</strong> a corredores de datos o redes publicitarias.</p>
+    </div>
+    <p>El único recurso externo estándar cargado en páginas públicas corresponde a tipografías web (Google Fonts) para garantizar consistencia visual, sin inyección de rastreadores publicitarios por parte de Jobdevs.</p>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Seguridad de las cookies esenciales</h2>
+    <p>Las cookies de autenticación y seguridad emitidas por Jobdevs se configuran siguiendo buenas prácticas de ingeniería de seguridad web:</p>
+    <ul>
+      <li><strong><code>HttpOnly</code> en <code>sessionid</code>:</strong> Impide que scripts del lado del cliente accedan directamente a la cookie de sesión, mitigando riesgos de robo de sesión ante ataques XSS.</li>
+      <li><strong><code>SameSite</code>:</strong> Restringe el envío automático de cookies en peticiones originadas desde sitios externos, reforzando la defensa contra CSRF.</li>
+      <li><strong><code>Secure</code> en entornos HTTPS:</strong> Garantiza que en producción las cookies sensibles se transmitan únicamente a través de canales cifrados TLS.</li>
+      <li><strong>Invalidación al cerrar sesión:</strong> Al utilizar el botón de cierre de sesión, la sesión activa se invalida inmediatamente en el servidor.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Gestión, bloqueo y eliminación de cookies en navegadores</h2>
+    <p>Puedes revisar, restringir, bloquear o eliminar las cookies y los datos de <code>localStorage</code> en cualquier momento desde la configuración de tu navegador web. A continuación, te indicamos las rutas habituales en los navegadores más utilizados:</p>
+    <ul>
+      <li><strong>Google Chrome:</strong> Configuración &rarr; <em>Privacidad y seguridad</em> &rarr; <em>Cookies de terceros</em> o <em>Ver todos los datos de sitios y permisos</em> &rarr; buscar el dominio de Jobdevs para revisar o eliminar cookies y almacenamiento local.</li>
+      <li><strong>Mozilla Firefox:</strong> Ajustes &rarr; <em>Privacidad y seguridad</em> &rarr; sección <em>Cookies y datos del sitio</em> &rarr; <em>Administrar datos</em> o <em>Limpiar datos</em>.</li>
+      <li><strong>Microsoft Edge:</strong> Configuración &rarr; <em>Cookies y permisos del sitio</em> &rarr; <em>Administrar y eliminar cookies y datos del sitio</em> &rarr; <em>Ver todas las cookies y datos del sitio</em>.</li>
+      <li><strong>Apple Safari (macOS / iOS):</strong> Ajustes / Preferencias &rarr; <em>Privacidad</em> &rarr; <em>Gestionar datos de sitios web</em> para eliminar cookies y caché local, o activar el bloqueo de cookies según preferencia.</li>
+    </ul>
+    <p>También puedes utilizar ventanas de navegación privada o incógnito para que tu navegador elimine automáticamente las cookies de sesión y el almacenamiento temporal al cerrar todas las ventanas privadas.</p>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Consecuencias de deshabilitar cookies esenciales</h2>
+    <p>Si decides bloquear o eliminar las cookies estrictamente necesarias en tu navegador, podrás seguir leyendo las páginas informativas públicas de Jobdevs, pero experimentarás las siguientes limitaciones técnicas:</p>
+    <ul>
+      <li><strong>Imposibilidad de iniciar o mantener sesión:</strong> Sin la cookie <code>sessionid</code>, la plataforma no podrá reconocerte como usuario autenticado ni darte acceso a tu panel de Empresa, Desarrollador o Administrador.</li>
+      <li><strong>Rechazo de formularios por seguridad:</strong> Sin la cookie <code>csrftoken</code>, el servidor rechazará automáticamente cualquier envío de formularios (registro, inicio de sesión, publicación de proyectos, postulaciones, firma de contratos o carga de hitos) como medida de protección contra suplantación de peticiones.</li>
+      <li><strong>Pérdida de preferencias locales:</strong> Al bloquear <code>django_language</code> o <code>localStorage</code>, la plataforma restablecerá el idioma y el tema visual (claro/oscuro) a sus valores por defecto en cada visita.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Relación con el resto del marco legal</h2>
+    <p>Esta Política de cookies forma parte integral del marco legal de Jobdevs y debe leerse de manera conjunta con nuestras <a href="{% url 'legal_condiciones' %}">Condiciones del servicio</a> y nuestra <a href="{% url 'legal_privacidad' %}">Política de privacidad y Tratamiento de Datos Personales</a>.</p>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Actualizaciones y contacto</h2>
+    <p>Jobdevs podrá actualizar esta Política de cookies cuando incorpore nuevas funcionalidades técnicas o cuando así lo exijan cambios normativos. La fecha de última actualización visible en el encabezado indicará siempre la versión vigente.</p>
+    <p>Si tienes preguntas sobre las cookies o el almacenamiento local utilizados por Jobdevs, escríbenos a <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a> (Medellín, Colombia).</p>
+  </section>
+{% endif %}
+{% endblock %}

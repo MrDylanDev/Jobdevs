@@ -9,9 +9,9 @@
   --muted: #555555;
   --border-dim: #1a1a1a;
   --border-mid: #333333;
-  --accent: #00e676;
-  --accent-rgb: 0, 230, 118;
-  --accent-bright: #69f0ae;
+  --accent: #16a34a;
+  --accent-rgb: 22, 163, 74;
+  --accent-bright: #22c55e;
   --font-main: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -225,7 +225,6 @@ body::before {
   position: relative;
 }
 
-.role-card i,
 .role-card svg {
   font-size: 1.4rem;
   width: 24px;
@@ -273,7 +272,6 @@ body::before {
   border-right: 1px solid var(--fg);
 }
 
-.role-card.active i,
 .role-card.active svg,
 .role-card.active span {
   color: var(--bg);
@@ -310,6 +308,7 @@ form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  align-items: start;
 }
 
 .form-group.full-width { grid-column: 1 / -1; }
@@ -319,6 +318,7 @@ form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+  align-items: end;
 }
 
 #container_desarrollador_academico .form-group:last-child {
@@ -404,6 +404,67 @@ select option {
   margin-top: 2px;
 }
 
+/* ── Consentimiento legal ── */
+.legal-consent-group {
+  margin-top: 4px;
+}
+
+.form-group .legal-consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-main);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+
+.form-group input.legal-consent-checkbox {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  padding: 0;
+  margin-top: 2px;
+  border: 1px solid var(--border-mid);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.form-group input.legal-consent-checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+.form-group input.legal-consent-checkbox:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.legal-consent-text a {
+  color: var(--accent-bright);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 500;
+}
+
+.legal-consent-text a:hover {
+  opacity: 0.82;
+}
+
+.legal-consent-group.error input.legal-consent-checkbox {
+  border-color: #ef4444;
+}
+
 /* ── Botón submit ── */
 button[type="submit"] {
   grid-column: 1 / -1;
@@ -463,7 +524,6 @@ button[type="submit"]:active {
   border-bottom-color: var(--accent);
   border-right-color: var(--accent);
 }
-.register-wrapper.theme-dev .role-card.active i,
 .register-wrapper.theme-dev .role-card.active span {
   color: var(--accent);
 }
@@ -559,6 +619,15 @@ button[type="submit"]:active {
     padding: 12px 8px;
     font-size: 0.72rem;
   }
+
+  .role-card span {
+    font-size: 0.68rem;
+  }
+
+  .role-card svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /* ── Tema claro ─────────────────────────────────────────────────────────────
@@ -590,7 +659,6 @@ button[type="submit"]:active {
 [data-theme="light"] body::before { display: none; }
 /* Los rojos de error y el hover fantasma estaban pensados para fondo negro. */
 [data-theme="light"] .alert-error,
-[data-theme="light"] .error-msg,
 [data-theme="light"] .form-group.error label { color: #b91c1c; }
 [data-theme="light"] .form-group.error input { border-color: #dc2626; }
 /* El botón principal usaba texto negro sobre el verde brillante del tema oscuro.
@@ -598,5 +666,9 @@ button[type="submit"]:active {
 [data-theme="light"] .register-wrapper.theme-dev button[type="submit"] { color: #ffffff; }
 /* En claro el acento del rol activo necesita el verde oscuro, no el brillante. */
 [data-theme="light"] .role-card.active { border-color: var(--accent); color: var(--accent); }
-[data-theme="light"] .role-card.active i,
 [data-theme="light"] .role-card.active svg { color: var(--accent); }
+[data-theme="light"] .form-group input.legal-consent-checkbox:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
+}
+[data-theme="light"] .legal-consent-group.error .legal-consent-label { color: #b91c1c; }
+[data-theme="light"] .errorlist li { color: #b91c1c; }

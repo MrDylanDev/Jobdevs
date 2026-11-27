@@ -46,6 +46,48 @@
   color: var(--pp-ink);
 }
 
+[data-theme="dark"] .pp-verified-banner {
+  background: var(--pp-success-soft);
+  border-color: var(--pp-success-line);
+}
+
+[data-theme="dark"] .pp-verified-icon {
+  background: var(--pp-success-soft);
+}
+
+[data-theme="dark"] .pp-verified-copy strong {
+  color: var(--pp-success);
+}
+
+[data-theme="dark"] .pp-verified-copy span {
+  color: var(--pp-muted);
+}
+
+[data-theme="dark"] .pp-review-project {
+  background: var(--pp-surface);
+}
+
+[data-theme="dark"] .pp-review-project strong,
+[data-theme="dark"] .pp-review-text {
+  color: var(--pp-ink);
+}
+
+[data-theme="dark"] .pp-rating-track {
+  background: var(--pp-line);
+}
+
+[data-theme="dark"] .pp-chip {
+  background: var(--pp-accent-soft);
+  border-color: var(--pp-success-line);
+  color: var(--pp-accent);
+}
+
+[data-theme="dark"] .pp-badge.badge-sin-verificar {
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.32);
+  color: #cbd5e1;
+}
+
 /* ---------- Hero ---------- */
 .pp-hero {
   position: relative;

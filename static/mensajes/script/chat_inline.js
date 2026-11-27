@@ -145,9 +145,39 @@
       messagesBox.appendChild(bubble);
     }
 
+    function renderAvatarImg(container, fotoUrl, nombre, inicial) {
+      container.innerHTML = '';
+      var img = document.createElement('img');
+      img.src = fotoUrl;
+      img.alt = nombre || '';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.borderRadius = '50%';
+      img.style.objectFit = 'cover';
+      img.onerror = function () {
+        container.textContent = inicial || '?';
+      };
+      container.appendChild(img);
+    }
+
     function render(data) {
       if (data.yo_id) {
         yoId = parseInt(data.yo_id, 10) || yoId;
+      }
+
+      if (typeof data.mensajes_no_leidos === 'number') {
+        var badges = document.querySelectorAll('[data-mensajes-badge]');
+        Array.prototype.slice.call(badges).forEach(function (el) {
+          if (data.mensajes_no_leidos > 0) {
+            el.textContent = String(data.mensajes_no_leidos);
+            el.hidden = false;
+            el.style.display = '';
+          } else {
+            el.textContent = '0';
+            el.hidden = true;
+            el.style.display = 'none';
+          }
+        });
       }
 
       messagesBox.innerHTML = '';
@@ -163,7 +193,7 @@
       if (nameEl) nameEl.textContent = data.receptor.nombre;
       if (avatarEl) {
         if (data.receptor.foto_url) {
-          avatarEl.innerHTML = '<img src="' + escapeHtml(data.receptor.foto_url) + '" alt="' + escapeHtml(data.receptor.nombre) + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">';
+          renderAvatarImg(avatarEl, data.receptor.foto_url, data.receptor.nombre, data.receptor.inicial);
         } else {
           avatarEl.textContent = data.receptor.inicial;
         }
@@ -242,7 +272,7 @@
           if (nombreItem) nombreItem.textContent = data.receptor.nombre;
           if (avatarItem) {
             if (data.receptor.foto_url) {
-              avatarItem.innerHTML = '<img src="' + escapeHtml(data.receptor.foto_url) + '" alt="' + escapeHtml(data.receptor.nombre) + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">';
+              renderAvatarImg(avatarItem, data.receptor.foto_url, data.receptor.nombre, data.receptor.inicial);
             } else if (!avatarItem.querySelector('img') && !avatarItem.querySelector('i')) {
               avatarItem.textContent = data.receptor.inicial;
             }

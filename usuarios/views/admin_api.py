@@ -1,7 +1,8 @@
+import csv
 import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.core.cache import cache
@@ -71,12 +72,12 @@ def api_usuarios(request):
                 'total': paginator.count,
                 'total_pages': paginator.num_pages,
                 'page': page_obj.number,
-                'usuarios': list(page_obj.object_list.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
+                'usuarios': list(page_obj.object_list.values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado', 'date_joined'))
             })
         except (ValueError, TypeError):
             return JsonResponse({'error': 'Parámetros de paginación inválidos.'}, status=400)
 
-    usuarios = list(qs.order_by('-date_joined', '-id').values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado'))
+    usuarios = list(qs.order_by('-date_joined', '-id').values('id', 'username', 'nombre', 'email', 'rol', 'identificacion', 'estado', 'date_joined'))
     return JsonResponse(usuarios, safe=False)
 
 
@@ -116,12 +117,47 @@ def api_crear_usuario(request):
         if not all(k in data for k in required):
             return JsonResponse({'error': f'Faltan campos requeridos: {required}'}, status=400)
 
-        user = Usuario.objects.create_user(
-            username=data['username'], 
-            email=data['email'], 
-            password=data['password'], 
-            rol=data['rol']
-        )
+        nombre = (data.get('nombre') or '').strip()
+        identificacion = (data.get('identificacion') or '').strip()
+        tipo_doc = (data.get('tipo_documento') or '').strip().lower()
+
+        if identificacion:
+            from ..utils_dian import validar_documento_identidad
+            if tipo_doc:
+                doc_type = tipo_doc
+            elif data['rol'] == 'empresa' and '-' in identificacion:
+                doc_type = 'nit'
+            else:
+                doc_type = 'cedula'
+            try:
+                identificacion = validar_documento_identidad(identificacion, doc_type)
+            except ValueError as exc:
+                return JsonResponse({'error': str(exc)}, status=400)
+
+        with transaction.atomic():
+            extra = {}
+            if nombre:
+                extra['nombre'] = nombre
+            if identificacion:
+                extra['identificacion'] = identificacion
+
+            user = Usuario.objects.create_user(
+                username=data['username'],
+                email=data['email'],
+                password=data['password'],
+                rol=data['rol'],
+                **extra,
+            )
+
+            if user.rol == 'desarrollador':
+                from ..models import PerfilDesarrollador
+                PerfilDesarrollador.objects.get_or_create(usuario=user)
+            elif user.rol == 'empresa':
+                from ..models import PerfilEmpresa
+                PerfilEmpresa.objects.get_or_create(
+                    usuario=user,
+                    defaults={'nombre_empresa': nombre or user.username},
+                )
         
         if user.rol == 'administrador':
             invalidar_cache_administradores()
@@ -154,9 +190,13 @@ def api_actualizar_usuario(request, usuario_id):
     try:
         data = json.loads(request.body)
         user = get_object_or_404(Usuario, id=usuario_id)
+        if user.id == request.user.id:
+            return JsonResponse({'error': 'No puedes editar tu propia cuenta desde el directorio.'}, status=403)
+        if user.rol == 'administrador':
+            return JsonResponse({'error': 'No puedes editar la cuenta de otro administrador.'}, status=403)
         valores_anteriores = {
             campo: getattr(user, campo)
-            for campo in ('email', 'nombre', 'rol', 'estado')
+            for campo in ('email', 'nombre', 'rol', 'estado', 'identificacion')
         }
         
         rol_anterior = user.rol
@@ -172,10 +212,31 @@ def api_actualizar_usuario(request, usuario_id):
             elif user.is_active and user.estado == 'activo':
                 user.intentos_fallidos = 0
                 user.bloqueado_por_intentos = False
+
+        identificacion = (data.get('identificacion') or '').strip()
+        if identificacion:
+            from ..utils_dian import validar_documento_identidad
+            tipo_doc_raw = (data.get('tipo_documento') or '').strip().lower()
+            if tipo_doc_raw:
+                tipo_doc = tipo_doc_raw
+            elif user.rol == 'empresa' and '-' in identificacion:
+                tipo_doc = 'nit'
+            else:
+                tipo_doc = 'cedula'
+            try:
+                ident_limpia = validar_documento_identidad(identificacion, tipo_doc)
+            except ValueError as e:
+                return JsonResponse({'error': str(e)}, status=400)
+
+            if Usuario.objects.filter(identificacion=ident_limpia).exclude(id=user.id).exists():
+                return JsonResponse({'error': 'Ya existe otro usuario con esa identificación.'}, status=400)
+            user.identificacion = ident_limpia
         
         user.save()
 
         campos_modificados = [k for k in data if k in ('email', 'nombre', 'rol', 'estado')]
+        if identificacion:
+            campos_modificados.append('identificacion')
         LogAuditoria.objects.create(
             usuario=request.user,
             accion=f"Actualizó usuario {user.username}: {', '.join(campos_modificados)}",
@@ -211,6 +272,8 @@ def api_eliminar_usuario(request, usuario_id):
     user = get_object_or_404(Usuario, id=usuario_id)
     if user.id == request.user.id:
         return JsonResponse({'error': 'No puedes eliminarte a ti mismo.'}, status=400)
+    if user.rol == 'administrador':
+        return JsonResponse({'error': 'No puedes eliminar la cuenta de otro administrador.'}, status=403)
 
     era_administrador = user.rol == 'administrador'
     with transaction.atomic():
@@ -246,9 +309,8 @@ def api_bulk_toggle(request):
     if not ids or action not in ('activate', 'suspend'):
         return JsonResponse({'error': 'Parámetros inválidos.'}, status=400)
 
-    usuarios_objetivo = list(Usuario.objects.filter(id__in=ids).exclude(
-        id=request.user.id if action == 'suspend' else None
-    ))
+    qs_objetivo = Usuario.objects.filter(id__in=ids).exclude(id=request.user.id).exclude(rol='administrador')
+    usuarios_objetivo = list(qs_objetivo)
     if action == 'activate':
         Usuario.objects.filter(id__in=[u.id for u in usuarios_objetivo]).update(
             estado='activo', is_active=True, intentos_fallidos=0,
@@ -274,3 +336,108 @@ def api_bulk_toggle(request):
     ])
 
     return JsonResponse({'status': 'ok', 'count': len(usuarios_objetivo)})
+
+
+def _csv_safe(value):
+    text = '' if value is None else str(value)
+    if text and text[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + text
+    return text
+
+
+@login_required
+@api_ratelimit(max_requests=60, window_seconds=60)
+def api_auditoria(request):
+    if request.user.rol != 'administrador':
+        return JsonResponse({'error': 'Acceso denegado. Solo administradores pueden consultar auditoría.'}, status=403)
+
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=405)
+
+    usuario = request.GET.get('usuario', '').strip()
+    tabla = request.GET.get('tabla', '').strip()
+    q = request.GET.get('q', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+
+    qs = LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora', '-id')
+    if usuario:
+        usuario_q = Q(usuario__username__icontains=usuario) | Q(usuario__nombre__icontains=usuario)
+        if usuario.lower() in 'sistema':
+            usuario_q |= Q(usuario__isnull=True)
+        qs = qs.filter(usuario_q)
+    if tabla:
+        qs = qs.filter(tabla_afectada__icontains=tabla)
+    if q:
+        qs = qs.filter(
+            Q(accion__icontains=q)
+            | Q(valor_anterior__icontains=q)
+            | Q(valor_nuevo__icontains=q)
+        )
+
+    fecha_desde_parsed = parse_date(fecha_desde) if fecha_desde else None
+    fecha_hasta_parsed = parse_date(fecha_hasta) if fecha_hasta else None
+    if fecha_desde_parsed:
+        qs = qs.filter(fecha_hora__date__gte=fecha_desde_parsed)
+    if fecha_hasta_parsed:
+        qs = qs.filter(fecha_hora__date__lte=fecha_hasta_parsed)
+
+    if request.GET.get('export', '').strip().lower() == 'csv':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="auditoria.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Usuario', 'Acción', 'Tabla', 'Registro ID', 'Valor Anterior', 'Valor Nuevo', 'Fecha y Hora'])
+        for log in qs[:5000]:
+            writer.writerow([
+                log.id,
+                _csv_safe(log.usuario.username if log.usuario else 'Sistema'),
+                _csv_safe(log.accion),
+                _csv_safe(log.tabla_afectada or ''),
+                '' if log.registro_id is None else log.registro_id,
+                _csv_safe(log.valor_anterior or ''),
+                _csv_safe(log.valor_nuevo or ''),
+                log.fecha_hora.strftime('%Y-%m-%d %H:%M:%S') if log.fecha_hora else '',
+            ])
+        return response
+
+    try:
+        limit_val = int(request.GET.get('limit', 25))
+        page_val = int(request.GET.get('page', 1))
+        if limit_val <= 0 or page_val <= 0:
+            return JsonResponse({'error': 'Los parámetros limit y page deben ser enteros positivos.'}, status=400)
+        limit_val = min(limit_val, 100)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Parámetros de paginación inválidos.'}, status=400)
+
+    paginator = Paginator(qs, limit_val)
+    page_obj = paginator.get_page(page_val)
+    tablas = list(
+        LogAuditoria.objects.exclude(tabla_afectada__isnull=True)
+        .exclude(tabla_afectada='')
+        .values_list('tabla_afectada', flat=True)
+        .distinct()
+        .order_by('tabla_afectada')
+    )
+
+    logs = [
+        {
+            'id': log.id,
+            'usuario': log.usuario.username if log.usuario else 'Sistema',
+            'accion': log.accion,
+            'tabla_afectada': log.tabla_afectada or '',
+            'registro_id': log.registro_id,
+            'valor_anterior': log.valor_anterior or '',
+            'valor_nuevo': log.valor_nuevo or '',
+            'fecha_hora': log.fecha_hora.isoformat() if log.fecha_hora else '',
+        }
+        for log in page_obj.object_list
+    ]
+
+    return JsonResponse({
+        'total': paginator.count,
+        'total_pages': paginator.num_pages,
+        'page': page_obj.number,
+        'tablas': tablas,
+        'logs': logs,
+    })

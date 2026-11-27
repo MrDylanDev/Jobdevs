@@ -54,8 +54,10 @@ def test_detalle_disputa_json_incluye_resoluciones_validas_para_admin(client):
 
 def test_dashboard_modals_js_no_contiene_resoluciones_invalidas():
     """SCRUM-471: El script de modales no debe contener los valores inválidos de resolución."""
-    js_path = Path(settings.BASE_DIR) / 'static/dashboard/script/dashboard_modals.js'
-    js_text = js_path.read_text(encoding='utf-8')
+    script_dir = Path(settings.BASE_DIR) / 'static/dashboard/script'
+    js_files = [script_dir / 'dashboard_modals.js', *sorted((script_dir / 'modules').glob('*.js'))]
+    js_text = '\n'.join(p.read_text(encoding='utf-8') for p in js_files)
+    assert js_text.strip()
     for invalido in ('favor_empresa', 'favor_desarrollador', 'acuerdo_mutuo', 'cancelacion_sin_sancion'):
         assert invalido not in js_text
 

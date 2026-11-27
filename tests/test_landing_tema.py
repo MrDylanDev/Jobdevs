@@ -30,8 +30,8 @@ TOKENS_OSCUROS = {
     '--muted': '#555555',
     '--border-dim': '#1a1a1a',
     '--border-mid': '#333333',
-    '--accent': '#00e676',
-    '--accent-dim': '#00c853',
+    '--accent': '#16a34a',
+    '--accent-dim': '#15803d',
     '--scrim-rgb': '0, 0, 0',
     '--scrim-deep-rgb': '5, 5, 5',
     '--scrim-panel-rgb': '9, 9, 11',
@@ -274,7 +274,7 @@ class TestTextoSobreFoto:
     color del tema, porque el fondo que tienen detrás no cambia con el tema."""
 
     def test_la_etiqueta_de_caso_conserva_el_acento_brillante(self, css):
-        assert '[data-theme="light"] .story-img-tag { color: #69f0ae; }' in css, (
+        assert '[data-theme="light"] .story-img-tag { color: #22c55e; }' in css, (
             'Sobre la foto de la tarjeta, el acento oscuro del tema claro queda en 3:1'
         )
 
@@ -328,7 +328,7 @@ class TestHeroDelTemaClaro:
     def test_el_acento_del_hero_usa_el_verde_brillante(self, css):
         assert '.hero-accent { color: var(--accent); }' in css
         assert '[data-theme="light"] .hero-title .hero-accent { color: var(--accent-hero); }' in css
-        assert '--accent-hero: #00e676;' in css
+        assert '--accent-hero: #16a34a;' in css
 
     def test_discplina_conserva_el_trazo_claro_sobre_el_velo(self, css):
         assert '[data-theme="light"] .hero-title .text-stroke { -webkit-text-stroke: 2px rgba(255, 255, 255, 0.55); }' in css
@@ -392,7 +392,12 @@ class TestSuperficiesSinVelo:
         bloque = css[css.index('[data-theme="light"] .wf-main-header,'):]
         bloque = bloque[:bloque.index('}')]
         assert "background: none" in bloque
-        grupo = css[css.index('[data-theme="light"] .wf-bg-overlay,'):]
+        wf_overlay = css[css.index('[data-theme="light"] .wf-bg-overlay {'):]
+        wf_overlay = wf_overlay[:wf_overlay.index('}')]
+        assert 'linear-gradient(180deg' in wf_overlay, (
+            'Metodología lleva velo vertical arriba y abajo para sostener título y tarjetas'
+        )
+        grupo = css[css.index('[data-theme="light"] .roles-bg-overlay {'):]
         grupo = grupo[:grupo.index('}')]
         assert 'linear-gradient(90deg' in grupo, (
             'El velo tiene que concentrarse a la derecha, donde vive el texto'

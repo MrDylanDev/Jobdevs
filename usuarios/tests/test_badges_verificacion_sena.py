@@ -101,13 +101,13 @@ class TestBadgesVerificacionSena:
         assert 'data-testid="badge-verificacion-sena"' in content
         assert 'alerta-verificacion-sena' not in content
 
-    def test_dashboard_dev_sin_verificar_muestra_alerta_y_badge(self, client, dev_sin_verificar):
+    def test_dashboard_dev_sin_verificar_muestra_badge_sin_banner_navbar(self, client, dev_sin_verificar):
         client.force_login(dev_sin_verificar)
         response = client.get(reverse('dashboard_desarrollador'))
         assert response.status_code == 200
         content = response.content.decode('utf-8')
         assert 'Sin Verificar' in content
-        assert 'alerta-verificacion-sena' in content
+        assert 'alerta-verificacion-sena' not in content
         assert reverse('solicitar_verificacion_desarrollador') in content
 
     def test_ver_postulaciones_empresa_muestra_badge_verificado_sena(

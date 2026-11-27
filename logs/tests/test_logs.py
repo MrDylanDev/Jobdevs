@@ -164,9 +164,13 @@ class TestReportes:
         documento = pymupdf.open(stream=response.content, filetype='pdf')
         texto = ''.join(pagina.get_text() for pagina in documento)
         documento.close()
-        assert 'Usuarios registrados:' in texto
-        assert 'Proyectos publicados:' in texto
-        assert 'Contrataciones realizadas:' in texto
+        assert 'Usuarios registrados' in texto
+        assert 'Proyectos publicados' in texto
+        assert 'Contrataciones realizadas' in texto
+        assert 'Usuarios registrados:' not in texto
+        assert 'Cancelado' not in texto
+        for _, etiqueta in Proyecto.ESTADO:
+            assert etiqueta in texto
 
     def test_reporte_aprendices_csv_sin_n_mas_1(self, admin_client, db):
         """SCRUM-177: reporte_aprendices_csv ejecuta un número acotado de consultas con .annotate()."""
@@ -180,8 +184,8 @@ class TestReportes:
 
         response = admin_client.get(reverse('reporte_aprendices_csv'))
         assert response.status_code == 200
-        assert response['Content-Type'] == 'text/csv'
-        content = response.content.decode('utf-8')
+        assert response['Content-Type'].startswith('text/csv')
+        content = response.content.decode('utf-8-sig')
         assert 'Usuario,Nombre,Programa,Ficha,Promedio,Proyectos' in content
         assert 'csv_dev_0' in content
 
@@ -197,8 +201,8 @@ class TestReportes:
 
         response = admin_client.get(reverse('reporte_empresas_csv'))
         assert response.status_code == 200
-        assert response['Content-Type'] == 'text/csv'
-        content = response.content.decode('utf-8')
+        assert response['Content-Type'].startswith('text/csv')
+        content = response.content.decode('utf-8-sig')
         assert 'Empresa,NIT,Sector,Ciudad,Telefono,Email,Proyectos Publicados,Reputación (★)' in content
         assert 'csv_emp_0' in content
 
@@ -231,7 +235,7 @@ class TestReportes:
 
         response = admin_client.get(reverse('reporte_aprendices_csv'))
 
-        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8-sig'))))
         fila = next(
             item for item in filas
             if item['Usuario'] == desarrollador_user.username
@@ -266,7 +270,7 @@ class TestReportes:
 
         response = admin_client.get(reverse('reporte_empresas_csv'))
 
-        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8-sig'))))
         fila = next(item for item in filas if item['Empresa'] == 'Empresa del reporte')
         assert fila['Proyectos Publicados'] == '1'
         assert fila['Reputación (★)'] == '5.0'
@@ -289,7 +293,7 @@ class TestReportes:
 
         response = admin_client.get(reverse('reporte_proyectos_csv'))
 
-        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        filas = list(csv.DictReader(io.StringIO(response.content.decode('utf-8-sig'))))
         fila = next(item for item in filas if item['Título'] == proyecto.titulo)
         assert fila['Estado'] == proyecto.get_estado_display()
         assert fila['Prioridad'] == proyecto.get_prioridad_display()
@@ -305,6 +309,167 @@ class TestReportes:
         response = dev_client.get(reverse(nombre_ruta))
 
         assert response.status_code == 302
+
+    def test_reportes_csv_incluyen_bom_sanitizan_formulas_filtran_y_auditan(
+        self, admin_client, empresa_user
+    ):
+        from datetime import timedelta
+        from django.utils import timezone
+        from logs.models import LogAuditoria
+        from proyectos.models import Proyecto
+
+        p_inyeccion = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='=SUM(A1:A2)',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        p_otro = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto finalizado viejo',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Proyecto.objects.filter(pk=p_otro.pk).update(
+            fecha_publicacion=timezone.now() - timedelta(days=20)
+        )
+
+        hoy = timezone.localdate().isoformat()
+        res = admin_client.get(
+            reverse('reporte_proyectos_csv'),
+            {'estado': 'publicado', 'fecha_desde': hoy, 'fecha_hasta': hoy},
+        )
+        assert res.status_code == 200
+        assert 'charset=utf-8' in res['Content-Type']
+        assert res.content.startswith(b'\xef\xbb\xbf')
+        texto = res.content.decode('utf-8-sig')
+        assert "'=SUM(A1:A2)" in texto
+        assert 'Proyecto finalizado viejo' not in texto
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='reportes', accion__icontains='Reporte de proyectos CSV'
+        ).exists()
+
+    def test_dashboard_admin_expone_todos_los_reportes(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert reverse('reporte_proyectos_csv') in html
+        assert reverse('reporte_aprendices_csv') in html
+        assert reverse('reporte_empresas_csv') in html
+        assert reverse('reporte_auditoria_csv') in html
+        assert reverse('reporte_mensual_pdf') in html
+        assert reverse('reporte_vista_impresion') in html
+        assert 'name="mes"' in html
+
+    @pytest.mark.parametrize(
+        'nombre_ruta,titulo_esperado',
+        (
+            ('reporte_proyectos_csv', 'Reporte de Proyectos'),
+            ('reporte_aprendices_csv', 'Reporte de Aprendices'),
+            ('reporte_empresas_csv', 'Reporte de Empresas'),
+            ('reporte_auditoria_csv', 'Reporte de Auditoría'),
+        ),
+    )
+    def test_reportes_oficiales_soportan_formato_pdf(
+        self, admin_client, empresa_user, desarrollador_user, nombre_ruta, titulo_esperado
+    ):
+        import pymupdf
+        from logs.models import LogAuditoria
+        from proyectos.models import Proyecto
+        from usuarios.models import PerfilDesarrollador, PerfilEmpresa
+
+        PerfilDesarrollador.objects.get_or_create(usuario=desarrollador_user)
+        PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto PDF Test',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+        )
+
+        res = admin_client.get(reverse(nombre_ruta), {'formato': 'pdf'})
+        assert res.status_code == 200
+        assert res['Content-Type'] == 'application/pdf'
+        assert res.content.startswith(b'%PDF')
+        doc = pymupdf.open(stream=res.content, filetype='pdf')
+        texto = ''.join(p.get_text() for p in doc)
+        doc.close()
+        assert titulo_esperado in texto
+        assert LogAuditoria.objects.filter(
+            tabla_afectada='reportes', accion__icontains='PDF'
+        ).exists()
+
+    @pytest.mark.parametrize(
+        'nombre_ruta',
+        (
+            'reporte_proyectos_csv',
+            'reporte_aprendices_csv',
+            'reporte_empresas_csv',
+            'reporte_auditoria_csv',
+        ),
+    )
+    @pytest.mark.parametrize('valor_invalido', ('no-es-fecha', '2026-02-31'))
+    def test_reportes_rechazan_fechas_invalidas_con_400(
+        self, admin_client, nombre_ruta, valor_invalido
+    ):
+        res = admin_client.get(reverse(nombre_ruta), {'fecha_desde': valor_invalido})
+        assert res.status_code == 400
+        assert 'error' in res.json()
+
+    def test_reporte_auditoria_csv_avisa_cuando_trunca(
+        self, admin_client, admin_user, monkeypatch
+    ):
+        from logs import views as logs_views
+
+        monkeypatch.setattr(logs_views, 'MAX_EXPORT_AUDITORIA', 3)
+        for i in range(5):
+            LogAuditoria.objects.create(
+                usuario=admin_user,
+                accion=f'Evento prueba {i}',
+                tabla_afectada='proyectos',
+            )
+
+        res = admin_client.get(reverse('reporte_auditoria_csv'), {'tabla': 'proyectos'})
+        assert res.status_code == 200
+        assert res.get('X-Export-Truncated') == 'true'
+        filas = list(csv.reader(io.StringIO(res.content.decode('utf-8-sig'))))
+        # encabezado + 3 filas de datos + 1 fila de advertencia
+        assert len(filas) == 5
+        assert filas[-1][1] == 'ADVERTENCIA'
+        assert 'límite de 3 registros' in filas[-1][2]
+
+    def test_reporte_auditoria_sin_filtros_no_se_incluye_a_si_mismo(
+        self, admin_client, admin_user, monkeypatch
+    ):
+        from logs import views as logs_views
+
+        monkeypatch.setattr(logs_views, 'MAX_EXPORT_AUDITORIA', 2)
+        for i in range(2):
+            LogAuditoria.objects.create(
+                usuario=admin_user,
+                accion=f'Evento previo {i}',
+                tabla_afectada='proyectos',
+            )
+
+        res = admin_client.get(reverse('reporte_auditoria_csv'))
+        assert res.status_code == 200
+        assert res.get('X-Export-Truncated') is None
+        filas = list(csv.reader(io.StringIO(res.content.decode('utf-8-sig'))))
+        # encabezado + 2 eventos previos (sin incluir el log del propio reporte)
+        assert len(filas) == 3
+        acciones = [f[2] for f in filas[1:]]
+        assert all('Reporte de auditoría CSV' not in a for a in acciones)
+        assert set(acciones) == {'Evento previo 0', 'Evento previo 1'}
+
+    def test_badge_estado_html_no_marca_inactivo_como_ok(self):
+        from logs.pdf_reports import _badge_estado_html
+
+        html_inactivo = _badge_estado_html('Inactivo')
+        html_activo = _badge_estado_html('Activo')
+        assert 'badge-ok' not in html_inactivo
+        assert 'badge-ok' in html_activo
 
 
 

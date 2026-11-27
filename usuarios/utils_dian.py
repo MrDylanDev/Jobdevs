@@ -15,6 +15,8 @@ Marco normativo y fuentes técnicas:
   https://www.gerencie.com/digito-de-verificacion-del-nit.html
 """
 
+import re
+
 # Factores oficiales DIAN; se aplican de derecha a izquierda sobre el número.
 PRIME_FACTORS = [71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3]
 
@@ -64,6 +66,36 @@ def formatear_nit(numero: str | int, dv: int | str | None = None) -> str:
     if dv is None:
         dv = calcular_dv_dian(digitos)
     return f"{int(digitos):,}".replace(",", ".") + f"-{dv}"
+
+
+def validar_documento_identidad(documento: str | int, tipo_documento: str = "cedula") -> str:
+    """Valida y sanitiza un documento de identidad colombiano (CC, TI o NIT)."""
+    limpio = limpiar_documento("" if documento is None else str(documento))
+    tipo = (tipo_documento or "").strip().lower()
+
+    if tipo == "cedula":
+        if not re.fullmatch(r"[0-9]{6,10}", limpio):
+            raise ValueError(
+                "La cédula de ciudadanía debe tener entre 6 y 10 dígitos numéricos."
+            )
+        return limpio
+
+    if tipo == "ti":
+        if not re.fullmatch(r"[0-9]{8,11}", limpio):
+            raise ValueError(
+                "La tarjeta de identidad debe tener entre 8 y 11 dígitos numéricos."
+            )
+        return limpio
+
+    if tipo == "nit":
+        if not validar_nit_con_dv("" if documento is None else str(documento)):
+            raise ValueError(
+                "El NIT ingresado no es válido según el dígito de verificación de la DIAN."
+            )
+        digitos = _solo_digitos(documento)
+        return f"{digitos[:-1]}-{digitos[-1]}"
+
+    raise ValueError("Tipo de documento no válido.")
 
 
 async def validar_nit_dian_api_async(nit_con_o_sin_dv: str | int, **kwargs):

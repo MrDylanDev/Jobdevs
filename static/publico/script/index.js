@@ -1,5 +1,5 @@
 /* =========================================
-   JobDevs // SYSTEM.ROOT — Landing Interactions
+   Jobdevs // SYSTEM.ROOT — Landing Interactions
    ========================================= */
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -338,9 +338,15 @@ document.addEventListener('DOMContentLoaded', function () {
   var mobileMenuBtn = document.getElementById('mobileMenuBtn');
   var navLinksEl = document.getElementById('navLinks');
   if (mobileMenuBtn && navLinksEl) {
-    mobileMenuBtn.addEventListener('click', function() { navLinksEl.classList.toggle('active'); });
+    mobileMenuBtn.addEventListener('click', function() {
+      var isOpen = navLinksEl.classList.toggle('active');
+      mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
     navLinksEl.querySelectorAll('a').forEach(function(link) {
-      link.addEventListener('click', function() { navLinksEl.classList.remove('active'); });
+      link.addEventListener('click', function() {
+        navLinksEl.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      });
     });
   }
 
@@ -648,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dot.style.left = mx + 'px';
         dot.style.top = my + 'px';
       });
-      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .nav-cta, .story-card, input, textarea, select, [role="button"]');
+      var hoverTargets = document.querySelectorAll('a, button, .btn-tech, .nav-cta, .story-card, .wf-step-item, input, textarea, select, [role="button"]');
       hoverTargets.forEach(function(el) {
         el.addEventListener('mouseenter', function() { dot.classList.add('hover'); ring.classList.add('hover'); });
         el.addEventListener('mouseleave', function() { dot.classList.remove('hover'); ring.classList.remove('hover'); });
@@ -729,6 +735,37 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (consultaSistema.addListener) {
       consultaSistema.addListener(seguimientoSistema);
     }
+  }
+
+  /* ============================
+     LOGIN SPINNER OVERLAY
+     ============================ */
+  var loginFormEl = document.getElementById('loginFormElement');
+  var loginSpinnerOverlay = document.getElementById('loginSpinnerOverlay');
+  if (loginFormEl) {
+    loginFormEl.addEventListener('submit', function (e) {
+      if (loginFormEl.dataset.submitting === '1') return;
+      e.preventDefault();
+      loginFormEl.dataset.submitting = '1';
+      if (loginModalEl) {
+        loginModalEl.classList.remove('show');
+        loginModalEl.setAttribute('aria-hidden', 'true');
+      }
+      if (loginSpinnerOverlay) {
+        loginSpinnerOverlay.style.display = 'flex';
+        loginSpinnerOverlay.setAttribute('aria-hidden', 'false');
+      }
+      setTimeout(function () {
+        loginFormEl.submit();
+      }, 260);
+    });
+    window.addEventListener('pageshow', function () {
+      loginFormEl.dataset.submitting = '0';
+      if (loginSpinnerOverlay) {
+        loginSpinnerOverlay.style.display = 'none';
+        loginSpinnerOverlay.setAttribute('aria-hidden', 'true');
+      }
+    });
   }
 
 });

@@ -19,11 +19,11 @@
     })();
   </script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261121_v27">
-  <link rel="stylesheet" href="{% static 'Desarrollador/css/desarrollador.css' %}?v=20261121_v27">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261126_v35">
+  <link rel="stylesheet" href="{% static 'Desarrollador/css/desarrollador.css' %}?v=20261126_v34">
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261121_v28">
   <link rel="stylesheet" href="{% static 'dashboard/css/proyecto_detalle_modal.css' %}?v=20261121_v27">
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v27">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261126_v33">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=20261121_v27">
   <link rel="stylesheet" href="{% static 'dashboard/css/notificaciones_popover.css' %}?v=20261121_v27">
 </head>
@@ -31,7 +31,6 @@
 
 <!-- Texturas Cyber Tech (Estilo Landing Page) -->
 <div class="grain" id="grain"></div>
-<div class="scan-line"></div>
 <div class="tech-bg"></div>
 
 <div class="app-layout">
@@ -59,7 +58,7 @@
         <i data-lucide="message-square"></i>
         <span>Mensajes</span>
         {% if mensajes_no_leidos > 0 %}
-          <span class="nav-badge" data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
+          <span class="nav-badge" data-mensajes-badge data-testid="badge-mensajes-no-leidos">{{ mensajes_no_leidos }}</span>
         {% endif %}
       </button>
     </div>
@@ -237,22 +236,6 @@
 
       <!-- Mensajes Django -->
       {% include 'partials/_flash_toasts.html' %}
-
-      <!-- Alerta Verificación SENA (tema oscuro del dashboard) -->
-      {% if perfil and not perfil.es_verificado_sena %}
-        <div class="jd-alert jd-alert-warning" data-testid="alerta-verificacion-sena">
-          <div class="jd-alert-main">
-            <i data-lucide="alert-triangle"></i>
-            <div>
-              <strong class="jd-alert-title">Tu perfil no está verificado como aprendiz SENA.</strong>
-              <div class="jd-alert-text">Para poder postularte a proyectos reales y acceder a contrataciones, valida tu número de ficha.</div>
-            </div>
-          </div>
-          <button type="button" class="jd-btn jd-btn-warning" onclick="abrirVerificacion()">
-            <i data-lucide="id-card"></i> Verificar mi ficha SENA
-          </button>
-        </div>
-      {% endif %}
 
       <!-- Inicio (Cockpit Rediseñado) -->
       <div id="inicio" class="seccion-v activa">
@@ -635,7 +618,7 @@
                       data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
                 <span class="jd-chat-avatar">
                   {% if conv.empresa_logo %}
-                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}">
+                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" onerror="this.parentElement.textContent='{{ conv.empresa_nombre|slice:":1"|upper|escapejs }}'">
                   {% else %}
                     {{ conv.empresa_nombre|slice:":1"|upper }}
                   {% endif %}
@@ -1997,7 +1980,7 @@
           <div>
             <strong>Solicitud en revisión</strong>
             <p>Tu solicitud de verificación se encuentra en revisión por el equipo administrativo del SENA.</p>
-            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }}</p>
+            <p class="jd-callout-meta">Ficha: {{ perfil.ficha }} · Programa: {{ perfil.programa_formacion|default:"No especificado" }} · Rechazos previos: {{ perfil.intentos_verificacion }}/3</p>
             {% if perfil.documento_soporte %}
               <a href="{% url 'descargar_documento_soporte_desarrollador' perfil.id %}" target="_blank" rel="noopener" class="jd-link">
                 <i data-lucide="file-text"></i> Ver documento enviado
@@ -2012,7 +1995,7 @@
             <div>
               <strong>Solicitud rechazada</strong>
               <p>Tu solicitud anterior fue rechazada.{% if perfil.notas_auditoria %} Motivo: {{ perfil.notas_auditoria }}{% endif %}</p>
-              <p class="jd-callout-meta">Verifica tu ficha o adjunta un documento legible y vuelve a enviarla.</p>
+              <p class="jd-callout-meta">Rechazos acumulados: <strong>{{ perfil.intentos_verificacion }} de 3</strong>. Al 3.º rechazo la cuenta se depura automáticamente. Verifica tu ficha o adjunta un documento legible y vuelve a enviarla.</p>
             </div>
           </div>
         {% else %}
@@ -2020,7 +2003,7 @@
             <i data-lucide="info"></i>
             <div>
               <strong>Verifica tu condición de aprendiz SENA</strong>
-              <p>Podrás postularte a proyectos reales y obtener la insignia oficial.</p>
+              <p>Podrás postularte a proyectos reales y obtener la insignia oficial. Tienes hasta 3 intentos de verificación documental ({{ perfil.intentos_verificacion }}/3 usados).</p>
             </div>
           </div>
         {% endif %}
@@ -2292,7 +2275,7 @@
         <div class="jdm-form-label" style="margin-bottom:10px;">
           <i data-lucide="handshake"></i> Proponer Terminación de Mutuo Acuerdo
         </div>
-        <form id="formProponerCancelacionDev" action="{% url 'cancelar_contratacion' contratos_cancelables_dev.0.id %}" method="post" class="jd-form">
+        <form id="formProponerCancelacionDev" action="{% url 'cancelar_contratacion' contratos_cancelables_dev.0.id %}" data-url-template="{% url 'cancelar_contratacion' 0 %}" method="post" class="jd-form">
           {% csrf_token %}
           <div class="jd-field">
             <label class="jd-label" for="cancelContratoSelect">Seleccionar Contrato Activo</label>
@@ -2528,19 +2511,14 @@
 </div>
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
-<script src="{% static 'Desarrollador/script/desarrollador.js' %}?v=20261121_v4"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v8"></script>
+<script type="module" src="{% static 'Desarrollador/script/desarrollador.js' %}?v=20261126_mod1"></script>
+<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
 <script src="{% static 'dashboard/script/favoritos_async.js' %}?v=20261121_v5"></script>
 <script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}?v=20261121_v4"></script>
-<script src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261121_v23"></script>
-<script>
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-</script>
+<script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
 
 {% if contrataciones_pendientes_calificar %}
 <script>
