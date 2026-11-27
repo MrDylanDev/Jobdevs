@@ -1,0 +1,288 @@
+{% load i18n %}
+
+      <!-- Perfil (LinkedIn Style) -->
+      <section id="perfil" class="seccion-v">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">{% trans "Perfil Corporativo" %}</h1>
+          </div>
+        </div>
+
+        <!-- Tarjeta Principal Hero / LinkedIn Style -->
+        <div class="linkedin-profile-card">
+          <div class="linkedin-profile-header">
+            <div class="linkedin-avatar-row">
+              <div class="linkedin-avatar">
+                {% if perfil.logo %}
+                  <img src="{{ perfil.logo.url }}" alt="{{ perfil.nombre_empresa|default:request.user.username }}">
+                {% else %}
+                  {{ request.user.nombre|default:request.user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+
+              <div class="linkedin-header-actions">
+                <button type="button" class="btn-linkedin-edit" onclick="abrirModalPerfil()" title="{% trans "Editar información del perfil" %}">
+                  <i data-lucide="pencil"></i>
+                  <span>{% trans "Editar página" %}</span>
+                </button>
+                <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="btn-linkedin-verify {% if perfil.es_verificada %}is-verified{% endif %}" title="{% if perfil.es_verificada %}{% trans "Empresa Verificada" %}{% else %}{% trans "Verificar personería jurídica" %}{% endif %}">
+                  <i data-lucide="{% if perfil.es_verificada %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}shield-alert{% endif %}"></i>
+                  <span>{% if perfil.es_verificada %}{% trans "Verificado" %}{% else %}{% trans "Sin verificar" %}{% endif %}</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="linkedin-company-name">
+              <span>{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</span>
+            </div>
+
+            <div class="linkedin-headline">
+              {% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Empresa Empleadora en Tecnología" %}{% endif %}
+              {% if perfil.ciudad %} &nbsp;·&nbsp; {{ perfil.ciudad }}, Colombia{% endif %}
+            </div>
+
+            <div class="linkedin-meta-row">
+              <span class="meta-item"><i data-lucide="building-2"></i> {% if perfil.get_tipo_persona_display %}{{ perfil.get_tipo_persona_display }}{% else %}{% trans "Persona Jurídica" %}{% endif %}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-item"><i data-lucide="id-card"></i> {{ perfil.tipo_documento|default:"NIT" }}: {% if perfil.documento_completo %}{{ perfil.documento_completo }}{% elif request.user.identificacion %}{{ request.user.identificacion }}{% else %}{% trans "Sin registrar" %}{% endif %}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-item"><i data-lucide="users"></i> {% blocktrans with count=total_contratados count counter=total_contratados %}{{ count }} desarrollador contratado{% plural %}{{ count }} desarrolladores contratados{% endblocktrans %}</span>
+              {% if promedio_empresa > 0 %}
+                <span class="meta-sep">·</span>
+                <span class="meta-item" style="color:var(--corp-gold); font-weight:600;"><i data-lucide="star"></i> {% blocktrans with score=promedio_empresa %}{{ score }} / 5.0 reputación{% endblocktrans %}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-navegación estilo LinkedIn -->
+        <div class="linkedin-subnav">
+          <button type="button" class="linkedin-tab-btn active" onclick="switchPerfilSubTab('info', this)">
+            <i data-lucide="building-2"></i>
+            <span>{% trans "Información General" %}</span>
+          </button>
+          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('jobs', this)">
+            <i data-lucide="briefcase"></i>
+            <span>{% blocktrans with total=mis_ofertas|length %}Convocatorias Abiertas ({{ total }}){% endblocktrans %}</span>
+          </button>
+          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('reviews', this)">
+            <i data-lucide="star"></i>
+            <span>{% blocktrans with total=valoraciones_recibidas|length %}Opiniones & Reputación ({{ total }}){% endblocktrans %}</span>
+          </button>
+        </div>
+
+        <!-- Pane 1: Información General -->
+        <div id="pane-info" class="linkedin-tab-pane active">
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;">
+            <div>
+              <!-- Acerca de (About) -->
+              <div class="linkedin-content-card">
+                <div class="linkedin-card-title">
+                  <i data-lucide="align-left" class="text-corp-brand"></i>
+                  <span>{% trans "Acerca de la Empresa" %}</span>
+                </div>
+                <p class="linkedin-about-text">
+                  {% if perfil.descripcion %}{{ perfil.descripcion }}{% else %}{% trans "Tu empresa aún no cuenta con una descripción corporativa. Un perfil completo y detallado genera mayor confianza y atrae a los mejores desarrolladores de la plataforma." %}{% endif %}
+                </p>
+              </div>
+
+              <!-- Información General / Overview -->
+              <div class="linkedin-content-card">
+                <div class="linkedin-card-title">
+                  <i data-lucide="info" class="text-corp-brand"></i>
+                  <span>{% trans "Información Corporativa & Contacto" %}</span>
+                </div>
+                <div class="linkedin-info-grid">
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Razón Social" %}</div>
+                    <div class="info-value">{{ perfil.razon_social|default:perfil.nombre_empresa|default:request.user.username }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Documento Tributario" %}</div>
+                    <div class="info-value">{{ perfil.tipo_documento|default:"NIT" }} {{ perfil.documento_completo|default:request.user.identificacion|default:"—" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Sector Económico" %}</div>
+                    <div class="info-value">{% if perfil.sector %}{{ perfil.sector }}{% else %}{% trans "Tecnología" %}{% endif %}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Sede / Ubicación" %}</div>
+                    <div class="info-value">{{ perfil.ciudad|default:"Colombia" }}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Teléfono Corporativo" %}</div>
+                    <div class="info-value">{% if perfil.telefono %}{{ perfil.telefono }}{% else %}{% trans "No registrado" %}{% endif %}</div>
+                  </div>
+                  <div class="linkedin-info-item">
+                    <div class="info-label">{% trans "Correo de Contacto" %}</div>
+                    <div class="info-value">{{ request.user.email }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stack Tech / Especialidades -->
+              <div class="linkedin-content-card">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                  <div class="linkedin-card-title mb-0-corp">
+                    <i data-lucide="cpu" class="text-corp-brand"></i>
+                    <span>{% trans "Especialidades y Stack Tecnológico de Interés" %}</span>
+                  </div>
+                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:12px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
+                    <i data-lucide="pencil"></i> {% trans "Editar" %}
+                  </button>
+                </div>
+                <p style="font-size:12.5px; color:var(--corp-slate-500); margin-bottom:8px;">{% trans "Áreas tecnológicas donde tu empresa contrata talento activamente:" %}</p>
+                {% if perfil.lista_stack_interes %}
+                  <div class="tech-stack-wrap">
+                    {% for tech in perfil.lista_stack_interes %}
+                      <span class="tech-chip"><i data-lucide="tag" style="color:var(--corp-brand); font-size:12px;"></i> {{ tech }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div class="tech-stack-wrap">
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Python</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Django</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> JavaScript</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> React</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> PostgreSQL</span>
+                    <span class="tech-chip"><i data-lucide="tag" class="text-corp-brand"></i> Docker</span>
+                  </div>
+                  <div style="font-size:12px; color:var(--corp-slate-400); margin-top:8px;">
+                    <i data-lucide="info" class="mr-1-corp"></i> {% trans 'Mostrando stack sugerido por defecto. Puedes personalizar tus tecnologías desde "Editar página".' %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Métricas de Presencia / Sidebar del Perfil -->
+            <div>
+              <div class="linkedin-content-card mb-0-corp">
+                <div class="linkedin-card-title">
+                  <i data-lucide="bar-chart-2" class="text-corp-brand"></i>
+                  <span>{% trans "Métricas en JobDevs" %}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ total_proyectos }}</div>
+                    <div class="stat-label">{% trans "Convocatorias Publicadas" %}</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ proyectos_activos }}</div>
+                    <div class="stat-label">{% trans "Proyectos en Desarrollo" %}</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number">{{ total_contratados }}</div>
+                    <div class="stat-label">{% trans "Contrataciones Realizadas" %}</div>
+                  </div>
+                  <div class="analytics-stat-box">
+                    <div class="stat-number" style="color:var(--corp-gold);">{{ promedio_empresa }} ★</div>
+                    <div class="stat-label">{% trans "Calificación de Talento" %}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 2: Convocatorias Activas -->
+        <div id="pane-jobs" class="linkedin-tab-pane">
+          <div class="linkedin-content-card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+              <div class="linkedin-card-title mb-0-corp">
+                <i data-lucide="briefcase" class="text-corp-brand"></i>
+                <span>{% trans "Convocatorias Abiertas para Desarrolladores" %}</span>
+              </div>
+              <button class="btn-corp-primary btn-sm" onclick="abrirModal()">
+                <i data-lucide="plus"></i> {% trans "Nueva Convocatoria" %}
+              </button>
+            </div>
+
+            <div class="linkedin-jobs-list">
+              {% for proyecto in mis_ofertas %}
+                <div class="linkedin-job-card">
+                  <div>
+                    <div class="linkedin-job-title">{{ proyecto.titulo }}</div>
+                    <div class="linkedin-job-meta">
+                      <span><i data-lucide="layers" class="mr-1-corp"></i>{{ proyecto.get_tipo_solucion_display }}</span>
+                      <span>·</span>
+                      <span><i data-lucide="users" class="mr-1-corp"></i>{% blocktrans with total=proyecto.vacantes count counter=proyecto.vacantes %}{{ total }} vacante{% plural %}{{ total }} vacantes{% endblocktrans %}</span>
+                      <span>·</span>
+                      <span><i data-lucide="calendar" class="mr-1-corp"></i>{{ proyecto.fecha_publicacion|date:"d M, Y" }}</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+                       class="btn-corp-action primary"
+                       onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;">
+                      <i data-lucide="users"></i>
+                      <span>{% trans "Ver Candidatos" %}</span>
+                    </a>
+                    {% if not proyecto.num_contratos_activos %}
+                    <a href="{% url 'editar_proyecto' proyecto.id %}"
+                       class="btn-corp-action secondary"
+                       {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
+                       onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                       {% endif %}
+                       title="{% trans "Editar especificaciones" %}">
+                      <i data-lucide="square-pen"></i>
+                      <span>{% trans "Editar" %}</span>
+                    </a>
+                    {% endif %}
+                  </div>
+                </div>
+              {% empty %}
+                <div class="activity-empty">
+                  <i data-lucide="briefcase"></i>
+                  <p>{% trans "Tu empresa no tiene convocatorias abiertas actualmente." %}</p>
+                  <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:12px;">
+                    <i data-lucide="plus"></i> {% trans "Publicar oferta" %}
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 3: Reputación y Reseñas -->
+        <div id="pane-reviews" class="linkedin-tab-pane">
+          <div class="reputation-layout-corp">
+            <div class="reputation-summary-card">
+              <div class="rep-summary-label">{% trans "Calificación Global" %}</div>
+              <div class="rep-score-value">{{ promedio_empresa }}</div>
+              <div class="rep-stars-row">
+                {% if promedio_empresa >= 1 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 2 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 3 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 4 %}★{% else %}☆{% endif %}
+                {% if promedio_empresa >= 5 %}★{% else %}☆{% endif %}
+              </div>
+              <div class="rep-summary-sub">{% blocktrans with count=valoraciones_recibidas|length count counter=valoraciones_recibidas|length %}Promedio sobre 5.0 ({{ count }} reseña){% plural %}Promedio sobre 5.0 ({{ count }} reseñas){% endblocktrans %}</div>
+            </div>
+
+            <div class="reviews-list-corp">
+              {% for valoracion in valoraciones_recibidas %}
+                <div class="review-card-corp">
+                  <div class="review-card-header">
+                    <div class="review-author">
+                      <i data-lucide="user" style="margin-right:6px; color:var(--corp-slate-400);"></i>
+                      {{ valoracion.desarrollador.username }}
+                    </div>
+                    <div class="review-stars">
+                      {% with ''|center:valoracion.puntuacion as range %}{% for _ in range %}★{% endfor %}{% endwith %}
+                    </div>
+                  </div>
+                  <div class="review-project">{% trans "Proyecto evaluado:" %} <strong>{{ valoracion.proyecto.titulo }}</strong></div>
+                  <div class="review-comment-box">
+                    "{% if valoracion.comentario %}{{ valoracion.comentario }}{% else %}{% trans "Sin comentarios adicionales." %}{% endif %}"
+                  </div>
+                </div>
+              {% empty %}
+                <div class="activity-empty">
+                  <i data-lucide="star"></i>
+                  <p>{% trans "Aún no se han recibido valoraciones de desarrolladores para esta empresa." %}</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>

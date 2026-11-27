@@ -1,0 +1,83 @@
+{% load i18n %}
+
+      <!-- Contratos Digitales (gestión 100% in-situ) -->
+      <section id="contratos" class="seccion-v" data-contrato-endpoint="{% url 'ver_contrato_digital' 0 %}">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">{% trans "Contratos Digitales & Acuerdos" %}</h1>
+          </div>
+        </div>
+
+        <div class="contracts-grid-corp">
+          {% for contrato in mis_contratos_digitales %}
+            <article class="contract-card-corp" data-contrato-row="{{ contrato.id }}">
+              <div>
+                <div style="margin: 0 0 12px 0;">
+                  <div class="contrato-row-title" style="font-size:16px; font-weight:700; color:var(--corp-slate-900); line-height:1.35; margin-bottom:4px;">
+                    {{ contrato.postulacion.proyecto.titulo }}
+                  </div>
+                  <div style="font-size:12.5px; color:var(--corp-slate-600); display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="user" style="width:13px; height:13px; color:var(--corp-brand);"></i>
+                    <span><strong>{{ contrato.postulacion.desarrollador.nombre|default:contrato.postulacion.desarrollador.username }}</strong></span>
+                    <span>·</span>
+                    <span style="color:var(--corp-slate-500);">{{ contrato.postulacion.desarrollador.email|truncatechars:28 }}</span>
+                  </div>
+                </div>
+
+                <!-- Monto y Términos Económicos -->
+                <div class="contract-terms-box-corp">
+                  <div>
+                    <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--corp-slate-500);">{% trans "Retribución Acordada" %}</div>
+                    <div class="contrato-monto" style="font-size:18px; font-weight:800; color:var(--corp-brand); letter-spacing:-0.02em;">{{ contrato.monto_formateado }}</div>
+                  </div>
+                  <div style="text-align:right; font-size:12px; color:var(--corp-slate-600);">
+                    <div style="font-weight:700; color:var(--corp-slate-800);">{{ contrato.get_forma_pago_display }}</div>
+                    <div style="color:var(--corp-brand); font-weight:600; margin-top:2px;">
+                      <i data-lucide="wallet" style="width:11px; height:11px; vertical-align:middle;"></i> {% if contrato.medio_pago %}{{ contrato.get_medio_pago_display }}{% else %}{% trans "Transferencia bancaria" %}{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <!-- Estado Dual de Firmas (Empresa / Dev) -->
+                <div class="contract-signatures-grid">
+                  <div class="contract-sig-chip signature-badge-corp {% if contrato.firmado_empresa %}is-signed{% else %}is-pending{% endif %}" data-role="firma-empresa">
+                    <i data-lucide="{% if contrato.firmado_empresa %}check-circle-2{% else %}clock{% endif %}"></i>
+                    <span>{% trans "Empresa:" %} {% if contrato.firmado_empresa %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
+                  </div>
+                  <div class="contract-sig-chip signature-badge-corp {% if contrato.firmado_desarrollador %}is-signed{% else %}is-pending{% endif %}" data-role="firma-dev">
+                    <i data-lucide="{% if contrato.firmado_desarrollador %}check-circle-2{% else %}clock{% endif %}"></i>
+                    <span>{% trans "Dev:" %} {% if contrato.firmado_desarrollador %}{% trans "Firmado" %}{% else %}{% trans "Pendiente" %}{% endif %}</span>
+                  </div>
+                </div>
+
+                <!-- Acciones -->
+                <div style="display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--corp-border-subtle);">
+                  <a href="{% url 'ver_contrato_digital' contrato.id %}"
+                     class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
+                     style="flex:1; justify-content:center;"
+                     onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
+                     title="{% trans "Revisar y firmar el contrato sin salir del panel" %}">
+                    <i data-lucide="file-signature"></i>
+                    <span>{% if contrato.firmado_empresa %}{% trans "Ver Documento Legal" %}{% else %}{% trans "Firmar Contrato Digital" %}{% endif %}</span>
+                  </a>
+                  <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
+                     class="btn-corp-action secondary"
+                     style="padding:8px 12px;"
+                     onclick="abrirChatEnCentro(event, '{{ contrato.postulacion.desarrollador_id }}', '{{ contrato.postulacion.proyecto.id }}'); return false;"
+                     title="{% trans "Chatear con el desarrollador" %}" aria-label="{% trans "Chatear con el desarrollador" %}">
+                    <i data-lucide="message-square"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+          {% empty %}
+            <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border); border-radius: var(--corp-radius-lg); padding:48px 20px;">
+              <i data-lucide="file-signature"></i>
+              <p style="font-weight:700; color:var(--corp-slate-900);">{% trans "Aún no tienes contratos digitales" %}</p>
+              <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">{% trans "Cuando inicies una negociación con un candidato, el contrato aparecerá aquí listo para revisión y firma electrónica." %}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </section>

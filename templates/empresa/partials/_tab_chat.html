@@ -1,0 +1,126 @@
+{% load static i18n %}
+
+      <!-- Chat -->
+      <section id="centro-chat" class="seccion-v">
+        <div class="jd-chat is-context-collapsed" data-chat-root data-send-url="{% url 'api_enviar' %}"
+             data-url-general="{% url 'api_conversacion' 987654321 %}"
+             data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
+          <aside class="jd-chat-list">
+            <div class="jd-chat-list-head">
+              <span>{% trans "Conversaciones" %}</span>
+              <span class="jd-chat-count">{% if admin_id %}{{ colaboradores_activos|length|add:"1" }}{% else %}{{ colaboradores_activos|length }}{% endif %}</span>
+            </div>
+            <div class="jd-chat-items" data-chat-list>
+              {% if admin_id %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion' admin_id %}"
+                      data-receptor="{{ admin_id }}" data-proyecto="0">
+                <span class="jd-chat-avatar" style="overflow:hidden; padding:0;">
+                  <img src="{% static 'IMG/admin_soporte.svg' %}" alt="{% trans "Soporte JobDevs" %}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                </span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{% trans "Soporte JobDevs" %}</span>
+                  </span>
+                  <span class="jd-chat-preview">{% trans "Asistencia técnica y administrativa" %}</span>
+                </span>
+              </button>
+              {% endif %}
+
+              {% for colaboracion in colaboradores_activos %}
+              <button type="button" class="jd-chat-item"
+                      data-url="{% url 'api_conversacion_proyecto' colaboracion.desarrollador.id colaboracion.proyecto.id %}"
+                      data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
+                <span class="jd-chat-avatar">
+                  {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" onerror="this.parentElement.textContent='{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper|escapejs }}'">
+                  {% else %}
+                    {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
+                  {% endif %}
+                </span>
+                <span class="jd-chat-item-body">
+                  <span class="jd-chat-item-top">
+                    <span class="jd-chat-name">{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}</span>
+                  </span>
+                  <span class="jd-chat-preview">{{ colaboracion.proyecto.titulo }}</span>
+                  <span class="jd-chat-tag">{% trans "En desarrollo" %}</span>
+                </span>
+              </button>
+              {% empty %}
+                {% if not admin_id %}
+                <div class="jd-chat-list-empty">
+                  <i data-lucide="messages-square"></i>
+                  <span>{% trans "Sin conversaciones activas" %}</span>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="jd-chat-resizer" id="chatListResizer" role="separator" aria-orientation="vertical" aria-label="{% trans "Redimensionar lista de conversaciones" %}"></div>
+          </aside>
+
+          <section class="jd-chat-panel">
+            <div class="jd-chat-empty" data-chat-empty>
+              <i data-lucide="message-square" style="width:36px; height:36px; margin-bottom:8px; opacity:0.5;"></i>
+              <p>{% trans "Selecciona una conversación" %}</p>
+              <span>{% trans "Elige un contacto de la lista para ver el historial y enviar mensajes" %}</span>
+            </div>
+
+            <div class="jd-chat-conv" data-chat-conv>
+              <header class="jd-chat-head">
+                <button type="button" class="jd-chat-back" data-chat-back aria-label="{% trans "Volver" %}">
+                  <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
+                </button>
+                <span class="jd-chat-avatar" data-chat-avatar>?</span>
+                <div class="jd-chat-head-info">
+                  <div class="jd-chat-head-name-row">
+                    <div class="jd-chat-head-name" data-chat-name>—</div>
+                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" onclick="toggleChatContextSidebar()" title="{% trans "Mostrar contexto del proyecto" %}" aria-label="{% trans "Alternar panel de contexto del proyecto" %}">
+                      <i data-lucide="panel-right-open"></i>
+                    </button>
+                  </div>
+                  <div class="jd-chat-head-sub" data-chat-sub>—</div>
+                </div>
+              </header>
+
+              <div class="jd-chat-messages" data-chat-messages role="log" aria-live="polite"></div>
+              <div class="jd-chat-error" data-chat-error hidden></div>
+
+              <form class="jd-chat-form" data-chat-form>
+                {% csrf_token %}
+                <input type="text" class="jd-chat-input" name="contenido"
+                       placeholder="{% trans "Escribe un mensaje…" %}" autocomplete="off"
+                       maxlength="2000" data-chat-input>
+                <button type="submit" class="jd-chat-send" data-chat-send aria-label="{% trans "Enviar" %}">
+                  <i data-lucide="send" style="width:15px; height:15px;"></i>
+                </button>
+              </form>
+
+              <div class="jd-chat-readonly" data-chat-readonly hidden>
+                <i data-lucide="lock" style="width:14px; height:14px;"></i> {% trans "Este proyecto ha finalizado: el chat es de solo lectura." %}
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Columna Contextual del Proyecto -->
+          <aside class="jd-chat-context" data-chat-context style="display:none;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:8px;">
+              <i data-lucide="layers" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i>
+              {% trans "Contexto del Proyecto" %}
+            </div>
+            <div class="jd-context-card">
+              <div class="jd-context-title" data-context-project-title>—</div>
+              <span class="jd-context-badge" data-context-project-badge>{% trans "En Desarrollo" %}</span>
+              <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px; display:flex; flex-direction:column; gap:8px;">
+                <a href="{% url 'dashboard_empresa' %}#desarrollo" class="jd-context-btn">
+                  <i data-lucide="flag"></i>
+                  <span>{% trans "Ver Hitos del Proyecto" %}</span>
+                </a>
+                <a href="{% url 'dashboard_empresa' %}#contratos" class="jd-context-btn secondary">
+                  <i data-lucide="file-signature"></i>
+                  <span>{% trans "Ver Contratos Digitales" %}</span>
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
