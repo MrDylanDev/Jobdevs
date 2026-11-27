@@ -8,6 +8,7 @@ from .services_sena import (
     programas_formacion_coinciden,
     verificar_desarrollador_automatico,
 )
+from .utils_dian import validar_documento_identidad
 
 class RegistroUsuarioForm(UserCreationForm):
     nombre = forms.CharField(
@@ -19,6 +20,7 @@ class RegistroUsuarioForm(UserCreationForm):
     tipo_documento = forms.ChoiceField(
         choices=[
             ('cedula', 'Cédula de Ciudadanía'),
+            ('ti', 'Tarjeta de Identidad'),
             ('nit', 'NIT (Número de Identificación Tributaria)'),
         ],
         required=True,
@@ -79,6 +81,16 @@ class RegistroUsuarioForm(UserCreationForm):
         widget=forms.HiddenInput(),
         label="Nombre de Usuario (Opcional)"
     )
+    acepta_terminos = forms.BooleanField(
+        required=True,
+        error_messages={
+            'required': (
+                'Debes aceptar las Condiciones del servicio, la Política de '
+                'privacidad y la Política de cookies para crear tu cuenta.'
+            )
+        },
+        label="Acepto las Condiciones del servicio, la Política de privacidad y la Política de cookies.",
+    )
     
     class Meta:
         model = Usuario
@@ -89,8 +101,31 @@ class RegistroUsuarioForm(UserCreationForm):
         rol = cleaned_data.get('rol')
         tipo_doc = cleaned_data.get('tipo_documento')
 
-        if rol == 'desarrollador' and tipo_doc == 'nit':
-            self.add_error('tipo_documento', "Un desarrollador solo puede registrarse con Cédula.")
+        if rol == 'desarrollador' and tipo_doc not in ('cedula', 'ti'):
+            self.add_error(
+                'tipo_documento',
+                "Un desarrollador solo puede registrarse con Cédula o Tarjeta de Identidad.",
+            )
+        elif rol == 'empresa' and tipo_doc not in ('nit', 'cedula'):
+            self.add_error(
+                'tipo_documento',
+                "Una empresa solo puede registrarse con NIT o Cédula de Ciudadanía.",
+            )
+
+        identificacion = cleaned_data.get('identificacion')
+        if identificacion and tipo_doc and not self.has_error('tipo_documento'):
+            try:
+                identificacion_limpia = validar_documento_identidad(identificacion, tipo_doc)
+            except ValueError as exc:
+                self.add_error('identificacion', str(exc))
+            else:
+                if Usuario.objects.filter(identificacion=identificacion_limpia).exists():
+                    self.add_error(
+                        'identificacion',
+                        "Este número de identificación/NIT ya se encuentra registrado.",
+                    )
+                else:
+                    cleaned_data['identificacion'] = identificacion_limpia
 
         email = cleaned_data.get('email')
         username = (cleaned_data.get('username') or '').strip()
