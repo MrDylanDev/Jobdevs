@@ -1,0 +1,1204 @@
+/* ============================================================
+   MIS CONTRATOS DIGITALES (ESTILO LINEAR / STRIPE)
+   ============================================================ */
+.contratos-security-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+[data-theme="light"] .contratos-security-banner {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.contratos-security-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .contratos-security-icon {
+  background: #e6faf0;
+  border-color: rgba(0, 113, 63, 0.3);
+  color: #00713f;
+}
+
+.contratos-security-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contratos-security-text strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.contratos-security-text p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Subpestañas fluidas de Contratos & Postulaciones */
+.contratos-subtabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+}
+
+.contratos-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  bottom: -1px;
+}
+
+.contratos-subtab-btn:hover {
+  color: var(--fg);
+}
+
+.contratos-subtab-btn.active {
+  color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+  font-weight: 600;
+}
+
+.contratos-subtab-btn svg,
+.contratos-subtab-btn i {
+  width: 15px;
+  height: 15px;
+}
+
+.contratos-subtab-btn.active svg,
+.contratos-subtab-btn.active i {
+  color: #ffffff !important;
+}
+
+.contratos-subtab-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.contratos-subtab-btn.active .contratos-subtab-count {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   REDISEÑO CONTRATOS DIGITALES (RIBBON EJECUTIVO CONTINUO)
+   ============================================================ */
+.contratos-ribbon {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  background: #080a0c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.contratos-ribbon-segment {
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  transition: background 0.15s ease;
+}
+
+.contratos-ribbon-segment:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.contratos-ribbon-divider {
+  width: 1px;
+  height: 42px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.ribbon-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #71717a;
+  line-height: 14px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.ribbon-val-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 26px;
+  height: 26px;
+}
+
+.ribbon-currency {
+  font-family: var(--font-mono, monospace);
+  font-size: 22px;
+  font-weight: 700;
+  color: #94a3b8 !important;
+  line-height: 26px;
+}
+
+.ribbon-number {
+  font-family: var(--font-mono, monospace);
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 26px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.ribbon-unit {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 500;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 26px;
+}
+
+.ribbon-unit.alert {
+  color: #f87171;
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .contratos-ribbon {
+    grid-template-columns: 1fr;
+  }
+  .contratos-ribbon-divider {
+    width: 100%;
+    height: 1px;
+  }
+  .contratos-ribbon-segment {
+    padding: 14px 18px;
+  }
+}
+
+@media (max-width: 860px) {
+  .contratos-ribbon {
+    flex-direction: column;
+  }
+
+  .contratos-ribbon-segment {
+    padding: 16px 18px;
+  }
+
+  .contratos-ribbon-divider {
+    width: auto;
+    height: 1px;
+  }
+}
+
+.contratos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 640px) {
+  .contratos-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tarjeta de Contrato Compacta y Proporcional */
+.contract-card {
+  background: #0a0a0a !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--radius, 14px) !important;
+  padding: 18px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease !important;
+  position: relative !important;
+}
+
+.contract-card:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.contract-card.needs-signature {
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.contract-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.contract-empresa-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.contract-empresa-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-darker);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.contract-empresa-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contract-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.contract-code-tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.contract-empresa-name {
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contract-title {
+  font-family: var(--font-main);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+[data-theme="light"] .contract-title {
+  color: var(--text-primary);
+}
+
+.contract-specs-clean {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.contract-specs-clean span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-specs-clean svg {
+  width: 12px;
+  height: 12px;
+  color: #64748b;
+}
+
+.contract-monto-text {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff !important;
+}
+
+.contract-sep {
+  color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+/* Firmas compactas */
+.contract-signatures-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.contract-sig-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-sig-item .party-label {
+  color: #71717a;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+/* Footer de Acciones del Contrato */
+.contract-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.contract-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.contract-empresa-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contract-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.contract-code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.contract-title {
+  font-family: var(--font-main);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.contract-empresa-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.contract-card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.contract-amount-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.contract-amount-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.1;
+}
+
+.contract-payment-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-card-signatures {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+.contract-sign-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.contract-sign-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  width: 52px;
+}
+
+.contract-signed-badge {
+  color: var(--accent);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-signed-badge i,
+.contract-signed-badge svg {
+  width: 13px;
+  height: 13px;
+}
+
+.contract-pending-badge {
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-urgent-badge {
+  color: #f87171;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .contract-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .contract-card-center {
+    align-items: flex-start;
+  }
+  .contract-card-signatures {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    width: 100%;
+  }
+  .contract-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* ============================================================
+   CENTRO DE MENSAJES (#centro-chat) — heredado de dashboard.css
+   ============================================================ */
+
+/* ============================================================
+   CENTRO DE MEDIACIÓN Y DISPUTAS (#disputas)
+   Estilo Linear/Stripe integrado en el panel del desarrollador
+   ============================================================ */
+#disputas .page-subtitle {
+  color: var(--text-muted);
+}
+
+#disputas .disputas-protocol-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+[data-theme="light"] #disputas .disputas-protocol-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  border-left-color: #00713f;
+}
+
+#disputas .disputas-protocol-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+[data-theme="light"] #disputas .disputas-protocol-icon {
+  background: #e6faf0;
+  border-color: rgba(0, 113, 63, 0.3);
+  color: #00713f;
+}
+
+#disputas .disputas-protocol-body h2 {
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0 0 4px;
+}
+
+#disputas .disputas-protocol-body p {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+#disputas .disputas-protocol-card,
+#disputas .disputas-kpi-grid {
+  display: none !important;
+}
+
+#disputas .disputas-kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] #disputas .disputas-kpi-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+#disputas .disputas-kpi-card:hover {
+  border-color: var(--border-high);
+}
+
+#disputas .disputas-kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#disputas .disputas-kpi-val {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.1;
+  margin: 4px 0 2px;
+}
+
+#disputas .disputas-kpi-val.is-warning {
+  color: #f59e0b;
+}
+
+#disputas .disputas-kpi-val.is-brand {
+  color: var(--accent);
+}
+
+#disputas .disputas-kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+#disputas .disputas-unified-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+[data-theme="light"] #disputas .disputas-unified-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+#disputas .disputas-toolbar-corp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-darker);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+[data-theme="light"] #disputas .disputas-toolbar-corp {
+  background: #f8fafc;
+  border-bottom-color: #e2e8f0;
+}
+
+#disputas .disputas-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#disputas .disputas-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#disputas .disputas-tab-pill:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] #disputas .disputas-tab-pill:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+#disputas .disputas-tab-pill.active {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--accent);
+}
+
+[data-theme="light"] #disputas .disputas-tab-pill.active {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #00713f;
+}
+
+#disputas .disputas-pill-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+#disputas .disputas-pill-badge.is-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+#disputas .disputas-toolbar-note {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+}
+
+#disputas .disputas-unified-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: none;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+#disputas .disputas-toolbar-corp {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#disputas .disputas-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#disputas .disputas-tab-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: none;
+}
+
+#disputas .disputas-tab-pill svg,
+#disputas .disputas-tab-pill i {
+  width: 16px;
+  height: 16px;
+}
+
+#disputas .disputas-tab-pill:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#disputas .disputas-tab-pill.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border);
+  font-weight: 600;
+}
+
+#disputas .disputas-tab-pill .disputas-pill-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#disputas .disputas-tab-pill.active .disputas-pill-badge {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--accent-bright);
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+#disputas .disputas-filtros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+#disputas .disputas-filtros .btn-sm {
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+#disputas .disputas-filtros .btn-sm:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--fg);
+}
+
+#disputas .disputas-filtros .btn-sm.btn-primary,
+.disputas-filtros .btn-sm.btn-primary {
+  background: #00713f;
+  border-color: #00713f;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+[data-theme="light"] #disputas .disputas-filtros .btn-sm.btn-primary,
+[data-theme="light"] .disputas-filtros .btn-sm.btn-primary {
+  background: #00713f;
+  border-color: #00713f;
+  color: #ffffff;
+}
+
+#disputas .disputas-tab-pane {
+  padding: 24px 20px;
+}
+
+#disputas .disputas-card,
+#disputas .disputas-unified-card #disputasClienteVacio {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#disputas .activity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 20px !important;
+  color: var(--text-muted);
+}
+
+#disputas .activity-empty svg,
+#disputas .activity-empty [data-lucide],
+#disputas .activity-empty i {
+  width: 42px !important;
+  height: 42px !important;
+  stroke-width: 1.5;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-bottom: 14px;
+}
+
+#disputas .activity-empty p {
+  font-family: var(--font-main);
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+#disputas .disputas-case-card {
+  background: var(--bg-darker);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] #disputas .disputas-case-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+#disputas .disputas-case-card:hover {
+  border-color: var(--border-high);
+}
+
+#disputas .disp-badge-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+#disputas .disp-status-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+#disputas .disp-category-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Modal Nueva Disputa (alineado con .jd-modal / .jdm-modal) */
+#modalNuevaDisputa {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+}
+
+#modalNuevaDisputa.open {
+  display: flex !important;
+}
+
+[data-theme="light"] #modalNuevaDisputa {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+#modalNuevaDisputa .modal-header-corp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+#modalNuevaDisputa .modal-title-corp {
+  font-family: var(--font-main);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0;
+}
+
+#modalNuevaDisputa .modal-close-btn {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+#modalNuevaDisputa .modal-close-btn:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] #modalNuevaDisputa .modal-close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+#modalNuevaDisputa .disp-notice-danger {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+#modalNuevaDisputa .disp-notice-danger i {
+  color: var(--danger);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+#modalNuevaDisputa .disp-notice-danger strong {
+  color: var(--fg);
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-notice-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-notice-danger strong {
+  color: #7f1d1d;
+}
+
+#modalNuevaDisputa .form-label-corp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+#modalNuevaDisputa .disp-proyecto-item {
+  background: var(--bg-darker);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+#modalNuevaDisputa .disp-proyecto-item:hover {
+  border-color: var(--border-high);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-proyecto-item {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-proyecto-item:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+#modalNuevaDisputa .disp-proyecto-item strong {
+  font-family: var(--font-main);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--fg) !important;
+}
+
+#modalNuevaDisputa .disp-proyecto-item small {
+  font-size: 12px;
+  color: var(--text-muted) !important;
+}
+
+#modalNuevaDisputa .btn-corp-action.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#modalNuevaDisputa .btn-corp-action.secondary:hover {
+  border-color: var(--border-high);
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] #modalNuevaDisputa .btn-corp-action.secondary {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] #modalNuevaDisputa .btn-corp-action.secondary:hover {
+  background: #f1f5f9;
+}
+
+#modalNuevaDisputa .disp-select-btn {
+  background: rgba(22, 163, 74, 0.08) !important;
+  border-color: rgba(22, 163, 74, 0.25) !important;
+  color: var(--accent) !important;
+}
+
+#modalNuevaDisputa .disp-select-btn:hover {
+  background: rgba(22, 163, 74, 0.16) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-select-btn {
+  background: #e6faf0 !important;
+  border-color: rgba(0, 113, 63, 0.3) !important;
+  color: #00713f !important;
+}
+
+[data-theme="light"] #modalNuevaDisputa .disp-select-btn:hover {
+  background: #00713f !important;
+  color: #ffffff !important;
+}

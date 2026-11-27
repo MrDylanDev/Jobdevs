@@ -1,0 +1,829 @@
+/* ============================================================
+   LIGHT MODE: CARDS, PANELS, RIBBON & MODAL POSTULACION
+   ============================================================ */
+
+html[data-theme="light"],
+[data-theme="light"] html,
+[data-theme="light"] body,
+[data-theme="light"] .main-wrapper,
+[data-theme="light"] .main-content {
+  background: #eef1f4 !important;
+}
+
+/* 1. All Cards & Panels */
+[data-theme="light"] .dev-card,
+[data-theme="light"] .dev-explore-card,
+[data-theme="light"] .admin-explore-card,
+[data-theme="light"] .contract-card,
+[data-theme="light"] .post-row-compact,
+[data-theme="light"] .active-project-card,
+[data-theme="light"] .historial-project-card,
+[data-theme="light"] .dev-financial-card,
+[data-theme="light"] .cockpit-chart-card,
+[data-theme="light"] .linear-panel,
+[data-theme="light"] .table-wrapper {
+  background: #ffffff !important;
+  border: 1px solid #d8dee4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .dev-card:hover,
+[data-theme="light"] .dev-explore-card:hover,
+[data-theme="light"] .admin-explore-card:hover,
+[data-theme="light"] .contract-card:hover,
+[data-theme="light"] .post-row-compact:hover,
+[data-theme="light"] .active-project-card:hover,
+[data-theme="light"] .historial-project-card:hover,
+[data-theme="light"] .dev-financial-card:hover,
+[data-theme="light"] .cockpit-chart-card:hover,
+[data-theme="light"] .linear-panel:hover,
+[data-theme="light"] .table-wrapper:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+  background: #fafafa !important;
+}
+
+/* Titles inside cards */
+[data-theme="light"] .contract-title,
+[data-theme="light"] .active-project-title,
+[data-theme="light"] .post-compact-title,
+[data-theme="light"] .dev-explore-title,
+[data-theme="light"] .historial-project-title,
+[data-theme="light"] .linear-panel-title,
+[data-theme="light"] .linear-item-title,
+[data-theme="light"] .dev-card-val {
+  color: #0b0f0c !important;
+}
+
+/* Secondary text, labels, deadlines, company names */
+[data-theme="light"] .dev-card-label,
+[data-theme="light"] .dev-card-unit,
+[data-theme="light"] .active-project-empresa-link,
+[data-theme="light"] .active-project-deadline,
+[data-theme="light"] .contract-empresa-name,
+[data-theme="light"] .contract-code-tag,
+[data-theme="light"] .contract-specs-clean,
+[data-theme="light"] .post-compact-empresa-link,
+[data-theme="light"] .post-compact-date,
+[data-theme="light"] .linear-item-sub,
+[data-theme="light"] .cockpit-chart-subtitle,
+[data-theme="light"] .explore-meta-row,
+[data-theme="light"] .explore-meta-item,
+[data-theme="light"] .explore-time-tag,
+[data-theme="light"] .explore-card-desc,
+[data-theme="light"] .tag-modalidad {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .dev-card-sub {
+  color: #6b7280 !important;
+}
+
+/* 2. Ribbon Continuo (.contratos-ribbon) */
+[data-theme="light"] .contratos-ribbon {
+  background: #ffffff !important;
+  border: 1px solid #d8dee4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .contratos-ribbon-segment:hover {
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .contratos-ribbon-divider {
+  background: #e4e7e5 !important;
+}
+
+[data-theme="light"] .ribbon-label {
+  color: #5f6673 !important;
+}
+
+[data-theme="light"] .ribbon-number {
+  color: #0b0f0c !important;
+}
+
+[data-theme="light"] .ribbon-currency {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .ribbon-unit {
+  color: #5f6673 !important;
+}
+
+/* 3. Modal Postulacion (#modalPostulacion) */
+[data-theme="light"] .jd-modal-card {
+  background: #ffffff !important;
+  border-color: #e4e7e5 !important;
+  color: #0b0f0c !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .jd-modal-header {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .jd-modal-actions {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .jd-modal-title {
+  color: #0b0f0c !important;
+}
+
+[data-theme="light"] .jd-modal-kicker {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .jd-modal-close {
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .jd-postulacion-resumen {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .jd-postulacion-titulo {
+  color: #0b0f0c !important;
+}
+
+[data-theme="light"] .jd-postulacion-empresa {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .jd-postulacion-meta {
+  color: #5f6673 !important;
+}
+
+[data-theme="light"] .jd-postulacion-meta b {
+  color: #0b0f0c !important;
+}
+
+[data-theme="light"] .jd-post-tag {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .jd-input,
+[data-theme="light"] #modalPostulacion .jd-input {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0b0f0c !important;
+}
+
+/* ============================================================
+   LIGHT MODE: CONTRAST FIXES (BUTTONS, TABLES, LINKS & META)
+   ============================================================ */
+
+/* Light-mode cockpit & secondary buttons (base .btn-secondary heredada de dashboard.css) */
+[data-theme="light"] .btn-cockpit,
+[data-theme="light"] .btn-cockpit:not(.primary) {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .btn-cockpit svg,
+[data-theme="light"] .btn-cockpit i,
+[data-theme="light"] .btn-secondary svg,
+[data-theme="light"] .btn-secondary i,
+[data-theme="light"] .btn-cockpit:not(.primary) svg,
+[data-theme="light"] .btn-cockpit:not(.primary) i {
+  color: #475569;
+}
+
+[data-theme="light"] .btn-cockpit:hover,
+[data-theme="light"] .btn-cockpit:not(.primary):hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* Light-mode links inside cards & tables (base .data-table heredada de dashboard.css) */
+[data-theme="light"] .card a:not(.btn):not(.btn-cockpit),
+[data-theme="light"] .data-table a:not(.btn):not(.btn-cockpit),
+[data-theme="light"] .project-card a:not(.btn):not(.btn-cockpit),
+[data-theme="light"] .table-wrapper a:not(.btn):not(.btn-cockpit) {
+  color: #00713f;
+}
+
+[data-theme="light"] .card a:not(.btn):not(.btn-cockpit):hover,
+[data-theme="light"] .data-table a:not(.btn):not(.btn-cockpit):hover,
+[data-theme="light"] .project-card a:not(.btn):not(.btn-cockpit):hover,
+[data-theme="light"] .table-wrapper a:not(.btn):not(.btn-cockpit):hover {
+  color: #005c33;
+}
+
+/* Light-mode linear meta items & contract specs */
+[data-theme="light"] .tag-solucion {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .tag-modalidad {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .meta-dot {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .explore-meta-item {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .explore-meta-item svg,
+[data-theme="light"] .explore-meta-item i {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .contract-monto-text {
+  color: #0b0f0c !important;
+}
+
+[data-theme="light"] .contract-specs-clean {
+  color: #475569 !important;
+}
+
+/* ── Componentes de Modales Compartidos (Base & Modo Claro) ── */
+.modal-portafolio-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.modal-portafolio-notice.is-empty {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.02);
+}
+.modal-portafolio-notice strong {
+  color: #ffffff;
+}
+.modal-portafolio-notice i {
+  color: #94a3b8;
+}
+
+.disputas-protocolo-banner {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.protocolo-banner-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+.protocolo-banner-head i {
+  width: 14px;
+  height: 14px;
+  color: #f87171;
+}
+.disputas-protocolo-banner p {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.disputas-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #71717a;
+  margin-bottom: 12px;
+}
+
+.disp-proyecto-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.disp-proyecto-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.disp-proyecto-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #14171f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+.disp-proyecto-title {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.disp-proyecto-meta {
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.disp-empresa-name {
+  color: #ffffff;
+}
+
+/* ── Modo Claro: Alto Contraste en Modales ── */
+[data-theme="light"] .modal-portafolio-notice {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+[data-theme="light"] .modal-portafolio-notice strong {
+  color: #0f172a !important;
+}
+[data-theme="light"] .modal-portafolio-notice i {
+  color: #00713f !important;
+}
+[data-theme="light"] .disputas-protocolo-banner {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+[data-theme="light"] .protocolo-banner-head span {
+  color: #0f172a !important;
+}
+[data-theme="light"] .disputas-protocolo-banner p {
+  color: #334155 !important;
+}
+[data-theme="light"] .disputas-selector-header {
+  color: #334155 !important;
+}
+[data-theme="light"] .disp-proyecto-item {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .disp-proyecto-item:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .disp-proyecto-title {
+  color: #0f172a !important;
+}
+[data-theme="light"] .disp-proyecto-meta {
+  color: #475569 !important;
+}
+[data-theme="light"] .disp-empresa-name {
+  color: #0f172a !important;
+}
+[data-theme="light"] .disp-proyecto-icon {
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+/* ── Badges y elementos de Contratos & Candidaturas (Base) ── */
+.contract-badge-verificada {
+  font-size: 10px;
+  padding: 1px 6px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.contract-badge-negociacion {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: 6px;
+}
+.contract-badge-formalizado {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+.contract-badge-estado {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+.candidaturas-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.candidaturas-header-left i {
+  color: #ffffff;
+}
+.candidaturas-count-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   LIGHT THEME: CONTRATOS & POSTULACIONES (ALTO CONTRASTE)
+   ============================================================ */
+[data-theme="light"] .contratos-subtabs-bar {
+  border-bottom: 2px solid #d8dee4 !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn i,
+[data-theme="light"] .contratos-subtab-btn svg {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn:hover i,
+[data-theme="light"] .contratos-subtab-btn:hover svg {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn.active {
+  color: #0f172a !important;
+  border-bottom: 2px solid #00713f !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn.active i,
+[data-theme="light"] .contratos-subtab-btn.active svg {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .contratos-subtab-count {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .contratos-subtab-btn.active .contratos-subtab-count {
+  background: #e6faf0 !important;
+  color: #00713f !important;
+  border: 1px solid rgba(0, 113, 63, 0.3) !important;
+}
+
+/* Ribbon Financiero en Modo Claro */
+[data-theme="light"] .contratos-ribbon {
+  background: #ffffff !important;
+  border: 1px solid #d8dee4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="light"] .contratos-ribbon-segment:hover {
+  background: #f8fafc !important;
+}
+[data-theme="light"] .contratos-ribbon-divider {
+  background: #e2e8f0 !important;
+}
+[data-theme="light"] .ribbon-label {
+  color: #475569 !important;
+}
+[data-theme="light"] .ribbon-currency {
+  color: #00713f !important;
+}
+[data-theme="light"] .ribbon-number {
+  color: #0f172a !important;
+}
+[data-theme="light"] .ribbon-unit {
+  color: #5f6673 !important;
+}
+
+/* Tarjetas de Contratos Digitales en Modo Claro */
+[data-theme="light"] .contract-card {
+  background: #ffffff !important;
+  border-color: #d8dee4 !important;
+}
+[data-theme="light"] .contract-card:hover {
+  background: #fafafa !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .contract-card.needs-signature {
+  border-color: rgba(220, 38, 38, 0.45) !important;
+  background: #fffdfd !important;
+}
+[data-theme="light"] .contract-title {
+  color: #0f172a !important;
+}
+[data-theme="light"] .contract-empresa-name {
+  color: #0f172a !important;
+}
+[data-theme="light"] .contract-code-tag {
+  color: #64748b !important;
+}
+[data-theme="light"] .contract-monto-text {
+  color: #0f172a !important;
+}
+[data-theme="light"] .contract-specs-clean {
+  color: #475569 !important;
+}
+[data-theme="light"] .contract-sep {
+  color: #cbd5e1 !important;
+}
+[data-theme="light"] .party-label {
+  color: #64748b !important;
+}
+[data-theme="light"] .contract-signed-badge {
+  color: #00713f !important;
+}
+[data-theme="light"] .contract-pending-badge {
+  color: #64748b !important;
+}
+[data-theme="light"] .contract-card-footer {
+  border-top-color: #e2e8f0 !important;
+}
+[data-theme="light"] .contract-badge-verificada {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+[data-theme="light"] .contract-badge-negociacion {
+  background: #fef2f2 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #dc2626 !important;
+}
+[data-theme="light"] .contract-badge-formalizado {
+  background: #e6faf0 !important;
+  border-color: rgba(0, 113, 63, 0.25) !important;
+  color: #00713f !important;
+}
+[data-theme="light"] .contract-badge-estado {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Candidaturas en Evaluación en Modo Claro */
+[data-theme="light"] .candidaturas-header-left i {
+  color: #00713f !important;
+}
+[data-theme="light"] .candidaturas-header-left span {
+  color: #0f172a !important;
+}
+[data-theme="light"] .candidaturas-count-badge {
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .post-row-compact {
+  background: #ffffff !important;
+  border-color: #d8dee4 !important;
+}
+[data-theme="light"] .post-row-compact:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .post-compact-title {
+  color: #0f172a !important;
+}
+[data-theme="light"] .post-compact-empresa-link {
+  color: #0f172a !important;
+}
+[data-theme="light"] .post-compact-date {
+  color: #64748b !important;
+}
+[data-theme="light"] .post-status-pill {
+  background: #fefce8 !important;
+  border: 1px solid #fef08a !important;
+}
+[data-theme="light"] .post-status-text {
+  color: #854d0e !important;
+}
+[data-theme="light"] .post-tag {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+[data-theme="light"] .post-tag i,
+[data-theme="light"] .post-tag svg {
+  color: #64748b !important;
+}
+
+/* ============================================================
+   LIGHT THEME: CENTRO DE HISTORIAL TABS (ALTO CONTRASTE)
+   ============================================================ */
+[data-theme="light"] .historial-tabs {
+  border-bottom: 2px solid #d8dee4 !important;
+}
+
+[data-theme="light"] .historial-tab {
+  color: #475569 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .historial-tab i,
+[data-theme="light"] .historial-tab svg {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .historial-tab:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .historial-tab:hover i,
+[data-theme="light"] .historial-tab:hover svg {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .historial-tab.is-active {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-bottom: 2px solid #00713f !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 4px rgba(0, 113, 63, 0.1) !important;
+}
+
+[data-theme="light"] .historial-tab.is-active i,
+[data-theme="light"] .historial-tab.is-active svg {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .historial-tab-count {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .historial-tab.is-active .historial-tab-count {
+  background: #e6faf0 !important;
+  color: #00713f !important;
+  border: 1px solid rgba(0, 113, 63, 0.3) !important;
+}
+
+/* ============================================================
+   LIGHT THEME: PROYECTOS EN DESARROLLO (ALTO CONTRASTE)
+   ============================================================ */
+[data-theme="light"] .active-project-card {
+  background: #ffffff !important;
+  border: 1px solid #d8dee4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .active-project-card:hover {
+  border-color: #cbd5e1 !important;
+  background: #fafafa !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .active-project-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .active-project-empresa-avatar {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .active-project-empresa-link {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .active-project-empresa-link svg,
+[data-theme="light"] .active-project-empresa-link i {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .active-project-empresa-link:hover {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .active-project-deadline {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="light"] .active-project-deadline svg,
+[data-theme="light"] .active-project-deadline i {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .active-project-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .active-project-progress-label {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .active-project-progress-val {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .active-project-progress-bar {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="light"] .active-project-progress-fill {
+  background: #00713f !important;
+}
+
+[data-theme="light"] .active-project-next-row {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .active-project-next-row svg,
+[data-theme="light"] .active-project-next-row i {
+  color: #00713f !important;
+}
+
+[data-theme="light"] .active-project-next-row strong {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .active-project-hitos-summary {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .active-project-hitos-summary:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .active-project-hitos-summary svg,
+[data-theme="light"] .active-project-hitos-summary i {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .active-project-hitos-body {
+  border-left: 2px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .active-project-hito-item {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+
+[data-theme="light"] .active-project-hito-item.is-done {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .active-project-footer {
+  border-top: 1px solid #e2e8f0 !important;
+}
