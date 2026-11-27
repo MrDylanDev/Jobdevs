@@ -1,14 +1,35 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 
+from logs.models import LogAuditoria
 from ..forms import RegistroUsuarioForm
 
 
 def registro_view(request):
+    if not getattr(settings, 'ALLOW_PUBLIC_REGISTRATION', True):
+        return render(
+            request,
+            'publico/registro.html',
+            {'registro_deshabilitado': True},
+            status=403,
+        )
+
     if request.method == 'POST':
         form = RegistroUsuarioForm(request.POST)
         if form.is_valid():
             user = form.save()
+
+            LogAuditoria.objects.create(
+                usuario=user,
+                accion=(
+                    'Aceptó las Condiciones del servicio, la Política de '
+                    'privacidad y la Política de cookies al registrarse en la plataforma.'
+                ),
+                tabla_afectada='usuarios',
+                registro_id=user.id,
+                valor_nuevo='acepta_terminos=True',
+            )
 
             # Despacho asíncrono de correo de bienvenida vía Celery (SCRUM-201).
             # Si el broker no está disponible, el registro continúa igualmente.

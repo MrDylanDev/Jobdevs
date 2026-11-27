@@ -242,6 +242,7 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
                 )
                 messages.info(request, f'Solicitud de nuevo documento enviada a {nombre}.')
             else:
+                perfil.intentos_verificacion += 1
                 accion_log = f'Rechazó la verificación de la empresa {nombre} ({perfil.documento_completo})'
                 mensaje = (
                     f'Tu solicitud de verificación para {nombre} fue rechazada. '
@@ -256,20 +257,49 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             tabla_afectada='perfil_empresa',
             registro_id=perfil.id,
         )
-        Notificacion.objects.create(
-            usuario=perfil.usuario,
-            tipo='aprobacion' if accion == 'aprobar' else 'alerta',
-            mensaje=mensaje,
-        )
 
-        if accion in ('rechazar', 'solicitar_documento') and perfil.usuario.email:
+        email_destinatario = perfil.usuario.email
+        datos_usuario_email = {
+            'nombre': perfil.usuario.nombre,
+            'username': perfil.usuario.username,
+            'email': email_destinatario,
+        }
+
+        from django.conf import settings as django_settings
+        from ..services_sena import MAX_INTENTOS_VERIFICACION, depurar_usuario_por_verificacion
+
+        max_intentos = getattr(django_settings, 'MAX_INTENTOS_VERIFICACION', MAX_INTENTOS_VERIFICACION)
+        resultado_depuracion = None
+        if accion == 'rechazar' and perfil.intentos_verificacion >= max_intentos:
+            resultado_depuracion = depurar_usuario_por_verificacion(
+                perfil.usuario,
+                admin_user=request.user,
+                motivo_log=f'por agotar los {max_intentos} intentos de verificación',
+            )
+            mensaje = (
+                f'Tu solicitud de verificación para {nombre} fue rechazada y agotaste los {max_intentos} intentos permitidos. '
+                f'Tu cuenta fue {resultado_depuracion}. Motivo: {notas}.'
+            )
+            messages.warning(
+                request,
+                f'Cuenta de {nombre} {resultado_depuracion} por agotar los {max_intentos} intentos de verificación.',
+            )
+
+        if resultado_depuracion != 'eliminada':
+            Notificacion.objects.create(
+                usuario=perfil.usuario,
+                tipo='aprobacion' if accion == 'aprobar' else 'alerta',
+                mensaje=mensaje,
+            )
+
+        if accion in ('rechazar', 'solicitar_documento') and email_destinatario:
             contexto_email = {
-                'asunto': 'Necesitamos un nuevo documento para tu verificación de empresa',
-                'usuario': {
-                    'nombre': perfil.usuario.nombre,
-                    'username': perfil.usuario.username,
-                    'email': perfil.usuario.email,
-                },
+                'asunto': (
+                    'Cuenta depurada por agotar intentos de verificación de empresa'
+                    if resultado_depuracion
+                    else 'Necesitamos un nuevo documento para tu verificación de empresa'
+                ),
+                'usuario': datos_usuario_email,
                 'sujeto': nombre,
                 'tipo_sujeto': 'verificación de empresa',
                 'motivo': notas,
@@ -282,7 +312,7 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
                     asunto=contexto_email['asunto'],
                     template_name='emails/verificacion_documento.html',
                     contexto=contexto_email,
-                    destinatarios=[perfil.usuario.email],
+                    destinatarios=[email_destinatario],
                 )
 
             transaction.on_commit(_enviar_email_verificacion)
