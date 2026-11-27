@@ -32,7 +32,7 @@ def css():
 class TestMetadatosSociales:
     def test_open_graph_principal(self, html):
         assert 'property="og:type" content="website"' in html
-        assert 'property="og:site_name" content="JobDevs"' in html
+        assert 'property="og:site_name" content="Jobdevs"' in html
         assert 'property="og:title"' in html
         assert 'property="og:description"' in html
         assert 'property="og:locale" content="es_CO"' in html
