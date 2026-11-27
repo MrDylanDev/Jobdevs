@@ -129,9 +129,14 @@ def listar_proyectos(request):
             'ubicacion_display': p.ubicacion_display,
         })
 
+    wants_json = (
+        'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
+    )
+    is_htmx = request.headers.get('HX-Request') == 'true' and not wants_json
     is_ajax = (
-        request.headers.get('Accept') == 'application/json'
-        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        wants_json
+        or (request.headers.get('X-Requested-With') == 'XMLHttpRequest' and not is_htmx)
     )
     if is_ajax:
         proyectos_json = []
@@ -154,12 +159,16 @@ def listar_proyectos(request):
             'tiene_anterior': page_obj.has_previous(),
         })
 
-    return render(request, 'proyectos/listar.html', {
+    context = {
         'proyectos': proyectos,
         'page_obj': page_obj,
         'favoritos_ids': favoritos_ids,
-        'categorias_solucion': CategoriaSolucion.objects.filter(activo=True),
-    })
+    }
+    if is_htmx:
+        return render(request, 'proyectos/partials/_catalogo_resultados.html', context)
+
+    context['categorias_solucion'] = CategoriaSolucion.objects.filter(activo=True)
+    return render(request, 'proyectos/listar.html', context)
 
 @login_required
 def crear_proyecto(request):

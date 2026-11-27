@@ -219,6 +219,143 @@ class TestListarProyectos:
         assert 'name="q"' in content
         assert 'catalogo_async.js' in content
 
+    def test_listar_proyectos_htmx_retorna_partial_filtrado(self, dev_client, empresa_user):
+        """S1: HX-Request: true devuelve solo el parcial HTML filtrado sin layout completo."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Portal Django HTMX',
+            descripcion='Arquitectura moderna con HTMX', tipo_solucion='sitio_web', estado='publicado',
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='App Movil Flutter',
+            descripcion='App nativa', tipo_solucion='aplicacion_movil', estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=Django&tipo=sitio_web',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        assert 'text/html' in response.headers['Content-Type']
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert '<html' not in content
+        assert 'class="cards-grid"' in content
+        assert 'Portal Django HTMX' in content
+        assert 'App Movil Flutter' not in content
+
+    def test_listar_proyectos_htmx_empty_state(self, dev_client):
+        """S1: HX-Request: true sin resultados renderiza el empty state parcial."""
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=termino-inexistente-xyz',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert 'empty-state' in content
+        assert 'No se encontraron proyectos con los filtros seleccionados.' in content
+
+    def test_listar_proyectos_htmx_paginacion_links(self, dev_client, empresa_user):
+        """S1: La paginación en el parcial HTMX conserva filtros e incluye hx-get/hx-target."""
+        Proyecto.objects.bulk_create([
+            Proyecto(
+                empresa=empresa_user,
+                titulo=f'Proyecto HTMX Pag {i:02d}',
+                descripcion='Descripcion paginada',
+                tipo_solucion='sitio_web',
+                estado='publicado',
+            )
+            for i in range(15)
+        ])
+
+        res_p1 = dev_client.get(
+            reverse('listar_proyectos') + '?tipo=sitio_web&page=1',
+            headers={'HX-Request': 'true'},
+        )
+        assert res_p1.status_code == 200
+        content_p1 = res_p1.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content_p1
+        assert 'aria-label="Paginación de proyectos"' in content_p1
+        assert 'hx-get=' in content_p1
+        assert 'page=2' in content_p1
+        assert 'tipo=sitio_web' in content_p1
+        assert 'hx-target="#catalogoResultados"' in content_p1
+        assert 'hx-swap="innerHTML"' in content_p1
+        assert 'hx-push-url="true"' in content_p1
+
+        res_p2 = dev_client.get(
+            reverse('listar_proyectos') + '?tipo=sitio_web&page=2',
+            headers={'HX-Request': 'true'},
+        )
+        assert res_p2.status_code == 200
+        content_p2 = res_p2.content.decode('utf-8')
+        assert 'page=1' in content_p2
+        assert 'hx-target="#catalogoResultados"' in content_p2
+
+    def test_listar_proyectos_htmx_escapa_xss(self, dev_client, empresa_user):
+        """S1: El parcial HTMX auto-escapa HTML/JS malicioso en título y descripción."""
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='<script>alert("xss")</script>',
+            descripcion='<img src=x onerror=alert(1)>',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos'),
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert '<script>alert("xss")</script>' not in content
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in content
+        assert '<img src=x onerror=alert(1)>' not in content
+
+    def test_listar_proyectos_preserva_json_y_full_page(self, dev_client, empresa_user):
+        """S1: Preserva contrato JSON (Accept/XHR/?format=json) y HTML completo con attrs HTMX."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Contrato Dual',
+            descripcion='Desc', tipo_solucion='sitio_web', estado='publicado',
+        )
+        url = reverse('listar_proyectos')
+
+        # HX-Request + Accept: application/json -> JSON gana
+        res_accept = dev_client.get(
+            url, headers={'HX-Request': 'true', 'Accept': 'application/json'}
+        )
+        assert res_accept.status_code == 200
+        assert res_accept.headers['Content-Type'] == 'application/json'
+        assert res_accept.json()['status'] == 'ok'
+
+        # HX-Request + ?format=json -> JSON gana
+        res_fmt = dev_client.get(
+            url + '?format=json', headers={'HX-Request': 'true'}
+        )
+        assert res_fmt.status_code == 200
+        assert res_fmt.headers['Content-Type'] == 'application/json'
+        assert res_fmt.json()['status'] == 'ok'
+
+        # X-Requested-With: XMLHttpRequest (legacy) -> JSON preservado
+        res_xhr = dev_client.get(
+            url, headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        assert res_xhr.status_code == 200
+        assert res_xhr.headers['Content-Type'] == 'application/json'
+        assert res_xhr.json()['status'] == 'ok'
+
+        # Regular GET -> full page HTML con contenedor HTMX y scripts vendored
+        res_full = dev_client.get(url)
+        assert res_full.status_code == 200
+        full_html = res_full.content.decode('utf-8')
+        assert '<!DOCTYPE html>' in full_html
+        assert 'id="catalogoResultados"' in full_html
+        assert 'vendor/htmx/htmx.min.js' in full_html
+        assert 'dashboard/script/htmx_bridge.js' in full_html
+        assert 'hx-target="#catalogoResultados"' in full_html
+        assert 'hx-sync="this:replace"' in full_html
+
 
 
 class TestCrearProyecto:
