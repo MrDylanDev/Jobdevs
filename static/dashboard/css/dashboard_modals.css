@@ -463,7 +463,7 @@
 }
 
 .jdm-btn-primary {
-  background: var(--accent, #16a34a);
+  background: var(--accent-dim, #15803d);
   color: #ffffff;
   border: none;
   font-weight: 600;
@@ -471,7 +471,7 @@
 }
 
 .jdm-btn-primary:hover {
-  background: var(--accent-dim, #15803d);
+  background: #00713f;
   border: none;
   color: #ffffff;
   box-shadow: none;

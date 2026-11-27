@@ -422,8 +422,7 @@ ul { list-style: none; }
 }
 
 /* Badge de notificación en nav */
-.nav-badge,
-.sidebar .nav-item .badge {
+.nav-badge {
   margin-left: auto;
   background: var(--accent);
   color: #ffffff;
@@ -1167,7 +1166,7 @@ svg.lucide {
 
 .btn-primary,
 .btn-success {
-  background: var(--accent, #16a34a);
+  background: var(--accent-dim, #15803d);
   border-color: transparent;
   color: #ffffff;
   font-weight: 600;
@@ -1179,7 +1178,7 @@ svg.lucide {
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active {
-  background: var(--accent-dim, #15803d);
+  background: #166534;
   border-color: transparent;
   color: #ffffff;
   box-shadow: none;
@@ -1562,6 +1561,17 @@ svg.lucide {
   background: #f1f5f9;
   color: var(--text-secondary);
   border-color: var(--border);
+}
+
+[data-theme="light"] .badge-warning,
+[data-theme="light"] .bg-warning,
+[data-theme="light"] .badge-pending {
+  color: #b45309;
+}
+
+[data-theme="light"] .badge-info,
+[data-theme="light"] .bg-info {
+  color: #0369a1;
 }
 
 [data-theme="light"] .btn-secondary {

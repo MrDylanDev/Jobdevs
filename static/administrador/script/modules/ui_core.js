@@ -69,7 +69,7 @@ export function showSection(id, btn) {
     try {
       hook(id, activeBtn);
     } catch (e) {
-      // ignore hook errors so navigation never breaks
+      console.error(e);
     }
   });
 
@@ -99,7 +99,7 @@ export function adminNotify(msg, typeOrIsError) {
   const isErr = type === 'error';
 
   if (window.JobDevsSSE && typeof window.JobDevsSSE.mostrarToast === 'function') {
-    window.JobDevsSSE.mostrarToast({ tipo: isErr ? 'alerta' : 'info', mensaje: msg });
+    window.JobDevsSSE.mostrarToast({ tipo: isErr ? 'error' : 'success', mensaje: msg });
     return;
   }
   if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
@@ -420,7 +420,11 @@ export function initUiCore() {
     });
     if (ok) {
       form.dataset.adminConfirmed = 'true';
-      HTMLFormElement.prototype.submit.call(form);
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        HTMLFormElement.prototype.submit.call(form);
+      }
     }
   });
 

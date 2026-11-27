@@ -23,7 +23,7 @@ export async function cargarDetalleEmpresa(url) {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
       credentials: 'same-origin'
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'No se pudo obtener el perfil de la empresa.');
     if (!data.ok || !data.empresa) throw new Error(data.error || 'No se pudo obtener el perfil de la empresa');
 
     const e = data.empresa;
@@ -79,7 +79,7 @@ export async function cargarDetalleEmpresa(url) {
       '</div>' +
 
       '<div class="jdm-section-clean">' +
-        '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores (' + (e.resenas ? e.resenas.length : 0) + ')</div>';
+        '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores (' + (e.total_resenas ?? (e.resenas ? e.resenas.length : 0)) + ')</div>';
 
     if (e.resenas && e.resenas.length) {
       html += '<div class="jdm-resenas-flat-list">';
@@ -192,7 +192,7 @@ export async function cargarDetalleDesarrollador(url) {
     }
 
     html += '<div class="jdm-section-clean">' +
-      '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Valoraciones de Empresas (' + (d.resenas ? d.resenas.length : 0) + ')</div>';
+      '<div class="jdm-clean-label"><i data-lucide="message-circle"></i> Valoraciones de Empresas (' + (d.total_resenas ?? (d.resenas ? d.resenas.length : 0)) + ')</div>';
 
     if (d.resenas && d.resenas.length) {
       html += '<div class="jdm-resenas-flat-list">';

@@ -27,7 +27,7 @@ export async function cargarContratoDigital(url, triggerBtn) {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
       credentials: 'same-origin'
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'No se pudo obtener el contrato (respuesta inesperada del servidor).');
     const c = data.contrato || (data.id ? data : null);
     if (!c) throw new Error(data.error || 'No se pudo obtener el contrato');
 
@@ -97,6 +97,16 @@ export async function cargarContratoDigital(url, triggerBtn) {
         '</details>';
     }
 
+    if (c.puede_firmar) {
+      html +=
+        '<div class="jdm-contract-accept-box" style="margin-top:14px;padding:12px 14px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.02);">' +
+          '<label for="jdmAceptaTerminos" style="display:flex;align-items:flex-start;gap:10px;font-size:12.5px;line-height:1.5;cursor:pointer;">' +
+            '<input type="checkbox" id="jdmAceptaTerminos" name="acepta_terminos" required style="margin-top:3px;flex-shrink:0;">' +
+            '<span>He leído y acepto íntegramente los términos y cláusulas de este contrato digital.</span>' +
+          '</label>' +
+        '</div>';
+    }
+
     setContent(html);
 
     let footerHtml = '<div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:14px; flex-wrap:wrap;">';
@@ -128,11 +138,19 @@ export async function cargarContratoDigital(url, triggerBtn) {
     const btnFirmar = document.getElementById('jdmBtnFirmar');
     if (btnFirmar) {
       btnFirmar.addEventListener('click', async function () {
+        const chkAcepta = document.getElementById('jdmAceptaTerminos');
+        if (!chkAcepta || !chkAcepta.checked) {
+          mostrarToast('Debes aceptar los términos y cláusulas del contrato antes de firmar.', true);
+          if (chkAcepta) chkAcepta.focus();
+          return;
+        }
         btnFirmar.disabled = true;
         btnFirmar.innerHTML = '<i data-lucide="loader-2"></i> Firmando...';
         try {
           const signBody = new FormData();
-          signBody.append('acepta_terminos', 'on');
+          if (chkAcepta.checked) {
+            signBody.append('acepta_terminos', 'on');
+          }
           signBody.append('origen', 'dashboard');
           const signRes = await fetch(btnFirmar.getAttribute('data-url-firmar'), {
             method: 'POST',
@@ -143,7 +161,7 @@ export async function cargarContratoDigital(url, triggerBtn) {
             body: signBody,
             credentials: 'same-origin'
           });
-          const signData = await signRes.json();
+          const signData = await parseJsonResponse(signRes, 'Error al procesar la firma del contrato (respuesta inesperada del servidor).');
           if (signData.ok) {
             mostrarToast(signData.mensaje || '¡Contrato firmado exitosamente!');
             const devStatus = document.getElementById('jdmDevSignStatus');

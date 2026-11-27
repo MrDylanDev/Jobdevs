@@ -214,7 +214,7 @@ function _renderUsersTableRows(users, roleFilter) {
     administrador: 'Administrador',
   };
 
-  const filtered = roleFilter ? users : users.filter((u) => u.rol !== 'administrador');
+  const filtered = roleFilter ? users.filter((u) => u.rol === roleFilter) : users;
 
   if (!filtered.length) {
     tbody.innerHTML =
@@ -260,18 +260,20 @@ function _renderUsersTableRows(users, roleFilter) {
         const statusHtml = isActive
           ? '<span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>'
           : '<span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>';
+        const fechaRegistro = String(u.date_joined || '').slice(0, 10);
 
         return (
           `<tr data-username="${escapeAdminHtml(u.username || '')}" data-nombre="${escapeAdminHtml(u.nombre || '')}" ` +
             `data-email="${escapeAdminHtml(u.email || '')}" data-rol="${escapeAdminHtml(u.rol || '')}" ` +
-            `data-active="${isActive ? 'active' : 'inactive'}" data-id="${escapeAdminHtml(u.id)}">` +
+            `data-active="${isActive ? 'active' : 'inactive'}" data-id="${escapeAdminHtml(u.id)}" ` +
+            `data-fecha-registro="${escapeAdminHtml(fechaRegistro)}">` +
             `<td><div class="user-cell"><div class="user-cell-avatar">${escapeAdminHtml(initial)}</div>` +
               `<div><div class="user-cell-username">${escapeAdminHtml(displayName)}</div>` +
               `<div class="user-cell-handle">@${escapeAdminHtml(u.username || '')}</div></div></div></td>` +
             `<td class="user-cell-email">${escapeAdminHtml(u.email || '')}</td>` +
             `<td>${escapeAdminHtml(rolLabel)}</td>` +
             `<td>${statusHtml}</td>` +
-            `<td class="user-cell-date">${escapeAdminHtml(u.identificacion || '—')}</td>` +
+            `<td class="user-cell-date">${escapeAdminHtml(fechaRegistro || '—')}</td>` +
             `<td style="text-align:right; white-space:nowrap;">${actionsHtml}</td>` +
           `</tr>`
         );
@@ -560,14 +562,15 @@ export function initUsuariosVerificaciones() {
   if (createUserForm) {
     createUserForm.addEventListener('submit', async function (e) {
       e.preventDefault();
+      const rol = document.getElementById('create-rol').value;
       const data = {
         nombre: (document.getElementById('create-nombre')?.value || '').trim(),
         username: document.getElementById('create-username').value,
         email: document.getElementById('create-email').value,
-        tipo_documento: document.getElementById('create-tipo-doc')?.value || 'cedula',
+        tipo_documento: rol === 'empresa' ? (document.getElementById('create-tipo-doc')?.value || 'nit') : 'cedula',
         identificacion: (document.getElementById('create-identificacion')?.value || '').trim(),
         password: document.getElementById('create-password').value,
-        rol: document.getElementById('create-rol').value,
+        rol: rol,
       };
       try {
         const response = await fetch('/api/crear/', {

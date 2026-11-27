@@ -47,16 +47,16 @@
 }
 
 [data-theme="dark"] .pp-verified-banner {
-  background: rgba(0, 230, 118, 0.08);
-  border-color: rgba(0, 230, 118, 0.3);
+  background: var(--pp-success-soft);
+  border-color: var(--pp-success-line);
 }
 
 [data-theme="dark"] .pp-verified-icon {
-  background: rgba(0, 230, 118, 0.16);
+  background: var(--pp-success-soft);
 }
 
 [data-theme="dark"] .pp-verified-copy strong {
-  color: #86efac;
+  color: var(--pp-success);
 }
 
 [data-theme="dark"] .pp-verified-copy span {
@@ -73,19 +73,19 @@
 }
 
 [data-theme="dark"] .pp-rating-track {
-  background: #1f2428;
+  background: var(--pp-line);
 }
 
 [data-theme="dark"] .pp-chip {
-  background: rgba(0, 230, 118, 0.12);
-  border-color: rgba(0, 230, 118, 0.3);
-  color: #86efac;
+  background: var(--pp-accent-soft);
+  border-color: var(--pp-success-line);
+  color: var(--pp-accent);
 }
 
 [data-theme="dark"] .pp-badge.badge-sin-verificar {
-  background: rgba(148, 163, 184, 0.16);
-  border-color: rgba(148, 163, 184, 0.32);
-  color: #cbd5e1;
+  background: var(--pp-soft);
+  border-color: var(--pp-line);
+  color: var(--pp-muted);
 }
 
 /* ---------- Hero ---------- */

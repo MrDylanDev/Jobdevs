@@ -701,6 +701,36 @@ input[type="file"].form-control::file-selector-button:hover {
   color: #ffffff;
 }
 
+:root:not([data-theme="light"]) .btn-success {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+:root:not([data-theme="light"]) .btn-success:hover {
+  background-color: #166534;
+  border-color: #166534;
+}
+
+:root:not([data-theme="light"]) .btn-primary {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+:root:not([data-theme="light"]) .btn-primary:hover {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+:root:not([data-theme="light"]) .btn-danger {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+:root:not([data-theme="light"]) .btn-danger:hover {
+  background-color: #991b1b;
+  border-color: #991b1b;
+}
+
 .btn-outline-primary {
   background-color: transparent;
   border-color: var(--bv-primary);

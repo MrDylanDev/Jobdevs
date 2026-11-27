@@ -77,6 +77,7 @@ export function mostrarToast(mensaje, esError) {
 // Modal Personalizado de Confirmación In-Situ (Reemplaza window.confirm)
 // ─────────────────────────────────────────────────────────────
 let confirmEl = null;
+let activeConfirmCleanup = null;
 
 function ensureConfirmModal() {
   if (confirmEl) return confirmEl;
@@ -108,6 +109,9 @@ function ensureConfirmModal() {
 }
 
 export function confirmarAccion(opciones) {
+  if (typeof activeConfirmCleanup === 'function') {
+    activeConfirmCleanup(false);
+  }
   const opts = typeof opciones === 'string' ? { mensaje: opciones } : (opciones || {});
   const modal = ensureConfirmModal();
   const titleEl = document.getElementById('jdmConfirmTitle');
@@ -131,6 +135,9 @@ export function confirmarAccion(opciones) {
 
   return new Promise(function (resolve) {
     function limpiar(resultado) {
+      if (activeConfirmCleanup === limpiar) {
+        activeConfirmCleanup = null;
+      }
       modal.hidden = true;
       modal.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey, true);
@@ -148,13 +155,36 @@ export function confirmarAccion(opciones) {
     }
 
     function onKey(e) {
-      if (e.key === 'Escape' && !modal.hidden) {
+      if (modal.hidden) return;
+      if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
         limpiar(false);
+      } else if (e.key === 'Tab') {
+        const dialog = modal.querySelector('.jdm-confirm-card') || modal;
+        const focusables = Array.from(
+          dialog.querySelectorAll(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(function (el) { return !el.hidden && el.offsetParent !== null; });
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first || !dialog.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !dialog.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     }
 
+    activeConfirmCleanup = limpiar;
     modal.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey, true);
     if (btnOk) btnOk.focus();
@@ -224,10 +254,13 @@ export function setModalObligatorio(esObligatorio) {
 }
 
 export function abrirModal(cardClass) {
-  lastFocusEl = document.activeElement;
+  if (!modalEl || modalEl.hidden) {
+    lastFocusEl = document.activeElement;
+  }
   ensureModal();
   const card = document.getElementById('jdmCard');
   card.className = 'jdm-card' + (cardClass ? ' ' + cardClass : '');
+  card.setAttribute('tabindex', '-1');
   modalEl.hidden = false;
   document.body.style.overflow = 'hidden';
 
@@ -237,6 +270,8 @@ export function abrirModal(cardClass) {
   body.innerHTML = '<div class="jdm-loading"><i data-lucide="loader-2"></i><span>Cargando información…</span></div>';
   footer.hidden = true;
   footer.innerHTML = '';
+
+  try { card.focus(); } catch (err) {}
 }
 
 export function cerrarModal(forzar) {
@@ -299,6 +334,7 @@ export function initConfirmFormInterceptor() {
     e.preventDefault();
     e.stopPropagation();
 
+    const submitter = e.submitter || null;
     const msg = form.getAttribute('data-confirm');
     const title = form.getAttribute('data-confirm-title') || 'Confirmar acción';
     const danger = form.getAttribute('data-confirm-danger') !== 'false';
@@ -311,7 +347,11 @@ export function initConfirmFormInterceptor() {
       if (ok) {
         form.dataset.confirmed = 'true';
         if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
+          if (submitter && submitter.isConnected && form.contains(submitter)) {
+            form.requestSubmit(submitter);
+          } else {
+            form.requestSubmit();
+          }
         } else {
           form.submit();
         }

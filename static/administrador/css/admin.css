@@ -1886,7 +1886,8 @@ body.is-chat-resizing {
 @media (prefers-reduced-motion: reduce) {
   .section-v.active,
   .modal-overlay.open,
-  .modal-overlay.open .modal-box {
+  .modal-overlay.open .modal-box,
+  .admin-line-path {
     animation: none !important;
   }
 }

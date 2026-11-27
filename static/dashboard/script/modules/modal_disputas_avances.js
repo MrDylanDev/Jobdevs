@@ -15,6 +15,12 @@ import {
   setFooter,
 } from './modal_core.js';
 
+function refreshIcons() {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // 2. VER AVANCES & HISTORIAL
 // ─────────────────────────────────────────────────────────────
@@ -191,22 +197,26 @@ export async function cargarFormularioAvance(url) {
         if (!hito) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar un hito.</span>';
+          refreshIcons();
           return;
         }
         if (!desc) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes ingresar una descripción del avance.</span>';
+          refreshIcons();
           return;
         }
         if (!urlEv && !file) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes ingresar una URL de evidencia o adjuntar un archivo.</span>';
+          refreshIcons();
           return;
         }
 
         errBox.style.display = 'none';
         btnEnviar.disabled = true;
         btnEnviar.innerHTML = '<i data-lucide="loader-2"></i> Registrando...';
+        refreshIcons();
 
         try {
           const formData = new FormData(form);
@@ -220,7 +230,7 @@ export async function cargarFormularioAvance(url) {
             credentials: 'same-origin'
           });
 
-          const resJson = await postRes.json();
+          const resJson = await parseJsonResponse(postRes, 'Error al guardar el avance (respuesta inesperada del servidor).');
           if (resJson.status === 'ok' || resJson.ok) {
             mostrarToast(resJson.mensaje || '¡Avance registrado exitosamente!');
             cerrarModal();
@@ -230,12 +240,14 @@ export async function cargarFormularioAvance(url) {
             errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.error || resJson.mensaje || 'Error al guardar avance') + '</span>';
             btnEnviar.disabled = false;
             btnEnviar.innerHTML = '<i data-lucide="upload-cloud"></i> Registrar Avance';
+            refreshIcons();
           }
         } catch (e) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de conexión al enviar el avance.</span>';
           btnEnviar.disabled = false;
           btnEnviar.innerHTML = '<i data-lucide="upload-cloud"></i> Registrar Avance';
+          refreshIcons();
         }
       });
     }
@@ -258,7 +270,7 @@ export async function cargarSalaDisputa(url) {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
       credentials: 'same-origin'
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'No se pudo obtener el expediente de disputa (respuesta inesperada del servidor).');
     if (!data.ok || !data.disputa) throw new Error(data.error || 'No se pudo obtener el expediente de disputa');
 
     const d = data.disputa;
@@ -380,7 +392,7 @@ export async function cargarSalaDisputa(url) {
             body: fData,
             credentials: 'same-origin'
           });
-          const mJson = await mRes.json();
+          const mJson = await parseJsonResponse(mRes, 'No se pudo enviar el mensaje (respuesta inesperada del servidor).');
           if (mJson.ok) {
             inp.value = '';
             cargarSalaDisputa(url);
@@ -422,6 +434,7 @@ export async function cargarSalaDisputa(url) {
         const btnR = document.getElementById('jdmBtnResolver');
         btnR.disabled = true;
         btnR.innerHTML = '<i data-lucide="loader-2"></i> Procesando resolución...';
+        refreshIcons();
 
         try {
           const rData = new FormData(formResolver);
@@ -435,7 +448,7 @@ export async function cargarSalaDisputa(url) {
             body: rData,
             credentials: 'same-origin'
           });
-          const rJson = await rRes.json();
+          const rJson = await parseJsonResponse(rRes, 'Error al resolver la disputa (respuesta inesperada del servidor).');
           if (rJson.ok) {
             mostrarToast(rJson.mensaje || 'Resolución arbitral aplicada.');
             cerrarModal();
@@ -444,11 +457,13 @@ export async function cargarSalaDisputa(url) {
             mostrarToast(rJson.mensaje || 'Error al resolver la disputa.', true);
             btnR.disabled = false;
             btnR.innerHTML = '<i data-lucide="gavel"></i> Emitir Resolución Final';
+            refreshIcons();
           }
         } catch (err) {
           mostrarToast('Error de red al procesar la resolución.', true);
           btnR.disabled = false;
           btnR.innerHTML = '<i data-lucide="gavel"></i> Emitir Resolución Final';
+          refreshIcons();
         }
       });
     }
@@ -471,11 +486,11 @@ export async function cargarFormularioAbrirDisputa(url) {
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
       credentials: 'same-origin'
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'No se pudo consultar el proyecto (respuesta inesperada del servidor).');
     if (!data.ok || !data.proyecto) throw new Error(data.error || 'No se pudo consultar el proyecto');
 
     const p = data.proyecto;
-    setHeader('ARBITRAJE CONTRACTUAL', 'Apertura de Mediación Formal', 'Proyecto: ' + escapeHtml(p.titulo) + ' · Empresa: ' + escapeHtml(p.empresa));
+    setHeader('ARBITRAJE CONTRACTUAL', 'Apertura de Mediación Formal', 'Proyecto: ' + (p.titulo || '') + ' · Empresa: ' + (p.empresa || ''));
 
     let catOptions = '<option value="">-- Selecciona causal de disputa --</option>';
     if (data.categorias && data.categorias.length) {
@@ -545,7 +560,7 @@ export async function cargarFormularioAbrirDisputa(url) {
         const esFuerzaMayor = categoriaD.value === 'fuerza_mayor';
         gravedadD.disabled = esFuerzaMayor;
         gravedadD.required = !esFuerzaMayor;
-        document.getElementById('jdmDeclaracionGravedad').hidden = esFuerzaMayor;
+        document.getElementById('jdmDeclaracionGravedad').style.display = esFuerzaMayor ? 'none' : 'flex';
         if (esFuerzaMayor) gravedadD.checked = false;
       }
       categoriaD.addEventListener('change', actualizarDeclaraciones);
@@ -559,16 +574,19 @@ export async function cargarFormularioAbrirDisputa(url) {
         if (!cat) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes seleccionar una causal.</span>';
+          refreshIcons();
           return;
         }
         if (!mot) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes relatar el motivo de la disputa.</span>';
+          refreshIcons();
           return;
         }
         if (!check) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Debes aceptar la declaración de responsabilidad.</span>';
+          refreshIcons();
           return;
         }
 
@@ -577,6 +595,7 @@ export async function cargarFormularioAbrirDisputa(url) {
         errBox.style.display = 'none';
         btnConf.disabled = true;
         btnConf.innerHTML = '<i data-lucide="loader-2"></i> Formalizando...';
+        refreshIcons();
 
         try {
           const fData = new FormData(formD);
@@ -592,7 +611,7 @@ export async function cargarFormularioAbrirDisputa(url) {
             credentials: 'same-origin'
           });
 
-          const resJson = await postRes.json();
+          const resJson = await parseJsonResponse(postRes, 'Error al abrir disputa (respuesta inesperada del servidor).');
           if (resJson.ok) {
             mostrarToast(resJson.mensaje || 'Disputa abierta formalmente.');
             cerrarModal();
@@ -602,12 +621,14 @@ export async function cargarFormularioAbrirDisputa(url) {
             errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>' + escapeHtml(resJson.mensaje || 'Error al abrir disputa') + '</span>';
             btnConf.disabled = false;
             btnConf.innerHTML = '<i data-lucide="gavel"></i> Abrir Disputa Formal';
+            refreshIcons();
           }
         } catch (e) {
           errBox.style.display = 'flex';
           errBox.innerHTML = '<i data-lucide="alert-circle"></i><span>Error de red al formalizar la disputa.</span>';
           btnConf.disabled = false;
           btnConf.innerHTML = '<i data-lucide="gavel"></i> Abrir Disputa Formal';
+          refreshIcons();
         }
       });
     }

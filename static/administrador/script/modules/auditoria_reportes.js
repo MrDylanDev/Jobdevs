@@ -359,20 +359,37 @@ function initAuditChats() {
     }
   }
 
+  let requestSeq = 0;
+  let activeController = null;
+
   async function search(page) {
+    const seq = ++requestSeq;
+    if (activeController) {
+      try {
+        activeController.abort();
+      } catch (e) {}
+    }
+    activeController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+
     const params = new URLSearchParams(new FormData(form));
     params.set('format', 'json');
     if (page) params.set('page', page);
     try {
       const response = await fetch(auditUrl + '?' + params.toString(), {
         headers: { Accept: 'application/json' },
+        signal: activeController ? activeController.signal : undefined,
       });
+      if (seq !== requestSeq) return;
       if (!response.ok) {
         adminNotify('No se pudo completar la auditoría.');
         return;
       }
-      render(await response.json());
+      const data = await response.json();
+      if (seq !== requestSeq) return;
+      render(data);
     } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      if (seq !== requestSeq) return;
       adminNotify('Error de red.');
     }
   }
