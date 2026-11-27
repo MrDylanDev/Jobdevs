@@ -20,10 +20,16 @@ def landing_html():
 
 
 @pytest.fixture(scope='module')
-def landing_css():
-    css_path = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css'
+def landing_css(landing_html):
+    css_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css'
+    css_path = css_dir / 'index.css'
     assert css_path.exists(), 'Debe existir el CSS de la landing'
-    return css_path.read_text(encoding='utf-8')
+    modulos = sorted((css_dir / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    assert 'publico/css/index.css' in landing_html
+    for modulo in modulos:
+        assert f'publico/css/modules/{modulo.name}' in landing_html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [css_path, *modulos])
 
 
 @pytest.fixture(scope='module')

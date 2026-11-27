@@ -25,8 +25,16 @@ def plantilla():
 
 
 @pytest.fixture(scope='module')
-def css():
-    return (RAIZ / 'static' / 'publico' / 'css' / 'index.css').read_text(encoding='utf-8')
+def css(html):
+    css_dir = RAIZ / 'static' / 'publico' / 'css'
+    css_path = css_dir / 'index.css'
+    assert css_path.exists(), 'Debe existir el CSS base de la landing'
+    modulos = sorted((css_dir / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    assert 'publico/css/index.css' in html
+    for modulo in modulos:
+        assert f'publico/css/modules/{modulo.name}' in html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [css_path, *modulos])
 
 
 class TestMetadatosSociales:

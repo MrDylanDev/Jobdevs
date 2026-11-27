@@ -13,15 +13,43 @@ import pytest
 from django.conf import settings
 
 
-@pytest.fixture(scope='module')
-def landing_js():
-    return (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
+def _leer_landing_js():
+    js_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'script'
+    js_path = js_dir / 'index.js'
+    assert js_path.exists(), 'Debe existir el JS principal de la landing'
+    modulos = sorted((js_dir / 'modules').glob('*.js'))
+    assert modulos, 'Deben existir los módulos JS de la landing'
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [js_path, *modulos])
+
+
+def _leer_landing_css(landing_html=None):
+    css_dir = Path(settings.BASE_DIR) / 'static' / 'publico' / 'css'
+    css_path = css_dir / 'index.css'
+    assert css_path.exists(), 'Debe existir el CSS base de la landing'
+    modulos = sorted((css_dir / 'modules').glob('*.css'))
+    assert modulos, 'Deben existir los módulos CSS de la landing'
+    if landing_html is not None:
+        assert 'publico/css/index.css' in landing_html
+        for modulo in modulos:
+            assert f'publico/css/modules/{modulo.name}' in landing_html
+    return '\n'.join(p.read_text(encoding='utf-8') for p in [css_path, *modulos])
 
 
 @pytest.fixture(scope='module')
 def landing_html():
     from django.template.loader import render_to_string
     return render_to_string('publico/index.html')
+
+
+@pytest.fixture(scope='module')
+def landing_js(landing_html):
+    assert 'publico/script/index.js' in landing_html
+    return _leer_landing_js()
+
+
+@pytest.fixture(scope='module')
+def landing_css(landing_html):
+    return _leer_landing_css(landing_html)
 
 
 class TestLoginModalSinBootstrap:
@@ -49,13 +77,18 @@ class TestLoginModalSinBootstrap:
         assert 'id="loginModal"' in landing_html
         # El contenedor de mensajes sólo se renderiza si hay mensajes: se valida
         # en la plantilla, no en el HTML renderizado sin contexto.
-        plantilla = (Path(settings.BASE_DIR) / 'templates' / 'publico' / 'index.html').read_text()
+        tpl_dir = Path(settings.BASE_DIR) / 'templates' / 'publico'
+        tpl_path = tpl_dir / 'index.html'
+        assert tpl_path.exists(), 'Debe existir la plantilla de la landing'
+        parciales = sorted((tpl_dir / 'partials').glob('*.html'))
+        assert parciales, 'Deben existir los parciales HTML de la landing'
+        plantilla = '\n'.join(p.read_text(encoding='utf-8') for p in [tpl_path, *parciales])
         assert '{% if messages %}' in plantilla
         assert 'id="django-messages"' in plantilla
 
-    def test_puntero_visible_dentro_del_modal(self):
+    def test_puntero_visible_dentro_del_modal(self, landing_css):
         """El cursor custom queda debajo del modal: dentro debe volver el nativo."""
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+        css = landing_css
         assert '.modal-open .cursor-dot' in css and '.modal-open .cursor-ring' in css
         assert 'body.modal-open' in css
         assert '.modal-open .modal input' in css
@@ -69,7 +102,7 @@ class TestMarqueeHeroInfinito:
 
     @pytest.fixture(scope='class')
     def js(self):
-        return (Path(settings.BASE_DIR) / 'static' / 'publico' / 'script' / 'index.js').read_text()
+        return _leer_landing_js()
 
     def test_rellena_hasta_cubrir_la_pantalla(self, js):
         assert 'armarMarquee' in js
@@ -102,8 +135,8 @@ class TestChecklistDelModal:
         assert "classList.add('modal-open')" in landing_js
         assert "classList.remove('modal-open')" in landing_js
 
-    def test_la_clase_de_bloqueo_hace_algo(self):
-        css = (Path(settings.BASE_DIR) / 'static' / 'publico' / 'css' / 'index.css').read_text()
+    def test_la_clase_de_bloqueo_hace_algo(self, landing_css):
+        css = landing_css
         assert 'body.modal-open { overflow: hidden; }' in css, (
             'La clase la ponía Bootstrap y el overflow venía de su CSS'
         )

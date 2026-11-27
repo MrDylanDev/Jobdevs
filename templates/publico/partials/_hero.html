@@ -1,0 +1,97 @@
+{% load static i18n %}
+<!-- ==================== HERO ==================== -->
+<section id="inicio" class="hero-section">
+  <div id="reelContainer">
+    <div class="reel-frame active">
+      <img src="{% static 'IMG/reel/reel-1.jpg' %}" alt="{% trans "Development team collaboration" %}" loading="eager" fetchpriority="high" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-2.jpg' %}" alt="{% trans "Code review session" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-3.jpg' %}" alt="{% trans "Tech professionals working" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-4.jpg' %}" alt="{% trans "Software architecture planning" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-5.jpg' %}" alt="{% trans "Agile team standup" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-6.jpg' %}" alt="{% trans "Developer deep work" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-7.jpg' %}" alt="{% trans "System architecture review" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-8.jpg' %}" alt="{% trans "Software engineering team" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-9.jpg' %}" alt="{% trans "Young SENA developers collaborating" %}" loading="lazy" decoding="async">
+    </div>
+    <div class="reel-frame">
+      <img src="{% static 'IMG/reel/reel-10.jpg' %}" alt="{% trans "Tech leaders and companies" %}" loading="lazy" decoding="async">
+    </div>
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content in-view">
+
+    <!-- En tema claro el blanco no se pinta sobre la foto: se pinta esta caja,
+         que abraza el texto y deja la fotografía intacta en todo el perímetro. -->
+    <div class="hero-copy">
+
+      <h1 class="hero-title">
+        <span class="headline-line"><span>{% trans "CÓDIGO." %}</span></span>
+        <span class="headline-line"><span class="text-stroke">{% trans "DISCIPLINA." %}</span></span>
+        <span class="headline-line"><span class="hero-accent">{% trans "TALENTO." %}</span></span>
+      </h1>
+
+      <p class="hero-subtitle">
+        {% trans "El puente directo entre empresas y desarrolladores SENA. Sin&nbsp;intermediarios, solo resultados." %}
+      </p>
+
+      <div class="hero-actions">
+        {% if allow_public_registration %}
+        <a href="{% url 'registro' %}" class="btn-tech pulse-btn">
+          <span>{% trans "Inicializar Proyecto" %}</span>
+        </a>
+        {% else %}
+        <a href="#" data-abrir-login class="btn-tech pulse-btn">
+          <span>{% trans "Iniciar sesión" %}</span>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Bottom strip: tech stack + reel progress -->
+      <div class="hero-bottom-strip">
+        <div class="hero-strip-side">
+          <div class="avatar-stack">
+            <div class="avatar-chip">{% trans "JD" %}</div>
+            <div class="avatar-chip">{% trans "ML" %}</div>
+            <div class="avatar-chip">{% trans "AR" %}</div>
+            <div class="avatar-chip">{% trans "CP" %}</div>
+            <div class="avatar-chip avatar-chip--accent">+50</div>
+          </div>
+          <div>
+            <div class="talent-label">{% trans "Talento SENA verificado" %}</div>
+            <div class="talent-value">{% trans "Perfiles activos" %}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marquee -->
+  <div class="hero-marquee">
+    <div class="marquee-track" id="marqueeTrack">
+      <span>{% trans "TALENTO SENA VERIFICADO" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "CERO BUROCRACIA" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "TRAZABILIDAD" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "EVALUACIÓN BIDIRECCIONAL" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "POSTULACIÓN DIRECTA" %}</span><span class="marquee-sep">/</span>
+      <span>{% trans "FLUJO ÁGIL" %}</span><span class="marquee-sep">/</span>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,128 @@
+{% load static i18n %}
+<!-- ==================== TESTIMONIALS ==================== -->
+<section id="testimonios" class="section-tech story-section" aria-labelledby="tituloTestimonios">
+  <div class="story-grid-bg" aria-hidden="true"></div>
+  <div class="section-inner story-head reveal">
+    <span class="section-marker"><span>{% trans "CASOS DE ÉXITO" %}</span></span>
+    <h2 class="sh-title" id="tituloTestimonios">{% trans "Resultados" %} <span class="acento-marca">{% trans "comprobables" %}</span> {% trans "en producción." %}</h2>
+    <p class="desc-mono">{% trans "Empresas que confiaron el desarrollo de sus plataformas críticas a desarrolladores del SENA a través de Jobdevs." %}</p>
+    <div class="carousel-btns story-head-actions">
+      <button type="button" class="carousel-btn" id="storyPrev" aria-label="{% trans "Caso anterior" %}">{% trans "&larr;" %}</button>
+      <button type="button" class="carousel-btn" id="storyNext" aria-label="{% trans "Siguiente caso" %}">{% trans "&rarr;" %}</button>
+    </div>
+  </div>
+
+  <div class="story-viewport">
+    <div class="story-track" id="storyTrack">
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-1-geoespacial.webp' %}" class="story-img" alt="{% trans "Software geoespacial para control de ganado" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 01" %}</div>
+          <div class="story-img-badge">{% trans "TRAZABILIDAD" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "Agrogeo Colombia" %}</div>
+          <div class="story-role">{% trans "Geoespacial & Ganadería · 6 meses" %}</div>
+          <p class="story-quote">{% trans "\"Desarrollaron un software geoespacial para el control y trazabilidad de ganado por lotes. Hoy monitoreamos todo el hato en tiempo real.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">100%</div><div class="story-stat-label">{% trans "A tiempo" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">6</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-2-devq.webp' %}" class="story-img" alt="{% trans "Automatización de procesos DevQ" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 02" %}</div>
+          <div class="story-img-badge">{% trans "AUTOMATIZACIÓN" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "DevQ Sistemas" %}</div>
+          <div class="story-role">{% trans "Automatización & Backend · 4 meses" %}</div>
+          <p class="story-quote">{% trans "\"Nos ayudó a automatizar procesos operativos repetitivos e integrar reportes internos. Redujimos tiempos manuales desde la primera entrega.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">-65%</div><div class="story-stat-label">{% trans "Carga manual" %}</div></div>
+            <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-3-clima.webp' %}" class="story-img" alt="{% trans "Monitorización de sismos Medellín" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 03" %}</div>
+          <div class="story-img-badge">{% trans "TIEMPO REAL" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "Alcaldía de Medellín" %}</div>
+          <div class="story-role">{% trans "Monitorización Sísmica · 8 meses" %}</div>
+          <p class="story-quote">{% trans "\"Implementaron el software de monitorización de sismos para la Alcaldía de Medellín, con alertas tempranas y tableros geográficos en vivo.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">24/7</div><div class="story-stat-label">{% trans "Monitoreo" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">8</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-4-gym.webp' %}" class="story-img" alt="{% trans "Sitio web para gimnasio" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 04" %}</div>
+          <div class="story-img-badge">{% trans "+CAPTACIÓN" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "Zona Fit Gym" %}</div>
+          <div class="story-role">{% trans "Web & Publicidad · 3 meses" %}</div>
+          <p class="story-quote">{% trans "\"Crearon la página web de nuestro gimnasio con planes y agenda en línea. Nos ayudó a publicitarnos mejor y atraer nuevos clientes cada semana.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">+45%</div><div class="story-stat-label">{% trans "Consultas" %}</div></div>
+            <div><div class="story-stat-val">2</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-5-zapatos.webp' %}" class="story-img" alt="{% trans "Software empresarial venta de zapatos" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 05" %}</div>
+          <div class="story-img-badge">{% trans "+INGRESOS" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "Calzado Urbano" %}</div>
+          <div class="story-role">{% trans "Software Empresarial · 5 meses" %}</div>
+          <p class="story-quote">{% trans "\"Desarrollaron nuestro software empresarial para la venta de zapatos, control de tallas e inventario. Ordenó las sucursales y aumentó los ingresos.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">+38%</div><div class="story-stat-label">{% trans "Ingresos" %}</div></div>
+            <div><div class="story-stat-val">3</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">5</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="story-card">
+        <div class="story-img-box">
+          <img src="{% static 'IMG/casos/caso-6-banco.webp' %}" class="story-img" alt="{% trans "Aplicación móvil bancaria" %}" loading="lazy" decoding="async">
+          <div class="story-img-tag">{% trans "CASO / 06" %}</div>
+          <div class="story-img-badge">{% trans "MOBILE BANKING" %}</div>
+        </div>
+        <div class="story-body">
+          <div class="story-name">{% trans "Banco Aliado" %}</div>
+          <div class="story-role">{% trans "Aplicación Móvil · 7 meses" %}</div>
+          <p class="story-quote">{% trans "\"Construyeron la aplicación móvil del banco para consultas, transferencias y validación segura, entregando cada hito con pruebas verificadas.\"" %}</p>
+          <div class="story-stats">
+            <div><div class="story-stat-val">99.9%</div><div class="story-stat-label">{% trans "Estabilidad" %}</div></div>
+            <div><div class="story-stat-val">4</div><div class="story-stat-label">{% trans "Devs" %}</div></div>
+            <div><div class="story-stat-val">7</div><div class="story-stat-label">{% trans "Meses" %}</div></div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+{% load static i18n %}
+<!-- ==================== CTA / COMENZAR ==================== -->
+<section id="comenzar" class="section-tech cta-hero" aria-labelledby="tituloComenzar">
+  <img class="cta-hero-img" src="{% static 'IMG/cta-final.jpg' %}" alt="{% trans "Equipo de desarrollo trabajando en una oficina" %}" loading="lazy" decoding="async">
+  <div class="cta-hero-overlay" aria-hidden="true"></div>
+
+  <div class="section-inner cta-hero-content reveal">
+    <span class="section-marker"><span>{% trans "COMENZAR AHORA" %}</span></span>
+    <h2 class="sh-title" id="tituloComenzar">{% trans "Inicia tu" %} <span class="cta-accent">{% trans "proyecto" %}</span>.<br><span class="text-stroke">{% trans "Sin" %}</span> {% trans "vueltas." %}</h2>
+    {% if allow_public_registration %}
+    <a href="{% url 'registro' %}" class="cta-hero-btn">{% trans "Crear cuenta" %}</a>
+    {% else %}
+    <a href="#" data-abrir-login class="cta-hero-btn">{% trans "Iniciar sesión" %}</a>
+    {% endif %}
+  </div>
+</section>

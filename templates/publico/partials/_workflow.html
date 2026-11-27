@@ -1,0 +1,87 @@
+{% load static i18n %}
+<!-- ==================== QUÉ ES JOBDEVS ==================== -->
+<section id="que-es" class="section-tech what-section" aria-labelledby="tituloQueEs">
+  <div class="what-grid-bg" aria-hidden="true"></div>
+  <div class="section-inner what-head reveal">
+    <span class="section-marker"><span>{% trans "LA PLATAFORMA" %}</span></span>
+    <h2 class="sh-title" id="tituloQueEs">{% trans "¿Qué es" %} <span class="acento-marca">Jobdevs</span>?</h2>
+    <p class="desc-mono">{% trans "La infraestructura donde una empresa y un aprendiz firman un contrato de software, lo ejecutan por hitos y dejan evidencia de cada entrega. Talento SENA verificado, sin intermediarios." %}</p>
+  </div>
+</section>
+
+<!-- ==================== METHODOLOGY (HERO STYLE FULL BLEED) ==================== -->
+<section id="metodologia" class="section-tech wf-hero-section">
+  <!-- Fondo cinemático estilo Hero que cubre todo el espacio a la izquierda con transparencia -->
+  <div class="wf-bg-stage">
+    <div class="wf-bg-frame active" id="bgWfFase01">
+      <img src="{% static 'IMG/flujo/fase-1.jpg' %}" alt="{% trans "Publicar Proyecto" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase02">
+      <img src="{% static 'IMG/flujo/fase-2.jpg' %}" alt="{% trans "Postulación y Contrato" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase03">
+      <img src="{% static 'IMG/flujo/fase-3.jpg' %}" alt="{% trans "Hitos con Evidencias" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="wf-bg-frame" id="bgWfFase04">
+      <img src="{% static 'IMG/flujo/fase-4.jpg' %}" alt="{% trans "Cierre y Calificación Mutua" %}" class="wf-full-bg-img" loading="lazy" decoding="async">
+    </div>
+    <div class="wf-bg-overlay"></div>
+  </div>
+
+  <div class="section-inner wf-hero-content">
+    <div class="wf-hero-layout reveal">
+
+      <!-- Encabezado -->
+      <div class="wf-main-header">
+        <span class="section-marker"><span>{% trans "MODELO DE OPERACIÓN" %}</span></span>
+        <h2 class="sh-title">{% trans "Así funciona" %} <span class="acento-marca">Jobdevs</span></h2>
+      </div>
+
+      <!-- Los 4 pasos interactivos -->
+      <div class="wf-steps-stack" role="tablist" aria-label="{% trans "Etapas del proceso" %}">
+
+        <!-- Paso 01 -->
+        <button type="button" class="wf-step-item active" id="stepBtn01" data-step="1" role="tab" aria-selected="true" aria-controls="bgWfFase01">
+          <span class="wf-step-header">
+            <span class="wf-step-num">{% trans "// FASE_01" %}</span>
+            <span class="wf-step-tag">{% trans "Empresa" %}</span>
+          </span>
+          <span class="wf-step-title">{% trans "Publicar Proyecto" %}</span>
+          <span class="wf-step-desc">{% trans "La empresa define la solución técnica requerida, vacantes, stack sugerido y fechas estimadas." %}</span>
+        </button>
+
+        <!-- Paso 02 -->
+        <button type="button" class="wf-step-item" id="stepBtn02" data-step="2" role="tab" aria-selected="false" aria-controls="bgWfFase02">
+          <span class="wf-step-header">
+            <span class="wf-step-num">{% trans "// FASE_02" %}</span>
+            <span class="wf-step-tag">{% trans "Match & Firma" %}</span>
+          </span>
+          <span class="wf-step-title">{% trans "Postulación y Contrato" %}</span>
+          <span class="wf-step-desc">{% trans "Aprendices SENA con ficha oficial se postulan. La empresa evalúa, acepta y se formaliza el Contrato Digital." %}</span>
+        </button>
+
+        <!-- Paso 03 -->
+        <button type="button" class="wf-step-item" id="stepBtn03" data-step="3" role="tab" aria-selected="false" aria-controls="bgWfFase03">
+          <span class="wf-step-header">
+            <span class="wf-step-num">{% trans "// FASE_03" %}</span>
+            <span class="wf-step-tag">{% trans "Desarrollo" %}</span>
+          </span>
+          <span class="wf-step-title">{% trans "Hitos con Evidencias" %}</span>
+          <span class="wf-step-desc">{% trans "Ejecución estructurada por entregables. Cada avance incluye archivos, enlaces y evidencia verificable en la nube." %}</span>
+        </button>
+
+        <!-- Paso 04 -->
+        <button type="button" class="wf-step-item" id="stepBtn04" data-step="4" role="tab" aria-selected="false" aria-controls="bgWfFase04">
+          <span class="wf-step-header">
+            <span class="wf-step-num">{% trans "// FASE_04" %}</span>
+            <span class="wf-step-tag">{% trans "Cierre" %}</span>
+          </span>
+          <span class="wf-step-title">{% trans "Cierre y Calificación Mutua" %}</span>
+          <span class="wf-step-desc">{% trans "100% de hitos completados. Cierre formal con sello digital verificable y calificación mutua." %}</span>
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</section>
