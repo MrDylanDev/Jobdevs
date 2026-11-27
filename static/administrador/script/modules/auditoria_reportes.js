@@ -264,7 +264,7 @@ function initAdminStatsCharts() {
   drawAdminLineChart('proyectos');
 }
 
-// --- Audit Chats (Paginated Search, Detail Modal & Privacy Notice) ---
+// --- Audit Chats (HTMX Detail Modal & Privacy Notice) ---
 
 function initAuditChats() {
   const form = document.getElementById('auditChatsForm');
@@ -272,131 +272,28 @@ function initAuditChats() {
   const pager = document.getElementById('auditChatsPager');
   if (!form || !body) return;
 
-  const auditUrl = form.dataset.apiUrl || '/admin/auditar-mensajes/';
-  let mensajes = [];
-
-  function cell(text) {
-    const td = document.createElement('td');
-    td.textContent = text;
-    return td;
-  }
-
-  function openAuditChatModal(i) {
-    const m = mensajes[i];
-    if (!m) return;
-    document.getElementById('auditChatModalTitle').textContent = m.titulo || 'Mensaje #' + m.id;
+  body.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-audit-chat-detail]');
+    if (!btn) return;
+    const d = btn.dataset;
+    document.getElementById('auditChatModalTitle').textContent =
+      d.chatTitulo || 'Mensaje #' + (d.chatId || '');
     document.getElementById('auditChatModalMeta').textContent =
-      new Date(m.fecha_envio).toLocaleString('es-CO') +
-      ' · De @' + m.remitente_username +
-      ' → ' + (m.es_grupal ? 'Chat grupal' : '@' + m.receptor_username) +
-      (m.proyecto_titulo ? ' · Proyecto: ' + m.proyecto_titulo : '');
-    document.getElementById('auditChatModalBody').textContent = m.contenido;
+      (d.chatFecha || '') +
+      ' · De ' + (d.chatRemitente || '') +
+      ' → ' + (d.chatDestinatario || '') +
+      (d.chatProyecto ? ' · Proyecto: ' + d.chatProyecto : '');
+    document.getElementById('auditChatModalBody').textContent = d.chatContenido || '';
     document.getElementById('auditChatModal').classList.add('open');
-  }
-  window.openAuditChatModal = openAuditChatModal;
+  });
 
-  function render(data) {
-    mensajes = data.mensajes || [];
-    body.innerHTML = '';
-    if (!mensajes.length) {
-      const tr = document.createElement('tr');
-      const td = cell('No se encontraron mensajes.');
-      td.colSpan = 6;
-      td.style.textAlign = 'center';
-      tr.appendChild(td);
-      body.appendChild(tr);
-    }
-    mensajes.forEach((m, i) => {
-      const tr = document.createElement('tr');
-      tr.appendChild(cell(new Date(m.fecha_envio).toLocaleString('es-CO')));
-      tr.appendChild(cell(m.remitente_nombre + ' (@' + m.remitente_username + ')'));
-      tr.appendChild(
-        cell(
-          m.es_grupal
-            ? 'Grupal de Proyecto'
-            : 'Privado: ' + m.receptor_nombre + ' (@' + m.receptor_username + ')'
-        )
-      );
-      tr.appendChild(cell(m.proyecto_titulo || '—'));
-      tr.appendChild(
-        cell(m.contenido.length > 80 ? m.contenido.slice(0, 80) + '…' : m.contenido)
-      );
-      const td = document.createElement('td');
-      td.style.textAlign = 'center';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn btn-secondary';
-      btn.innerHTML = '<i data-lucide="eye"></i>';
-      btn.title = 'Ver mensaje completo';
-      btn.addEventListener('click', () => openAuditChatModal(i));
-      td.appendChild(btn);
-      tr.appendChild(td);
-      body.appendChild(tr);
+  [form, pager].filter(Boolean).forEach((el) => {
+    el.addEventListener('htmx:responseError', () => {
+      adminNotify('No se pudo completar la auditoría.');
     });
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
-    if (pager) {
-      pager.innerHTML = '';
-      if (data.total_paginas > 1) {
-        const prev = document.createElement('button');
-        prev.type = 'button';
-        prev.className = 'btn btn-secondary';
-        prev.textContent = 'Anterior';
-        prev.disabled = data.pagina <= 1;
-        prev.addEventListener('click', () => search(data.pagina - 1));
-        const next = document.createElement('button');
-        next.type = 'button';
-        next.className = 'btn btn-secondary';
-        next.textContent = 'Siguiente';
-        next.disabled = data.pagina >= data.total_paginas;
-        next.addEventListener('click', () => search(data.pagina + 1));
-        const label = document.createElement('span');
-        label.textContent =
-          'Página ' + data.pagina + ' de ' + data.total_paginas + ' (' + data.total + ' mensajes)';
-        pager.append(prev, label, next);
-      }
-    }
-  }
-
-  let requestSeq = 0;
-  let activeController = null;
-
-  async function search(page) {
-    const seq = ++requestSeq;
-    if (activeController) {
-      try {
-        activeController.abort();
-      } catch (e) {}
-    }
-    activeController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-
-    const params = new URLSearchParams(new FormData(form));
-    params.set('format', 'json');
-    if (page) params.set('page', page);
-    try {
-      const response = await fetch(auditUrl + '?' + params.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: activeController ? activeController.signal : undefined,
-      });
-      if (seq !== requestSeq) return;
-      if (!response.ok) {
-        adminNotify('No se pudo completar la auditoría.');
-        return;
-      }
-      const data = await response.json();
-      if (seq !== requestSeq) return;
-      render(data);
-    } catch (err) {
-      if (err && err.name === 'AbortError') return;
-      if (seq !== requestSeq) return;
+    el.addEventListener('htmx:sendError', () => {
       adminNotify('Error de red.');
-    }
-  }
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    search(1);
+    });
   });
 
   // Open privacy notice modal whenever admin navigates to auditChatsSection
@@ -408,186 +305,49 @@ function initAuditChats() {
   });
 }
 
-// --- Audit Logs (Paginated API & Diff Modal) ---
+// --- Audit Logs (HTMX Detail Modal & Reset) ---
 
 function initAuditLogs() {
   const form = document.getElementById('auditLogsForm');
   const body = document.getElementById('auditLogsBody');
   const pager = document.getElementById('auditLogsPager');
-  const tablasList = document.getElementById('auditTablasList');
   const resetBtn = document.getElementById('auditResetBtn');
   if (!form || !body) return;
 
-  const auditLogsUrl = form.dataset.apiUrl || '/admin/auditoria/api/';
-  let currentLogs = [];
-
-  function cell(text, styles) {
-    const td = document.createElement('td');
-    td.textContent = text;
-    if (styles) Object.assign(td.style, styles);
-    return td;
-  }
-
-  function openAuditLogModal(i) {
-    const log = currentLogs[i];
-    if (!log) return;
+  body.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-audit-log-detail]');
+    if (!btn) return;
+    const d = btn.dataset;
     document.getElementById('auditLogModalTitle').textContent =
-      'Registro de Auditoría #' + log.id;
-    const fecha = log.fecha_hora ? new Date(log.fecha_hora).toLocaleString('es-CO') : '—';
+      'Registro de Auditoría #' + (d.logId || '');
     document.getElementById('auditLogModalMeta').textContent =
-      fecha +
-      ' · Usuario: ' + log.usuario +
-      ' · Tabla: ' + (log.tabla_afectada || '—') +
-      (log.registro_id !== null && log.registro_id !== undefined
-        ? ' · Registro ID: #' + log.registro_id
-        : '');
-    document.getElementById('auditLogModalAction').textContent = log.accion || '—';
-    document.getElementById('auditLogModalPrev').textContent = log.valor_anterior || '—';
-    document.getElementById('auditLogModalNext').textContent = log.valor_nuevo || '—';
+      (d.logFecha || '—') +
+      ' · Usuario: ' + (d.logUsuario || 'Sistema') +
+      ' · Tabla: ' + (d.logTabla || '—') +
+      (d.logRegistro ? ' · Registro ID: #' + d.logRegistro : '');
+    document.getElementById('auditLogModalAction').textContent = d.logAccion || '—';
+    document.getElementById('auditLogModalPrev').textContent = d.logPrev || '—';
+    document.getElementById('auditLogModalNext').textContent = d.logNext || '—';
     document.getElementById('auditLogDetailModal').classList.add('open');
-  }
-
-  function render(data) {
-    currentLogs = data.logs || [];
-    if (tablasList && Array.isArray(data.tablas) && !tablasList.childElementCount) {
-      data.tablas.forEach((t) => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        tablasList.appendChild(opt);
-      });
-    }
-
-    body.innerHTML = '';
-    if (!currentLogs.length) {
-      const tr = document.createElement('tr');
-      const td = cell('No se encontraron registros de auditoría.', {
-        textAlign: 'center',
-        color: 'var(--text-muted)',
-      });
-      td.colSpan = 7;
-      tr.appendChild(td);
-      body.appendChild(tr);
-    } else {
-      currentLogs.forEach((log, i) => {
-        const tr = document.createElement('tr');
-        tr.appendChild(cell('#' + log.id, { color: 'var(--text-muted)', fontSize: '12px' }));
-
-        const tdUser = document.createElement('td');
-        const strong = document.createElement('strong');
-        strong.textContent = log.usuario || 'Sistema';
-        tdUser.appendChild(strong);
-        tr.appendChild(tdUser);
-
-        tr.appendChild(cell(log.accion || ''));
-        tr.appendChild(cell(log.tabla_afectada || '—'));
-
-        tr.appendChild(
-          cell(
-            log.registro_id !== null && log.registro_id !== undefined
-              ? '#' + log.registro_id
-              : '—',
-            { textAlign: 'center', color: 'var(--text-muted)' }
-          )
-        );
-        const fecha = log.fecha_hora ? new Date(log.fecha_hora).toLocaleString('es-CO') : '—';
-        tr.appendChild(cell(fecha, { textAlign: 'center', color: 'var(--text-secondary)' }));
-
-        const tdBtn = document.createElement('td');
-        tdBtn.style.textAlign = 'center';
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'btn btn-secondary';
-        btn.title = 'Ver detalle del registro';
-        btn.innerHTML = '<i data-lucide="eye"></i>';
-        btn.addEventListener('click', () => openAuditLogModal(i));
-        tdBtn.appendChild(btn);
-        tr.appendChild(tdBtn);
-
-        body.appendChild(tr);
-      });
-    }
-
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
-
-    if (pager) {
-      pager.innerHTML = '';
-      if (data.total_pages > 1) {
-        const prev = document.createElement('button');
-        prev.type = 'button';
-        prev.className = 'btn btn-secondary';
-        prev.textContent = 'Anterior';
-        prev.disabled = data.page <= 1;
-        prev.addEventListener('click', () => loadLogs(data.page - 1));
-
-        const next = document.createElement('button');
-        next.type = 'button';
-        next.className = 'btn btn-secondary';
-        next.textContent = 'Siguiente';
-        next.disabled = data.page >= data.total_pages;
-        next.addEventListener('click', () => loadLogs(data.page + 1));
-
-        const label = document.createElement('span');
-        label.textContent =
-          'Página ' + data.page + ' de ' + data.total_pages + ' (' + data.total + ' registros)';
-        pager.append(prev, label, next);
-      } else if (data.total > 0) {
-        const label = document.createElement('span');
-        label.style.color = 'var(--text-muted)';
-        label.style.fontSize = '12.5px';
-        label.textContent = data.total + ' registro' + (data.total === 1 ? '' : 's');
-        pager.appendChild(label);
-      }
-    }
-  }
-
-  let logsRequestSeq = 0;
-  let activeLogsController = null;
-
-  async function loadLogs(page) {
-    const seq = ++logsRequestSeq;
-    if (activeLogsController) {
-      try {
-        activeLogsController.abort();
-      } catch (e) {}
-    }
-    activeLogsController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-
-    const params = new URLSearchParams(new FormData(form));
-    if (page) params.set('page', page);
-    try {
-      const response = await fetch(auditLogsUrl + '?' + params.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: activeLogsController ? activeLogsController.signal : undefined,
-      });
-      if (seq !== logsRequestSeq) return;
-      if (!response.ok) {
-        adminNotify('No se pudo cargar el registro de auditoría.');
-        return;
-      }
-      const data = await response.json();
-      if (seq !== logsRequestSeq) return;
-      render(data);
-    } catch (err) {
-      if (err && err.name === 'AbortError') return;
-      if (seq !== logsRequestSeq) return;
-      adminNotify('Error de red al cargar auditoría.');
-    }
-  }
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    loadLogs(1);
   });
+
   if (resetBtn) {
-    resetBtn.addEventListener('click', function () {
+    resetBtn.addEventListener('click', () => {
       form.reset();
-      loadLogs(1);
+      if (window.htmx && typeof window.htmx.trigger === 'function') {
+        window.htmx.trigger(form, 'submit');
+      }
     });
   }
 
-  loadLogs(1);
+  [form, pager].filter(Boolean).forEach((el) => {
+    el.addEventListener('htmx:responseError', () => {
+      adminNotify('No se pudo cargar el registro de auditoría.');
+    });
+    el.addEventListener('htmx:sendError', () => {
+      adminNotify('Error de red al cargar auditoría.');
+    });
+  });
 }
 
 // --- Module Initializer ---

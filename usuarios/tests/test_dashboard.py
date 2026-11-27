@@ -1132,7 +1132,13 @@ def test_empresa_dashboard_historial_chart_datasets_and_controls(auth_client, em
     assert 'id="ledgerChartTitle"' in content
     assert 'id="ledgerChartSub"' in content
     assert 'id="ledgerChartTotal"' in content
-    assert 'actualizarGraficaLedger' in content
+    assert 'id="empresa-ledger-datasets"' in content
+    assert 'empresa/script/empresa.js' in content
+    from pathlib import Path
+    from django.conf import settings
+    ledger_js = Path(settings.BASE_DIR) / 'static/empresa/script/modules/ledger_chart.js'
+    assert ledger_js.exists()
+    assert 'actualizarGraficaLedger' in ledger_js.read_text(encoding='utf-8')
 
 
 def test_empresa_dashboard_user_dropdown_menu(auth_client, empresa_user):

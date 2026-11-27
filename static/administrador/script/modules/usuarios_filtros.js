@@ -5,12 +5,7 @@
  * ============================================================
  */
 
-import {
-  getCSRFToken,
-  debounce,
-  escapeAdminHtml,
-  escapeAdminJs,
-} from './ui_core.js';
+import { debounce } from './ui_core.js';
 
 // --- Users & Projects Search & Filter (SCRUM-408) ---
 
@@ -54,125 +49,9 @@ export function filterUsersClientSide() {
   }
 }
 
-export function _renderUsersTableRows(users, roleFilter) {
-  const table = document.getElementById('usersTable');
-  const tbody = table ? table.querySelector('tbody') : null;
-  if (!table || !tbody) return;
+export function _renderUsersTableRows() {}
 
-  const currentUserId = String(table.dataset.currentUserId || '');
-  const toggleTpl = table.dataset.toggleUrlTemplate || '/administrador/usuario/0/toggle/';
-  const csrfToken = getCSRFToken();
-  const roleLabels = {
-    desarrollador: 'Desarrollador',
-    empresa: 'Empresa',
-    administrador: 'Administrador',
-  };
-
-  const filtered = roleFilter ? users.filter((u) => u.rol === roleFilter) : users;
-
-  if (!filtered.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="6"><div class="empty-state" style="padding:36px;"><i data-lucide="users"></i><p>No se encontraron usuarios</p></div></td></tr>';
-  } else {
-    tbody.innerHTML = filtered
-      .map((u) => {
-        const isActive = u.estado === 'activo';
-        const displayName = u.nombre || u.username || '';
-        const initial = (displayName.trim().charAt(0) || '?').toUpperCase();
-        const rolLabel = roleLabels[u.rol] || u.rol || '';
-        const toggleUrl = toggleTpl.replace('/0/', '/' + u.id + '/');
-        const isSelf = currentUserId && String(u.id) === currentUserId;
-
-        let actionsHtml = '';
-        if (isSelf) {
-          actionsHtml = '<span style="color:var(--text-muted);font-size:12px;">Tu cuenta</span>';
-        } else if (u.rol === 'administrador') {
-          actionsHtml = '<span style="color:var(--text-muted);font-size:12px;">Protegido</span>';
-        } else {
-          const jsName = escapeAdminJs(displayName);
-          const jsRol = escapeAdminJs(rolLabel);
-          const jsUser = escapeAdminJs(u.username || '');
-          actionsHtml =
-            `<div class="user-actions-group">` +
-              `<form action="${escapeAdminHtml(toggleUrl)}" method="POST" style="display:inline;" class="form-toggle-usuario">` +
-                `<input type="hidden" name="csrfmiddlewaretoken" value="${escapeAdminHtml(csrfToken)}">` +
-                `<button type="button" class="user-icon-btn ${isActive ? 'is-active' : ''}" ` +
-                  `onclick="openToggleUserConfirmModal(this, '${escapeAdminHtml(jsName)}', '${escapeAdminHtml(jsRol)}', ${isActive ? 'true' : 'false'})" ` +
-                  `title="${isActive ? 'Suspender usuario' : 'Reactivar usuario'}">` +
-                  `<i data-lucide="${isActive ? 'toggle-right' : 'toggle-left'}"></i>` +
-                `</button>` +
-              `</form>` +
-              `<button type="button" class="user-icon-btn" onclick="openEditUserModal(${Number(u.id)})" title="Editar">` +
-                `<i data-lucide="pencil"></i>` +
-              `</button>` +
-              `<button type="button" class="user-icon-btn is-danger" onclick="deleteUser(${Number(u.id)}, '${escapeAdminHtml(jsUser)}')" title="Eliminar">` +
-                `<i data-lucide="trash-2"></i>` +
-              `</button>` +
-            `</div>`;
-        }
-
-        const statusHtml = isActive
-          ? '<span class="status-pill status-pill--active"><i class="status-dot"></i>Activo</span>'
-          : '<span class="status-pill status-pill--inactive"><i class="status-dot"></i>Suspendido</span>';
-        let fechaRegistro = '';
-        let fechaDisplay = '—';
-        if (u.date_joined) {
-          const parsedDate = new Date(u.date_joined);
-          if (!Number.isNaN(parsedDate.getTime())) {
-            fechaRegistro = new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'America/Bogota',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            }).format(parsedDate);
-            const parts = new Intl.DateTimeFormat('es-CO', {
-              timeZone: 'America/Bogota',
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-            }).formatToParts(parsedDate);
-            const day = parts.find((p) => p.type === 'day')?.value || '';
-            const rawMonth = (parts.find((p) => p.type === 'month')?.value || '').replace(/\.$/, '');
-            const month = rawMonth ? rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1) : '';
-            const year = parts.find((p) => p.type === 'year')?.value || '';
-            fechaDisplay = `${day} ${month} ${year}`.trim() || fechaRegistro;
-          } else {
-            fechaRegistro = String(u.date_joined).slice(0, 10);
-            fechaDisplay = fechaRegistro || '—';
-          }
-        }
-
-        return (
-          `<tr data-username="${escapeAdminHtml(u.username || '')}" data-nombre="${escapeAdminHtml(u.nombre || '')}" ` +
-            `data-email="${escapeAdminHtml(u.email || '')}" data-rol="${escapeAdminHtml(u.rol || '')}" ` +
-            `data-active="${isActive ? 'active' : 'inactive'}" data-id="${escapeAdminHtml(u.id)}" ` +
-            `data-fecha-registro="${escapeAdminHtml(fechaRegistro)}">` +
-            `<td><div class="user-cell"><div class="user-cell-avatar">${escapeAdminHtml(initial)}</div>` +
-              `<div><div class="user-cell-username">${escapeAdminHtml(displayName)}</div>` +
-              `<div class="user-cell-handle">@${escapeAdminHtml(u.username || '')}</div></div></div></td>` +
-            `<td class="user-cell-email">${escapeAdminHtml(u.email || '')}</td>` +
-            `<td>${escapeAdminHtml(rolLabel)}</td>` +
-            `<td>${statusHtml}</td>` +
-            `<td class="user-cell-date">${escapeAdminHtml(fechaDisplay)}</td>` +
-            `<td style="text-align:right; white-space:nowrap;">${actionsHtml}</td>` +
-          `</tr>`
-        );
-      })
-      .join('');
-  }
-
-  const countEl = document.getElementById('usersResultCount');
-  if (countEl) {
-    countEl.textContent = `Mostrando ${filtered.length} usuarios`;
-  }
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-}
-
-let _usersFilterController = null;
-
-export async function filterUsers() {
+export function filterUsers() {
   const table = document.getElementById('usersTable');
   const apiUrl = table?.dataset.apiUsuariosUrl || '/api/';
   const search = (document.getElementById('userSearch')?.value || '').trim();
@@ -184,39 +63,21 @@ export async function filterUsers() {
   const params = new URLSearchParams();
   if (search) params.set('q', search);
   if (role) params.set('rol', role);
-  if (status === 'active') params.set('estado', 'activo');
+  if (status) params.set('estado', status);
   if (fechaDesde) params.set('fecha_desde', fechaDesde);
   if (fechaHasta) params.set('fecha_hasta', fechaHasta);
 
-  if (_usersFilterController) {
-    try {
-      _usersFilterController.abort();
-    } catch (e) {}
-  }
-  _usersFilterController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-
-  try {
+  if (window.htmx && typeof window.htmx.ajax === 'function') {
     const queryStr = params.toString();
     const url = apiUrl + (queryStr ? '?' + queryStr : '');
-    const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      signal: _usersFilterController ? _usersFilterController.signal : undefined,
+    window.htmx.ajax('GET', url, {
+      target: '#usersTableBody',
+      swap: 'innerHTML',
     });
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    const payload = await response.json();
-    let users = Array.isArray(payload)
-      ? payload
-      : Array.isArray(payload.usuarios)
-        ? payload.usuarios
-        : [];
-    if (status === 'inactive') {
-      users = users.filter((u) => u.estado !== 'activo');
-    }
-    _renderUsersTableRows(users, role);
-  } catch (err) {
-    if (err && err.name === 'AbortError') return;
-    filterUsersClientSide();
+    return;
   }
+
+  filterUsersClientSide();
 }
 
 export function filterProjects() {

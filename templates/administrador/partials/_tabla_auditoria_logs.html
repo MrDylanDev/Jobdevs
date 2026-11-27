@@ -1,0 +1,56 @@
+{% for log in logs %}
+<tr>
+  <td style="color:var(--text-muted);font-size:12px;">#{{ log.id }}</td>
+  <td><strong>{% if log.usuario %}{{ log.usuario.username }}{% else %}Sistema{% endif %}</strong></td>
+  <td>{{ log.accion }}</td>
+  <td>{{ log.tabla_afectada|default:"—" }}</td>
+  <td style="text-align:center;color:var(--text-muted);">{% if log.registro_id is not None %}#{{ log.registro_id }}{% else %}—{% endif %}</td>
+  <td style="text-align:center;color:var(--text-secondary);">{% if log.fecha_hora %}{{ log.fecha_hora|date:"d/m/Y H:i:s" }}{% else %}—{% endif %}</td>
+  <td style="text-align:center;">
+    <button type="button"
+            class="btn btn-secondary"
+            title="Ver detalle del registro"
+            data-audit-log-detail
+            data-log-id="{{ log.id }}"
+            data-log-usuario="{% if log.usuario %}{{ log.usuario.username }}{% else %}Sistema{% endif %}"
+            data-log-accion="{{ log.accion|default:'' }}"
+            data-log-tabla="{{ log.tabla_afectada|default:'' }}"
+            data-log-registro="{% if log.registro_id is not None %}{{ log.registro_id }}{% endif %}"
+            data-log-fecha="{% if log.fecha_hora %}{{ log.fecha_hora|date:'d/m/Y H:i:s' }}{% else %}—{% endif %}"
+            data-log-prev="{{ log.valor_anterior|default:'' }}"
+            data-log-next="{{ log.valor_nuevo|default:'' }}">
+      <i data-lucide="eye"></i>
+    </button>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="7" style="text-align:center;color:var(--text-muted);">No se encontraron registros de auditoría.</td>
+</tr>
+{% endfor %}
+
+<div id="auditLogsPager" hx-swap-oob="innerHTML">
+  {% if total_pages > 1 %}
+    <button type="button" class="btn btn-secondary"
+            {% if page <= 1 %}disabled{% else %}
+            hx-get="{% url 'api_auditoria' %}?page={{ page|add:'-1' }}"
+            hx-include="#auditLogsForm"
+            hx-target="#auditLogsBody"
+            hx-swap="innerHTML"
+            hx-sync="#auditLogsForm:replace"{% endif %}>Anterior</button>
+    <span>Página {{ page }} de {{ total_pages }} ({{ total }} registros)</span>
+    <button type="button" class="btn btn-secondary"
+            {% if page >= total_pages %}disabled{% else %}
+            hx-get="{% url 'api_auditoria' %}?page={{ page|add:'1' }}"
+            hx-include="#auditLogsForm"
+            hx-target="#auditLogsBody"
+            hx-swap="innerHTML"
+            hx-sync="#auditLogsForm:replace"{% endif %}>Siguiente</button>
+  {% elif total > 0 %}
+    <span style="color:var(--text-muted);font-size:12.5px;">{{ total }} registro{% if total != 1 %}s{% endif %}</span>
+  {% endif %}
+</div>
+
+<datalist id="auditTablasList" hx-swap-oob="innerHTML">
+  {% for t in tablas %}<option value="{{ t }}"></option>{% endfor %}
+</datalist>

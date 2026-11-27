@@ -1618,6 +1618,231 @@ class TestAdminEsModules:
         assert not missing, f'Handlers inline sin binding window.*: {missing}'
 
 
+class TestAuditoriaHtmxPartials:
+    """S2: Tests HTMX partials para Auditoría de Logs y Auditoría de Chats."""
+
+    def test_api_auditoria_htmx_retorna_partial_html_escapado_y_pager_oob(self, admin_client, admin_user):
+        from logs.models import LogAuditoria
+
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='Cambio seguro',
+            tabla_afectada='usuarios',
+            registro_id=10,
+            valor_anterior='a',
+            valor_nuevo='b',
+        )
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='<script>alert(1)</script>',
+            tabla_afectada='perfiles_empresa',
+            registro_id=11,
+            valor_anterior='old',
+            valor_nuevo='<b>xss</b>',
+        )
+
+        res = admin_client.get(
+            reverse('api_auditoria'),
+            {'limit': 1, 'page': 1},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        assert 'text/html' in res['Content-Type']
+        html = res.content.decode('utf-8')
+        assert '<tr' in html
+        assert 'data-log-id=' in html
+        assert 'data-log-accion=' in html
+        assert 'id="auditLogsPager"' in html
+        assert 'hx-swap-oob="innerHTML"' in html
+        assert 'id="auditTablasList"' in html
+        assert 'Siguiente' in html
+        assert '<script>alert(1)</script>' not in html
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+
+    def test_api_auditoria_htmx_con_format_json_preserva_json(self, admin_client):
+        res = admin_client.get(
+            reverse('api_auditoria'),
+            {'format': 'json'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        assert res['Content-Type'].startswith('application/json')
+        assert 'logs' in res.json()
+
+    def test_admin_auditar_mensajes_htmx_retorna_partial_html_escapado_y_pager_oob(
+        self, admin_client, empresa_user, desarrollador_user
+    ):
+        from mensajes.models import Mensaje
+
+        for i in range(25):
+            Mensaje.objects.create(
+                remitente=empresa_user,
+                receptor=desarrollador_user,
+                contenido=f'Mensaje de auditoria {i}',
+            )
+        Mensaje.objects.create(
+            remitente=empresa_user,
+            receptor=desarrollador_user,
+            titulo='XSS',
+            contenido='<img src=x onerror=alert(1)>',
+        )
+
+        res = admin_client.get(
+            reverse('admin_auditar_mensajes'),
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        assert 'text/html' in res['Content-Type']
+        html = res.content.decode('utf-8')
+        assert '<tr' in html
+        assert 'data-chat-contenido=' in html
+        assert 'id="auditChatsPager"' in html
+        assert 'hx-swap-oob="innerHTML"' in html
+        assert 'Siguiente' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_admin_auditar_mensajes_htmx_con_format_json_preserva_json(self, admin_client):
+        res = admin_client.get(
+            reverse('admin_auditar_mensajes'),
+            {'format': 'json'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        assert res['Content-Type'].startswith('application/json')
+        assert 'mensajes' in res.json()
+
+    def test_dashboard_admin_wiring_htmx_en_formularios_auditoria(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'hx-target="#auditLogsBody"' in html
+        assert 'hx-target="#auditChatsBody"' in html
+        assert 'hx-sync="this:replace"' in html
+
+
+class TestUsuariosHtmxPartial:
+    """S3: Tests HTMX partial para el Directorio de Usuarios en Panel Administrador."""
+
+    def test_api_usuarios_htmx_retorna_partial_html_fechas_oob_y_filtros(
+        self, admin_client, admin_user, desarrollador_user, empresa_user
+    ):
+        from django.template.defaultfilters import date as django_date
+
+        suspendido = User.objects.create_user(
+            username='dev_suspendido_htmx',
+            email='susp_htmx@test.jobdevs',
+            nombre='Dev Suspendido',
+            rol='desarrollador',
+            estado='suspendido',
+            is_active=False,
+            password='TestPass123!',
+        )
+
+        res = admin_client.get(reverse('api_usuarios'), HTTP_HX_REQUEST='true')
+        assert res.status_code == 200
+        assert 'text/html' in res['Content-Type']
+        html = res.content.decode('utf-8')
+        assert '<tr ' in html
+        assert f'@{desarrollador_user.username}' in html
+        assert f'@{empresa_user.username}' in html
+        assert 'hx-swap-oob="innerHTML"' in html
+        assert 'id="usersResultCount"' in html
+        assert 'Mostrando ' in html
+        assert 'Tu cuenta' in html
+        fecha_esperada = django_date(timezone.localtime(desarrollador_user.date_joined), 'd M Y')
+        assert fecha_esperada in html
+        assert f'data-fecha-registro="{timezone.localtime(desarrollador_user.date_joined).strftime("%Y-%m-%d")}"' in html
+
+        # Filtro por rol
+        res_rol = admin_client.get(
+            reverse('api_usuarios'), {'rol': 'empresa'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_rol.status_code == 200
+        html_rol = res_rol.content.decode('utf-8')
+        assert f'@{empresa_user.username}' in html_rol
+        assert f'@{desarrollador_user.username}' not in html_rol
+        assert 'Mostrando 1 usuarios' in html_rol
+
+        # Filtro por búsqueda q
+        res_q = admin_client.get(
+            reverse('api_usuarios'), {'q': 'dev_suspendido_htmx'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_q.status_code == 200
+        html_q = res_q.content.decode('utf-8')
+        assert '@dev_suspendido_htmx' in html_q
+        assert 'Suspendido' in html_q
+        assert 'Mostrando 1 usuarios' in html_q
+
+        # Filtro por estado=inactive / estado=active
+        res_inact = admin_client.get(
+            reverse('api_usuarios'), {'estado': 'inactive'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_inact.status_code == 200
+        html_inact = res_inact.content.decode('utf-8')
+        assert f'@{suspendido.username}' in html_inact
+        assert f'@{empresa_user.username}' not in html_inact
+
+        res_act = admin_client.get(
+            reverse('api_usuarios'), {'estado': 'active'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_act.status_code == 200
+        html_act = res_act.content.decode('utf-8')
+        assert f'@{empresa_user.username}' in html_act
+        assert f'@{suspendido.username}' not in html_act
+
+        # Estado vacío
+        res_empty = admin_client.get(
+            reverse('api_usuarios'), {'q': 'usuario_inexistente_xyz_999'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_empty.status_code == 200
+        html_empty = res_empty.content.decode('utf-8')
+        assert 'No se encontraron usuarios con esos filtros.' in html_empty
+        assert 'Mostrando 0 usuarios' in html_empty
+
+    def test_api_usuarios_htmx_escapa_xss(self, admin_client, db):
+        User.objects.create_user(
+            username='xss_user_htmx',
+            email='xss_htmx@test.jobdevs',
+            nombre='<script>alert(1)</script>',
+            rol='desarrollador',
+            password='TestPass123!',
+        )
+
+        res = admin_client.get(
+            reverse('api_usuarios'), {'q': 'xss_user_htmx'}, HTTP_HX_REQUEST='true'
+        )
+        assert res.status_code == 200
+        assert 'text/html' in res['Content-Type']
+        html = res.content.decode('utf-8')
+        assert '<script>alert(1)</script>' not in html
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+
+    def test_api_usuarios_sin_htmx_y_con_format_json_preserva_json(self, admin_client, empresa_user):
+        res_json = admin_client.get(reverse('api_usuarios'))
+        assert res_json.status_code == 200
+        assert res_json['Content-Type'].startswith('application/json')
+        assert isinstance(res_json.json(), list)
+
+        res_fmt = admin_client.get(
+            reverse('api_usuarios'), {'format': 'json'}, HTTP_HX_REQUEST='true'
+        )
+        assert res_fmt.status_code == 200
+        assert res_fmt['Content-Type'].startswith('application/json')
+        assert isinstance(res_fmt.json(), list)
+
+    def test_dashboard_admin_wiring_htmx_en_directorio_usuarios(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="usersTableBody"' in html
+        assert 'hx-target="#usersTableBody"' in html
+        assert 'hx-swap="innerHTML"' in html
+        assert 'hx-sync=' in html
+        assert 'debouncedFilterUsers()' in html
+
+
+
 
 
 
