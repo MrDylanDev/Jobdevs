@@ -17,11 +17,11 @@
   --corp-border:         #d8dee4;
   --corp-border-subtle:  #e5e9ee;
   
-  --corp-slate-900:      #111315;
+  --corp-slate-900:      #0f172a;
   --corp-slate-800:      #1f2328;
   --corp-slate-700:      #32383f;
   --corp-slate-600:      #4b5563;
-  --corp-slate-500:      #656d76;
+  --corp-slate-500:      #64748b;
   --corp-slate-400:      #8c959f;
   --corp-slate-200:      #e2e5e9;
   --corp-slate-100:      #f1f3f5;
@@ -30,7 +30,7 @@
   /* Verde Oficial de la Landing Page (modo claro: 6.1:1 sobre blanco, AA) */
   --corp-brand:          #00713f;
   --corp-brand-neon:     #00e676;
-  --corp-brand-hover:    #00693a;
+  --corp-brand-hover:    #005c33;
   --corp-brand-light:    #e6faf0;
   --corp-brand-subtle:   rgba(0, 230, 118, 0.12);
   --corp-brand-glow:     rgba(0, 230, 118, 0.35);
@@ -50,28 +50,20 @@
   --corp-sidebar-line:   #e2e5e9;
   --corp-sidebar-hover:  #f1f3f5;
 
-  /* Alias para sobreescribir tokens heredados de dashboard.css y chat_inline.css */
-  --accent:              var(--corp-brand);
-  --accent-hover:        var(--corp-brand-hover);
+  /* Alias específicos del rol Empresa sobre tokens base heredados de dashboard.css
+     (--accent, --accent-hover, --sidebar-bg, --page-bg, --card-bg, --bg-card,
+     --bg-darker, --border, --text-primary, --text-muted y --success ya coinciden
+     con dashboard.css en modo claro y oscuro). */
   --accent-light:        var(--corp-brand-light);
   --accent-muted:        var(--corp-brand-subtle);
-  --sidebar-bg:          var(--corp-sidebar-bg);
-  --page-bg:             var(--corp-bg);
-  --card-bg:             var(--corp-surface);
-  --bg-card:             var(--corp-surface);
-  --bg-darker:           var(--corp-surface-alt);
   --bg-card-hover:       var(--corp-slate-100);
-  --border:              var(--corp-border);
-  --text-primary:        var(--corp-slate-900);
   --text-secondary:      var(--corp-slate-600);
-  --text-muted:          var(--corp-slate-500);
   --info:                var(--corp-info);
   --info-light:          var(--corp-info-light);
   --warning:             var(--corp-warning);
   --warning-light:       var(--corp-warning-light);
   --danger:              var(--corp-danger);
   --danger-light:        var(--corp-danger-light);
-  --success:             var(--corp-success);
   --success-light:       var(--corp-success-light);
   --shadow-sm:           var(--corp-shadow-sm);
   --shadow-md:           var(--corp-shadow-md);
@@ -97,32 +89,32 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --corp-bg:             #0b0c0e;
-  --corp-surface:        #16181c;
-  --corp-surface-alt:    #1f2228;
-  --corp-border:         #2c3038;
-  --corp-border-subtle:  #23262d;
+  --corp-bg:             #0a0a0a;
+  --corp-surface:        #0a0a0a;
+  --corp-surface-alt:    #0f0f0f;
+  --corp-border:         rgba(255, 255, 255, 0.1);
+  --corp-border-subtle:  rgba(255, 255, 255, 0.08);
   
-  --corp-slate-900:      #fafafa;
+  --corp-slate-900:      #ffffff;
   --corp-slate-800:      #e4e4e7;
   --corp-slate-700:      #d4d4d8;
   --corp-slate-600:      #a1a1aa;
-  --corp-slate-500:      #9ca3af;
+  --corp-slate-500:      #94a3b8;
   --corp-slate-400:      #71717a;
   --corp-slate-200:      #27272a;
   --corp-slate-100:      #18181b;
   --corp-slate-50:       #111114;
 
-  /* Verde Oficial sobre fondos oscuros (idéntico a index.css) */
-  --corp-brand:          #00e676;
-  --corp-brand-neon:     #00e676;
-  --corp-brand-hover:    #69f0ae;
-  --corp-brand-light:    rgba(0, 230, 118, 0.15);
-  --corp-brand-subtle:   rgba(0, 230, 118, 0.12);
-  --corp-brand-glow:     rgba(0, 230, 118, 0.35);
+  /* Verde Esmeralda SENA / JobDevs (alineado con Admin y Desarrollador) */
+  --corp-brand:          #16a34a;
+  --corp-brand-neon:     #16a34a;
+  --corp-brand-hover:    #15803d;
+  --corp-brand-light:    rgba(22, 163, 74, 0.1);
+  --corp-brand-subtle:   rgba(22, 163, 74, 0.15);
+  --corp-brand-glow:     rgba(22, 163, 74, 0.25);
 
-  --corp-success:        #00e676;
-  --corp-success-light:  rgba(0, 230, 118, 0.15);
+  --corp-success:        #16a34a;
+  --corp-success-light:  rgba(22, 163, 74, 0.15);
   --corp-warning:        #f59e0b;
   --corp-warning-light:  rgba(245, 158, 11, 0.15);
   --corp-danger:         #ef4444;
@@ -132,8 +124,8 @@
   --corp-gold:           #fbbf24;
 
   /* Sidebar Gris Carbón Neutro */
-  --corp-sidebar-bg:     #111316;
-  --corp-sidebar-line:   #2c3038;
+  --corp-sidebar-bg:     #0f0f0f;
+  --corp-sidebar-line:   rgba(255, 255, 255, 0.1);
   --corp-sidebar-hover:  #1f2228;
 
   /* Sombras sobre fondo negro puro */
@@ -142,177 +134,6 @@
   --corp-shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.85);
   --corp-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.9);
   --corp-shadow-pop: 0 20px 32px -5px rgba(0, 0, 0, 0.95), 0 8px 14px -6px rgba(0, 0, 0, 0.7);
-}
-
-/* ============================================================
-   SELECTOR DE TEMA CLARO / OSCURO (1:1 Idéntico a la Landing)
-   Switch técnico brutalista con esquinas rectas (border-radius: 0),
-   luna y sol siempre visibles, fondo translúcido con blur e
-   inversión total en hover.
-   ============================================================ */
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 38px;
-  padding: 0 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--corp-slate-900);
-  cursor: pointer;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0 !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  transition: background 0.25s, color 0.25s, border-color 0.25s;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.theme-toggle-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 8px;
-  border-radius: 2px;
-  color: var(--corp-brand);
-  opacity: 0.35;
-  transition: opacity 0.25s, background 0.25s, color 0.25s;
-}
-
-.theme-toggle-icon svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
-
-/* Indicador de estado activo en modo claro (aria-pressed="true" = claro activo) */
-.theme-toggle[aria-pressed="true"] .theme-toggle-icon--light,
-.theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-/* Hover en modo claro: inversión idéntica a la landing */
-.theme-toggle:hover {
-  background: #0b0f0c;
-  color: #ffffff;
-  border-color: #0b0f0c;
-}
-
-.theme-toggle:hover .theme-toggle-icon {
-  color: inherit;
-  opacity: 0.55;
-}
-
-.theme-toggle:hover[aria-pressed="true"] .theme-toggle-icon--light,
-.theme-toggle:hover[aria-pressed="false"] .theme-toggle-icon--dark {
-  opacity: 1;
-}
-
-.theme-toggle:focus-visible {
-  outline: 2px solid var(--corp-brand);
-  outline-offset: 2px;
-}
-
-/* En modo oscuro: idéntico a index.css con translucidez, blur y borde tenue */
-[data-theme="dark"] .theme-toggle {
-  background: rgba(0, 0, 0, 0.40);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  color: #ffffff;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 0 !important;
-}
-
-[data-theme="dark"] .theme-toggle-icon {
-  color: var(--corp-brand); /* #00e676 */
-  opacity: 0.35;
-}
-
-[data-theme="dark"] .theme-toggle[aria-pressed="false"] .theme-toggle-icon--dark,
-[data-theme="dark"] .theme-toggle[aria-pressed="true"] .theme-toggle-icon--light {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.10);
-}
-
-/* Hover en modo oscuro: inversión blanca sobre negro */
-[data-theme="dark"] .theme-toggle:hover {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
-}
-
-[data-theme="dark"] .theme-toggle:hover .theme-toggle-icon {
-  color: inherit;
-  opacity: 0.55;
-}
-
-[data-theme="dark"] .theme-toggle:hover[aria-pressed="false"] .theme-toggle-icon--dark,
-[data-theme="dark"] .theme-toggle:hover[aria-pressed="true"] .theme-toggle-icon--light {
-  opacity: 1;
-}
-
-/* ============================================================
-   CONMUTADOR DE IDIOMA ES / EN (1:1 Idéntico a la Landing)
-   ============================================================ */
-.lang-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--corp-slate-900);
-  text-decoration: none;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0 !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  transition: background 0.25s, color 0.25s, border-color 0.25s;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.lang-switch svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  display: block;
-}
-
-.lang-switch:hover {
-  background: #0b0f0c;
-  color: #ffffff;
-  border-color: #0b0f0c;
-}
-
-.lang-switch:focus-visible {
-  outline: 2px solid var(--corp-brand);
-  outline-offset: 2px;
-}
-
-/* En modo oscuro: fondo translúcido con blur e inversión en hover */
-[data-theme="dark"] .lang-switch {
-  background: rgba(0, 0, 0, 0.40);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  color: #ffffff;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 0 !important;
-}
-
-[data-theme="dark"] .lang-switch:hover {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
 }
 
 /* Base Body & Layout Overrides para Empresa */
@@ -377,12 +198,10 @@ button {
 }
 
 /* ============================================================
-   SIDEBAR CORPORATIVO (BLANCO)
+   SIDEBAR CORPORATIVO (base y colapsado heredados de dashboard.css)
    ============================================================ */
 .sidebar {
-  background: var(--corp-sidebar-bg) !important;
-  border-right: 0;
-  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s ease;
+  background: var(--corp-sidebar-bg);
   position: relative;
 }
 
@@ -392,19 +211,9 @@ button {
 }
 
 .sidebar-brand-collapse-btn {
-  margin-left: auto;
-  width: auto;
-  height: auto;
-  background: transparent;
-  border: 0;
   border-radius: 0;
   color: var(--corp-slate-400);
-  cursor: pointer;
   padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
   transition: color 0.15s ease;
 }
 
@@ -414,90 +223,13 @@ button {
   color: var(--corp-brand);
 }
 
-/* Estado Colapsado en Desktop (Solo Íconos) */
-@media (min-width: 769px) {
-  .sidebar.is-collapsed {
-    width: 68px !important;
-  }
-
-  .sidebar.is-collapsed .sidebar-brand {
-    padding: 16px 10px 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .sidebar.is-collapsed .sidebar-brand-text,
-  .sidebar.is-collapsed .sidebar-brand-sub,
-  .sidebar.is-collapsed .sidebar-group-label,
-  .sidebar.is-collapsed .nav-item span {
-    display: none !important;
-  }
-
-  .sidebar.is-collapsed .sidebar-brand-collapse-btn {
-    display: flex !important;
-    margin-left: 0;
-    width: auto;
-    height: auto;
-    padding: 4px;
-    border-radius: 0;
-    background: transparent;
-    color: var(--corp-slate-400);
-    border: 0;
-  }
-
-  .sidebar.is-collapsed .sidebar-brand-collapse-btn:hover {
-    background: transparent;
-    color: var(--corp-brand);
-    border-color: transparent;
-  }
-
-  .sidebar.is-collapsed .nav-item {
-    justify-content: center;
-    padding: 10px 0;
-    width: 44px;
-    margin: 0 auto 4px;
-    position: relative;
-  }
-
-  .sidebar.is-collapsed .nav-item i,
-  .sidebar.is-collapsed .nav-item .lucide {
-    margin: 0;
-    width: 20px;
-    height: 20px;
-  }
-
-  .sidebar.is-collapsed .nav-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    min-width: 8px;
-    width: 8px;
-    height: 8px;
-    padding: 0;
-    border-radius: 50%;
-    font-size: 0;
-    line-height: 0;
-  }
-
-}
-
 .sidebar-brand {
   padding: 18px 20px 16px;
-  border-bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  background: transparent;
 }
 
 .sidebar-brand img {
-  width: 38px;
-  height: 32px;
-  border-radius: 0;
-  object-fit: contain;
   box-shadow: none;
-  flex-shrink: 0;
 }
 
 .sidebar-brand-text {
@@ -508,14 +240,15 @@ button {
 }
 
 .sidebar-brand-sub {
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--corp-slate-500);
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-top: 0;
 }
 
 .sidebar-brand-sub::before {
@@ -542,37 +275,20 @@ button {
 }
 
 .sidebar-group-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-family: inherit;
   color: var(--corp-slate-400);
-  padding: 0 10px;
   margin-bottom: 0;
 }
 
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 9px 12px;
   border-radius: var(--corp-radius);
   color: var(--corp-slate-600);
-  font-size: 13.5px;
-  font-weight: 500;
+  font-family: inherit;
   transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out, opacity 0.15s ease-in-out;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
 }
 
 .nav-item i,
 .nav-item .lucide {
-  font-size: 14px;
-  width: 18px;
-  text-align: center;
   color: var(--corp-slate-500);
   transition: color 0.15s ease;
 }
@@ -590,9 +306,6 @@ button {
 .nav-item.active {
   background: var(--corp-sidebar-hover);
   color: var(--corp-slate-900);
-  font-weight: 700;
-  border-color: transparent;
-  box-shadow: none;
 }
 
 .nav-item.active i,
@@ -601,20 +314,13 @@ button {
 }
 
 .nav-badge {
-  margin-left: auto;
   background: var(--corp-brand);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 999px;
+  font-family: inherit;
   min-width: 20px;
-  text-align: center;
-  line-height: 1.4;
 }
 
 .sidebar-sep {
-  border-top: 0 !important;
+  border-top: 0;
 }
 
 .nav-item.danger {
@@ -628,7 +334,7 @@ button {
 
 .main-wrapper,
 .main-content {
-  background: var(--corp-bg) !important;
+  background: var(--corp-bg);
 }
 
 .app-layout,
@@ -891,11 +597,7 @@ button {
   transform: translateY(0);
 }
 
-/* User chip refinado & User Dropdown */
-.user-dropdown-wrapper {
-  position: relative;
-}
-
+/* User chip corporativo & overrides sobre user-dropdown heredado de dashboard.css */
 .user-chip-corp {
   display: flex;
   align-items: center;
@@ -919,27 +621,10 @@ button {
 .user-chip-corp .user-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
   background: var(--corp-slate-800);
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.user-chip-corp .user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.user-chip-info {
-  display: flex;
-  flex-direction: column;
 }
 
 .user-chip-name {
@@ -950,129 +635,66 @@ button {
 }
 
 .user-chip-role {
+  font-family: inherit;
   font-size: 12px;
   font-weight: 500;
   color: var(--corp-slate-500);
 }
 
 .user-chip-chevron {
-  width: 14px;
-  height: 14px;
   color: var(--corp-slate-500);
-  flex-shrink: 0;
   transition: transform 0.18s ease;
 }
 
-.user-chip-corp[aria-expanded="true"] .user-chip-chevron {
-  transform: rotate(180deg);
-}
-
 .user-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: min(276px, calc(100vw - 24px));
   background: var(--corp-surface);
-  border: 1px solid var(--corp-border);
+  border-color: var(--corp-border);
   border-radius: var(--corp-radius-lg);
   box-shadow: var(--corp-shadow-md);
   z-index: 120;
-  overflow: hidden;
-  animation: popoverFade 0.18s ease-out;
 }
 
 .user-dropdown-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
   background: var(--corp-surface-alt);
-  border-bottom: 1px solid var(--corp-border);
+  border-bottom-color: var(--corp-border);
 }
 
 .user-dropdown-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   background: var(--corp-slate-800);
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.user-dropdown-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.user-dropdown-meta {
-  min-width: 0;
-  flex: 1;
 }
 
 .user-dropdown-name {
-  font-size: 13px;
-  font-weight: 700;
+  font-family: inherit;
   color: var(--corp-slate-900);
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .user-dropdown-email {
+  font-family: inherit;
   font-size: 12px;
   color: var(--corp-slate-500);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .user-dropdown-tag {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 2px 8px;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  text-transform: uppercase;
-  border-radius: 999px;
   background: var(--corp-brand-light);
   color: var(--corp-brand);
-}
-
-.user-dropdown-body {
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  border: none;
 }
 
 .user-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
   border: none;
-  background: transparent;
   border-radius: var(--corp-radius);
   color: var(--corp-slate-800);
-  font-size: 13px;
-  font-weight: 500;
   font-family: inherit;
-  text-decoration: none;
-  text-align: left;
-  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
-  box-sizing: border-box;
 }
 
 .user-dropdown-item svg,
@@ -1080,13 +702,12 @@ button {
   width: 16px;
   height: 16px;
   color: var(--corp-slate-500);
-  flex-shrink: 0;
-  transition: color 0.15s ease;
 }
 
 .user-dropdown-item:hover {
   background: var(--corp-surface-alt);
   color: var(--corp-slate-900);
+  border-color: transparent;
 }
 
 .user-dropdown-item:hover svg,
@@ -1095,15 +716,10 @@ button {
 }
 
 .user-dropdown-divider {
-  height: 1px;
   background: var(--corp-border);
-  margin: 4px 6px;
 }
 
-.user-dropdown-item.is-danger {
-  color: var(--corp-danger);
-}
-
+.user-dropdown-item.is-danger,
 .user-dropdown-item.is-danger svg,
 .user-dropdown-item.is-danger i {
   color: var(--corp-danger);
@@ -1112,6 +728,7 @@ button {
 .user-dropdown-item.is-danger:hover {
   background: var(--corp-danger-light);
   color: var(--corp-danger);
+  border-color: transparent;
 }
 
 .user-dropdown-item.is-danger:hover svg,
@@ -1257,97 +874,6 @@ button {
 .activity-empty p {
   font-size: 14px;
   margin: 0;
-}
-
-/* ============================================================
-   SECCIÓN: CENTRO DE MENSAJERÍA
-   ============================================================ */
-.chat-section-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--corp-slate-500);
-  margin-bottom: 12px;
-}
-
-.chat-contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-.chat-contact-card {
-  background: var(--corp-surface);
-  border: 1px solid var(--corp-border);
-  border-radius: var(--corp-radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--corp-shadow-xs);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-}
-
-.chat-contact-card:hover {
-  border-color: var(--corp-slate-400);
-  box-shadow: var(--corp-shadow-sm);
-}
-
-.chat-contact-card.is-support {
-  max-width: 580px;
-  border-color: var(--corp-slate-900);
-}
-
-.chat-contact-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.chat-contact-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--corp-slate-800);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  font-weight: 700;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.chat-contact-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.chat-contact-avatar.support-avatar {
-  background: var(--corp-brand-light);
-  color: var(--corp-brand);
-  border-radius: var(--corp-radius);
-}
-
-.chat-contact-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--corp-slate-900);
-  line-height: 1.2;
-}
-
-.chat-contact-sub {
-  font-size: 12px;
-  color: var(--corp-slate-500);
-  margin-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ============================================================
@@ -2651,11 +2177,8 @@ button {
 
 /* ============================================================
    MODAL NUEVO PROYECTO (ENTERPRISE EDITION)
+   Base .modal-overlay heredada de dashboard.css.
    ============================================================ */
-.modal-overlay {
-  padding: 16px;
-}
-
 .modal-box-corp {
   background: var(--corp-surface);
   border-radius: 6px;
@@ -3031,15 +2554,6 @@ input[type="date"].form-input-corp::-webkit-calendar-picker-indicator:hover {
   margin-top: 2px;
   display: block;
 }
-.sidebar-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(2px);
-  z-index: 90;
-}
-
 @media (max-width: 1024px) {
   .kpi-grid-corp {
     grid-template-columns: repeat(2, 1fr);
@@ -3047,51 +2561,8 @@ input[type="date"].form-input-corp::-webkit-calendar-picker-indicator:hover {
 }
 
 @media (max-width: 768px) {
-  .mobile-menu-toggle {
-    display: inline-flex;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 260px !important;
-    transform: translateX(-100%);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
-  }
-
-  .sidebar.is-open {
-    transform: translateX(0);
-  }
-
-  .sidebar-backdrop.is-open {
-    display: block;
-  }
-
-  .sidebar-brand-text,
-  .sidebar-brand-sub,
-  .nav-item span,
-  .sidebar-group-label {
-    display: block !important;
-  }
-
-  .nav-item {
-    justify-content: flex-start !important;
-    padding: 10px 14px !important;
-  }
-
-  .nav-item i {
-    width: 20px !important;
-  }
-
   .kpi-grid-corp {
     grid-template-columns: 1fr;
-  }
-
-  .top-header {
-    padding: 0 16px;
   }
 
   .top-header-title .header-tenant {
@@ -6634,7 +6105,6 @@ h1.page-title {
 [data-theme="dark"] .btn-corp-action.success,
 [data-theme="dark"] .btn-linkedin-edit,
 [data-theme="dark"] .nav-badge,
-[data-theme="dark"] .offers-filter-pill.is-active,
 [data-theme="dark"] .datepicker-day.selected,
 [data-theme="dark"] .step-badge-corp,
 [data-theme="dark"] .onboarding-step.is-done .onboarding-step-icon,
@@ -8187,29 +7657,30 @@ body.is-chat-resizing {
 }
 
 #ofertas .offers-filter-pill {
-  border: 1px solid transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   background: transparent;
   color: var(--corp-slate-500);
   font-size: 12.5px;
   font-weight: 600;
   padding: 6px 11px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 #ofertas .offers-filter-pill:hover {
   color: var(--corp-slate-900);
-  background: var(--corp-surface-alt);
+  background: transparent;
 }
 
-#ofertas .offers-filter-pill.is-active {
-  background: var(--corp-brand-light);
-  color: var(--corp-brand);
-  border-color: rgba(0, 113, 63, 0.22);
-}
-
+#ofertas .offers-filter-pill.is-active,
 [data-theme="dark"] #ofertas .offers-filter-pill.is-active {
-  border-color: rgba(0, 230, 118, 0.28);
+  background: transparent !important;
+  color: var(--corp-brand) !important;
+  border: none !important;
+  border-bottom: 2px solid var(--corp-brand) !important;
+  font-weight: 700;
 }
 
 #ofertas .offers-stats-wrap {
@@ -9383,87 +8854,15 @@ body.is-chat-resizing {
   }
 }
 
-/* ============================================================
-   THEME TOGGLE MORPH (Uiverse adaptado a --corp-*)
-   ============================================================ */
+/* Overrides de Empresa sobre theme-toggle-morph heredado de dashboard.css */
 .theme-toggle-morph {
-  --bg: var(--corp-surface);
-  --fg: var(--corp-slate-700);
-  position: relative;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  --morph-bg: var(--corp-surface);
+  --morph-fg: var(--corp-slate-700);
 }
 
 .user-dropdown-item:hover .theme-toggle-morph {
-  --bg: var(--corp-slate-100);
-}
-
-.theme-toggle-morph .main-circle {
-  width: 8px;
-  height: 8px;
-  background-color: var(--fg);
-  border-radius: 50%;
-  position: relative;
-  transition: transform 0.35s ease;
-}
-
-.theme-toggle-morph .main-circle::after {
-  content: "";
-  background-color: var(--bg);
-  border-radius: 50%;
-  width: 6.5px;
-  height: 6.5px;
-  position: absolute;
-  top: 0;
-  right: -1px;
-  transform-origin: right top;
-  transform: scale(0);
-  transition: transform 0.35s ease, background-color 0.15s ease;
-}
-
-.theme-toggle-morph .sun-rays {
-  display: grid;
-  place-items: center;
-  position: relative;
-  position: absolute;
-  transition: transform 0.35s ease;
-}
-
-.theme-toggle-morph .sun-rays,
-.theme-toggle-morph .sun-rays::after,
-.theme-toggle-morph .sun-rays::before {
-  width: 1.8px;
-  height: 3px;
-  background-color: var(--fg);
-  position: absolute;
-  box-shadow: 0 7px 0 var(--fg), 0 -7px 0 var(--fg);
-  border-radius: 1px;
-}
-
-.theme-toggle-morph .sun-rays::after {
-  content: "";
-  transform: rotate(120deg);
-}
-
-.theme-toggle-morph .sun-rays::before {
-  content: "";
-  transform: rotate(240deg);
-}
-
-[data-theme="dark"] .theme-toggle-morph .main-circle {
-  transform: scale(1.3);
-}
-
-[data-theme="dark"] .theme-toggle-morph .main-circle::after {
-  transform: scale(1);
-}
-
-[data-theme="dark"] .theme-toggle-morph .sun-rays {
-  transform: scale(0);
+  --morph-bg: var(--corp-slate-100);
+  --morph-fg: var(--corp-slate-700);
 }
 
 /* ============================================================
@@ -9632,65 +9031,6 @@ body.is-chat-resizing {
 }
 
 /* ============================================================
-   LOGOUT SPINNER OVERLAY (Uiverse adaptado a --corp-*)
-   ============================================================ */
-.logout-spinner-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(11, 12, 14, 0.55);
-  backdrop-filter: blur(3px);
-}
-
-.logout-spinner-box {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  box-shadow: none;
-}
-
-.logout-spinner-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.logout-spinner-box .spinner {
-  position: relative;
-  width: 9px;
-  height: 9px;
-  margin: 14px 0;
-}
-
-.logout-spinner-box .spinner div {
-  position: absolute;
-  width: 50%;
-  height: 150%;
-  background: #ffffff;
-  transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
-  animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
-}
-
-.logout-spinner-box .spinner div:nth-child(1) { --delay: 0.1; --rotation: 36; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(2) { --delay: 0.2; --rotation: 72; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(3) { --delay: 0.3; --rotation: 108; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(4) { --delay: 0.4; --rotation: 144; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(5) { --delay: 0.5; --rotation: 180; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(6) { --delay: 0.6; --rotation: 216; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(7) { --delay: 0.7; --rotation: 252; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(8) { --delay: 0.8; --rotation: 288; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(9) { --delay: 0.9; --rotation: 324; --translation: 150; }
-.logout-spinner-box .spinner div:nth-child(10) { --delay: 1; --rotation: 360; --translation: 150; }
-
-/* ============================================================
    MODAL CALIFICAR EQUIPO (#modalCalificarEquipo)
    ============================================================ */
 .calificar-dev-summary {
@@ -9750,13 +9090,4 @@ body.is-chat-resizing {
 
 .corp-star-rating label:hover {
   transform: scale(1.12);
-}
-
-@keyframes spinner-fzua35 {
-  0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
-  }
-  50% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
-  }
 }
