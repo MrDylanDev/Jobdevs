@@ -27,6 +27,15 @@ elif not DEBUG and (
         "DJANGO_SECRET_KEY en producción debe ser una clave criptográfica fuerte (> 50 caracteres, >= 10 caracteres únicos y sin prefijo 'django-insecure-')."
     )
 
+# Control de auto-registro público (modo piloto=True, modo institucional SENA=False)
+ALLOW_PUBLIC_REGISTRATION = os.environ.get('ALLOW_PUBLIC_REGISTRATION', 'True').lower() in (
+    '1', 'true', 'yes', 'on',
+)
+DIAS_LIMITE_VERIFICACION_PILOTO = max(
+    1,
+    int(os.environ.get('DIAS_LIMITE_VERIFICACION_PILOTO', '3')),
+)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -384,6 +393,10 @@ CELERY_BEAT_SCHEDULE = {
     'avisos-cumplimiento-diario': {
         'task': 'notificaciones.enviar_avisos_cumplimiento',
         'schedule': crontab(hour=0, minute=0),
+    },
+    'depurar-cuentas-sin-verificar-diario': {
+        'task': 'usuarios.depurar_cuentas_sin_verificar',
+        'schedule': crontab(hour=3, minute=0),
     },
 }
 

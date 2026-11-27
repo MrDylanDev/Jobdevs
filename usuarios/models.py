@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
@@ -127,10 +128,16 @@ class PerfilEmpresa(models.Model):
         related_name='empresas_verificadas',
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    intentos_verificacion = models.PositiveSmallIntegerField(
+        default=0,
+        help_text='Número de rechazos acumulados en la verificación documental.',
+    )
     dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificada(self):
+        if es_modo_institucional():
+            return True
         return self.estado_verificacion == 'verificada'
 
     @property
@@ -231,10 +238,16 @@ class PerfilDesarrollador(models.Model):
         related_name='desarrolladores_verificados'
     )
     notas_auditoria = models.TextField(blank=True, null=True)
+    intentos_verificacion = models.PositiveSmallIntegerField(
+        default=0,
+        help_text='Número de rechazos acumulados en la verificación documental.',
+    )
     dictamen_ia = models.JSONField(blank=True, null=True, help_text='Pre-dictamen de verificacion documental asistida local')
 
     @property
     def es_verificado_sena(self):
+        if es_modo_institucional():
+            return True
         return self.estado_verificacion == 'verificado'
 
     @property
@@ -293,3 +306,9 @@ class ExcepcionFichaSena(models.Model):
         verbose_name = 'Excepción de Ficha SENA'
         verbose_name_plural = 'Excepciones de Fichas SENA'
         ordering = ['-fecha_creacion']
+
+
+def es_modo_institucional():
+    """Indica si la plataforma opera en Modo Institucional (ALLOW_PUBLIC_REGISTRATION=False)."""
+    from django.conf import settings
+    return not getattr(settings, 'ALLOW_PUBLIC_REGISTRATION', True)
