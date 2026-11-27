@@ -6,8 +6,18 @@ from django.conf import settings
 
 BASE = Path(settings.BASE_DIR)
 SSE_JS = BASE / 'static' / 'dashboard' / 'script' / 'notificaciones_sse.js'
+SSE_FILES = (
+    SSE_JS,
+    BASE / 'static' / 'dashboard' / 'script' / 'modules' / 'toast_manager.js',
+    BASE / 'static' / 'dashboard' / 'script' / 'modules' / 'sse_client.js',
+)
 POPOVER_JS = BASE / 'static' / 'dashboard' / 'script' / 'notificaciones_popover.js'
 CHAT_JS = BASE / 'static' / 'mensajes' / 'script' / 'chat_inline.js'
+CHAT_FILES = (
+    CHAT_JS,
+    BASE / 'static' / 'mensajes' / 'script' / 'modules' / 'chat_renderer.js',
+    BASE / 'static' / 'mensajes' / 'script' / 'modules' / 'chat_ws.js',
+)
 DASHBOARD_CSS = BASE / 'static' / 'dashboard' / 'css' / 'dashboard.css'
 TEMPLATES = {
     'admin': BASE / 'templates' / 'administrador' / 'Administrador.html',
@@ -18,6 +28,14 @@ TEMPLATES = {
 
 def _leer(path):
     return path.read_text(encoding='utf-8')
+
+
+def _leer_modulo(files):
+    partes = []
+    for path in files:
+        assert path.exists(), f'Falta archivo modular: {path}'
+        partes.append(_leer(path))
+    return '\n'.join(partes)
 
 
 class TestToastCSS:
@@ -45,7 +63,7 @@ class TestToastCSS:
 
 class TestToastJS:
     def test_autocierre_cinco_segundos_y_pausa(self):
-        js = _leer(SSE_JS)
+        js = _leer_modulo(SSE_FILES)
         assert 'TOAST_DURACION_MS = 5000' in js
         assert 'const pausar' in js
         assert 'const reanudar' in js
@@ -56,34 +74,34 @@ class TestToastJS:
         assert '_jdLimpiar' in js
 
     def test_expone_api_unificada(self):
-        js = _leer(SSE_JS)
+        js = _leer_modulo(SSE_FILES)
         assert 'window.JobDevsToast' in js
         assert 'window.JobDevsSSE' in js
         assert "tipo: 'success'" in js
         assert "tipo: 'error'" in js
 
     def test_mapea_tipos_de_dominio_a_tipos_visuales(self):
-        js = _leer(SSE_JS)
+        js = _leer_modulo(SSE_FILES)
         assert "aprobacion: 'success'" in js
         assert "mensaje: 'info'" in js
         assert "alerta: 'warning'" in js
         assert "error: 'error'" in js
 
     def test_no_inyecta_mensajes_con_innerhtml(self):
-        js = _leer(SSE_JS)
+        js = _leer_modulo(SSE_FILES)
         assert 'innerHTML' not in js
         assert 'textContent = titulo' in js
         assert 'textContent = mensaje' in js
 
     def test_conserva_integracion_con_popover(self):
-        js = _leer(SSE_JS)
+        js = _leer_modulo(SSE_FILES)
         assert 'notifPopover' in js
         assert 'JobDevsNotificaciones' in js
 
 
 class TestIntegracionWebSocket:
     def test_chat_notifica_mensajes_entrantes_con_el_toast_unificado(self):
-        js = _leer(CHAT_JS)
+        js = _leer_modulo(CHAT_FILES)
         assert 'notificarMensajeEntrante' in js
         assert 'window.JobDevsToast' in js
         assert "tipo: 'mensaje'" in js

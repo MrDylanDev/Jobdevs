@@ -30,7 +30,7 @@
     <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
     <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
     {% if request.user.is_authenticated %}
-    <script src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
+    <script type="module" src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
     <script>
