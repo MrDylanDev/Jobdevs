@@ -783,6 +783,14 @@ class TestAdminFiltroFechaRegistroSCRUM226:
         assert 'name="fecha_hasta"' in content
         assert 'data-fecha-registro=' in content
 
+    def test_boton_aplicar_filtro_fecha_no_recarga_pagina(self, admin_client, db):
+        """El botón Aplicar del filtro Registro no debe enviar el formulario ni recargar la página."""
+        content = admin_client.get(reverse('dashboard_admin')).content.decode()
+
+        assert 'data-testid="btn-aplicar-fecha-registro"' in content
+        assert 'type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()"' in content
+        assert 'onsubmit="event.preventDefault(); filterUsers();"' in content
+
     def test_api_usuarios_filtra_por_fecha_desde(self, admin_client, db):
         """api_usuarios respeta el parámetro fecha_desde."""
         self._crear_usuario_con_registro('api_viejo_desde', timezone.now() - timedelta(days=60))
@@ -844,13 +852,12 @@ class TestAdminModoVerificacionSenaSCRUM311:
         assert response.context['sena_modo_verificacion'] == 'pasarela_externa'
         assert response.context['sena_api_url'] == 'https://sofia.sena.edu.co/api'
 
-    def test_template_renderiza_badge_modo_verificacion_sena(self, admin_client, db):
-        """La sección de fichas SENA muestra el badge del mecanismo oficial activo."""
+    def test_template_oculta_banner_modo_verificacion_sena(self, admin_client, db):
+        """La sección de fichas SENA no muestra el banner redundante de modo de verificación."""
         content = admin_client.get(reverse('dashboard_admin')).content.decode()
 
-        assert 'data-testid="badge-modo-verificacion-sena"' in content
-        assert 'Padrón Institucional Local' in content
-        assert 'SOFIA Plus' in content
+        assert 'data-testid="badge-modo-verificacion-sena"' not in content
+        assert 'fichasSenaSection' in content
 
 
 class TestAdminExcepcionesFichaSenaSCRUM225:
@@ -989,13 +996,623 @@ class TestAdminExcepcionesFichaSenaSCRUM225:
 
 
 class TestVisorLogsTecnicosTemplate:
-    """SCRUM-317 (HU-A18): el panel admin expone la sección de logs técnicos."""
+    """El panel admin ya no expone el visor de logs técnicos del servidor."""
 
-    def test_dashboard_renderiza_visor_logs_tecnicos(self, admin_client):
+    def test_dashboard_oculta_visor_logs_tecnicos(self, admin_client):
         response = admin_client.get(reverse('dashboard_admin'))
         assert response.status_code == 200
         contenido = response.content.decode('utf-8')
-        assert 'logsTecnicosSection' in contenido
-        assert 'data-testid="visor-logs-tecnicos"' in contenido
-        assert 'data-testid="btn-refrescar-logs"' in contenido
-        assert 'cargarLogsTecnicos' in contenido
+        assert 'logsTecnicosSection' not in contenido
+        assert 'data-testid="visor-logs-tecnicos"' not in contenido
+
+
+@pytest.mark.django_db
+class TestProteccionPermisosAdmin:
+    """Un admin no puede auto-suspenderse ni gestionar otros admins salvo que sea superuser."""
+
+    def test_admin_no_puede_suspenderse_a_si_mismo(self, admin_client, admin_user):
+        response = admin_client.post(reverse('admin_toggle_usuario', args=[admin_user.id]))
+        assert response.status_code == 302
+        admin_user.refresh_from_db()
+        assert admin_user.is_active is True
+        assert admin_user.estado == 'activo'
+
+    def test_admin_comun_no_puede_suspender_otro_admin(self, client):
+        admin_comun = User.objects.create_user(
+            username='admin_comun_1', email='ac1@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        otro_admin = User.objects.create_user(
+            username='admin_comun_2', email='ac2@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        client.force_login(admin_comun)
+        response = client.post(reverse('admin_toggle_usuario', args=[otro_admin.id]))
+        assert response.status_code == 302
+        otro_admin.refresh_from_db()
+        assert otro_admin.is_active is True
+
+    def test_admin_si_puede_suspender_desarrollador(self, client):
+        admin_comun = User.objects.create_user(
+            username='admin_ok_1', email='aok1@test.jobdevs',
+            password='Password123!', rol='administrador',
+        )
+        dev_target = User.objects.create_user(
+            username='dev_target_1', email='dt1@test.jobdevs',
+            password='Password123!', rol='desarrollador',
+        )
+        client.force_login(admin_comun)
+        response = client.post(reverse('admin_toggle_usuario', args=[dev_target.id]))
+        assert response.status_code == 302
+        dev_target.refresh_from_db()
+        assert dev_target.is_active is False
+
+    def test_admin_comun_no_puede_eliminar_otro_admin(self, client):
+        admin_comun = User.objects.create_user(
+            username='admin_del_1', email='ad1@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        otro_admin = User.objects.create_user(
+            username='admin_del_2', email='ad2@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        client.force_login(admin_comun)
+        response = client.delete(reverse('api_eliminar_usuario', args=[otro_admin.id]))
+        assert response.status_code == 403
+        assert User.objects.filter(id=otro_admin.id).exists()
+
+    def test_admin_comun_no_puede_editar_otro_admin(self, client):
+        import json as _json
+        admin_comun = User.objects.create_user(
+            username='admin_upd_1', email='au1@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        otro_admin = User.objects.create_user(
+            username='admin_upd_2', email='au2@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        client.force_login(admin_comun)
+        response = client.put(
+            reverse('api_actualizar_usuario', args=[otro_admin.id]),
+            data=_json.dumps({'nombre': 'Hackeado'}),
+            content_type='application/json',
+        )
+        assert response.status_code == 403
+        otro_admin.refresh_from_db()
+        assert otro_admin.nombre != 'Hackeado'
+
+    def test_bulk_toggle_no_suspende_propio_ni_otros_admins(self, client):
+        import json as _json
+        admin_comun = User.objects.create_user(
+            username='admin_blk_1', email='ab1@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        otro_admin = User.objects.create_user(
+            username='admin_blk_2', email='ab2@test.jobdevs',
+            password='Password123!', rol='administrador', is_superuser=False,
+        )
+        client.force_login(admin_comun)
+        response = client.post(
+            reverse('api_bulk_toggle'),
+            data=_json.dumps({'ids': [admin_comun.id, otro_admin.id], 'action': 'suspend'}),
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        admin_comun.refresh_from_db()
+        otro_admin.refresh_from_db()
+        assert admin_comun.is_active is True
+        assert otro_admin.is_active is True
+
+    def test_crear_empresa_valida_nit_con_algoritmo_dian(self, admin_client):
+        import json as _json
+        res_bad = admin_client.post(
+            reverse('api_crear_usuario'),
+            data=_json.dumps({
+                'nombre': 'Empresa NIT Malo',
+                'username': 'emp_nit_malo',
+                'email': 'nitmalo@test.jobdevs',
+                'identificacion': '899.999.034-9',
+                'password': 'Password123!',
+                'rol': 'empresa',
+            }),
+            content_type='application/json',
+        )
+        assert res_bad.status_code == 400
+        assert not User.objects.filter(username='emp_nit_malo').exists()
+
+        res_ok = admin_client.post(
+            reverse('api_crear_usuario'),
+            data=_json.dumps({
+                'nombre': 'Empresa NIT Bueno',
+                'username': 'emp_nit_bueno',
+                'email': 'nitbueno@test.jobdevs',
+                'identificacion': '899.999.034-1',
+                'password': 'Password123!',
+                'rol': 'empresa',
+            }),
+            content_type='application/json',
+        )
+        assert res_ok.status_code == 201
+        assert User.objects.filter(username='emp_nit_bueno').exists()
+
+    def test_crear_usuario_valida_y_sanitiza_cc_y_ti(self, admin_client):
+        import json as _json
+        res_bad_cc = admin_client.post(
+            reverse('api_crear_usuario'),
+            data=_json.dumps({
+                'nombre': 'Dev CC Mala',
+                'username': 'dev_cc_mala',
+                'email': 'devccmala@test.jobdevs',
+                'identificacion': '123',
+                'password': 'Password123!',
+                'rol': 'desarrollador',
+            }),
+            content_type='application/json',
+        )
+        assert res_bad_cc.status_code == 400
+        assert 'error' in res_bad_cc.json()
+
+        res_ok_cc = admin_client.post(
+            reverse('api_crear_usuario'),
+            data=_json.dumps({
+                'nombre': 'Dev CC Buena',
+                'username': 'dev_cc_buena',
+                'email': 'devccbuena@test.jobdevs',
+                'identificacion': '1.020.304.050',
+                'password': 'Password123!',
+                'rol': 'desarrollador',
+            }),
+            content_type='application/json',
+        )
+        assert res_ok_cc.status_code == 201
+        assert User.objects.get(username='dev_cc_buena').identificacion == '1020304050'
+
+        res_ok_ti = admin_client.post(
+            reverse('api_crear_usuario'),
+            data=_json.dumps({
+                'nombre': 'Dev TI Buena',
+                'username': 'dev_ti_buena',
+                'email': 'devtibuena@test.jobdevs',
+                'tipo_documento': 'ti',
+                'identificacion': '1000234567',
+                'password': 'Password123!',
+                'rol': 'desarrollador',
+            }),
+            content_type='application/json',
+        )
+        assert res_ok_ti.status_code == 201
+        assert User.objects.get(username='dev_ti_buena').identificacion == '1000234567'
+
+
+class TestApiAuditoria:
+    """Tests for admin audit log API, filters, pagination, CSV export, and UI controls."""
+
+    def test_solo_administradores_acceden_a_api_auditoria(self, auth_client, dev_client, client):
+        url = reverse('api_auditoria')
+        assert client.get(url).status_code == 403
+        assert auth_client.get(url).status_code == 403
+        assert dev_client.get(url).status_code == 403
+
+    def test_api_auditoria_filtra_pagina_y_expone_campos_detalle(self, admin_client, admin_user):
+        from logs.models import LogAuditoria
+
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='Aprobó empresa Acme',
+            tabla_afectada='perfiles_empresa',
+            registro_id=42,
+            valor_anterior='pendiente',
+            valor_nuevo='verificada',
+        )
+        LogAuditoria.objects.create(
+            usuario=None,
+            accion='Depuración automática de notificaciones',
+            tabla_afectada='notificaciones',
+            registro_id=None,
+            valor_anterior='',
+            valor_nuevo='15 eliminadas',
+        )
+
+        # Listado paginado
+        res = admin_client.get(reverse('api_auditoria'), {'limit': 1, 'page': 1})
+        assert res.status_code == 200
+        data = res.json()
+        assert data['total'] >= 2
+        assert data['total_pages'] >= 2
+        assert data['page'] == 1
+        assert len(data['logs']) == 1
+        assert 'perfiles_empresa' in data['tablas']
+
+        # Filtro por tabla y texto
+        res_filt = admin_client.get(reverse('api_auditoria'), {'tabla': 'perfiles_empresa', 'q': 'Acme'})
+        assert res_filt.status_code == 200
+        logs = res_filt.json()['logs']
+        assert len(logs) == 1
+        assert logs[0]['registro_id'] == 42
+        assert logs[0]['valor_anterior'] == 'pendiente'
+        assert logs[0]['valor_nuevo'] == 'verificada'
+        assert logs[0]['usuario'] == admin_user.username
+
+        # Usuario null aparece como Sistema y se puede filtrar por "Sistema"
+        res_sys = admin_client.get(reverse('api_auditoria'), {'usuario': 'Sistema'})
+        assert res_sys.status_code == 200
+        sys_logs = res_sys.json()['logs']
+        assert any(l['usuario'] == 'Sistema' and l['tabla_afectada'] == 'notificaciones' for l in sys_logs)
+
+        # Paginación inválida -> 400
+        assert admin_client.get(reverse('api_auditoria'), {'page': '0'}).status_code == 400
+        assert admin_client.get(reverse('api_auditoria'), {'limit': 'abc'}).status_code == 400
+
+    def test_api_auditoria_exporta_csv_y_neutraliza_formulas(self, admin_client, admin_user):
+        from logs.models import LogAuditoria
+
+        LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='=CMD("calc")',
+            tabla_afectada='usuarios',
+            registro_id=7,
+            valor_anterior='activo',
+            valor_nuevo='inactivo',
+        )
+
+        res = admin_client.get(reverse('api_auditoria'), {'export': 'csv', 'tabla': 'usuarios'})
+        assert res.status_code == 200
+        assert 'text/csv' in res['Content-Type']
+        assert 'attachment; filename="auditoria.csv"' in res['Content-Disposition']
+        body = res.content.decode('utf-8-sig')
+        assert 'ID,Usuario,Acción,Tabla,Registro ID,Valor Anterior,Valor Nuevo,Fecha y Hora' in body
+        assert "'=CMD(" in body
+
+    def test_dashboard_admin_renderiza_controles_auditoria_y_fechas_chats(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="auditLogsForm"' in html
+        assert 'id="auditLogDetailModal"' in html
+        assert 'id="auditExportCsvBtn"' not in html
+        assert 'id="auditChatsNoticeModal"' in html
+        assert 'name="fecha_desde"' in html
+        assert 'name="fecha_hasta"' in html
+
+    def test_api_auditoria_filtra_por_rango_fechas_y_filtros_combinados(self, admin_client, admin_user, empresa_user):
+        from logs.models import LogAuditoria
+
+        hoy = timezone.now()
+        hace_10_dias = hoy - timedelta(days=10)
+
+        log_viejo = LogAuditoria.objects.create(
+            usuario=admin_user,
+            accion='Suspendió cuenta antigua',
+            tabla_afectada='usuarios',
+            registro_id=101,
+            valor_anterior='activo',
+            valor_nuevo='suspendido',
+        )
+        LogAuditoria.objects.filter(pk=log_viejo.pk).update(fecha_hora=hace_10_dias)
+
+        log_reciente = LogAuditoria.objects.create(
+            usuario=empresa_user,
+            accion='Actualizó perfil comercial',
+            tabla_afectada='perfiles_empresa',
+            registro_id=202,
+            valor_anterior='borrador',
+            valor_nuevo='publicado',
+        )
+
+        # Rango de fechas: últimos 2 días solo trae log_reciente
+        desde = (hoy - timedelta(days=2)).date().isoformat()
+        hasta = hoy.date().isoformat()
+        res_rango = admin_client.get(reverse('api_auditoria'), {
+            'fecha_desde': desde,
+            'fecha_hasta': hasta,
+            'tabla': 'perfiles_empresa',
+            'usuario': empresa_user.username,
+            'q': 'publicado',
+        })
+        assert res_rango.status_code == 200
+        ids = [item['id'] for item in res_rango.json()['logs']]
+        assert ids == [log_reciente.id]
+
+        # Rango antiguo solo trae log_viejo
+        desde_viejo = (hace_10_dias - timedelta(days=1)).date().isoformat()
+        hasta_viejo = (hace_10_dias + timedelta(days=1)).date().isoformat()
+        res_viejo = admin_client.get(reverse('api_auditoria'), {
+            'fecha_desde': desde_viejo,
+            'fecha_hasta': hasta_viejo,
+            'tabla': 'usuarios',
+        })
+        assert res_viejo.status_code == 200
+        ids_viejo = [item['id'] for item in res_viejo.json()['logs']]
+        assert ids_viejo == [log_viejo.id]
+
+        # CSV respeta el mismo filtro de fechas
+        res_csv = admin_client.get(reverse('api_auditoria'), {
+            'export': 'csv',
+            'fecha_desde': desde_viejo,
+            'fecha_hasta': hasta_viejo,
+            'tabla': 'usuarios',
+        })
+        assert res_csv.status_code == 200
+        csv_text = res_csv.content.decode('utf-8-sig')
+        assert 'Suspendió cuenta antigua' in csv_text
+        assert 'Actualizó perfil comercial' not in csv_text
+
+
+class TestAdminSidebar:
+    """Tests for the Admin sidebar structure matching Developer sidebar."""
+
+    def test_admin_sidebar_tiene_logo_boton_colapsar_y_sin_cerrar_sesion(self, admin_client):
+        response = admin_client.get(reverse('dashboard_admin'))
+        assert response.status_code == 200
+        html = response.content.decode()
+
+        sidebar_start = html.index('id="adminSidebar"')
+        sidebar_end = html.index('</aside>', sidebar_start)
+        sidebar_html = html[sidebar_start:sidebar_end]
+
+        assert 'JobDevs_logo_vector_transparente.svg' in sidebar_html
+        assert 'class="sidebar-brand-logo"' in sidebar_html
+        assert '[ PANEL MAESTRO ]' in sidebar_html
+        assert 'id="sidebarCollapseBtn"' in sidebar_html
+        assert 'onclick="toggleSidebarCollapse()"' in sidebar_html
+        assert 'Cerrar Sesión' not in sidebar_html
+        assert 'sidebar-sep' not in sidebar_html
+
+        # Cerrar Sesión sigue disponible en el menú desplegable del usuario
+        dropdown_start = html.index('id="adminUserDropdownMenu"')
+        dropdown_end = html.index('</header>', dropdown_start)
+        assert 'Cerrar Sesión' in html[dropdown_start:dropdown_end]
+
+
+class TestAdminChatAvatars:
+    """Avatars/logos in Admin conversation list render <img> with onerror fallback."""
+
+    def test_admin_conversaciones_renderiza_logo_empresa_y_foto_dev(
+        self, admin_client, admin_user, empresa_user, desarrollador_user, tmp_path
+    ):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from mensajes.models import Mensaje
+        from usuarios.models import PerfilDesarrollador, PerfilEmpresa
+
+        gif_bytes = (
+            b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00'
+            b'!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01'
+            b'\x00\x00\x02\x02D\x01\x00;'
+        )
+        sin_perfil_user = User.objects.create_user(
+            username='sin_perfil_chat',
+            email='sinperfil@test.com',
+            password='Password123!',
+            rol='empresa',
+            estado='activo',
+        )
+
+        with override_settings(MEDIA_ROOT=tmp_path):
+            perfil_emp, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+            perfil_emp.logo = SimpleUploadedFile('logo_emp.gif', gif_bytes, content_type='image/gif')
+            perfil_emp.save()
+
+            perfil_dev, _ = PerfilDesarrollador.objects.get_or_create(usuario=desarrollador_user)
+            perfil_dev.foto_perfil = SimpleUploadedFile('foto_dev.gif', gif_bytes, content_type='image/gif')
+            perfil_dev.save()
+
+            Mensaje.objects.create(
+                remitente=empresa_user, receptor=admin_user, contenido='Hola admin emp'
+            )
+            Mensaje.objects.create(
+                remitente=desarrollador_user, receptor=admin_user, contenido='Hola admin dev'
+            )
+            Mensaje.objects.create(
+                remitente=sin_perfil_user, receptor=admin_user, contenido='Hola sin perfil'
+            )
+
+            response = admin_client.get(reverse('dashboard_admin'))
+            assert response.status_code == 200
+            html = response.content.decode()
+
+            chat_start = html.index('id="chatSection"')
+            chat_end = html.index('</section>', chat_start)
+            chat_html = html[chat_start:chat_end]
+
+            assert perfil_emp.logo.url in chat_html
+            assert perfil_dev.foto_perfil.url in chat_html
+            assert '<img ' in chat_html
+            assert 'onerror=' in chat_html
+            # Usuario sin perfil hace fallback a la inicial
+            import re
+            inicial = sin_perfil_user.username[:1].upper()
+            assert re.search(rf'<span class="jd-chat-avatar">\s*{re.escape(inicial)}\s*</span>', chat_html)
+
+
+class TestApiUsuariosYActualizarAdmin:
+    """TDD tests for Admin points 1 & 2: date_joined in api_usuarios & identificacion in api_actualizar_usuario."""
+
+    def test_api_usuarios_incluye_date_joined_paginado_y_sin_paginar(self, admin_client, empresa_user):
+        """Point 1: api_usuarios incluye date_joined en respuestas paginadas y no paginadas."""
+        resp_all = admin_client.get(reverse('api_usuarios'))
+        assert resp_all.status_code == 200
+        data_all = resp_all.json()
+        assert len(data_all) >= 1
+        for u in data_all:
+            assert 'date_joined' in u
+            assert u['date_joined']
+
+        resp_pag = admin_client.get(reverse('api_usuarios') + '?limit=5&page=1')
+        assert resp_pag.status_code == 200
+        data_pag = resp_pag.json()
+        assert len(data_pag['usuarios']) >= 1
+        for u in data_pag['usuarios']:
+            assert 'date_joined' in u
+            assert u['date_joined']
+
+    def test_api_usuarios_filtra_mas_de_25_usuarios_por_fechas_y_q(self, admin_client, db):
+        """Point 1: api_usuarios filtra correctamente sobre >25 usuarios por fecha_desde, fecha_hasta y q."""
+        ahora = timezone.now()
+        usuarios = [
+            User(
+                username=f'bulk_filter_{i:02d}',
+                email=f'bulk_filter_{i:02d}@test.jobdevs',
+                nombre=f'Bulk Filter {i:02d}',
+                rol='desarrollador',
+                date_joined=ahora - timedelta(days=40 if i < 26 else 2),
+            )
+            for i in range(30)
+        ]
+        User.objects.bulk_create(usuarios)
+        # Ensure bulk_create dates are persisted as intended
+        for i in range(30):
+            User.objects.filter(username=f'bulk_filter_{i:02d}').update(
+                date_joined=ahora - timedelta(days=40 if i < 26 else 2)
+            )
+
+        desde = (ahora - timedelta(days=5)).date().isoformat()
+        hasta = ahora.date().isoformat()
+        resp = admin_client.get(
+            reverse('api_usuarios'),
+            {'fecha_desde': desde, 'fecha_hasta': hasta, 'q': 'bulk_filter_'},
+        )
+        assert resp.status_code == 200
+        usernames = {u['username'] for u in resp.json()}
+        assert usernames == {f'bulk_filter_{i:02d}' for i in range(26, 30)}
+
+        # Also check older user beyond 25 when filtering by q and older fecha_hasta
+        hasta_viejo = (ahora - timedelta(days=30)).date().isoformat()
+        resp_old = admin_client.get(
+            reverse('api_usuarios'),
+            {'fecha_hasta': hasta_viejo, 'q': 'bulk_filter_00'},
+        )
+        assert resp_old.status_code == 200
+        old_data = resp_old.json()
+        assert len(old_data) == 1
+        assert old_data[0]['username'] == 'bulk_filter_00'
+        assert 'date_joined' in old_data[0]
+
+    def test_api_actualizar_usuario_actualiza_cc_sanitizada_y_audita(self, admin_client, desarrollador_user):
+        """Point 2: api_actualizar_usuario valida y sanitiza CC, actualiza y registra en LogAuditoria."""
+        import json as _json
+        from logs.models import LogAuditoria
+
+        resp = admin_client.put(
+            reverse('api_actualizar_usuario', args=[desarrollador_user.id]),
+            data=_json.dumps({'identificacion': '1.020.304.050'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        assert resp.json()['status'] == 'updated'
+
+        desarrollador_user.refresh_from_db()
+        assert desarrollador_user.identificacion == '1020304050'
+
+        log = LogAuditoria.objects.filter(
+            tabla_afectada='usuarios', registro_id=desarrollador_user.id
+        ).order_by('-id').first()
+        assert log is not None
+        assert 'identificacion' in log.accion
+        assert 'identificacion=1020304050' in log.valor_nuevo
+
+    def test_api_actualizar_usuario_rechaza_cc_invalida(self, admin_client, desarrollador_user):
+        """Point 2: api_actualizar_usuario retorna 400 con CC inválida sin modificar BD."""
+        import json as _json
+
+        ident_original = desarrollador_user.identificacion
+        resp = admin_client.put(
+            reverse('api_actualizar_usuario', args=[desarrollador_user.id]),
+            data=_json.dumps({'identificacion': '123'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+        assert 'error' in resp.json()
+
+        desarrollador_user.refresh_from_db()
+        assert desarrollador_user.identificacion == ident_original
+
+    def test_api_actualizar_usuario_rechaza_identificacion_duplicada(
+        self, admin_client, desarrollador_user, empresa_user
+    ):
+        """Point 2: api_actualizar_usuario retorna 400 si otro usuario ya tiene esa identificación."""
+        import json as _json
+
+        empresa_user.identificacion = '1098765432'
+        empresa_user.save(update_fields=['identificacion'])
+        ident_original = desarrollador_user.identificacion
+
+        resp = admin_client.put(
+            reverse('api_actualizar_usuario', args=[desarrollador_user.id]),
+            data=_json.dumps({'identificacion': '1.098.765.432'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+        assert resp.json()['error'] == 'Ya existe otro usuario con esa identificación.'
+
+        desarrollador_user.refresh_from_db()
+        assert desarrollador_user.identificacion == ident_original
+
+    def test_api_actualizar_usuario_preserva_comportamiento_sin_identificacion(
+        self, admin_client, desarrollador_user
+    ):
+        """Point 2 (PRESERVE): omitir identificacion mantiene el comportamiento existente."""
+        import json as _json
+
+        desarrollador_user.identificacion = '1011223344'
+        desarrollador_user.save(update_fields=['identificacion'])
+
+        resp = admin_client.put(
+            reverse('api_actualizar_usuario', args=[desarrollador_user.id]),
+            data=_json.dumps({'nombre': 'Nuevo Nombre Dev'}),
+            content_type='application/json',
+        )
+        assert resp.status_code == 200
+        desarrollador_user.refresh_from_db()
+        assert desarrollador_user.nombre == 'Nuevo Nombre Dev'
+        assert desarrollador_user.identificacion == '1011223344'
+
+
+class TestAdminEsModules:
+    """Verifica la arquitectura ES Modules del Panel Administrador y sus bindings globales."""
+
+    def test_template_carga_administrador_js_como_modulo(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert '<script type="module" src="' in html
+        assert 'administrador/script/administrador.js?v=20261126_mod1' in html
+        assert 'id="auditLogsForm" data-api-url=' in html
+        assert 'id="auditChatsForm" data-api-url=' in html
+        assert 'data-url-crear=' in html
+
+    def test_todos_los_handlers_inline_tienen_binding_window(self):
+        import re
+        from pathlib import Path
+        from django.conf import settings
+
+        base = Path(settings.BASE_DIR)
+        js_files = [
+            base / 'static/administrador/script/administrador.js',
+            base / 'static/administrador/script/modules/ui_core.js',
+            base / 'static/administrador/script/modules/usuarios_verificaciones.js',
+            base / 'static/administrador/script/modules/auditoria_reportes.js',
+        ]
+        window_bindings = set()
+        for js_file in js_files:
+            assert js_file.exists(), f'Falta módulo ES: {js_file}'
+            text = js_file.read_text(encoding='utf-8')
+            for imp in re.findall(r"from\s+['\"](\.[^'\"]+)['\"]", text):
+                assert (js_file.parent / imp).resolve().exists(), f'Import roto {imp} en {js_file}'
+            for match in re.findall(r'window\.([A-Za-z_$][A-Za-z0-9_$]*)\s*=(?!=)', text):
+                window_bindings.add(match)
+
+        html = (base / 'templates/administrador/Administrador.html').read_text(encoding='utf-8')
+        handlers = re.findall(r'on(?:click|change|submit|input)="([^"]+)"', html)
+        called_fns = set()
+        for handler in handlers:
+            for fn in re.findall(r'\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(', handler):
+                if fn not in ('if', 'preventDefault'):
+                    called_fns.add(fn)
+
+        missing = sorted(called_fns - window_bindings)
+        assert not missing, f'Handlers inline sin binding window.*: {missing}'
+
+
+
+
+
