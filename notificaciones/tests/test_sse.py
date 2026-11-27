@@ -120,18 +120,38 @@ class TestNotificacionesSSE:
         # Verificar render de base.html
         base_rendered = render_to_string('base.html', request=request)
         assert 'notificaciones_sse.js' in base_rendered
+        assert 'type="module"' in base_rendered
 
-        # Verificar presencia en templates de dashboards
-        for tpl in ['Desarrollador/Desarrollador.html', 'empresa/empresa.html', 'administrador/Administrador.html']:
+        # Verificar presencia en templates base y de dashboards con type="module"
+        for tpl in [
+            'base.html',
+            'avances/registrar.html',
+            'Desarrollador/Desarrollador.html',
+            'empresa/empresa.html',
+            'administrador/Administrador.html',
+        ]:
             with open(f'templates/{tpl}', 'r', encoding='utf-8') as f:
                 content = f.read()
             assert 'notificaciones_sse.js' in content, f"Template {tpl} debe cargar notificaciones_sse.js"
+            assert (
+                '<script type="module" src="{% static \'dashboard/script/notificaciones_sse.js\' %}' in content
+            ), f"Template {tpl} debe cargar notificaciones_sse.js con type=\"module\""
 
     def test_notificaciones_sse_script_protegido_contra_xss(self):
-        """SCRUM-462: static/dashboard/script/notificaciones_sse.js no debe interpolar
+        """SCRUM-462: static/dashboard/script/notificaciones_sse.js y sus módulos no deben interpolar
         data.mensaje, data.tipo ni data.fecha directamente en innerHTML."""
-        with open('static/dashboard/script/notificaciones_sse.js', 'r', encoding='utf-8') as f:
-            content = f.read()
+        from pathlib import Path
+
+        rutas = [
+            Path('static/dashboard/script/notificaciones_sse.js'),
+            Path('static/dashboard/script/modules/toast_manager.js'),
+            Path('static/dashboard/script/modules/sse_client.js'),
+        ]
+        partes = []
+        for ruta in rutas:
+            assert ruta.exists(), f"Falta archivo modular SSE: {ruta}"
+            partes.append(ruta.read_text(encoding='utf-8'))
+        content = '\n'.join(partes)
 
         assert '${data.mensaje' not in content, "data.mensaje no debe interpolarse en innerHTML (XSS)"
         assert '${data.tipo' not in content, "data.tipo no debe interpolarse en innerHTML (XSS)"

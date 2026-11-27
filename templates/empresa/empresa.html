@@ -10,8 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261126_v35">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modules/dashboard_chat.css' %}?v=20261126_v35">
   <link rel="stylesheet" href="{% static 'disputas/css/disputas.css' %}?v=20261115_v11">
   <link rel="stylesheet" href="{% static 'empresa/css/empresa.css' %}?v=20261121_v3">
+  <link rel="stylesheet" href="{% static 'empresa/css/modules/empresa_ofertas_desarrollo.css' %}?v=20261121_v3">
+  <link rel="stylesheet" href="{% static 'empresa/css/modules/empresa_contratos_hitos.css' %}?v=20261121_v3">
+  <link rel="stylesheet" href="{% static 'empresa/css/modules/empresa_disputas_perfil.css' %}?v=20261121_v3">
+  <link rel="stylesheet" href="{% static 'empresa/css/modules/empresa_sober_overrides.css' %}?v=20261121_v3">
   <link rel="stylesheet" href="{% static 'mensajes/css/chat_inline.css' %}?v=20261121_v2">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261126_v33">
   <script>
@@ -2585,9 +2590,9 @@ function toggleCiudadProyecto(selectEl, groupTargetId) {
 </div>
 
 <script type="module" src="{% static 'empresa/script/empresa.js' %}?v=20261126_mod1"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
+<script type="module" src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
 <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
-<script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
+<script type="module" src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
 </body>
 </html>

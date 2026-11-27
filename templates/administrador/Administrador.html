@@ -8,7 +8,11 @@
   <link rel="shortcut icon" href="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=20261126_v35">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modules/dashboard_chat.css' %}?v=20261126_v35">
   <link rel="stylesheet" href="{% static 'administrador/css/admin.css' %}?v=20261126_v37">
+  <link rel="stylesheet" href="{% static 'administrador/css/modules/admin_stats_bento.css' %}?v=20261126_v37">
+  <link rel="stylesheet" href="{% static 'administrador/css/modules/admin_users_pro.css' %}?v=20261126_v37">
+  <link rel="stylesheet" href="{% static 'administrador/css/modules/admin_light_theme.css' %}?v=20261126_v37">
   <script>
     (function () {
       try {
@@ -2228,8 +2232,8 @@
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script type="module" src="{% static 'administrador/script/administrador.js' %}?v=20261126_mod1"></script>
-<script src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
-<script src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
+<script type="module" src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
+<script type="module" src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
 <script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
 <!-- Overlay de Spinner al Cerrar Sesión (Idéntico a Dev/Empresa) -->

@@ -1,0 +1,938 @@
+/* ============================================================
+   JobDevs - Empresa Module: Ofertas, Candidatos, Desarrollo,
+   Reputación e Historial
+   Loaded in parallel after empresa.css (before empresa_sober_overrides.css).
+   ============================================================ */
+
+/* ============================================================
+   SECCIÓN: MIS OFERTAS PUBLICADAS
+   ============================================================ */
+.offers-grid-corp {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.offer-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px;
+  box-shadow: var(--corp-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+
+.offer-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.offer-badge-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+
+.offer-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.offer-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+  margin-bottom: 18px;
+}
+
+.offer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--corp-border-subtle);
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+/* ============================================================
+   DRAWER / SLIDE-OVER DE CANDIDATOS IN-SITU
+   ============================================================ */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1050;
+  justify-content: flex-end;
+}
+
+.drawer-overlay.is-open {
+  display: flex;
+}
+
+.drawer-panel {
+  width: 100%;
+  max-width: 660px;
+  background: var(--corp-surface);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -6px 0 24px rgba(15, 23, 42, 0.18);
+  animation: slideDrawerRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDrawerRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.drawer-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--corp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--corp-slate-50);
+}
+
+.drawer-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  margin-top: 3px;
+  line-height: 1.25;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--corp-bg);
+}
+
+.drawer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--corp-slate-500);
+  font-size: 14px;
+  gap: 12px;
+}
+
+.drawer-loading i {
+  font-size: 32px;
+  color: var(--corp-brand);
+}
+
+.drawer-loading .lucide,
+.drawer-loading [data-lucide] {
+  width: 32px;
+  height: 32px;
+  color: var(--corp-brand);
+}
+
+.drawer-candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-candidate-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 20px;
+  box-shadow: var(--corp-shadow-xs);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.drawer-candidate-card:hover {
+  border-color: var(--corp-slate-400);
+  box-shadow: var(--corp-shadow-sm);
+}
+
+/* Ofertas Toolbar & Metrics */
+.offers-toolbar-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--corp-shadow-xs);
+  flex-wrap: wrap;
+}
+
+.offers-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.offers-stats-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   SECCIÓN: PROYECTOS EN DESARROLLO (EN MARCHA)
+   ============================================================ */
+.dev-list-corp {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dev-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--corp-shadow-xs);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+
+.dev-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dev-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  line-height: 1.3;
+}
+
+.dev-card-team {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--corp-slate-600);
+}
+
+.dev-chip-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-800);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.dev-chip-vacancies {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.dev-badge-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.milestone-progress-box {
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.milestone-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-slate-700);
+  margin-bottom: 8px;
+}
+
+.milestone-track {
+  background: var(--corp-slate-200);
+  height: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.milestone-fill {
+  background: linear-gradient(90deg, var(--corp-brand), var(--corp-brand-neon));
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.dev-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Botones de acción reutilizables */
+.btn-corp-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--corp-radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  border: 1px solid transparent;
+  line-height: 1.3;
+}
+
+.btn-corp-action.primary {
+  background: var(--corp-brand);
+  color: #ffffff;
+  font-weight: 600;
+  border: 1px solid #00b248;
+}
+
+.btn-corp-action.primary:hover {
+  background: var(--corp-brand-neon);
+  color: #000000;
+  border-color: var(--corp-brand-neon);
+}
+
+.btn-corp-action.secondary {
+  background: var(--corp-surface);
+  color: var(--corp-slate-700);
+  border-color: var(--corp-border);
+}
+
+.btn-corp-action.secondary:hover {
+  background: var(--corp-slate-50);
+  border-color: var(--corp-slate-400);
+  color: var(--corp-slate-900);
+}
+
+.btn-corp-action.success {
+  background: var(--corp-success);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.btn-corp-action.success:hover {
+  background: var(--corp-brand-hover);
+  color: #ffffff;
+}
+
+.btn-corp-action.danger-subtle {
+  background: var(--corp-surface);
+  color: var(--corp-danger);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.btn-corp-action.danger-subtle:hover {
+  background: var(--corp-danger-light);
+  border-color: var(--corp-danger);
+}
+
+.btn-corp-action.disabled {
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-400);
+  border-color: var(--corp-border);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   SECCIÓN: REPUTACIÓN CORPORATIVA (SAAS EVALUATION SUITE)
+   ============================================================ */
+.reputation-layout-corp {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.reputation-summary-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 26px 24px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+
+.rep-summary-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--corp-slate-500);
+  margin-bottom: 8px;
+}
+
+.rep-score-value {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-stars-row {
+  color: var(--corp-gold);
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.rep-summary-sub {
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+}
+
+/* Histograma de distribución de estrellas */
+
+
+.rep-histo-fill {
+  height: 100%;
+  background: var(--corp-gold);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+
+/* Indicadores de confianza */
+
+
+.reviews-list-corp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--corp-shadow-xs);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.review-card-corp:hover {
+  border-color: var(--corp-slate-400);
+  box-shadow: var(--corp-shadow-sm);
+}
+
+.review-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.review-author-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--corp-slate-800);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.review-author {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  line-height: 1.2;
+}
+
+.badge-verified-hire {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-success);
+  background: var(--corp-success-light);
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-top: 3px;
+}
+
+.review-stars {
+  color: var(--corp-gold);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-stars-score {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--corp-slate-900);
+  letter-spacing: normal;
+}
+
+.review-project {
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-comment-box {
+  background: var(--corp-slate-50);
+  border-radius: var(--corp-radius-sm);
+  padding: 14px 18px;
+  font-size: 13.5px;
+  color: var(--corp-slate-700);
+  line-height: 1.6;
+  border: 1px solid var(--corp-border);
+  font-style: italic;
+}
+
+.review-date {
+  font-size: 12px;
+  color: var(--corp-slate-400);
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* ============================================================
+   SECCIÓN: HISTORIAL DE PROYECTOS (SEGMENTED CONTROL & CARDS)
+   ============================================================ */
+.segmented-filters-corp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: var(--corp-slate-100);
+  padding: 4px;
+  border-radius: var(--corp-radius);
+  width: fit-content;
+}
+
+.segmented-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--corp-radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--corp-slate-600);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.segmented-pill:hover {
+  color: var(--corp-slate-900);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.segmented-pill.is-active {
+  background: var(--corp-surface);
+  color: var(--corp-slate-900);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.segmented-pill .pill-counter {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--corp-slate-200);
+  color: var(--corp-slate-700);
+}
+
+.segmented-pill.is-active .pill-counter {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+}
+
+.pill-counter.is-zero,
+.segmented-pill.is-active .pill-counter.is-zero {
+  opacity: 0.45;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-500);
+}
+
+.history-grid-corp {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+
+.history-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.history-status-badge.finalizado {
+  background: var(--corp-success-light);
+  color: var(--corp-success);
+}
+
+.history-status-badge.rechazado {
+  background: var(--corp-danger-light);
+  color: var(--corp-danger);
+}
+
+.history-status-badge.en_disputa {
+  background: var(--corp-danger-light);
+  color: var(--corp-danger);
+}
+
+.history-status-badge.inactivo {
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+}
+
+.history-card-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.history-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+
+/* ============================================================
+   Historial Toolbar Unificada, Subnav & Panes (Proyectos / Disputas)
+   ============================================================ */
+.history-toolbar-corp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 22px;
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 8px 12px;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.history-toolbar-corp .segmented-filters-corp {
+  margin-bottom: 0;
+}
+
+
+.history-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: var(--corp-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--corp-slate-600);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.history-tab-btn:hover {
+  color: var(--corp-slate-900);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.history-tab-btn.active {
+  color: var(--corp-brand);
+  font-weight: 700;
+  background: var(--corp-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+
+.history-empty-state-corp {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--corp-surface);
+  border: 1px dashed var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+}
+
+.history-empty-icon {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: var(--corp-slate-500);
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+}
+
+.history-empty-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.history-empty-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.history-empty-desc {
+  margin: 0;
+  max-width: 460px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--corp-slate-500);
+}
+
+.history-tab-pane {
+  display: none;
+}
+
+.history-tab-pane.active {
+  display: block;
+  animation: fadeSlide 0.2s ease;
+}
+
+
+/* ============================================================
+   OFERTAS: FILTRO DE MODALIDAD Y ALERTA DE VENCIMIENTO
+   ============================================================ */
+.offers-filter-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.offers-filter-pill {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--corp-slate-600);
+  background: var(--corp-slate-100);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.offers-filter-pill:hover {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+}
+
+.offers-filter-pill.is-active {
+  background: var(--corp-brand);
+  border-color: var(--corp-brand);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.offer-badge-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+  border: 1px solid var(--corp-warning);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+
+/* ============================================================
+   FLAT-BY-DEFAULT & PRO SURFACE OVERRIDES (Ofertas / Desarrollo)
+   ============================================================ */
+.drawer-candidate-card,
+.review-card-corp,
+.history-card-corp,
+.offers-toolbar-corp,
+.reputation-summary-card,
+.history-toolbar-corp {
+  box-shadow: none;
+}
+
+.offer-card-corp,
+.dev-card-corp {
+  border-radius: 8px;
+  box-shadow: none;
+  transform: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.offer-card-corp:hover,
+.dev-card-corp:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--corp-slate-400);
+}
+
+.offer-mini-funnel-corp {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--corp-border-subtle);
+  border-bottom: 1px solid var(--corp-border-subtle);
+  border-radius: 0;
+  padding: 12px 0;
+  margin: 14px 0;
+}
+
+.offer-funnel-num {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.offer-funnel-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.roadmap-box-corp {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--corp-border-subtle);
+  border-radius: 0;
+  padding: 14px 0 0;
+  margin: 16px 0 0;
+}
+
+.roadmap-step-card {
+  background: transparent;
+  border: 0;
+  border-top: 2px solid var(--corp-border);
+  border-radius: 0;
+  padding: 8px 0 0;
+}
+
+.roadmap-step-card.is-done {
+  border-top-color: var(--corp-brand);
+}
+
+.roadmap-step-card.is-review {
+  background: transparent;
+  border-top-color: var(--corp-warning);
+}
+
+.roadmap-step-card.is-pending {
+  opacity: 1;
+}
+
+.offer-badge-category,
+.offer-badge-vacancies {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Spacing fixes from rendered review */
+.dev-card-actions {
+  margin-top: 18px;
+}
+
+.roadmap-steps-grid {
+  gap: 16px;
+}
+
+.roadmap-step-card {
+  gap: 6px;
+  padding-bottom: 2px;
+}

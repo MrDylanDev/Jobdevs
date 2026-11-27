@@ -1,0 +1,1282 @@
+/* ============================================================
+   JobDevs - Empresa Module: Perfil Corporativo (LinkedIn Style),
+   Verificación & Mediación / Disputas
+   Loaded in parallel after empresa.css (before empresa_sober_overrides.css).
+   ============================================================ */
+
+/* ============================================================
+   SECCIÓN: PERFIL EMPRESA (LINKEDIN STYLE)
+   ============================================================ */
+.linkedin-profile-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--corp-shadow-xs);
+  margin-bottom: 20px;
+}
+
+.linkedin-profile-header {
+  padding: 28px 28px 24px;
+  position: relative;
+}
+
+.linkedin-avatar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.linkedin-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 16px;
+  border: 1px solid var(--corp-border);
+  box-shadow: var(--corp-shadow-sm);
+  background: var(--corp-surface-alt);
+  color: var(--corp-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.linkedin-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.linkedin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Botones de acción LinkedIn */
+.btn-linkedin-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--corp-brand);
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--corp-brand);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.btn-linkedin-edit:hover {
+  background: var(--corp-brand-neon);
+  color: #000000;
+  border-color: var(--corp-brand-neon);
+  transform: translateY(-1px);
+  box-shadow: var(--corp-shadow-sm);
+}
+
+
+.btn-linkedin-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+  padding: 8px 14px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-linkedin-verify:hover {
+  background: var(--corp-slate-200);
+  color: var(--corp-slate-900);
+}
+
+.btn-linkedin-verify.is-verified {
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+}
+
+.btn-linkedin-verify.is-verified:hover {
+  background: var(--corp-brand-subtle);
+  color: var(--corp-brand-hover);
+}
+
+.linkedin-company-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  line-height: 1.2;
+}
+
+.linkedin-headline {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--corp-slate-600);
+  margin-top: 6px;
+}
+
+.linkedin-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--corp-slate-500);
+  margin-top: 10px;
+}
+
+.linkedin-meta-row .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.linkedin-meta-row .meta-sep {
+  color: var(--corp-slate-300);
+}
+
+/* Sub-navegación LinkedIn */
+.linkedin-subnav {
+  display: flex;
+  gap: 4px;
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 4px;
+  margin-bottom: 20px;
+  box-shadow: var(--corp-shadow-xs);
+  overflow-x: auto;
+}
+
+.linkedin-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--corp-radius);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--corp-slate-600);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.linkedin-tab-btn:hover {
+  color: var(--corp-slate-900);
+  background: var(--corp-slate-50);
+}
+
+.linkedin-tab-btn.active {
+  color: var(--corp-brand);
+  font-weight: 700;
+  background: var(--corp-brand-light);
+}
+
+.linkedin-tab-pane {
+  display: none;
+}
+
+.linkedin-tab-pane.active {
+  display: block;
+  animation: fadeSlide 0.2s ease;
+}
+
+/* Tech Stack Chips */
+.tech-stack-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-800);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--corp-border);
+}
+
+/* Convocatorias en pestaña LinkedIn */
+.linkedin-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linkedin-job-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.linkedin-job-card:hover {
+  border-color: var(--corp-slate-400);
+  box-shadow: var(--corp-shadow-xs);
+}
+
+.linkedin-job-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  line-height: 1.3;
+}
+
+.linkedin-job-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+/* Preview de subida de Logo */
+.logo-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--corp-slate-50);
+  border-radius: var(--corp-radius);
+  border: 1px solid var(--corp-border);
+}
+
+.logo-preview-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 2px dashed var(--corp-border);
+  background: var(--corp-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 20px;
+  color: var(--corp-slate-400);
+  flex-shrink: 0;
+}
+
+.logo-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Toast flotante */
+.corp-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--corp-surface);
+  color: var(--corp-slate-900);
+  border: 1px solid var(--corp-border);
+  border-left: 3px solid var(--corp-brand);
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: var(--corp-shadow-md);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10000;
+  max-width: 380px;
+  transform: translateY(80px);
+  opacity: 0;
+  pointer-events: none;
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.corp-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.linkedin-content-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 24px 28px;
+  box-shadow: var(--corp-shadow-xs);
+  margin-bottom: 20px;
+}
+
+.linkedin-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linkedin-about-text {
+  font-size: 14px;
+  color: var(--corp-slate-700);
+  line-height: 1.7;
+}
+
+.linkedin-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 24px;
+}
+
+.linkedin-info-item .info-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--corp-slate-500);
+  margin-bottom: 4px;
+}
+
+.linkedin-info-item .info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--corp-slate-800);
+}
+
+
+.analytics-stat-box {
+  background: var(--corp-slate-50);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  text-align: center;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.analytics-stat-box:hover {
+  background: var(--corp-slate-100);
+  border-color: var(--corp-slate-400);
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .linkedin-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 24px;
+    border-radius: 12px;
+  }
+  .linkedin-profile-header {
+    padding: 20px 16px;
+  }
+  .linkedin-company-name {
+    font-size: 20px;
+  }
+  .linkedin-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+}
+
+
+/* === Verification Page (verificacion.html) === */
+.verif-main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.verif-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--corp-border);
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+}
+
+.verif-status-badge.is-verificada {
+  background: var(--corp-success-light);
+  color: var(--corp-success);
+  border-color: var(--corp-brand-glow);
+}
+
+.verif-status-badge.is-en_revision {
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+  border-color: var(--corp-warning);
+}
+
+.verif-status-badge.is-rechazada {
+  background: var(--corp-danger-light);
+  color: var(--corp-danger);
+  border-color: var(--corp-danger);
+}
+
+.verif-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 24px;
+  box-shadow: var(--corp-shadow-sm);
+  margin-bottom: 20px;
+}
+
+.verif-card.is-verificada {
+  background: var(--corp-success-light);
+  border-color: var(--corp-brand-glow);
+}
+
+.verif-card.is-en_revision {
+  background: var(--corp-warning-light);
+  border-color: var(--corp-warning);
+}
+
+.verif-card.is-rechazada {
+  background: var(--corp-danger-light);
+  border-color: var(--corp-danger);
+  color: var(--corp-danger);
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.verif-card.is-info {
+  background: var(--corp-surface-alt);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--corp-slate-600);
+}
+
+.verif-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.verif-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.verif-icon-circle.is-verificada {
+  background: var(--corp-success);
+}
+
+.verif-icon-circle.is-en_revision {
+  background: var(--corp-warning);
+}
+
+.verif-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  margin: 0 0 6px 0;
+}
+
+.verif-card-copy {
+  font-size: 14px;
+  color: var(--corp-slate-700);
+  margin: 0 0 8px 0;
+}
+
+.verif-card-meta {
+  font-size: 12px;
+  color: var(--corp-slate-600);
+  font-weight: 600;
+}
+
+.verif-form {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 28px;
+  box-shadow: var(--corp-shadow-sm);
+}
+
+.verif-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.verif-field-error {
+  color: var(--corp-danger);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.verif-field-hint {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+.verif-field-hint.is-brand {
+  color: var(--corp-brand);
+}
+
+.verif-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--corp-border);
+  padding-top: 20px;
+}
+
+/* Flat-By-Default & Overdrive Typography (Perfil / Verificación) */
+.verif-card,
+.verif-form,
+.linkedin-content-card,
+.linkedin-profile-card,
+.linkedin-subnav {
+  box-shadow: none;
+}
+
+.linkedin-company-name,
+.verif-card-title {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.012em;
+}
+
+.stat-number {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   MEDIACIÓN Y DISPUTAS (#disputas y vistas compartidas)
+   Bloque consolidado con estética rectangular sobria (sin óvalos).
+   ============================================================ */
+.disputas-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 22px;
+  background: var(--corp-slate-100);
+  padding: 4px;
+  border-radius: var(--corp-radius);
+  width: fit-content;
+}
+
+.disputas-filtros .btn-sm {
+  border-radius: var(--corp-radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.disputas-filtros .btn-primary {
+  background: var(--corp-surface);
+  color: var(--corp-slate-900);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.disputas-filtros .btn-secondary {
+  background: transparent;
+  color: var(--corp-slate-600);
+}
+
+.disputas-filtros .btn-secondary:hover {
+  color: var(--corp-slate-900);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.disputas-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  box-shadow: none;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.disputas-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--corp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.disputas-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-table-corp {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.data-table-corp th {
+  background: var(--corp-slate-50);
+  color: var(--corp-slate-500);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--corp-border);
+}
+
+.data-table-corp td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--corp-border-subtle);
+  vertical-align: middle;
+  color: var(--corp-slate-800);
+}
+
+.data-table-corp tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table-corp tr:hover td {
+  background: var(--corp-slate-50);
+}
+
+.disp-badge-id {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--corp-slate-600);
+  background: var(--corp-slate-100);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.disp-hint-corp {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.disp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+}
+
+.disp-status-badge.abierta {
+  background: var(--corp-danger-light);
+  color: var(--corp-danger);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.disp-status-badge.en_mediacion {
+  background: var(--corp-warning-light);
+  color: var(--corp-warning);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.disp-status-badge.resuelta {
+  background: var(--corp-success-light);
+  color: var(--corp-success);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.disp-status-badge.cancelada {
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-600);
+  border: 1px solid var(--corp-border);
+}
+
+.disp-category-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.disp-proyecto-item-corp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--corp-border);
+  border-radius: 6px;
+  background: var(--corp-surface);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.disp-proyecto-item-corp:hover {
+  border-color: var(--corp-slate-400);
+  background: var(--corp-surface-alt);
+  transform: none;
+}
+
+[data-theme="dark"] .disp-proyecto-item-corp:hover {
+  border-color: #3f3f46;
+}
+
+.disp-proyecto-item-corp strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.disp-proyecto-item-corp small {
+  color: var(--corp-slate-500);
+  font-size: 12px;
+  margin-top: 2px;
+  display: block;
+}
+
+.btn-disputa-iniciar {
+  font-weight: 600;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Solo color: el layout (display, gap, padding, radius) lo define .disp-notice en disputas.css */
+.disp-notice-danger {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border);
+  border-left: 3px solid var(--corp-danger);
+  border-radius: 6px;
+  color: var(--corp-slate-700);
+}
+
+/* KPIs, toolbar y tarjetas de casos del Centro de Mediación */
+.disputas-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.disputas-kpi-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.disputas-kpi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--corp-slate-500);
+  margin-bottom: 8px;
+}
+
+.disputas-kpi-val {
+  font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--corp-slate-900);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.disputas-kpi-val.is-warning {
+  color: var(--corp-warning);
+}
+
+.disputas-kpi-val.is-brand {
+  color: var(--corp-brand);
+}
+
+.disputas-kpi-sub {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+  margin-top: 4px;
+}
+
+.disputas-toolbar-corp {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: var(--corp-radius-lg);
+  padding: 6px 10px 6px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  box-shadow: none;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.disputas-tabs-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.disputas-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--corp-radius);
+  border: none;
+  background: transparent;
+  color: var(--corp-slate-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.disputas-tab-pill:hover {
+  color: var(--corp-slate-900);
+  background: var(--corp-surface-alt);
+}
+
+.disputas-tab-pill.active {
+  background: var(--corp-slate-900);
+  color: var(--corp-surface);
+}
+
+[data-theme="dark"] .disputas-tab-pill.active {
+  background: var(--corp-brand);
+  color: #000000;
+}
+
+.disputas-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--corp-slate-100);
+  color: var(--corp-slate-700);
+}
+
+.disputas-pill-badge.is-warning {
+  background: var(--corp-warning);
+  color: #ffffff;
+}
+
+.disputas-tab-pill.active .disputas-pill-badge:not(.is-warning) {
+  background: rgba(255, 255, 255, 0.2);
+  color: currentColor;
+}
+
+[data-theme="dark"] .disputas-tab-pill.active .disputas-pill-badge:not(.is-warning) {
+  background: rgba(0, 0, 0, 0.2);
+  color: #000000;
+}
+
+.disputas-case-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.disputas-case-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.disputas-case-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.disputas-case-date {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+}
+
+.disputas-case-live-tag {
+  font-size: 12px;
+  color: var(--corp-warning);
+  font-weight: 700;
+}
+
+.disputas-case-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+  margin: 0 0 6px 0;
+}
+
+.disputas-case-parties {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--corp-slate-600);
+  margin-bottom: 16px;
+}
+
+.disputas-case-parties strong {
+  color: var(--corp-slate-900);
+}
+
+.disputas-case-details {
+  background: var(--corp-surface-alt);
+  border: 1px solid var(--corp-border-subtle);
+  border-radius: var(--corp-radius);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.disputas-details-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.disputas-details-row:last-child {
+  margin-bottom: 0;
+}
+
+.disputas-details-label {
+  font-weight: 600;
+  color: var(--corp-slate-500);
+}
+
+.disputas-details-val {
+  color: var(--corp-slate-800);
+}
+
+.disputas-case-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--corp-border-subtle);
+}
+
+.disputas-mediator-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.disputas-mediator-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--corp-brand-light);
+  color: var(--corp-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12.5px;
+  flex-shrink: 0;
+}
+
+.disputas-mediator-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--corp-slate-900);
+}
+
+.disputas-mediator-name.is-pending {
+  color: var(--corp-slate-500);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.disputas-mediator-role {
+  font-size: 12px;
+  color: var(--corp-slate-500);
+}
+
+/* Overrides rectangulares sobrios específicos de #disputas */
+#disputas .page-subtitle,
+#disputas .disputas-toolbar-note {
+  display: none;
+}
+
+#disputas .disputas-kpi-card,
+#disputas .disputas-toolbar-corp,
+#disputas .disputas-case-card,
+#disputas .disputas-card,
+#disputas .disputas-case-details,
+#disputas .activity-empty {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#disputas .btn-corp-action,
+#disputas .disputas-filtros .btn-sm,
+#disputas #btn-iniciar-disputa {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+#disputas .disputas-kpi-card:hover,
+#disputas .disputas-case-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--corp-slate-400);
+}
+
+[data-theme="dark"] #disputas .disputas-kpi-card:hover,
+[data-theme="dark"] #disputas .disputas-case-card:hover {
+  border-color: #3f3f46;
+  box-shadow: none;
+}
+
+#disputas .disputas-tabs-group {
+  gap: 16px;
+}
+
+#disputas .disputas-tab-pill {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 6px 2px;
+  box-shadow: none;
+}
+
+#disputas .disputas-tab-pill.active {
+  background: transparent;
+  border-color: transparent;
+  border-bottom-color: var(--corp-brand);
+  color: var(--corp-brand);
+  box-shadow: none;
+}
+
+#disputas .disp-badge-id,
+#disputas .disp-status-badge,
+#disputas .disp-category-tag,
+#disputas .disputas-pill-badge,
+#disputas .disputas-case-live-tag {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+#disputas .disp-badge-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--corp-slate-500);
+}
+
+#disputas .disp-status-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#disputas .disputas-kpi-val.is-warning,
+#disputas .disputas-kpi-card:first-child .disputas-kpi-head i,
+#disputas .disputas-kpi-card:first-child .disputas-kpi-head svg,
+#disputas .disputas-pill-badge.is-warning {
+  color: var(--corp-danger) !important;
+}
+
+#disputas .disputas-unified-card {
+  background: var(--corp-surface);
+  border: 1px solid var(--corp-border);
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 22px;
+}
+
+#disputas .disputas-unified-card .disputas-toolbar-corp {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--corp-border);
+  margin-bottom: 0;
+}
+
+#disputas .disputas-unified-card .disputas-filtros {
+  padding: 10px 20px;
+  margin: 0;
+  gap: 16px;
+  border-bottom: 1px solid var(--corp-border);
+}
+
+#disputas .disputas-unified-card .disputas-filtros .btn-sm {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 4px 2px;
+  color: var(--corp-slate-500);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+#disputas .disputas-unified-card .disputas-filtros .btn-sm:hover {
+  background: transparent;
+  color: var(--corp-slate-900);
+}
+
+[data-theme="dark"] #disputas .disputas-unified-card .disputas-filtros .btn-sm:hover {
+  color: #f8fafc;
+}
+
+#disputas .disputas-unified-card .disputas-filtros .btn-sm.btn-primary {
+  background: transparent;
+  border-bottom-color: var(--corp-brand);
+  color: var(--corp-brand);
+  font-weight: 700;
+}
+
+#disputas .disputas-unified-card .disputas-tab-pane {
+  padding: 18px 20px;
+}
+
+#disputas .disputas-unified-card .disputas-card,
+#disputas .disputas-unified-card #disputasClienteVacio {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#disputas .disputas-unified-card #disputasClienteVacio {
+  padding: 32px 20px !important;
+}
+
+@media (max-width: 1024px) {
+  .disputas-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .disputas-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .disputas-details-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+#btn-submit-disputa {
+  transition: opacity 160ms ease, filter 160ms ease, transform 90ms ease;
+}
+
+#btn-submit-disputa:disabled {
+  opacity: 0.42 !important;
+  filter: grayscale(0.45);
+  cursor: not-allowed !important;
+  transform: none !important;
+}
