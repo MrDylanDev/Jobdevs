@@ -1,0 +1,564 @@
+{% load static %}
+      <!-- Mediación y Disputas -->
+      <section id="disputasSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mediación y Disputas</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('disputasSection')">
+            <i data-lucide="scale"></i> Disputas
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('cancelacionesSection')">
+            <i data-lucide="file-x"></i> Cancelaciones
+          </button>
+        </div>
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="disputasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('disputasSearch', '#disputasSection .users-pro-table tbody')">
+            </div>
+          </div>
+          <div class="users-table-scroll">
+            <div class="table-wrapper">
+              <table class="data-table users-pro-table">
+                <thead>
+                  <tr>
+                    <th style="width:70px;">ID</th>
+                    <th>Proyecto</th>
+                    <th>Iniciado por</th>
+                    <th>Estado</th>
+                    <th>Mediador</th>
+                    <th style="text-align:right;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in disputas_activas %}
+                    <tr>
+                      <td class="user-cell-date">#{{ d.pk }}</td>
+                      <td><div class="user-cell-username">{{ d.proyecto.titulo }}</div></td>
+                      <td class="user-cell-email">{{ d.iniciado_por.nombre|default:d.iniciado_por.username }}</td>
+                      <td>{{ d.get_estado_display }}</td>
+                      <td class="user-cell-email">{% if d.mediador %}{{ d.mediador.nombre|default:d.mediador.username }}{% else %}<span style="color:var(--text-muted);">Sin asignar</span>{% endif %}</td>
+                      <td style="text-align:right;">
+                        <a href="{% url 'disputas:detalle_disputa' d.pk %}" data-abrir-sala-disputa data-url="{% url 'disputas:detalle_disputa' d.pk %}" class="btn btn-primary btn-sm">Ingresar a Sala</a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6">
+                        <div class="empty-state" style="padding:36px;"><i data-lucide="scale"></i><p>No hay disputas activas</p></div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Revisar Cancelaciones (tab dentro de Mediación y Disputas) -->
+      <section id="cancelacionesSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mediación y Disputas</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('disputasSection')">
+            <i data-lucide="scale"></i> Disputas
+          </button>
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('cancelacionesSection')">
+            <i data-lucide="file-x"></i> Cancelaciones
+          </button>
+        </div>
+
+        <div class="users-summary-strip">
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Total solicitudes</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_admin|length }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Pendientes de revisión</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_pendientes_count }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Aprobadas / Rechazadas</span>
+            <strong class="users-summary-val">{{ solicitudes_cancelacion_resueltas_count }}</strong>
+          </div>
+          <div class="users-summary-cell">
+            <span class="users-summary-lbl">Estado</span>
+            <strong class="users-summary-val" style="font-size:14px;color:var(--accent);">Integrado</strong>
+          </div>
+        </div>
+
+        <div class="users-table-shell">
+          <div class="users-table-scroll">
+            <table class="data-table users-pro-table">
+              <thead>
+                <tr>
+                  <th>Proyecto</th>
+                  <th>Solicitante</th>
+                  <th>Causal</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th style="text-align:right;">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sol in solicitudes_cancelacion_admin %}
+                  <tr>
+                    <td>
+                      <div class="user-cell-username">{{ sol.contratacion.proyecto.titulo }}</div>
+                      <div class="user-cell-handle">{{ sol.motivo|truncatechars:60 }}</div>
+                    </td>
+                    <td class="user-cell-email">{{ sol.solicitante.nombre|default:sol.solicitante.username }}</td>
+                    <td>{{ sol.get_causal_display }}</td>
+                    <td>
+                      {% if sol.estado == 'pendiente_revision' %}
+                        <span class="status-pill status-pill--inactive">Pendiente</span>
+                      {% elif sol.estado == 'aprobada' %}
+                        <span class="status-pill status-pill--active">Aprobada</span>
+                      {% else %}
+                        {{ sol.get_estado_display }}
+                      {% endif %}
+                    </td>
+                    <td class="user-cell-date">{{ sol.fecha_creacion|date:"d M Y" }}</td>
+                    <td style="text-align:right;">
+                      <a href="{% url 'solicitudes_cancelacion' %}" class="btn btn-secondary btn-sm">Revisar</a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty-state" style="padding:36px;"><i data-lucide="file-x"></i><p>No hay solicitudes de cancelación registradas</p></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Verificación de Empresas -->
+      <section id="verificacionEmpresasSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Verificación de Empresas</div>
+            <div class="page-subtitle">Solicitudes de verificación de identidad pendientes de revisión</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="admin-quick-search-wrap">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="verifEmpresasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifEmpresasSearch', '#verificacionEmpresasSection table tbody')">
+            </div>
+          </div>
+          {% if empresas_en_revision %}
+          <div class="table-wrapper">
+          <table style="width:100%;">
+            <thead>
+              <tr><th>Empresa</th><th>Tipo</th><th>Documento</th><th>Razón Social</th><th>Soporte</th><th>Triaje Asistido</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              {% for e in empresas_en_revision %}
+              <tr>
+                <td>
+                  <div>{{ e.usuario.nombre|default:e.usuario.username }}</div>
+                  <div style="font-size:11px;margin-top:2px;{% if e.intentos_verificacion >= 2 %}color:#dc2626;font-weight:600;{% else %}color:var(--text-muted);{% endif %}">
+                    Rechazos: {{ e.intentos_verificacion }}/3{% if e.intentos_verificacion >= 2 %} (último intento){% endif %}
+                  </div>
+                </td>
+                <td>{% if e.tipo_persona == 'juridica' %}Jurídica{% else %}Natural{% endif %}</td>
+                <td>{{ e.tipo_documento }} {{ e.documento_completo }}</td>
+                <td>{{ e.razon_social|default:"—" }}</td>
+                <td>
+                  {% if e.documento_soporte %}
+                  <a href="{% url 'descargar_documento_soporte_empresa' e.id %}" target="_blank" rel="noopener"><i data-lucide="file-text"></i> Ver PDF</a>
+                  {% else %}Sin documento{% endif %}
+                </td>
+                <td>
+                  {% if e.dictamen_ia %}
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      {% if e.dictamen_ia.score_confianza >= 90 %}
+                        <span class="badge bg-success" style="font-size:11px;"><i data-lucide="check-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% elif e.dictamen_ia.score_confianza >= 70 %}
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i data-lucide="alert-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% elif e.dictamen_ia.score_confianza >= 40 %}
+                        <span class="badge bg-secondary" style="font-size:11px;"><i data-lucide="help-circle"></i>Score: {{ e.dictamen_ia.score_confianza }}/100</span>
+                      {% else %}
+                        <span class="badge bg-danger" style="font-size:11px;"><i data-lucide="alert-triangle"></i>Score: {{ e.dictamen_ia.score_confianza|default:0 }}/100</span>
+                      {% endif %}
+                      {% if e.dictamen_ia.calidad_imagen == 'borrosa' %}
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i data-lucide="camera"></i> Borrosa</span>
+                      {% endif %}
+                    </div>
+                    <details style="margin-top:6px;font-size:12px;cursor:pointer;">
+                      <summary style="color:#2563eb;font-weight:600;">Ver comparación documental</summary>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:6px;margin-top:4px;">
+                        <div style="font-size:11px;"><strong>Estado:</strong> {{ e.dictamen_ia.estado_triaje }}</div>
+                        <div style="font-size:11px;"><strong>Calidad:</strong> {{ e.dictamen_ia.calidad_imagen }}</div>
+                        {% if e.dictamen_ia.comparacion %}
+                          <table style="width:100%;font-size:11px;margin-top:6px;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #cbd5e1;text-align:left;"><th>Campo</th><th>Registrado</th><th>Extraído</th></tr>
+                            {% for campo, vals in e.dictamen_ia.comparacion.items %}
+                              <tr style="border-bottom:1px solid #f1f5f9;"><td><strong>{{ campo }}</strong></td><td>{{ vals.registrado|default:'—' }}</td><td>{{ vals.extraido|default:'—' }}</td></tr>
+                            {% endfor %}
+                          </table>
+                        {% endif %}
+                        {% if e.dictamen_ia.alertas %}
+                          <div style="margin-top:6px;color:#dc2626;font-size:11px;">
+                            {% for alt in e.dictamen_ia.alertas %}
+                              <div>• {{ alt.mensaje }}</div>
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                        {% if e.dictamen_ia.justificacion %}
+                          <div style="margin-top:4px;font-style:italic;font-size:10.5px;color:#64748b;">{{ e.dictamen_ia.justificacion }}</div>
+                        {% endif %}
+                      </div>
+                    </details>
+                  {% else %}
+                    <span style="color:#94a3b8;font-size:11px;">Pendiente de análisis</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Aprobar verificación de empresa" data-confirm-message="¿Confirmas que deseas aprobar la verificación de identidad de {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="aprobar">
+                    <button type="submit" class="btn btn-primary">Aprobar</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="solicitar_documento">
+                    <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
+                    <button type="submit" class="btn btn-danger">
+                      {% if e.dictamen_ia.calidad_imagen == 'borrosa' %}Solicitar Nueva Foto{% else %}Solicitar Nuevo Documento{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <p style="margin:0;">No hay solicitudes de verificación en revisión.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Verificación de Aprendices y Egresados SENA -->
+      <section id="verificacionDevsSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Verificación de Talento SENA</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('verificacionDevsSection')">
+            <i data-lucide="user-check"></i> Solicitudes
+          </button>
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('fichasSenaSection')">
+            <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
+          </button>
+        </div>
+
+        <div class="users-table-shell">
+          <div class="users-shell-top">
+            <div class="users-search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="verifDevsSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifDevsSearch', '#verificacionDevsSection .users-pro-table tbody')">
+            </div>
+          </div>
+          <div class="users-table-scroll">
+          {% if desarrolladores_en_revision %}
+          <div class="table-wrapper">
+          <table class="data-table users-pro-table">
+            <thead>
+              <tr><th>Desarrollador</th><th>Condición</th><th>Ficha</th><th>Programa</th><th>Soporte</th><th>Triaje Asistido</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              {% for d in desarrolladores_en_revision %}
+              <tr>
+                <td>
+                  <div class="user-cell-username">{{ d.usuario.nombre|default:d.usuario.username }}</div>
+                  <div class="user-cell-handle">@{{ d.usuario.username }} · {{ d.usuario.email }}</div>
+                  <div style="font-size:11px;margin-top:2px;{% if d.intentos_verificacion >= 2 %}color:#dc2626;font-weight:600;{% else %}color:var(--text-muted);{% endif %}">
+                    Rechazos: {{ d.intentos_verificacion }}/3{% if d.intentos_verificacion >= 2 %} (último intento){% endif %}
+                  </div>
+                </td>
+                <td>
+                  {% if d.condicion_sena == 'egresado' %}
+                    <span class="status-pill status-pill--active">Egresado SENA</span>
+                  {% else %}
+                    Aprendiz
+                  {% endif %}
+                </td>
+                <td>{{ d.ficha|default:"—" }}</td>
+                <td class="user-cell-email">{{ d.programa_formacion|default:"—" }}</td>
+                <td>
+                  {% if d.documento_soporte %}
+                  <a href="{% url 'descargar_documento_soporte_desarrollador' d.id %}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                    <i data-lucide="{% if d.condicion_sena == 'egresado' %}graduation-cap{% else %}file-text{% endif %}"></i>
+                    {% if d.condicion_sena == 'egresado' %}Ver Diploma{% else %}Ver Soporte{% endif %}
+                  </a>
+                  {% else %}<span style="color:var(--text-muted);font-size:12px;">Sin documento</span>{% endif %}
+                </td>
+                <td>
+                  {% if d.dictamen_ia %}
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      {% if d.dictamen_ia.score_confianza >= 90 %}
+                        <span class="badge bg-success" style="font-size:11px;"><i data-lucide="check-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% elif d.dictamen_ia.score_confianza >= 70 %}
+                        <span class="badge bg-warning text-dark" style="font-size:11px;"><i data-lucide="alert-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% elif d.dictamen_ia.score_confianza >= 40 %}
+                        <span class="badge bg-secondary" style="font-size:11px;"><i data-lucide="help-circle"></i>Score: {{ d.dictamen_ia.score_confianza }}/100</span>
+                      {% else %}
+                        <span class="badge bg-danger" style="font-size:11px;"><i data-lucide="alert-triangle"></i>Score: {{ d.dictamen_ia.score_confianza|default:0 }}/100</span>
+                      {% endif %}
+                      {% if d.dictamen_ia.calidad_imagen == 'borrosa' %}
+                        <span class="badge bg-danger" title="Fotografía borrosa detectada"><i data-lucide="camera"></i> Borrosa</span>
+                      {% endif %}
+                    </div>
+                    <details style="margin-top:6px;font-size:12px;cursor:pointer;">
+                      <summary style="color:#2563eb;font-weight:600;">Ver comparación documental</summary>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:6px;margin-top:4px;">
+                        <div style="font-size:11px;"><strong>Estado:</strong> {{ d.dictamen_ia.estado_triaje }}</div>
+                        <div style="font-size:11px;"><strong>Calidad:</strong> {{ d.dictamen_ia.calidad_imagen }}</div>
+                        {% if d.dictamen_ia.comparacion %}
+                          <table style="width:100%;font-size:11px;margin-top:6px;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #cbd5e1;text-align:left;"><th>Campo</th><th>Registrado</th><th>Extraído</th></tr>
+                            {% for campo, vals in d.dictamen_ia.comparacion.items %}
+                              <tr style="border-bottom:1px solid #f1f5f9;"><td><strong>{{ campo }}</strong></td><td>{{ vals.registrado|default:'—' }}</td><td>{{ vals.extraido|default:'—' }}</td></tr>
+                            {% endfor %}
+                          </table>
+                        {% endif %}
+                        {% if d.dictamen_ia.alertas %}
+                          <div style="margin-top:6px;color:#dc2626;font-size:11px;">
+                            {% for alt in d.dictamen_ia.alertas %}
+                              <div>• {{ alt.mensaje }}</div>
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                        {% if d.dictamen_ia.justificacion %}
+                          <div style="margin-top:4px;font-style:italic;font-size:10.5px;color:#64748b;">{{ d.dictamen_ia.justificacion }}</div>
+                        {% endif %}
+                      </div>
+                    </details>
+                  {% else %}
+                    <span style="color:#94a3b8;font-size:11px;">Pendiente de análisis</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Aprobar talento SENA" data-confirm-message="¿Confirmas que deseas aprobar la verificación de {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="aprobar">
+                    <button type="submit" class="btn btn-primary btn-sm">Aprobar</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="solicitar_documento">
+                    <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento SENA" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      {% if d.dictamen_ia.calidad_imagen == 'borrosa' %}Solicitar Nueva Foto{% else %}Solicitar Nuevo Documento{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% else %}
+          <div class="empty-state" style="padding:36px;"><i data-lucide="user-check"></i><p>No hay solicitudes manuales de aprendices o egresados en revisión</p></div>
+          {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- Lista Blanca de Fichas SENA -->
+      <section id="fichasSenaSection" class="section-v">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Verificación de Talento SENA</div>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('verificacionDevsSection')">
+            <i data-lucide="user-check"></i> Solicitudes
+          </button>
+          <button type="button" id="senaTabBtnFichas" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('fichasSenaSection')">
+            <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
+          </button>
+        </div>
+
+        <div id="senaPanelFichas">
+        <div id="formNuevaFichaWrap" class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <div class="card-title"><i class="card-title-icon" data-lucide="plus-circle"></i>Registrar Nueva Ficha SENA</div>
+          </div>
+          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;">
+            {% csrf_token %}
+            <div>
+              <label class="form-label">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Programa de Formación *</label>
+              <input type="text" name="programa_formacion" required placeholder="Ej: ADSO" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Regional</label>
+              <input type="text" name="regional" placeholder="Ej: Distrito Capital" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Centro de Formación</label>
+              <input type="text" name="centro_formacion" placeholder="Ej: CSF" class="form-input">
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">
+                <i data-lucide="save"></i> Guardar Ficha
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="users-table-shell" style="margin-bottom:16px;">
+          <div class="users-shell-top">
+            <div class="card-title" style="margin:0;"><i class="card-title-icon" data-lucide="list"></i>Catálogo de Fichas Registradas</div>
+            <span class="users-result-count">{{ total_fichas_sena }} fichas</span>
+          </div>
+          <div class="users-table-scroll">
+          {% if fichas_sena %}
+          <table class="data-table users-pro-table">
+            <thead>
+              <tr><th>Ficha</th><th>Programa</th><th>Regional / Centro</th><th>Estado</th><th style="text-align:right;">Acción</th></tr>
+            </thead>
+            <tbody>
+              {% for f in fichas_sena %}
+              <tr>
+                <td>{{ f.numero_ficha }}</td>
+                <td><div class="user-cell-username">{{ f.programa_formacion }}</div></td>
+                <td class="user-cell-email">
+                  {{ f.regional|default:"—" }} · {{ f.centro_formacion|default:"—" }}
+                </td>
+                <td>
+                  {% if f.activa %}
+                  <span class="badge bg-success">Activa</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Inactiva</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" data-admin-confirm="true" data-confirm-title="{% if f.activa %}Desactivar ficha SENA{% else %}Activar ficha SENA{% endif %}" data-confirm-message="{% if f.activa %}¿Confirmas que deseas desactivar la ficha {{ f.numero_ficha|escape }}?{% else %}¿Confirmas que deseas activar la ficha {{ f.numero_ficha|escape }}?{% endif %}" data-confirm-ok="{% if f.activa %}Desactivar{% else %}Activar{% endif %}" {% if f.activa %}data-confirm-danger="true"{% endif %} style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if f.activa %}btn-warning{% else %}btn-success{% endif %}">
+                      {% if f.activa %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty-state" style="padding:36px;"><i data-lucide="id-card"></i><p>No hay fichas registradas aún en la lista blanca</p></div>
+          {% endif %}
+          </div>
+        </div>
+        </div>
+
+        <!-- SCRUM-225 (RF 9.1.2): excepciones individuales justificadas -->
+        <div id="senaPanelExcepciones" style="margin-top:24px;">
+        <div id="formNuevaExcepcionWrap" class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <div class="card-title"><i class="card-title-icon" data-lucide="shield-check"></i>Autorizar Excepción de Ficha</div>
+          </div>
+          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;" data-testid="form-nueva-excepcion-sena">
+            {% csrf_token %}
+            <div>
+              <label class="form-label">Desarrollador *</label>
+              <select name="desarrollador_id" required class="form-input">
+                <option value="">Selecciona un desarrollador</option>
+                {% for perfil_id, nombre, username in desarrolladores_para_excepcion %}
+                <option value="{{ perfil_id }}">{{ nombre|default:username }} ({{ username }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Número de Ficha *</label>
+              <input type="text" name="numero_ficha" required placeholder="Ej: 2670123" class="form-input" data-testid="input-numero-ficha-excepcion">
+            </div>
+            <div>
+              <label class="form-label">Justificación *</label>
+              <input type="text" name="justificacion" required placeholder="Motivo avalado por coordinación" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Días de vigencia</label>
+              <input type="number" name="dias_vigencia" min="1" placeholder="Sin vencimiento" class="form-input" data-testid="input-dias-vigencia-excepcion">
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;" data-testid="btn-crear-excepcion-sena">
+                <i data-lucide="plus"></i> Guardar Excepción
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:24px;">
+          <h3 class="h5 mb-3"><i data-lucide="list"></i> Catálogo de Excepciones</h3>
+          {% if excepciones_fichas_sena %}
+          <table style="width:100%;" data-testid="tabla-excepciones-sena">
+            <thead>
+              <tr><th>Ficha</th><th>Desarrollador</th><th>Justificación</th><th>Expiración</th><th>Estado</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+              {% for e in excepciones_fichas_sena %}
+              <tr>
+                <td><strong>{{ e.numero_ficha }}</strong></td>
+                <td>
+                  <small>{{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username }}<br>{{ e.desarrollador.usuario.username }}</small>
+                </td>
+                <td><small>{{ e.justificacion }}</small></td>
+                <td>
+                  <small>{% if e.fecha_expiracion %}{{ e.fecha_expiracion|date:"d/m/Y H:i" }}{% else %}Sin vencimiento{% endif %}</small>
+                </td>
+                <td>
+                  {% if e.esta_vigente %}
+                  <span class="badge bg-success">Vigente</span>
+                  {% elif e.activa %}
+                  <span class="badge bg-warning">Expirada</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Revocada</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if e.activa %}
+                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" data-admin-confirm="true" data-confirm-title="Revocar excepción de ficha SENA" data-confirm-message="¿Confirmas que deseas revocar la excepción de la ficha {{ e.numero_ficha|escape }} para {{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username|escape }}?" data-confirm-ok="Revocar" data-confirm-danger="true" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-warning" data-testid="btn-revocar-excepcion-sena">Revocar</button>
+                  </form>
+                  {% else %}
+                  <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty-state" style="padding:36px;" data-testid="tabla-excepciones-sena-vacia"><i data-lucide="shield-check"></i><p>No hay excepciones autorizadas aún</p></div>
+          {% endif %}
+        </div>
+        </div>
+      </section>

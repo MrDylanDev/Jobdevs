@@ -148,7 +148,12 @@ def test_scrum_455_456_457_variables_semanticas_y_tema_claro():
 
 def test_scrum_401_empty_states_accionables_desarrollador():
     """SCRUM-401: Dashboard Desarrollador incluye empty states accionables con enlace a catálogo."""
-    content = (Path(settings.BASE_DIR) / 'templates/Desarrollador/Desarrollador.html').read_text(encoding='utf-8')
+    dev_dir = Path(settings.BASE_DIR) / 'templates/Desarrollador'
+    partials = sorted((dev_dir / 'partials').glob('*.html'))
+    assert partials, 'Se esperaban parciales en templates/Desarrollador/partials/'
+    content = '\n'.join(
+        p.read_text(encoding='utf-8') for p in [dev_dir / 'Desarrollador.html', *partials]
+    )
     assert 'empty-state-actionable' in content
     assert 'Explorar Proyectos Disponibles' in content
 
@@ -156,7 +161,12 @@ def test_scrum_401_empty_states_accionables_desarrollador():
 def test_scrum_407_408_admin_confirmacion_y_buscador_debounce():
     """SCRUM-407/408: Admin incluye modal de confirmación de toggle y buscadores con debounce."""
     base = Path(settings.BASE_DIR)
-    html = (base / 'templates/administrador/Administrador.html').read_text(encoding='utf-8')
+    admin_tpl_dir = base / 'templates/administrador'
+    partials = sorted((admin_tpl_dir / 'partials').glob('*.html'))
+    assert partials, 'Se esperaban parciales en templates/administrador/partials/'
+    html = '\n'.join(
+        p.read_text(encoding='utf-8') for p in [admin_tpl_dir / 'Administrador.html', *partials]
+    )
     assert 'id="toggleUserConfirmModal"' in html
     assert 'openToggleUserConfirmModal' in html
     assert 'debouncedFilterUsers()' in html

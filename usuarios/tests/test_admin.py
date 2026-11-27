@@ -1601,7 +1601,12 @@ class TestAdminEsModules:
             for match in re.findall(r'window\.([A-Za-z_$][A-Za-z0-9_$]*)\s*=(?!=)', text):
                 window_bindings.add(match)
 
-        html = (base / 'templates/administrador/Administrador.html').read_text(encoding='utf-8')
+        admin_tpl_dir = base / 'templates/administrador'
+        partials = sorted((admin_tpl_dir / 'partials').glob('*.html'))
+        assert partials, 'Se esperaban parciales en templates/administrador/partials/'
+        html = '\n'.join(
+            p.read_text(encoding='utf-8') for p in [admin_tpl_dir / 'Administrador.html', *partials]
+        )
         handlers = re.findall(r'on(?:click|change|submit|input)="([^"]+)"', html)
         called_fns = set()
         for handler in handlers:
