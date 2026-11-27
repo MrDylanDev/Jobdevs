@@ -715,6 +715,113 @@ class TestIniciarNegociacion:
         assert 'Verificado el' in html
 
 
+@pytest.mark.django_db
+class TestDrawerCandidatosHTMX:
+    """Pruebas S4: Drawer de Candidatos de Empresa vía HTMX (`HX-Request: true`)."""
+
+    @pytest.fixture
+    def escenario(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Plataforma HTMX",
+            descripcion="Descripción",
+            tipo_solucion="app_web",
+            estado="publicado",
+            vacantes=2,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            mensaje="Quiero aportar al proyecto.",
+            estado="pendiente",
+        )
+        return proyecto, post
+
+    def test_ver_postulaciones_htmx_retorna_partial_drawer(self, auth_client, escenario):
+        proyecto, post = escenario
+        url = reverse('ver_postulaciones_empresa', args=[proyecto.id])
+        res = auth_client.get(url, HTTP_HX_REQUEST='true')
+
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'drawer-funnel-tabs' in html
+        assert 'hx-target="#drawerContent"' in html
+        assert 'drawer-candidates-list' in html
+        assert 'drawer-candidate-card' in html
+        assert f'hx-post="{reverse("iniciar_negociacion", args=[post.id])}"' in html
+        assert f'hx-post="{reverse("rechazar_postulacion", args=[post.id])}"' in html
+
+    def test_ver_postulaciones_htmx_estado_vacio(self, auth_client, escenario):
+        proyecto, _ = escenario
+        url = f"{reverse('ver_postulaciones_empresa', args=[proyecto.id])}?estado=aceptada"
+        res = auth_client.get(url, HTTP_HX_REQUEST='true')
+
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'drawer-funnel-tabs' in html
+        assert 'activity-empty' in html
+
+    def test_ver_postulaciones_htmx_escapa_xss(self, auth_client, escenario, desarrollador_user):
+        proyecto, post = escenario
+        desarrollador_user.nombre = '<script>alert("dev")</script>'
+        desarrollador_user.save(update_fields=['nombre'])
+        post.mensaje = '<img src=x onerror=alert(1)>'
+        post.save(update_fields=['mensaje'])
+
+        url = reverse('ver_postulaciones_empresa', args=[proyecto.id])
+        res = auth_client.get(url, HTTP_HX_REQUEST='true')
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert '<script>alert("dev")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;dev&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_iniciar_negociacion_htmx_re_renderiza_drawer_y_emite_toast(self, auth_client, escenario):
+        import json
+        _, post = escenario
+        url = reverse('iniciar_negociacion', args=[post.id])
+        res = auth_client.post(url, {'estado_filtro': ''}, HTTP_HX_REQUEST='true')
+
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'en_negociacion'
+        html = res.content.decode('utf-8')
+        assert 'drawer-funnel-tabs' in html
+        assert 'Ver Contrato Digital' in html
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'Negociación iniciada' in hx_trigger['jobdevs:toast']['mensaje']
+
+    def test_rechazar_postulacion_htmx_re_renderiza_drawer_y_emite_toast(self, auth_client, escenario):
+        import json
+        _, post = escenario
+        url = reverse('rechazar_postulacion', args=[post.id])
+        res = auth_client.post(url, {'estado_filtro': 'pendiente'}, HTTP_HX_REQUEST='true')
+
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'rechazada'
+        html = res.content.decode('utf-8')
+        assert 'drawer-funnel-tabs' in html
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'ha sido rechazada' in hx_trigger['jobdevs:toast']['mensaje']
+
+    def test_rechazar_preserva_json_con_accept_json(self, auth_client, escenario):
+        _, post = escenario
+        url = reverse('rechazar_postulacion', args=[post.id])
+        res = auth_client.post(
+            url,
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+
+
 
 
 class TestPostularseAjax:

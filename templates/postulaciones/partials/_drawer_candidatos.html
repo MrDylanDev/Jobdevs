@@ -1,0 +1,194 @@
+<div class="drawer-funnel-tabs" aria-label="Etapas del embudo de candidatos">
+  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+     hx-get="{% url 'ver_postulaciones_empresa' proyecto.id %}"
+     hx-target="#drawerContent"
+     hx-swap="innerHTML"
+     hx-sync="this:replace"
+     class="funnel-tab-card {% if not filtros.estado %}is-active{% endif %}"
+     title="Ver todos los postulantes">
+    <div>
+      <div class="funnel-tab-label">1. Total Postulados</div>
+      <div class="funnel-tab-sub">Recepciones globales</div>
+    </div>
+    <span class="funnel-tab-count">{{ conteos_funnel.total }}</span>
+  </a>
+
+  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=pendiente"
+     hx-get="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=pendiente"
+     hx-target="#drawerContent"
+     hx-swap="innerHTML"
+     hx-sync="this:replace"
+     class="funnel-tab-card {% if filtros.estado == 'pendiente' %}is-active{% endif %}"
+     title="Filtrar por evaluar">
+    <div>
+      <div class="funnel-tab-label" style="color:var(--corp-warning,#d97706);">2. Por Evaluar</div>
+      <div class="funnel-tab-sub">Acción requerida</div>
+    </div>
+    <span class="funnel-tab-count" style="color:var(--corp-warning,#d97706);">{{ conteos_funnel.pendientes }}</span>
+  </a>
+
+  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=en_negociacion"
+     hx-get="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=en_negociacion"
+     hx-target="#drawerContent"
+     hx-swap="innerHTML"
+     hx-sync="this:replace"
+     class="funnel-tab-card {% if filtros.estado == 'en_negociacion' %}is-active{% endif %}"
+     title="Filtrar en negociación">
+    <div>
+      <div class="funnel-tab-label" style="color:var(--corp-info,#0284c7);">3. En Negociación</div>
+      <div class="funnel-tab-sub">Términos y acuerdos</div>
+    </div>
+    <span class="funnel-tab-count" style="color:var(--corp-info,#0284c7);">{{ conteos_funnel.en_negociacion }}</span>
+  </a>
+
+  <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=aceptada"
+     hx-get="{% url 'ver_postulaciones_empresa' proyecto.id %}?estado=aceptada"
+     hx-target="#drawerContent"
+     hx-swap="innerHTML"
+     hx-sync="this:replace"
+     class="funnel-tab-card {% if filtros.estado == 'aceptada' %}is-active{% endif %}"
+     title="Filtrar contratados">
+    <div>
+      <div class="funnel-tab-label" style="color:var(--corp-brand,#00713f);">4. Contratados</div>
+      <div class="funnel-tab-sub">Cierres exitosos</div>
+    </div>
+    <span class="funnel-tab-count" style="color:var(--corp-brand,#00713f);">{{ conteos_funnel.aceptadas }}</span>
+  </a>
+</div>
+
+<div class="drawer-candidates-body" style="transition:opacity 0.15s ease;">
+  {% if postulaciones %}
+    <div class="drawer-candidates-list">
+      {% for post in postulaciones %}
+        <div class="drawer-candidate-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+            <div>
+              <h3 style="font-size:17px; font-weight:700; color:var(--text-primary); margin:0;">
+                <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}"
+                   data-abrir-desarrollador
+                   data-url="{% url 'detalle_desarrollador' post.desarrollador.id %}"
+                   style="text-decoration:none; color:inherit;"
+                   title="Ver perfil institucional">
+                  {{ post.desarrollador.nombre }} &rarr;
+                </a>
+              </h3>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+                {% if post.desarrollador.programa_formacion %}
+                  {{ post.desarrollador.programa_formacion }}{% if post.desarrollador.ficha %} · Ficha {{ post.desarrollador.ficha }}{% endif %}
+                {% else %}
+                  Desarrollador de software
+                {% endif %}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:14px; font-weight:700; color:#f59e0b;">★ {{ post.calificacion_promedio|default:"0.0" }}</div>
+              <div style="font-size:11px; color:var(--text-muted);">{{ post.proyectos_completados }} proyectos</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">
+              Habilidades Técnicas
+            </div>
+            <div style="font-size:13px; color:var(--text-primary); line-height:1.4;">
+              {{ post.habilidades|default:"No se registraron habilidades específicas" }}
+            </div>
+          </div>
+
+          {% if post.portafolio_url %}
+            <div style="margin-bottom:14px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">
+                Portafolio / Enlaces
+              </div>
+              <a href="{{ post.portafolio_url }}" target="_blank" rel="noopener" style="font-size:13px; color:var(--corp-brand,#00713f); word-break:break-all; font-weight:600;">
+                <i data-lucide="external-link" style="width:13px; height:13px; vertical-align:middle;"></i> {{ post.portafolio_url }}
+              </a>
+            </div>
+          {% endif %}
+
+          <div style="margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">
+              Carta de Presentación
+            </div>
+            <div style="background:var(--page-bg,#f7f8f7); border:1px solid var(--border,#e4e7e5); border-left:3px solid var(--corp-brand,#00713f); border-radius:6px; padding:12px; font-size:13px; line-height:1.5; color:var(--text-primary); max-height:220px; overflow-y:auto;">
+              {{ post.mensaje|linebreaksbr|default:"El candidato no incluyó mensaje adicional." }}
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">
+              Postuló el {{ post.fecha|date:"d M Y, H:i" }}
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:14px;">
+            {% if post.estado == 'en_negociacion' %}
+              <div style="font-size:12px; color:var(--corp-info,#0284c7); font-weight:600; margin-bottom:2px;">
+                <i data-lucide="handshake" style="width:14px; height:14px; vertical-align:middle;"></i> En Negociación Activa
+                {% if post.fecha_limite_negociacion %} · Vence el {{ post.fecha_limite_negociacion|date:"d M Y" }}{% endif %}
+              </div>
+              {% if post.contrato_id %}
+                <a href="{% url 'ver_contrato_digital' post.contrato_id %}" class="btn btn-primary" style="justify-content:center;">
+                  <i data-lucide="file-signature"></i> Ver Contrato Digital
+                </a>
+              {% endif %}
+              <form method="post"
+                    action="{% url 'rechazar_postulacion' post.id %}"
+                    hx-post="{% url 'rechazar_postulacion' post.id %}"
+                    hx-target="#drawerContent"
+                    hx-swap="innerHTML"
+                    hx-disabled-elt="find button[type='submit']"
+                    data-confirm-title="Cancelar negociación"
+                    data-confirm="¿Seguro que deseas cancelar esta negociación?"
+                    style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="estado_filtro" value="{{ filtros.estado }}">
+                <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center; padding:8px;">
+                  <i data-lucide="x"></i> Cancelar y Descartar
+                </button>
+              </form>
+            {% elif proyecto.estado == 'publicado' %}
+              <form method="post"
+                    action="{% url 'iniciar_negociacion' post.id %}"
+                    hx-post="{% url 'iniciar_negociacion' post.id %}"
+                    hx-target="#drawerContent"
+                    hx-swap="innerHTML"
+                    hx-disabled-elt="find button[type='submit']"
+                    style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="estado_filtro" value="{{ filtros.estado }}">
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:9px;">
+                  <i data-lucide="handshake"></i> Iniciar Negociación
+                </button>
+              </form>
+              <a href="{% url 'dashboard_empresa' %}?section=centro-chat&chat_receptor={{ post.desarrollador.id }}&chat_proyecto={{ proyecto.id }}#centro-chat"
+                 class="btn btn-secondary"
+                 style="justify-content:center;">
+                <i data-lucide="message-square"></i> Mensaje Privado
+              </a>
+              <form method="post"
+                    action="{% url 'rechazar_postulacion' post.id %}"
+                    hx-post="{% url 'rechazar_postulacion' post.id %}"
+                    hx-target="#drawerContent"
+                    hx-swap="innerHTML"
+                    hx-disabled-elt="find button[type='submit']"
+                    data-confirm-title="Rechazar postulación"
+                    data-confirm="¿Seguro que deseas rechazar esta postulación?"
+                    style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="estado_filtro" value="{{ filtros.estado }}">
+                <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center; padding:8px;">
+                  <i data-lucide="x"></i> Rechazar Candidato
+                </button>
+              </form>
+            {% else %}
+              <span class="badge badge-gray" style="justify-content:center;">Proyecto cerrado / fuera de convocatoria</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="activity-empty" style="padding:40px 20px;">
+      <i data-lucide="user-x"></i>
+      <p>No se encontraron candidatos postulados para este proyecto.</p>
+    </div>
+  {% endif %}
+</div>
