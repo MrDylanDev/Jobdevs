@@ -28,6 +28,8 @@
     {% block content %}{% endblock %}
     
     <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+    <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
     <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
     <script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
     {% if request.user.is_authenticated %}
