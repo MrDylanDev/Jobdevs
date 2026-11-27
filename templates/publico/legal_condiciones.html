@@ -1,0 +1,399 @@
+{% extends 'publico/legal_base.html' %}
+
+{% block title %}{% if IDIOMA == 'en' %}Terms of Service | Jobdevs{% else %}Condiciones del servicio | Jobdevs{% endif %}{% endblock %}
+{% block meta_description %}{% if IDIOMA == 'en' %}Jobdevs Terms of Service: rules of use, SENA and company eligibility, digital contracts (Law 527 of 1999), milestones, disputes, and jurisdiction in Colombia.{% else %}Condiciones del servicio de Jobdevs: reglas de uso, elegibilidad SENA y empresas, contratos digitales (Ley 527 de 1999), hitos, disputas y jurisdicción en Colombia.{% endif %}{% endblock %}
+{% block legal_eyebrow %}{% if IDIOMA == 'en' %}Legal document · 01{% else %}Documento legal · 01{% endif %}{% endblock %}
+{% block legal_heading %}{% if IDIOMA == 'en' %}Terms of Service{% else %}Condiciones del servicio{% endif %}{% endblock %}
+{% block legal_lead %}{% if IDIOMA == 'en' %}These Terms of Service govern access to, registration on, and use of the Jobdevs technology platform by hiring companies, SENA apprentices, and SENA graduates in the Republic of Colombia. By creating an account or using our services, you agree to be bound by the terms set forth herein.{% else %}Estas Condiciones del servicio regulan el acceso, registro y uso de la plataforma tecnológica Jobdevs por parte de empresas contratantes, aprendices y egresados del SENA en la República de Colombia. Al crear una cuenta o utilizar nuestros servicios, aceptas quedar vinculado por los términos aquí establecidos.{% endif %}{% endblock %}
+
+{% block legal_toc %}
+{% if IDIOMA == 'en' %}
+  <li><a href="#sec-1">1. Purpose, nature, and non-financial intermediation</a></li>
+  <li><a href="#sec-2">2. Operational definitions</a></li>
+  <li><a href="#sec-3">3. Eligibility, registration, and verification</a></li>
+  <li><a href="#sec-4">4. Obligations of Companies and Developers</a></li>
+  <li><a href="#sec-5">5. Project publishing and applications</a></li>
+  <li><a href="#sec-6">6. Digital Contracts and electronic signature</a></li>
+  <li><a href="#sec-7">7. Milestone execution and evidence</a></li>
+  <li><a href="#sec-8">8. Review, disputes, and cancellations</a></li>
+  <li><a href="#sec-9">9. Mutual rating and reputation</a></li>
+  <li><a href="#sec-10">10. Intellectual property and confidentiality</a></li>
+  <li><a href="#sec-11">11. Platform rules and code of conduct</a></li>
+  <li><a href="#sec-12">12. Prohibited use, suspension, and account deletion</a></li>
+  <li><a href="#sec-13">13. Limitation of liability</a></li>
+  <li><a href="#sec-14">14. Amendments, governing law, and jurisdiction</a></li>
+{% else %}
+  <li><a href="#sec-1">1. Objeto, naturaleza y no intermediación financiera</a></li>
+  <li><a href="#sec-2">2. Definiciones operativas</a></li>
+  <li><a href="#sec-3">3. Elegibilidad, registro y verificación</a></li>
+  <li><a href="#sec-4">4. Obligaciones de Empresas y Desarrolladores</a></li>
+  <li><a href="#sec-5">5. Publicación de proyectos y postulaciones</a></li>
+  <li><a href="#sec-6">6. Contratos Digitales y firma electrónica</a></li>
+  <li><a href="#sec-7">7. Ejecución por hitos y evidencias</a></li>
+  <li><a href="#sec-8">8. Revisión, disputas y cancelaciones</a></li>
+  <li><a href="#sec-9">9. Calificación mutua y reputación</a></li>
+  <li><a href="#sec-10">10. Propiedad intelectual y confidencialidad</a></li>
+  <li><a href="#sec-11">11. Normas de la plataforma y código de conducta</a></li>
+  <li><a href="#sec-12">12. Uso prohibido, suspensión y eliminación de cuentas</a></li>
+  <li><a href="#sec-13">13. Limitación de responsabilidad</a></li>
+  <li><a href="#sec-14">14. Modificaciones, ley aplicable y jurisdicción</a></li>
+{% endif %}
+{% endblock %}
+
+{% block legal_body %}
+{% if IDIOMA == 'en' %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> Purpose and legal nature of Jobdevs</h2>
+    <p><strong>Jobdevs</strong> is a digital infrastructure technology platform designed to connect legal entities and individuals with software development needs (hereinafter, <strong>"Companies"</strong>) with apprentices and graduates of the Servicio Nacional de Aprendizaje — SENA (hereinafter, <strong>"Developers"</strong>), enabling project publishing, formalization of agreements through digital contracts, milestone tracking with verifiable evidence, and the building of provable reputation.</p>
+    <p>Jobdevs acts exclusively as a provider of technological tools and a traceability environment. Accordingly, <strong>Jobdevs is not an employment agency, does not perform labor intermediation, is not an employer or contracting party of the Developers, and does not guarantee any employment relationship, apprenticeship contract, or subordination</strong> between Jobdevs and platform users.</p>
+    <div class="legal-callout">
+      <p><strong>Essential clarification regarding payments and non-retention of funds:</strong> Jobdevs is <strong>NOT a payment gateway, does NOT receive, hold, custody, or administer money</strong> (there is no escrow or security deposit), <strong>does NOT make payments or disbursements to the apprentice or Developer</strong>, and does not intermediate financial transactions between the parties. Any contractual, financial, or service-provision relationship is entered into and settled directly, autonomously, and independently between the Company and the Developer outside the Platform.</p>
+      <p>The scope of Jobdevs is strictly limited to <strong>validating technical and documentary traceability</strong> (identity, SENA affiliation, Digital Contract, milestones, and evidence) and to <strong>verifying and intervening operationally only when conflicts or disputes arise</strong> between the parties.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Operational definitions</h2>
+    <p>For the purposes of interpreting and applying these Terms of Service, the following terms shall have the meanings set forth below:</p>
+    <ul>
+      <li><strong>Platform:</strong> The website, dashboards, messaging modules, electronic signature tools, milestone management features, and APIs operated under the Jobdevs brand.</li>
+      <li><strong>Company:</strong> A legally incorporated legal entity or registered individual merchant duly identified with a NIT or Colombian National ID (Cédula de Ciudadanía) that publishes software requirements on the Platform.</li>
+      <li><strong>Developer:</strong> An active apprentice or graduate of SENA technology or software development training programs who registers to apply for and execute projects.</li>
+      <li><strong>Project:</strong> A software development requirement published by a Company specifying technical scope, available openings, suggested technologies, and estimated timelines.</li>
+      <li><strong>Digital Contract:</strong> An electronic document generated on the Platform setting forth the terms agreed between the Company and the Developer, executed through a double electronic signature with an integrity seal.</li>
+      <li><strong>Milestone and Evidence:</strong> A verifiable unit of progress within a Project, accompanied by technical deliverables, repository links, screenshots, or files uploaded to the Platform's private storage.</li>
+      <li><strong>Dispute:</strong> A formal controversy procedure initiated by either party to a Digital Contract in the event of breach, technical disagreement, or non-consensual cancellation request, subject to administrative mediation.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Eligibility, registration, and identity verification</h2>
+    <p>Access to Jobdevs operational features requires creating a personal or corporate account and providing truthful, complete, and verifiable information. By registering, the user represents and warrants that they have legal capacity to enter into binding obligations and that all documentation submitted is authentic.</p>
+
+    <h3>3.1. Validation of identity and tax documents</h3>
+    <ul>
+      <li><strong>Developers:</strong> May register exclusively with a valid Colombian <strong>National ID (Cédula de Ciudadanía — CC)</strong> or <strong>Identity Card (Tarjeta de Identidad — TI)</strong>. The platform validates document format, uniqueness, and the minimum age requirements established for registration.</li>
+      <li><strong>Companies:</strong> May register with a <strong>NIT (Tax Identification Number)</strong> — subject to mathematical verification of the check digit pursuant to the official DIAN algorithm — or with a Cédula de Ciudadanía when acting as a natural person.</li>
+      <li><strong>SENA academic verification:</strong> Developers may verify their affiliation using their official SENA cohort number (ficha) and training program. Verification may be performed automatically against the authorized institutional registry or through documentary review by the administrative team.</li>
+    </ul>
+
+    <h3>3.2. Operating modes: Pilot Mode vs. Institutional Mode</h3>
+    <p>Jobdevs may operate under two administrative modalities depending on the deployment environment:</p>
+    <ul>
+      <li><strong>Pilot Mode:</strong> Allows open public registration of Companies and Developers. In this mode, accounts that remain without completed identity or academic verification and without associated contractual activity within <strong>three (3) calendar days</strong> from creation may be <strong>automatically purged and deleted</strong> by the system in order to preserve ecosystem integrity and prevent inactive or fraudulent accounts.</li>
+      <li><strong>Institutional Mode:</strong> Account provisioning for apprentices and companies is managed directly by authorized institutional administrators, and the open public registration form may be restricted.</li>
+    </ul>
+    <p>The use of altered documents, impersonation of SENA cohorts, or submission of false information entitles Jobdevs to reject verification, limit verification attempts, and immediately suspend or terminate the account.</p>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Obligations of Companies and Developers</h2>
+    <h3>4.1. Common obligations</h3>
+    <ul>
+      <li>Maintain the confidentiality of access credentials and immediately report any unauthorized use of the account.</li>
+      <li>Act in good faith, professionally, and respectfully in all internal communications, negotiations, deliveries, and evaluations.</li>
+      <li>Fully comply with applicable Colombian laws on civil, commercial, tax, intellectual property, and personal data protection matters.</li>
+      <li>Refrain from circumventing the Platform's traceability, documentary verification, or evidence-logging mechanisms.</li>
+    </ul>
+
+    <h3>4.2. Specific obligations of Companies</h3>
+    <ul>
+      <li>Draft clear, lawful, and achievable specifications when publishing projects, without demanding disguised unpaid work or abusive technical tests outside the agreed scope.</li>
+      <li>Review deliverables and milestones submitted by Developers in a timely manner and provide objective, technical, and well-founded feedback.</li>
+      <li>Honor the terms agreed in the Digital Contract, including timelines, scope, and compensation arranged directly with the Developer.</li>
+    </ul>
+
+    <h3>4.3. Specific obligations of Developers</h3>
+    <ul>
+      <li>Apply only to projects for which they have genuine availability and appropriate technical skills, respecting the active limit on simultaneous applications on the Platform.</li>
+      <li>Deliver original, documented, and verifiable code for each milestone, refraining from plagiarizing third-party protected software or violating open-source licenses.</li>
+      <li>Promptly communicate any technical impediment or change in availability to the Company through the project's official channels.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Project publishing, applications, and negotiation</h2>
+    <p>Verified Companies may publish projects detailing functional descriptions, suggested technologies, number of openings, and estimated schedules. Jobdevs reserves the right to moderate, pause, or remove listings that are unlawful, misleading, discriminatory, or incompatible with the educational and professional purpose of the Platform.</p>
+    <p>Verified Developers may apply by attaching their technical cover letter and professional profile. Once a Company shortlists or accepts an application, the negotiation and Digital Contract formalization phase is enabled. Negotiations or proposals exceeding the maximum response deadlines configured on the Platform without a reply from either party may automatically expire to release the opening and preserve process agility.</p>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Binding Digital Contracts and double electronic signature</h2>
+    <p>When a Company and a Developer agree to execute a project, Jobdevs generates a <strong>Digital Contract</strong> consolidating the identification of the parties, technical scope, schedule, agreed milestones, and essential execution clauses.</p>
+    <p>Execution of the Digital Contract takes place through a <strong>double electronic signature</strong> (authenticated acceptance by both the Company and the Developer). Pursuant to <strong>Law 527 of 1999</strong> (which defines and regulates access to and use of data messages and e-commerce in Colombia) and Decree 2364 of 2012, data messages and electronic signatures generated within Jobdevs hold full legal validity and evidentiary force between the parties.</p>
+    <ul>
+      <li><strong>Integrity and traceability:</strong> Each signature records the authenticated identity of the signer, exact timestamp, and a cryptographic integrity seal over the contractual document.</li>
+      <li><strong>Professional evidence snapshot:</strong> Upon contract execution, the Platform preserves a snapshot of the parties' profiles and current verification status to guarantee legal certainty throughout execution.</li>
+      <li><strong>Immutability:</strong> Signed contracts and their audit logs cannot be unilaterally altered. Any substantial amendment requires formal documentation through the mechanisms provided on the Platform.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Milestone execution and verifiable evidence</h2>
+    <p>Project execution on Jobdevs is structured around <strong>verifiable milestones</strong>. For each milestone, the Developer must record the corresponding progress along with a technical description, links to repositories or deployments, and evidence files backed up in the Platform's private storage.</p>
+    <p>Evidence files are subject to technical validation of file extension, size, and structure. The Developer warrants that uploaded evidence reflects actual work performed and is free of malicious code or unauthorized third-party personal data. Overall project progress percentage is calculated exclusively from milestones formally approved by the Company.</p>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Review, approval, disputes, and cancellations</h2>
+    <h3>8.1. Deliverable review and approval</h3>
+    <p>Once progress is uploaded, the Company may use the Platform's channels to approve the milestone or request specific, objective revisions within the scope agreed in the Digital Contract. Observations must be stated clearly, verifiably, and respectfully.</p>
+
+    <h3>8.2. Cancellation requests</h3>
+    <p>Either party may request early cancellation of a contract by stating the cause and supporting justification. Where mutual agreement exists, closure is formalized with a record of the progress achieved. Absent consensus, the case may be escalated to administrative review or formal dispute.</p>
+
+    <h3>8.3. Dispute system and mediation</h3>
+    <p>In the event of serious controversies involving non-delivery, project abandonment, unjustified rejection of milestones, or breach of the Digital Contract, either party may open a formal <strong>Dispute</strong> within the Platform:</p>
+    <ul>
+      <li>Upon opening a dispute, a <strong>private mediation room</strong> is enabled between the Company, the Developer, and an authorized Jobdevs administrator.</li>
+      <li>The parties may submit statements and documentary evidence (PDF, ZIP, PNG, JPG/JPEG within established limits) supporting their position.</li>
+      <li>The administrator will review contract traceability, recorded milestones, uploaded evidence, and relevant communications to issue an administrative resolution within the Jobdevs ecosystem (closure, cancellation, continuation, or account measures).</li>
+      <li>Jobdevs mediation is an operational documentary-validation mechanism to resolve conflicts within the Platform: <strong>it does not involve holding, releasing, or transferring money</strong> and does not replace ordinary courts or alternative dispute resolution mechanisms provided by Colombian law.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Mutual rating and verifiable public reputation</h2>
+    <p>Upon successful completion of a project and closure of the Digital Contract, both the Company and the Developer may submit a <strong>mutual rating</strong> (numeric star scale and qualitative comment). These ratings build the verifiable public reputation displayed on Platform profiles.</p>
+    <p>Ratings must be based solely on actual performance during the project. Submitting false, defamatory, discriminatory, coerced reviews, or engaging in fraudulent reputation exchange is strictly prohibited. Jobdevs may moderate or remove comments containing offensive language, disclosing sensitive personal data, or violating these Terms, recording such action in the audit log.</p>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Intellectual property and confidentiality</h2>
+    <h3>10.1. Intellectual property over developed software</h3>
+    <p>Ownership of economic copyrights over source code, designs, documentation, and other deliverables produced during a project shall be governed by what is expressly agreed in the respective <strong>Digital Contract</strong> and, where not specified, by <strong>Law 23 of 1982</strong>, Andean Decision 351 of 1993, and other Colombian intellectual property statutes. In all cases, the Developer's moral rights of attribution are inalienable under the law.</p>
+    <p>Unless expressly restricted by a confidentiality clause in the Digital Contract, the Developer may generally reference their participation in the project in their professional portfolio without disclosing proprietary source code, credentials, or trade secrets of the Company.</p>
+
+    <h3>10.2. Jobdevs intellectual property</h3>
+    <p>The Jobdevs brand, logo, software architecture, graphical interface, source code, text, databases, and methodologies are the exclusive property of their owners and are protected by applicable intellectual property laws. Nothing in these Terms grants any license or assignment of rights over the Platform other than limited personal use consistent with its intended purpose.</p>
+
+    <h3>10.3. Confidentiality</h3>
+    <p>The parties undertake to maintain strict confidentiality regarding technical, commercial, architectural information, test credentials, databases, or private documentation accessed during project negotiation or execution, using such information solely to fulfill the Digital Contract.</p>
+  </section>
+
+  <section class="legal-section" id="sec-11">
+    <h2><span class="legal-section-num">11.</span> Platform rules and code of conduct</h2>
+    <p>To ensure a safe, transparent, and professional environment between Companies and SENA apprentices or graduates, all Jobdevs users must strictly comply with the following <strong>Platform Rules</strong>:</p>
+    <ul>
+      <li><strong>Truthfulness of identity and documentation:</strong> All information provided during registration and verification (CC, TI, DIAN NIT, SENA cohort number, certificates, and portfolio) must be real, personal, and verifiable.</li>
+      <li><strong>Respectful treatment and professional communication:</strong> Offensive language, insults, harassment, discrimination, threats, or intimidation are strictly prohibited in internal chat, milestone comments, evaluations, and dispute rooms.</li>
+      <li><strong>Fulfillment of commitments and deadlines:</strong> Companies must define clear requirements and review deliverables promptly; Developers must execute agreed milestones diligently and communicate any technical impediment in a timely manner.</li>
+      <li><strong>Originality and technical integrity:</strong> All code, designs, or deliverables uploaded as evidence must be legitimate. Plagiarism, delivery of malicious software, or unauthorized use of third-party protected material is prohibited.</li>
+      <li><strong>Honest use of the ecosystem:</strong> Fictitious projects, spam, fraudulent applications, artificial rating exchanges, or attempts to manipulate public reputation are strictly forbidden.</li>
+      <li><strong>Respect for confidentiality:</strong> Private data, test credentials, repositories, and documents shared within a project may only be used for its execution and must not be disclosed to unauthorized third parties.</li>
+      <li><strong>Transparency and single account:</strong> Each individual or company must operate with a single truthful account, without evading verification controls, operational limits, or active sanctions.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-12">
+    <h2><span class="legal-section-num">12.</span> Prohibited use, suspension, and permanent account deletion</h2>
+    <p>All users are expressly prohibited from engaging in any of the following conduct:</p>
+    <ul>
+      <li>Impersonating identities, forging SENA certificates, or altering cohort numbers, NITs, or supporting documents.</li>
+      <li>Publishing fictitious projects, unlawful offers, fraudulent content, or schemes intended to misappropriate code or data outside an agreed contract.</li>
+      <li>Uploading files infected with malware, attempting to breach server security, exploiting vulnerabilities, reverse engineering, or performing automated bulk extraction (<em>scraping</em>).</li>
+      <li>Harassing, threatening, discriminating against, or violating the dignity of other users in direct chat, project rooms, or mediations.</li>
+      <li>Creating multiple accounts to evade suspensions, application limits, or legitimate negative ratings.</li>
+    </ul>
+    <div class="legal-callout">
+      <p><strong>Account suspension and permanent deletion for non-compliance:</strong> Breach of any of the <strong>Platform Rules</strong> or these Terms of Service entitles Jobdevs to <strong>immediately suspend the user's account and proceed with its permanent deletion</strong>, revoking access to their profile, projects, applications, and accumulated reputation, without any right to compensation. Jobdevs will retain only the minimum audit logs, digital contracts, and dispute evidence required to fulfill legal duties or respond to requests from competent authorities.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-13">
+    <h2><span class="legal-section-num">13.</span> Limitation of liability and indemnity</h2>
+    <p>Jobdevs makes reasonable technical efforts to maintain the availability, security, and integrity of the Platform; however, the service is provided on an <em>"as is"</em> basis and may experience scheduled maintenance, cloud provider outages, or force majeure events.</p>
+    <p>To the maximum extent permitted by Colombian law, Jobdevs shall not be liable for:</p>
+    <ul>
+      <li>Technical, financial, or contractual breaches by a Company or a Developer toward their counterparty.</li>
+      <li>The absolute accuracy of private statements exchanged outside the Platform's verifiable mechanisms.</li>
+      <li>Indirect damages, lost profits, loss of business opportunity, or data loss resulting from external failures or misuse of credentials by the user.</li>
+    </ul>
+    <p>Each user agrees to hold Jobdevs harmless against third-party claims arising from their breach of these Terms, intellectual property infringement, or violation of legal provisions in connection with executed projects.</p>
+  </section>
+
+  <section class="legal-section" id="sec-14">
+    <h2><span class="legal-section-num">14.</span> Amendments, governing law, and jurisdiction</h2>
+    <p>Jobdevs may update these Terms of Service to reflect technical improvements, operational changes, or new legal provisions. When changes are material, they will be announced with reasonable advance notice through the Platform or via registered email. Continued use of Jobdevs after the effective date of such changes constitutes acceptance thereof.</p>
+    <p>These Terms of Service are governed by and construed exclusively in accordance with the laws of the <strong>Republic of Colombia</strong>. Any controversy arising out of their interpretation, validity, or performance that cannot be resolved directly and amicably shall be submitted to the competent courts of the city of <strong>Medellín, Antioquia, Colombia</strong>.</p>
+    <p>For inquiries, legal support, or notices related to these Terms of Service, you may write to us at <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a>.</p>
+  </section>
+{% else %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> Objeto y naturaleza jurídica de Jobdevs</h2>
+    <p><strong>Jobdevs</strong> es una plataforma tecnológica de infraestructura digital diseñada para conectar a personas jurídicas y naturales con necesidades de desarrollo de software (en adelante, las <strong>"Empresas"</strong>) con aprendices y egresados del Servicio Nacional de Aprendizaje — SENA (en adelante, los <strong>"Desarrolladores"</strong>), facilitando la publicación de proyectos, la formalización de acuerdos mediante contratos digitales, el seguimiento por hitos con evidencias verificables y la construcción de reputación comprobable.</p>
+    <p>Jobdevs actúa exclusivamente como proveedor de herramientas tecnológicas y entorno de trazabilidad. En consecuencia, <strong>Jobdevs no es una agencia de empleo, no realiza intermediación laboral, no es empleador ni contratante de los Desarrolladores, ni garantiza relación laboral, contrato de aprendizaje o subordinación alguna</strong> entre Jobdevs y los usuarios de la plataforma.</p>
+    <div class="legal-callout">
+      <p><strong>Aclaración esencial sobre pagos y no retención de dinero:</strong> Jobdevs <strong>NO es una pasarela de pagos, NO recibe, retiene, custodia ni administra dinero</strong> (no existe depósito en garantía ni <em>escrow</em>), <strong>NO realiza pagos ni desembolsos al aprendiz o Desarrollador</strong> y no intermedia transacciones económicas entre las partes. Toda relación contractual, económica o de prestación de servicios se celebra y liquida de manera directa, autónoma e independiente entre la Empresa y el Desarrollador fuera de la Plataforma.</p>
+      <p>El alcance de Jobdevs se limita exclusivamente a <strong>validar la trazabilidad técnica y documental</strong> (identidad, vinculación SENA, Contrato Digital, hitos y evidencias) y a <strong>verificar e intervenir operativamente únicamente cuando se presenten conflictos o disputas</strong> entre las partes.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Definiciones operativas</h2>
+    <p>Para efectos de interpretación y aplicación de las presentes Condiciones del servicio, los siguientes términos tendrán el significado que se indica a continuación:</p>
+    <ul>
+      <li><strong>Plataforma:</strong> El sitio web, paneles de control, módulos de mensajería, firma digital, gestión de hitos y APIs operadas bajo la marca Jobdevs.</li>
+      <li><strong>Empresa:</strong> Persona jurídica constituida legalmente o persona natural comerciante debidamente identificada con NIT o Cédula de Ciudadanía que publica requerimientos de software en la Plataforma.</li>
+      <li><strong>Desarrollador:</strong> Aprendiz activo o egresado de programas de formación del SENA del área de tecnología o desarrollo de software que se registra para postularse y ejecutar proyectos.</li>
+      <li><strong>Proyecto:</strong> Requerimiento de desarrollo de software publicado por una Empresa, que especifica alcance técnico, vacantes disponibles, tecnologías sugeridas y fechas estimadas.</li>
+      <li><strong>Contrato Digital:</strong> Documento electrónico generado en la Plataforma que recoge los términos acordados entre la Empresa y el Desarrollador, perfeccionado mediante doble firma electrónica con sello de integridad.</li>
+      <li><strong>Hito y Evidencia:</strong> Unidad verificable de avance dentro de un Proyecto, acompañada de entregables técnicos, enlaces a repositorios, capturas o archivos cargados en el almacenamiento privado de la Plataforma.</li>
+      <li><strong>Disputa:</strong> Procedimiento formal de controversia iniciado por cualquiera de las partes de un Contrato Digital ante incumplimientos, desacuerdos técnicos o solicitudes de cancelación sin consenso, sujeto a mediación administrativa.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Elegibilidad, registro y verificación de identidad</h2>
+    <p>El acceso a las funcionalidades operativas de Jobdevs requiere la creación de una cuenta personal o corporativa y el suministro de información veraz, completa y verificable. Al registrarse, el usuario declara y garantiza que cuenta con capacidad legal para obligarse y que toda la documentación suministrada es auténtica.</p>
+
+    <h3>3.1. Validación de documentos de identidad y tributarios</h3>
+    <ul>
+      <li><strong>Desarrolladores:</strong> Pueden registrarse únicamente con <strong>Cédula de Ciudadanía (CC)</strong> o <strong>Tarjeta de Identidad (TI)</strong> válida en Colombia. La plataforma valida el formato, la unicidad del documento y los requisitos mínimos de edad establecidos para el registro.</li>
+      <li><strong>Empresas:</strong> Pueden registrarse con <strong>NIT (Número de Identificación Tributaria)</strong> —sujeto a verificación matemática del dígito de verificación conforme al algoritmo oficial de la DIAN— o con Cédula de Ciudadanía cuando actúen como persona natural.</li>
+      <li><strong>Verificación académica SENA:</strong> Los Desarrolladores pueden acreditar su vinculación mediante su número de ficha oficial y programa de formación SENA. La verificación puede realizarse de forma automática contra el padrón institucional autorizado o mediante revisión documental de soporte por parte del equipo administrador.</li>
+    </ul>
+
+    <h3>3.2. Modos de operación: Modo Piloto vs. Modo Institucional</h3>
+    <p>Jobdevs puede operar bajo dos modalidades administrativas según el entorno de despliegue:</p>
+    <ul>
+      <li><strong>Modo Piloto:</strong> Permite el registro público abierto de Empresas y Desarrolladores. En este modo, las cuentas que permanezcan sin completar su verificación de identidad o académica y sin actividad contractual asociada dentro de un plazo de <strong>tres (3) días calendario</strong> contados desde su creación podrán ser <strong>depuradas y eliminadas automáticamente</strong> por el sistema con el fin de preservar la integridad del ecosistema y prevenir cuentas inactivas o fraudulentas.</li>
+      <li><strong>Modo Institucional:</strong> El alta de cuentas de aprendices y empresas es gestionada directamente por los administradores institucionales autorizados, pudiendo restringirse el formulario de registro público abierto.</li>
+    </ul>
+    <p>El uso de documentos adulterados, suplantación de fichas SENA o suministro de información falsa faculta a Jobdevs a rechazar la verificación, limitar intentos de solicitud y suspender o cancelar la cuenta de forma inmediata.</p>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Obligaciones de Empresas y Desarrolladores</h2>
+    <h3>4.1. Obligaciones comunes</h3>
+    <ul>
+      <li>Mantener la confidencialidad de las credenciales de acceso y notificar de inmediato cualquier uso no autorizado de la cuenta.</li>
+      <li>Actuar de buena fe, con profesionalismo y respeto en todas las comunicaciones internas, negociaciones, entregas y evaluaciones.</li>
+      <li>Cumplir íntegramente las leyes colombianas aplicables en materia civil, comercial, tributaria, de propiedad intelectual y de protección de datos personales.</li>
+      <li>No eludir los mecanismos de trazabilidad, verificación documental o registro de evidencias propios de la Plataforma.</li>
+    </ul>
+
+    <h3>4.2. Obligaciones específicas de las Empresas</h3>
+    <ul>
+      <li>Redactar especificaciones claras, lícitas y alcanzables al publicar proyectos, sin exigir trabajo gratuito encubierto ni pruebas técnicas abusivas fuera del alcance acordado.</li>
+      <li>Revisar oportunamente los avances e hitos entregados por los Desarrolladores y emitir retroalimentación objetiva, técnica y fundamentada.</li>
+      <li>Respetar las condiciones pactadas en el Contrato Digital, incluyendo plazos, alcance y contraprestaciones acordadas directamente con el Desarrollador.</li>
+    </ul>
+
+    <h3>4.3. Obligaciones específicas de los Desarrolladores</h3>
+    <ul>
+      <li>Postularse únicamente a proyectos para los cuales cuenten con disponibilidad real y competencias técnicas acordes, respetando el límite operativo de postulaciones simultáneas vigente en la Plataforma.</li>
+      <li>Entregar código original, documentado y verificable en cada hito, absteniéndose de plagiar software protegido por derechos de terceros o vulnerar licencias de código abierto.</li>
+      <li>Comunicar oportunamente cualquier impedimento técnico o cambio de disponibilidad a la Empresa a través de los canales oficiales del proyecto.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Publicación de proyectos, postulaciones y negociación</h2>
+    <p>Las Empresas verificadas pueden publicar proyectos detallando descripción funcional, tecnologías sugeridas, número de vacantes y cronograma estimado. Jobdevs se reserva la facultad de moderar, pausar o retirar publicaciones que resulten ilícitas, engañosas, discriminatorias o incompatibles con el propósito formativo y profesional de la Plataforma.</p>
+    <p>Los Desarrolladores verificados pueden postularse adjuntando su carta de presentación técnica y perfil profesional. Una vez que la Empresa preselecciona o acepta una postulación, se habilita la fase de negociación y formalización del Contrato Digital. Las negociaciones o propuestas que excedan los plazos máximos configurados en la Plataforma sin respuesta de alguna de las partes podrán expirar automáticamente para liberar la vacante y mantener la agilidad del proceso.</p>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Contratos Digitales vinculantes y doble firma electrónica</h2>
+    <p>Cuando una Empresa y un Desarrollador acuerdan ejecutar un proyecto, Jobdevs genera un <strong>Contrato Digital</strong> que consolida la identificación de las partes, el alcance técnico, el cronograma, los hitos acordados y las cláusulas esenciales de ejecución.</p>
+    <p>El perfeccionamiento del Contrato Digital se realiza mediante <strong>doble firma electrónica</strong> (aceptación autenticada de la Empresa y del Desarrollador). De conformidad con la <strong>Ley 527 de 1999</strong> (por medio de la cual se define y reglamenta el acceso y uso de los mensajes de datos y el comercio electrónico en Colombia) y el Decreto 2364 de 2012, los mensajes de datos y las firmas electrónicas generadas dentro de Jobdevs tienen plena validez jurídica y fuerza probatoria entre las partes.</p>
+    <ul>
+      <li><strong>Integridad y trazabilidad:</strong> Cada firma registra la identidad autenticada del firmante, marca de tiempo exacta y sello criptográfico de integridad sobre el documento contractual.</li>
+      <li><strong>Congelamiento de evidencia profesional:</strong> Al perfeccionarse el contrato, la Plataforma preserva una instantánea del perfil y estado de verificación vigente de las partes para garantizar seguridad jurídica durante toda la ejecución.</li>
+      <li><strong>Inalterabilidad:</strong> Los contratos firmados y sus registros de auditoría no pueden ser alterados unilateralmente. Cualquier modificación sustancial requiere constancia formal conforme a los mecanismos previstos en la Plataforma.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Ejecución por hitos y evidencias verificables</h2>
+    <p>La ejecución de los proyectos en Jobdevs se estructura por <strong>hitos verificables</strong>. Por cada hito, el Desarrollador debe registrar el avance correspondiente adjuntando descripción técnica, enlaces a repositorios o despliegues y archivos de evidencia respaldados en el almacenamiento privado de la Plataforma.</p>
+    <p>Los archivos de evidencia están sujetos a validaciones técnicas de extensión, tamaño y estructura. El Desarrollador garantiza que las evidencias cargadas corresponden al trabajo real ejecutado y que están libres de código malicioso o datos personales no autorizados de terceros. El avance porcentual del proyecto se calcula exclusivamente a partir de los hitos formalmente aprobados por la Empresa.</p>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Revisión, aprobación, disputas y cancelaciones</h2>
+    <h3>8.1. Revisión y aprobación de entregas</h3>
+    <p>Una vez cargado un avance, la Empresa dispone de los canales de la Plataforma para aprobar el hito o solicitar correcciones puntuales y objetivas dentro del alcance pactado en el Contrato Digital. Las observaciones deben formularse de manera clara, verificable y respetuosa.</p>
+
+    <h3>8.2. Solicitudes de cancelación</h3>
+    <p>Cualquiera de las partes puede solicitar la cancelación anticipada de un contrato exponiendo la causal y justificación correspondiente. Cuando exista mutuo acuerdo, el cierre se formaliza dejando constancia del estado de avance alcanzado. A falta de consenso, el caso puede escalarse a revisión administrativa o disputa formal.</p>
+
+    <h3>8.3. Sistema de disputas y mediación</h3>
+    <p>Ante controversias graves relacionadas con incumplimiento de entregables, abandono del proyecto, rechazo injustificado de hitos o vulneración del Contrato Digital, cualquiera de las partes podrá abrir una <strong>Disputa</strong> formal dentro de la Plataforma:</p>
+    <ul>
+      <li>Al abrirse una disputa, se habilita una <strong>sala privada de mediación</strong> entre la Empresa, el Desarrollador y un administrador autorizado de Jobdevs.</li>
+      <li>Las partes podrán aportar declaraciones y pruebas documentales (PDF, ZIP, PNG, JPG/JPEG dentro de los límites establecidos) que respalden su posición.</li>
+      <li>El administrador evaluará la trazabilidad del contrato, los hitos registrados, las evidencias cargadas y las comunicaciones pertinentes para emitir una resolución administrativa dentro del ecosistema de Jobdevs (cierre, cancelación, continuidad o medidas sobre la cuenta).</li>
+      <li>La mediación de Jobdevs es un mecanismo operativo de validación documental para resolver conflictos dentro de la Plataforma: <strong>no implica retención, liberación ni transferencia de dinero</strong> y no sustituye la jurisdicción ordinaria ni los mecanismos alternativos de solución de conflictos previstos en la ley colombiana.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Calificación mutua y reputación pública verificable</h2>
+    <p>Al completar satisfactoriamente un proyecto y cerrarse el Contrato Digital, tanto la Empresa como el Desarrollador pueden emitir una <strong>calificación mutua</strong> (escala numérica por estrellas y comentario cualitativo). Estas calificaciones conforman la reputación pública verificable visible en los perfiles de la Plataforma.</p>
+    <p>Las calificaciones deben basarse exclusivamente en el desempeño real durante el proyecto. Queda estrictamente prohibido emitir reseñas falsas, difamatorias, discriminatorias, coaccionadas o acordadas mediante intercambio fraudulento de reputación. Jobdevs podrá moderar o retirar comentarios que contengan lenguaje ofensivo, revelen datos personales sensibles o contravengan estas Condiciones, dejando constancia en el registro de auditoría.</p>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Propiedad intelectual y confidencialidad</h2>
+    <h3>10.1. Propiedad intelectual sobre el software desarrollado</h3>
+    <p>La titularidad de los derechos patrimoniales de autor sobre el código fuente, diseños, documentación y demás entregables producidos durante un proyecto se regirá por lo pactado expresamente en el respectivo <strong>Contrato Digital</strong> y, en lo no previsto, por la <strong>Ley 23 de 1982</strong>, la Decisión Andina 351 de 1993 y demás normas colombianas de propiedad intelectual. En todo caso, los derechos morales de paternidad del Desarrollador son irrenunciables conforme a la ley.</p>
+    <p>Salvo pacto expreso de confidencialidad en contrario consignado en el Contrato Digital, el Desarrollador podrá referenciar de manera general su participación en el proyecto dentro de su portafolio profesional sin divulgar código propietario, credenciales ni secretos empresariales de la Empresa.</p>
+
+    <h3>10.2. Propiedad intelectual de Jobdevs</h3>
+    <p>La marca Jobdevs, su logotipo, arquitectura de software, interfaz gráfica, código fuente, textos, bases de datos y metodologías son propiedad exclusiva de sus titulares y están protegidos por la normativa de propiedad intelectual vigente. Ninguna disposición de estas Condiciones otorga licencia o cesión de derechos sobre la Plataforma distinta del uso personal y limitado conforme a su finalidad.</p>
+
+    <h3>10.3. Confidencialidad</h3>
+    <p>Las partes se obligan a guardar reserva sobre la información técnica, comercial, arquitectónica, credenciales de prueba, bases de datos o documentación privada a la que tengan acceso durante la negociación o ejecución de un proyecto, utilizándola exclusivamente para el cumplimiento del Contrato Digital.</p>
+  </section>
+
+  <section class="legal-section" id="sec-11">
+    <h2><span class="legal-section-num">11.</span> Normas de la plataforma y código de conducta</h2>
+    <p>Para garantizar un entorno seguro, transparente y profesional entre Empresas y aprendices o egresados del SENA, todos los usuarios de Jobdevs deben cumplir de forma obligatoria las siguientes <strong>Normas de la plataforma</strong>:</p>
+    <ul>
+      <li><strong>Veracidad de identidad y documentación:</strong> Toda información suministrada en el registro y verificación (CC, TI, NIT DIAN, ficha SENA, certificados y portafolio) debe ser real, propia y comprobable.</li>
+      <li><strong>Trato respetuoso y comunicación profesional:</strong> En el chat interno, comentarios de hitos, evaluaciones y salas de disputa está prohibido el uso de lenguaje ofensivo, insultos, acoso, discriminación, amenazas o intimidación.</li>
+      <li><strong>Cumplimiento de compromisos y plazos:</strong> Las Empresas deben definir requerimientos claros y revisar entregas de forma oportuna; los Desarrolladores deben ejecutar los hitos acordados con diligencia, comunicando a tiempo cualquier impedimento técnico.</li>
+      <li><strong>Originalidad e integridad técnica:</strong> Todo código, diseño o entregable cargado como evidencia debe ser legítimo. Se prohíbe el plagio, la entrega de software malicioso o el uso no autorizado de material con derechos de terceros.</li>
+      <li><strong>Uso honesto del ecosistema:</strong> No se permiten proyectos ficticios, spam, postulaciones fraudulentas, intercambio artificial de calificaciones ni maniobras para manipular la reputación pública.</li>
+      <li><strong>Respeto a la confidencialidad:</strong> Los datos privados, accesos de prueba, repositorios y documentos compartidos dentro de un proyecto solo pueden usarse para su ejecución y no deben divulgarse a terceros sin autorización.</li>
+      <li><strong>Transparencia y cuenta única:</strong> Cada persona o empresa debe operar con una única cuenta verídica, sin evadir controles de verificación, límites operativos ni sanciones vigentes.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-12">
+    <h2><span class="legal-section-num">12.</span> Uso prohibido, suspensión y eliminación definitiva de cuentas</h2>
+    <p>Se prohíbe expresamente a todos los usuarios realizar cualquiera de las siguientes conductas:</p>
+    <ul>
+      <li>Suplantar identidades, falsificar certificados SENA, adulterar números de ficha, NIT o documentos de soporte.</li>
+      <li>Publicar proyectos ficticios, ofertas ilícitas, contenido fraudulento o esquemas que busquen apropiarse de código o datos sin el acuerdo pactado.</li>
+      <li>Cargar archivos infectados con malware, intentar vulnerar la seguridad del servidor, explotar vulnerabilidades, realizar ingeniería inversa o extracción automatizada masiva (<em>scraping</em>).</li>
+      <li>Acosar, amenazar, discriminar o vulnerar la dignidad de otros usuarios en el chat directo, salas de proyecto o mediaciones.</li>
+      <li>Crear múltiples cuentas para evadir suspensiones, límites de postulación o calificaciones negativas legítimas.</li>
+    </ul>
+    <div class="legal-callout">
+      <p><strong>Suspensión y eliminación de cuenta por incumplimiento:</strong> El incumplimiento de cualquiera de las <strong>Normas de la plataforma</strong> o de las presentes Condiciones del servicio faculta a Jobdevs para <strong>suspender de manera inmediata la cuenta del usuario y proceder a su eliminación definitiva</strong>, revocando el acceso a su perfil, proyectos, postulaciones y reputación acumulada, sin lugar a indemnización. Jobdevs conservará únicamente los registros mínimos de auditoría, contratos digitales y evidencias de disputas necesarios para cumplir deberes legales o atender requerimientos de autoridades competentes.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-13">
+    <h2><span class="legal-section-num">13.</span> Limitación de responsabilidad e indemnidad</h2>
+    <p>Jobdevs realiza esfuerzos técnicos razonables para mantener la disponibilidad, seguridad e integridad de la Plataforma; no obstante, el servicio se presta en el estado en que se encuentra (<em>"tal cual"</em>) y pueden presentarse mantenimientos programados, interrupciones de proveedores de nube o eventos de fuerza mayor.</p>
+    <p>En la máxima medida permitida por la legislación colombiana, Jobdevs no será responsable por:</p>
+    <ul>
+      <li>El incumplimiento técnico, económico o contractual de una Empresa o de un Desarrollador frente a su contraparte.</li>
+      <li>La veracidad absoluta de manifestaciones privadas intercambiadas fuera de los mecanismos verificables de la Plataforma.</li>
+      <li>Daños indirectos, lucro cesante, pérdida de oportunidad comercial o pérdida de datos derivada de fallas externas o uso indebido de credenciales por parte del usuario.</li>
+    </ul>
+    <p>Cada usuario se obliga a mantener indemne a Jobdevs frente a reclamaciones de terceros originadas en su incumplimiento de estas Condiciones, la infracción de derechos de propiedad intelectual o la violación de normas legales en el marco de los proyectos ejecutados.</p>
+  </section>
+
+  <section class="legal-section" id="sec-14">
+    <h2><span class="legal-section-num">14.</span> Modificaciones, ley aplicable y jurisdicción</h2>
+    <p>Jobdevs podrá actualizar estas Condiciones del servicio para reflejar mejoras técnicas, cambios operativos o nuevas disposiciones legales. Cuando las modificaciones sean sustanciales, se anunciarán con antelación razonable a través de la Plataforma o del correo electrónico registrado. El uso continuado de Jobdevs tras la entrada en vigencia de los cambios implicará su aceptación.</p>
+    <p>Las presentes Condiciones del servicio se rigen e interpretan íntegramente conforme a las leyes de la <strong>República de Colombia</strong>. Cualquier controversia que surja en relación con su interpretación, validez o cumplimiento y que no pueda resolverse de forma directa y amistosa será sometida a los jueces competentes de la ciudad de <strong>Medellín, Antioquia, Colombia</strong>.</p>
+    <p>Para consultas, soporte legal o notificaciones relacionadas con estas Condiciones del servicio, puedes escribirnos a <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a>.</p>
+  </section>
+{% endif %}
+{% endblock %}

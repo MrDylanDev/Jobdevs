@@ -1,0 +1,335 @@
+{% extends 'publico/legal_base.html' %}
+
+{% block title %}{% if IDIOMA == 'en' %}Privacy Policy & Personal Data Processing | Jobdevs{% else %}Política de privacidad y Tratamiento de Datos Personales | Jobdevs{% endif %}{% endblock %}
+{% block meta_description %}{% if IDIOMA == 'en' %}Jobdevs Privacy Policy and personal data processing policy pursuant to Law 1581 of 2012, Decree 1377 of 2013, and Article 15 of the Political Constitution of Colombia.{% else %}Política de privacidad y tratamiento de datos personales de Jobdevs conforme a la Ley 1581 de 2012, Decreto 1377 de 2013 y Artículo 15 de la Constitución Política de Colombia.{% endif %}{% endblock %}
+{% block legal_eyebrow %}{% if IDIOMA == 'en' %}Legal document · 02{% else %}Documento legal · 02{% endif %}{% endblock %}
+{% block legal_heading %}{% if IDIOMA == 'en' %}Privacy Policy & Personal Data Processing{% else %}Política de privacidad y Tratamiento de Datos Personales{% endif %}{% endblock %}
+{% block legal_lead %}{% if IDIOMA == 'en' %}At Jobdevs we protect the privacy and fundamental right to Habeas Data of companies, apprentices, graduates, and visitors. This policy explains what data we collect, why we use it, how we protect it, and how you can exercise your rights under Colombian law.{% else %}En Jobdevs protegemos la privacidad y el derecho fundamental al Habeas Data de empresas, aprendices, egresados y visitantes. Esta política explica qué datos recolectamos, para qué los utilizamos, cómo los protegemos y cómo puedes ejercer tus derechos conforme a la legislación colombiana.{% endif %}{% endblock %}
+
+{% block legal_toc %}
+{% if IDIOMA == 'en' %}
+  <li><a href="#sec-1">1. Applicable legal framework</a></li>
+  <li><a href="#sec-2">2. Data Controller</a></li>
+  <li><a href="#sec-3">3. Guiding principles</a></li>
+  <li><a href="#sec-4">4. Categories of collected data</a></li>
+  <li><a href="#sec-5">5. Purposes of processing</a></li>
+  <li><a href="#sec-6">6. Prior and express authorization</a></li>
+  <li><a href="#sec-7">7. Rights of data subjects</a></li>
+  <li><a href="#sec-8">8. Inquiries and claims procedure</a></li>
+  <li><a href="#sec-9">9. Data security and retention</a></li>
+  <li><a href="#sec-10">10. Transfer and transmission to third parties</a></li>
+  <li><a href="#sec-11">11. Data of minors (Identity Card — TI)</a></li>
+  <li><a href="#sec-12">12. Internal chat privacy and audit</a></li>
+  <li><a href="#sec-13">13. Effective date and amendments</a></li>
+{% else %}
+  <li><a href="#sec-1">1. Marco legal aplicable</a></li>
+  <li><a href="#sec-2">2. Responsable del tratamiento</a></li>
+  <li><a href="#sec-3">3. Principios rectores</a></li>
+  <li><a href="#sec-4">4. Categorías de datos recolectados</a></li>
+  <li><a href="#sec-5">5. Finalidades del tratamiento</a></li>
+  <li><a href="#sec-6">6. Autorización previa y expresa</a></li>
+  <li><a href="#sec-7">7. Derechos de los titulares</a></li>
+  <li><a href="#sec-8">8. Procedimiento de consultas y reclamos</a></li>
+  <li><a href="#sec-9">9. Seguridad y conservación de datos</a></li>
+  <li><a href="#sec-10">10. Transferencia y transmisión a terceros</a></li>
+  <li><a href="#sec-11">11. Datos de menores de edad (TI)</a></li>
+  <li><a href="#sec-12">12. Privacidad en chat y auditoría</a></li>
+  <li><a href="#sec-13">13. Vigencia y modificaciones</a></li>
+{% endif %}
+{% endblock %}
+
+{% block legal_body %}
+{% if IDIOMA == 'en' %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> Applicable legal framework</h2>
+    <p>This Privacy Policy and Personal Data Processing Policy is issued in compliance with <strong>Article 15 of the Political Constitution of Colombia</strong> (fundamental right to personal and family privacy, good name, and <em>Habeas Data</em>), <strong>Statutory Law 1581 of 2012</strong> (General Regime for the Protection of Personal Data), <strong>Regulatory Decree 1377 of 2013</strong> (compiled in Chapter 25, Title 2, Part 2, Book 2 of Single Regulatory Decree 1074 of 2015), and the directives issued by the Superintendence of Industry and Commerce (SIC).</p>
+    <p>This policy applies to all physical or electronic databases and files containing personal data collected, stored, used, circulated, or deleted by Jobdevs through its web platform and support channels.</p>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Identification of the Data Controller</h2>
+    <ul>
+      <li><strong>Data Controller:</strong> Jobdevs Platform.</li>
+      <li><strong>Domicile:</strong> Medellín, Antioquia, Republic of Colombia.</li>
+      <li><strong>Data subject support email:</strong> <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a></li>
+      <li><strong>Digital channel:</strong> Official support module and forms available on the Jobdevs platform.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Guiding principles of processing</h2>
+    <p>All personal data processing carried out by Jobdevs is governed by the following legal and operational principles:</p>
+    <ul>
+      <li><strong>Lawfulness and purpose:</strong> Collection serves legitimate, explicit purposes informed to the data subject prior to registration.</li>
+      <li><strong>Freedom:</strong> Processing is carried out only with the prior, express, and informed consent of the data subject, subject to statutory exceptions.</li>
+      <li><strong>Minimization and accuracy:</strong> We collect only the data strictly necessary to operate verification, contracting, milestone execution, and reputation, striving to keep it complete and up to date.</li>
+      <li><strong>Restricted access and circulation:</strong> Each role (Company, Developer, Administrator) accesses only the data required for its legitimate functions within the Platform.</li>
+      <li><strong>Security and confidentiality:</strong> We apply technical, administrative, and organizational controls to prevent unauthorized access, loss, alteration, or improper disclosure.</li>
+      <li><strong>Accountability:</strong> We document sensitive events and granted authorizations without duplicating unnecessary confidential information.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Categories of personal data collected</h2>
+    <p>Depending on the user's role and interaction with the Platform, Jobdevs may collect and process the following categories of data:</p>
+    <ul>
+      <li><strong>Identification and account data:</strong> Full name or corporate name, document type and number (Cédula de Ciudadanía, Tarjeta de Identidad, or NIT with check digit), date of birth, platform role, and account status.</li>
+      <li><strong>Contact data:</strong> Email address, contact phone number, and city of operation.</li>
+      <li><strong>Academic and professional data (Developers):</strong> SENA cohort number (ficha), training program (e.g., ADSO and related programs), technical skills, professional portfolio link, profile photo, and supporting documents submitted for academic verification.</li>
+      <li><strong>Corporate data (Companies):</strong> Company name, economic sector, corporate description, logo, technology stack of interest, and supporting corporate verification documents (such as RUT or certificate of existence and legal representation).</li>
+      <li><strong>Contractual and execution data:</strong> Applications, cover letters, Digital Contracts, electronic signature timestamps and records, defined milestones, progress descriptions, technical links, and evidence files.</li>
+      <li><strong>Communications, mediation, and reputation:</strong> Messages exchanged in project chats or private mediation rooms, cancellation requests, dispute evidence, and mutual ratings with comments.</li>
+      <li><strong>Technical and audit records:</strong> Traces of relevant actions in <code>LogAuditoria</code> (actor, action, affected table and record, date and time), as well as technical logs required for security and fraud prevention.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Purposes of processing</h2>
+    <p>Collected personal data shall be used exclusively and proportionally for the following purposes:</p>
+    <ol>
+      <li><strong>Account creation, authentication, and administration:</strong> Enabling secure access to Company, Developer, or Administrator dashboards and managing password recovery.</li>
+      <li><strong>Identity verification and SENA accreditation:</strong> Validating the format and uniqueness of CC, TI, or NIT (DIAN algorithm), verifying cohorts and programs against the official SENA registry, and conducting documentary review when applicable.</li>
+      <li><strong>Operation of the project and contracting lifecycle:</strong> Publishing requirements, processing applications, generating and executing binding Digital Contracts, and freezing current professional evidence at the time of signing.</li>
+      <li><strong>Milestone tracking and verifiable reputation:</strong> Storing technical delivery evidence, managing approvals, calculating project progress, and displaying mutual ratings tied to real contracts.</li>
+      <li><strong>Dispute mediation and support:</strong> Addressing controversies, cancellation requests, technical incidents, and user inquiries.</li>
+      <li><strong>Transactional communications:</strong> Sending welcome emails, verification alerts, application updates, contract signature notices, milestone changes, or security alerts.</li>
+      <li><strong>Security, auditing, and legal compliance:</strong> Preventing identity impersonation, fraud, or platform abuse, maintaining immutable audit logs, and responding to requests from competent administrative or judicial authorities.</li>
+    </ol>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Prior, express, and informed authorization</h2>
+    <p>Processing of personal data by Jobdevs requires the prior, express, and informed authorization of the data subject, which is obtained unequivocally by checking the legal acceptance box during the Platform registration process.</p>
+    <p>Jobdevs retains an auditable and verifiable record of the date, time, and identity of the user who granted such authorization. Providing sensitive data (such as a profile photo or optional supporting documentation) is voluntary; however, refusing to provide data strictly required for identification, verification, or contract formalization will prevent use of the corresponding features.</p>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Rights of data subjects</h2>
+    <p>Pursuant to Article 8 of Law 1581 of 2012, as a personal data subject you have the right to:</p>
+    <ul>
+      <li><strong>Know, update, and rectify</strong> your personal data held by Jobdevs when it is partial, inaccurate, incomplete, fragmented, or misleading.</li>
+      <li><strong>Request proof of the authorization</strong> granted for the processing of your personal data.</li>
+      <li><strong>Be informed</strong> by Jobdevs, upon request, regarding the use made of your personal data.</li>
+      <li><strong>File complaints with the Superintendence of Industry and Commerce (SIC)</strong> for violations of Law 1581 of 2012 and amending or supplementing regulations, once the inquiry or claim procedure before Jobdevs has been exhausted.</li>
+      <li><strong>Revoke authorization and/or request deletion of data</strong> when processing fails to respect constitutional and legal principles, rights, and guarantees, or when no legal or contractual duty requires retention in the database.</li>
+      <li><strong>Access free of charge</strong> your personal data that has been subject to processing.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Procedure and legal deadlines for inquiries and claims</h2>
+    <p>To exercise any of the rights above, the data subject (or their duly accredited successor or representative) must send a request to <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a> specifying: full name, identity document number, email registered on the platform, a clear description of the inquiry or claim, and relevant supporting documents. Jobdevs will verify the requester's identity before delivering or modifying information and will never disclose third-party data in a response.</p>
+
+    <div class="legal-table-wrap">
+      <table class="legal-table">
+        <thead>
+          <tr>
+            <th>Request type</th>
+            <th>Legal basis</th>
+            <th>Initial response deadline</th>
+            <th>Maximum extension (with reasoned notice)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Inquiries</strong> (data access, proof of authorization, usage information)</td>
+            <td>Art. 14, Law 1581 of 2012</td>
+            <td>Up to <strong>10 business days</strong> from the date of receipt.</td>
+            <td>Up to <strong>5 additional business days</strong> following expiration of the initial term.</td>
+          </tr>
+          <tr>
+            <td><strong>Claims</strong> (correction, update, deletion, or revocation)</td>
+            <td>Art. 15, Law 1581 of 2012</td>
+            <td>Up to <strong>15 business days</strong> from the day following receipt of a complete claim.</td>
+            <td>Up to <strong>8 additional business days</strong> stating the reasons for the delay.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>If a claim is incomplete, Jobdevs will request the interested party within <strong>five (5) business days</strong> of receipt to cure the deficiencies. If two (2) months elapse without the requester providing the required information, the claim shall be deemed withdrawn pursuant to law.</p>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Information security and data retention</h2>
+    <p>Jobdevs implements reasonable technical, human, and administrative measures to protect personal data against tampering, loss, unauthorized or fraudulent consultation, use, or access:</p>
+    <ul>
+      <li><strong>Encryption and credentials:</strong> Traffic protected via TLS/HTTPS and passwords stored exclusively using secure cryptographic hashing functions (never in plain text).</li>
+      <li><strong>Private storage and authorized downloads:</strong> Verification documents and milestone or dispute evidence are stored in private repositories and delivered solely through permission-validated views or temporary pre-signed URLs.</li>
+      <li><strong>Contractual and audit retention:</strong> Digital Contracts, signature records, dispute resolutions, and audit logs (<code>LogAuditoria</code>) are retained for the period necessary to fulfill legal, contractual, evidentiary, or legal-defense obligations.</li>
+      <li><strong>Pilot Mode purge:</strong> Pursuant to the principle of limited retention, when the platform operates in <strong>Pilot Mode</strong>, accounts that do not complete verification and have no associated contractual activity within <strong>three (3) calendar days</strong> of registration are automatically purged.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Transfer and transmission to third parties and processors</h2>
+    <p><strong>Jobdevs does not sell, rent, or commercialize personal databases to third parties.</strong> For the technical operation of the Platform, certain data may be transmitted to specialized providers acting as Data Processors (cloud hosting services, private object storage, transactional email delivery, and operational monitoring), under strict confidentiality, security, and purpose-limitation commitments.</p>
+    <p>Additionally, Jobdevs may disclose personal information upon written order of a competent judicial or administrative authority exercising its statutory powers, or when strictly necessary to comply with a legal obligation in Colombia.</p>
+  </section>
+
+  <section class="legal-section" id="sec-11">
+    <h2><span class="legal-section-num">11.</span> Data of minors (apprentices with Identity Card — TI)</h2>
+    <p>Jobdevs recognizes that SENA's training ecosystem may include apprentices identified with a Colombian <strong>Identity Card (Tarjeta de Identidad — TI)</strong>. Pursuant to Article 7 of Law 1581 of 2012 and Article 12 of Decree 1377 of 2013, processing personal data of children and adolescents is prohibited, except for data of a public nature or when processing serves and respects their <strong>best interests</strong> and ensures respect for their fundamental rights.</p>
+    <div class="legal-callout legal-callout--warn">
+      <p><strong>Enhanced protection:</strong> Ordinary public registration on Jobdevs requires meeting the Platform's active age requirements. In authorized institutional scenarios involving minor apprentices with an Identity Card (TI), processing of their data is strictly limited to academic and training purposes linked to SENA, requires prior authorization from their legal representative where required by applicable law, and receives enhanced protection over their privacy and communications.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-12">
+    <h2><span class="legal-section-num">12.</span> Internal chat privacy and administrative auditing</h2>
+    <p>Messages exchanged in direct chats, project rooms, and mediation rooms are restricted exclusively to authorized participants in the corresponding relationship. Access by administrative staff is strictly limited to requested support, formal mediation of an active dispute, or investigation of serious security or abuse incidents.</p>
+    <p>No administrator is authorized to disclose private conversations or verification documents outside formal channels. Under our principle of <strong>auditing without exposure</strong>, <code>LogAuditoria</code> records never store passwords, hashes, session or recovery tokens, API keys, or the full contents of private messages or confidential documents.</p>
+  </section>
+
+  <section class="legal-section" id="sec-13">
+    <h2><span class="legal-section-num">13.</span> Effective date, amendments, and contact</h2>
+    <p>This Privacy Policy and Personal Data Processing Policy enters into effect as of its publication date and shall remain in force for as long as Jobdevs carries out the activities justifying personal data processing. Any material amendment will be communicated to data subjects in a timely manner via the Platform or email prior to implementation.</p>
+    <p>If you have questions, inquiries, or wish to exercise your Habeas Data rights, please contact us at <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a>.</p>
+  </section>
+{% else %}
+  <section class="legal-section" id="sec-1">
+    <h2><span class="legal-section-num">01.</span> Marco legal aplicable</h2>
+    <p>La presente Política de Privacidad y Tratamiento de Datos Personales se expide en cumplimiento de lo dispuesto en el <strong>Artículo 15 de la Constitución Política de Colombia</strong> (derecho fundamental a la intimidad personal y familiar, al buen nombre y al <em>Habeas Data</em>), la <strong>Ley Estatutaria 1581 de 2012</strong> (Régimen General de Protección de Datos Personales), el <strong>Decreto Reglamentario 1377 de 2013</strong> (compilado en el Capítulo 25 del Título 2 de la Parte 2 del Libro 2 del Decreto Único Reglamentario 1074 de 2015) y las instrucciones impartidas por la Superintendencia de Industria y Comercio (SIC).</p>
+    <p>Esta política aplica a todas las bases de datos y archivos físicos o electrónicos que contengan datos personales recolectados, almacenados, usados, circulados o suprimidos por Jobdevs a través de su plataforma web y canales de soporte.</p>
+  </section>
+
+  <section class="legal-section" id="sec-2">
+    <h2><span class="legal-section-num">02.</span> Identificación del Responsable del Tratamiento</h2>
+    <ul>
+      <li><strong>Responsable:</strong> Plataforma Jobdevs.</li>
+      <li><strong>Domicilio:</strong> Medellín, Antioquia, República de Colombia.</li>
+      <li><strong>Correo electrónico de atención a titulares:</strong> <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a></li>
+      <li><strong>Canal digital:</strong> Módulo de soporte y formularios oficiales disponibles en la plataforma Jobdevs.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-3">
+    <h2><span class="legal-section-num">03.</span> Principios rectores del tratamiento</h2>
+    <p>Todo tratamiento de datos personales realizado por Jobdevs se rige por los siguientes principios legales y operativos:</p>
+    <ul>
+      <li><strong>Legalidad y finalidad:</strong> La recolección obedece a finalidades legítimas, explícitas e informadas al titular antes del registro.</li>
+      <li><strong>Libertad:</strong> El tratamiento solo se ejerce con el consentimiento previo, expreso e informado del titular, salvo las excepciones legales.</li>
+      <li><strong>Minimización y veracidad:</strong> Recolectamos únicamente los datos estrictamente necesarios para operar la verificación, contratación, ejecución por hitos y reputación, procurando que permanezcan completos y actualizados.</li>
+      <li><strong>Acceso y circulación restringida:</strong> Cada rol (Empresa, Desarrollador, Administrador) accede únicamente a los datos que requiere para sus funciones legítimas dentro de la Plataforma.</li>
+      <li><strong>Seguridad y confidencialidad:</strong> Aplicamos controles técnicos, administrativos y organizacionales para prevenir acceso no autorizado, pérdida, alteración o divulgación indebida.</li>
+      <li><strong>Responsabilidad demostrada:</strong> Documentamos los eventos sensibles y las autorizaciones otorgadas sin duplicar información confidencial innecesaria.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-4">
+    <h2><span class="legal-section-num">04.</span> Categorías de datos personales recolectados</h2>
+    <p>Según el rol del usuario y su interacción con la Plataforma, Jobdevs puede recolectar y tratar las siguientes categorías de datos:</p>
+    <ul>
+      <li><strong>Datos de identificación y cuenta:</strong> Nombre completo o razón social, tipo y número de documento (Cédula de Ciudadanía, Tarjeta de Identidad o NIT con dígito de verificación), fecha de nacimiento, rol en la plataforma y estado de la cuenta.</li>
+      <li><strong>Datos de contacto:</strong> Correo electrónico, número telefónico de contacto y ciudad de operación.</li>
+      <li><strong>Datos académicos y profesionales (Desarrolladores):</strong> Número de ficha SENA, programa de formación (p. ej. ADSO y programas afines), habilidades técnicas, enlace a portafolio profesional, fotografía de perfil y documentos de soporte aportados para verificación académica.</li>
+      <li><strong>Datos corporativos (Empresas):</strong> Nombre de la empresa, sector económico, descripción corporativa, logotipo, stack tecnológico de interés y documentos de soporte de verificación empresarial (como RUT o certificado de existencia y representación legal).</li>
+      <li><strong>Datos contractuales y de ejecución:</strong> Postulaciones, cartas de presentación, Contratos Digitales, marcas de tiempo y registros de firma electrónica, hitos definidos, descripciones de avance, enlaces técnicos y archivos de evidencia.</li>
+      <li><strong>Comunicaciones, mediación y reputación:</strong> Mensajes intercambiados en chats de proyecto o salas privadas de mediación, solicitudes de cancelación, evidencias de disputas y calificaciones mutuas con comentarios.</li>
+      <li><strong>Registros técnicos y de auditoría:</strong> Trazas de acciones relevantes en <code>LogAuditoria</code> (actor, acción, tabla y registro afectado, fecha y hora), así como registros técnicos necesarios para seguridad y prevención de fraude.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-5">
+    <h2><span class="legal-section-num">05.</span> Finalidades del tratamiento</h2>
+    <p>Los datos personales recolectados serán utilizados exclusiva y proporcionalmente para las siguientes finalidades:</p>
+    <ol>
+      <li><strong>Creación, autenticación y administración de cuentas:</strong> Permitir el acceso seguro a los paneles de Empresa, Desarrollador o Administrador y gestionar la recuperación de contraseñas.</li>
+      <li><strong>Verificación de identidad y acreditación SENA:</strong> Validar el formato y unicidad de CC, TI o NIT (algoritmo DIAN), cotejar fichas y programas contra el padrón oficial del SENA y realizar revisión documental cuando corresponda.</li>
+      <li><strong>Operación del ciclo de proyectos y contratación:</strong> Publicar requerimientos, tramitar postulaciones, generar y perfeccionar Contratos Digitales vinculantes y congelar la evidencia profesional vigente al momento de la firma.</li>
+      <li><strong>Seguimiento por hitos y reputación verificable:</strong> Almacenar evidencias técnicas de entrega, gestionar aprobaciones, calcular avance del proyecto y mostrar calificaciones mutuas asociadas a contratos reales.</li>
+      <li><strong>Mediación de disputas y soporte:</strong> Atender controversias, solicitudes de cancelación, incidentes técnicos y consultas de los usuarios.</li>
+      <li><strong>Comunicaciones transaccionales:</strong> Enviar correos electrónicos de bienvenida, alertas de verificación, novedades de postulaciones, firma de contratos, cambios en hitos o avisos de seguridad.</li>
+      <li><strong>Seguridad, auditoría y cumplimiento legal:</strong> Prevenir suplantación de identidad, fraude o abuso de la plataforma, mantener registros inmutables de auditoría y atender requerimientos de autoridades administrativas o judiciales competentes.</li>
+    </ol>
+  </section>
+
+  <section class="legal-section" id="sec-6">
+    <h2><span class="legal-section-num">06.</span> Autorización previa, expresa e informada</h2>
+    <p>El tratamiento de datos personales por parte de Jobdevs requiere la autorización previa, expresa e informada del titular, la cual se obtiene de manera inequívoca al marcar la casilla de aceptación legal durante el proceso de registro en la Plataforma.</p>
+    <p>Jobdevs conserva constancia auditable y verificable de la fecha, hora e identidad del usuario que otorgó dicha autorización. El suministro de datos sensibles (como fotografía de perfil o documentación adicional no obligatoria) es facultativo; sin embargo, la negativa a suministrar los datos estrictamente necesarios para la identificación, verificación o formalización de contratos impedirá el uso de las funcionalidades correspondientes.</p>
+  </section>
+
+  <section class="legal-section" id="sec-7">
+    <h2><span class="legal-section-num">07.</span> Derechos de los titulares</h2>
+    <p>De conformidad con el Artículo 8 de la Ley 1581 de 2012, como titular de los datos personales tienes derecho a:</p>
+    <ul>
+      <li><strong>Conocer, actualizar y rectificar</strong> tus datos personales frente a Jobdevs cuando sean parciales, inexactos, incompletos, fraccionados o induzcan a error.</li>
+      <li><strong>Solicitar prueba de la autorización</strong> otorgada para el tratamiento de tus datos personales.</li>
+      <li><strong>Ser informado</strong> por Jobdevs, previa solicitud, respecto del uso que se le ha dado a tus datos personales.</li>
+      <li><strong>Presentar quejas ante la Superintendencia de Industria y Comercio (SIC)</strong> por infracciones a lo dispuesto en la Ley 1581 de 2012 y demás normas que la modifiquen o complementen, una vez agotado el trámite de consulta o reclamo ante Jobdevs.</li>
+      <li><strong>Revocar la autorización y/o solicitar la supresión del dato</strong> cuando en el tratamiento no se respeten los principios, derechos y garantías constitucionales y legales, o cuando ya no exista una obligación legal o contractual que imponga el deber de permanecer en la base de datos.</li>
+      <li><strong>Acceder de forma gratuita</strong> a tus datos personales que hayan sido objeto de tratamiento.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-8">
+    <h2><span class="legal-section-num">08.</span> Procedimiento y plazos legales para consultas y reclamos</h2>
+    <p>Para ejercer cualquiera de los derechos anteriores, el titular (o su causahabiente o apoderado debidamente acreditado) deberá enviar una solicitud al correo electrónico <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a> indicando: nombre completo, número de documento de identidad, correo registrado en la plataforma, descripción clara de la consulta o reclamo y los documentos soporte pertinentes. Jobdevs verificará la identidad del solicitante antes de entregar o modificar información y nunca divulgará datos de terceros dentro de una respuesta.</p>
+
+    <div class="legal-table-wrap">
+      <table class="legal-table">
+        <thead>
+          <tr>
+            <th>Tipo de solicitud</th>
+            <th>Base legal</th>
+            <th>Plazo inicial de respuesta</th>
+            <th>Prórroga máxima (con aviso motivado)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Consultas</strong> (acceso a datos, prueba de autorización, información de uso)</td>
+            <td>Art. 14, Ley 1581 de 2012</td>
+            <td>Hasta <strong>10 días hábiles</strong> contados desde la fecha de recibo.</td>
+            <td>Hasta <strong>5 días hábiles</strong> adicionales tras el vencimiento del primer término.</td>
+          </tr>
+          <tr>
+            <td><strong>Reclamos</strong> (corrección, actualización, supresión o revocatoria)</td>
+            <td>Art. 15, Ley 1581 de 2012</td>
+            <td>Hasta <strong>15 días hábiles</strong> contados desde el día siguiente a su recibo completo.</td>
+            <td>Hasta <strong>8 días hábiles</strong> adicionales informando los motivos de la demora.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Si un reclamo resulta incompleto, Jobdevs requerirá al interesado dentro de los <strong>cinco (5) días hábiles</strong> siguientes a su recepción para que subsane las fallas. Transcurridos dos (2) meses sin que el solicitante presente la información requerida, se entenderá que ha desistido del reclamo conforme a la ley.</p>
+  </section>
+
+  <section class="legal-section" id="sec-9">
+    <h2><span class="legal-section-num">09.</span> Seguridad de la información y conservación de datos</h2>
+    <p>Jobdevs implementa medidas técnicas, humanas y administrativas razonables para proteger los datos personales contra adulteración, pérdida, consulta, uso o acceso no autorizado o fraudulento:</p>
+    <ul>
+      <li><strong>Cifrado y credenciales:</strong> Tránsito protegido mediante TLS/HTTPS y almacenamiento de contraseñas exclusivamente mediante funciones criptográficas de hash seguro (nunca en texto plano).</li>
+      <li><strong>Almacenamiento privado y descargas autorizadas:</strong> Los documentos de verificación y evidencias de hitos o disputas se almacenan en repositorios privados y se entregan únicamente mediante vistas con validación de permisos o URL prefirmadas de expiración temporal.</li>
+      <li><strong>Conservación contractual y de auditoría:</strong> Los Contratos Digitales, registros de firma, resoluciones de disputas y registros de auditoría (<code>LogAuditoria</code>) se conservan durante el tiempo necesario para cumplir obligaciones legales, contractuales, probatorias o de defensa ante reclamaciones.</li>
+      <li><strong>Depuración en Modo Piloto:</strong> Conforme al principio de conservación limitada, cuando la plataforma opera en <strong>Modo Piloto</strong>, las cuentas que no completen su verificación y no registren actividad contractual asociada dentro de los <strong>tres (3) días calendario</strong> siguientes al registro son depuradas automáticamente.</li>
+    </ul>
+  </section>
+
+  <section class="legal-section" id="sec-10">
+    <h2><span class="legal-section-num">10.</span> Transferencia y transmisión a terceros y encargados</h2>
+    <p><strong>Jobdevs no vende, alquila ni comercializa bases de datos personales a terceros.</strong> Para el funcionamiento técnico de la Plataforma, ciertos datos pueden ser transmitidos a proveedores especializados que actúan en calidad de Encargados del Tratamiento (servicios de alojamiento en la nube, almacenamiento privado de objetos, despacho de correos electrónicos transaccionales y monitoreo operativo), bajo estrictos compromisos de confidencialidad, seguridad y limitación de finalidad.</p>
+    <p>Asimismo, Jobdevs podrá suministrar información personal cuando medie orden escrita de autoridad judicial o administrativa competente en ejercicio de sus funciones legales, o cuando sea estrictamente necesario para cumplir un deber legal en Colombia.</p>
+  </section>
+
+  <section class="legal-section" id="sec-11">
+    <h2><span class="legal-section-num">11.</span> Datos de menores de edad (aprendices con Tarjeta de Identidad)</h2>
+    <p>Jobdevs reconoce que en el ecosistema formativo del SENA pueden existir aprendices identificados con <strong>Tarjeta de Identidad (TI)</strong>. Conforme al Artículo 7 de la Ley 1581 de 2012 y el Artículo 12 del Decreto 1377 de 2013, el tratamiento de datos personales de niños, niñas y adolescentes está prohibido, salvo aquellos datos que sean de naturaleza pública o cuando el tratamiento responda y respete su <strong>interés superior</strong> y asegure el respeto de sus derechos fundamentales.</p>
+    <div class="legal-callout legal-callout--warn">
+      <p><strong>Protección reforzada:</strong> El registro público ordinario en Jobdevs exige cumplir los requisitos de edad vigentes en la Plataforma. En los escenarios institucionales autorizados donde participen aprendices menores de edad con Tarjeta de Identidad, el tratamiento de sus datos se limitará estrictamente a fines académicos y formativos vinculados al SENA, requerirá la autorización previa de su representante legal cuando la normativa aplicable así lo exija, y contará con protección reforzada sobre su privacidad y comunicaciones.</p>
+    </div>
+  </section>
+
+  <section class="legal-section" id="sec-12">
+    <h2><span class="legal-section-num">12.</span> Privacidad en el chat interno y auditoría administrativa</h2>
+    <p>Los mensajes intercambiados en los chats directos, salas de proyecto y salas de mediación están restringidos exclusivamente a los participantes autorizados de la relación correspondiente. El acceso por parte del personal administrador se encuentra estrictamente limitado a funciones de soporte solicitado, mediación formal de una disputa activa o investigación de incidentes graves de seguridad o abuso.</p>
+    <p>Ningún administrador está autorizado a divulgar conversaciones privadas ni documentos de verificación fuera de los canales formales. En virtud de nuestro principio de <strong>auditoría sin exposición</strong>, los registros de <code>LogAuditoria</code> nunca almacenan contraseñas, hashes, tokens de sesión o recuperación, claves de API ni el contenido íntegro de mensajes privados o documentos confidenciales.</p>
+  </section>
+
+  <section class="legal-section" id="sec-13">
+    <h2><span class="legal-section-num">13.</span> Vigencia, modificaciones y contacto</h2>
+    <p>La presente Política de Privacidad y Tratamiento de Datos Personales entra en vigencia a partir de su fecha de publicación y permanecerá vigente mientras Jobdevs desarrolle las actividades que justifican el tratamiento de los datos personales. Cualquier modificación sustancial será comunicada oportunamente a los titulares a través de la Plataforma o mediante correo electrónico antes de su implementación.</p>
+    <p>Si tienes dudas, consultas o deseas ejercer tus derechos de Habeas Data, contáctanos en <a href="mailto:contacto@jobdevs.co">contacto@jobdevs.co</a>.</p>
+  </section>
+{% endif %}
+{% endblock %}
