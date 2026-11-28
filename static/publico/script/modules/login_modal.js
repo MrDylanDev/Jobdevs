@@ -34,7 +34,6 @@ export function initLoginModal() {
 
   const loginFormDiv = document.getElementById('loginForm');
   const recoveryFormDiv = document.getElementById('recoveryForm');
-  let recoveryInner;
   const modalTitle = document.querySelector('#loginModal .modal-title');
   const recoveryOriginalHTML = recoveryFormDiv ? recoveryFormDiv.innerHTML : '';
 
@@ -49,42 +48,26 @@ export function initLoginModal() {
     if (recoveryFormDiv) {
       recoveryFormDiv.style.display = 'block';
       recoveryFormDiv.innerHTML = recoveryOriginalHTML;
-      reattachRecovery();
+      if (window.htmx && typeof window.htmx.process === 'function') {
+        window.htmx.process(recoveryFormDiv);
+      }
     }
     if (modalTitle) modalTitle.textContent = texto('recoveryTitle', 'RECUPERAR CONTRASEÑA');
   }
 
-  function reattachRecovery() {
-    recoveryInner = document.getElementById('recoveryFormInner');
-    if (recoveryInner) {
-      recoveryInner.addEventListener('submit', function (e) {
+  if (recoveryFormDiv) {
+    recoveryFormDiv.addEventListener('click', function (e) {
+      if (e.target.closest('[data-back-to-login], #backToLoginLink, #backToLoginLink2')) {
         e.preventDefault();
-        const btn = this.querySelector('button');
-        const orig = btn.textContent;
-        btn.textContent = texto('sending', '[ ENVIANDO... ]');
-        btn.disabled = true;
-        fetch(this.action, {
-          method: 'POST',
-          body: new FormData(this),
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-          .then(function (res) {
-            if (!res.ok) throw new Error('Error al procesar la solicitud');
-            return res.json().catch(function () { return { ok: true }; });
-          })
-          .then(function () {
-            recoveryFormDiv.innerHTML = '<div style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ' + texto('recoveryOk', 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.') + '</div><div style="text-align: center; margin-top: 20px;"><a href="#" id="backToLoginLink2" class="login-link" style="color: var(--accent);">' + texto('backToLogin', '&larr; VOLVER AL INICIO DE SESIÓN') + '</a></div>';
-            document.getElementById('backToLoginLink2').addEventListener('click', function (ev) { ev.preventDefault(); showLogin(); });
-          })
-          .catch(function () {
-            btn.textContent = orig;
-            btn.disabled = false;
-            alert(texto('connectionError', 'Error de conexión. Intenta de nuevo.'));
-          });
-      });
-    }
-    const bl = document.getElementById('backToLoginLink');
-    if (bl) bl.addEventListener('click', function (e) { e.preventDefault(); showLogin(); });
+        showLogin();
+      } else if (e.target.closest('[data-retry-recovery]')) {
+        e.preventDefault();
+        showRecovery();
+      }
+    });
+    recoveryFormDiv.addEventListener('htmx:sendError', function () {
+      alert(texto('connectionError', 'Error de conexión. Intenta de nuevo.'));
+    });
   }
 
   /* ============================

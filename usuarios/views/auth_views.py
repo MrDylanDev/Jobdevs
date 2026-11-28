@@ -116,7 +116,25 @@ def api_sesion(request):
 
 def recuperar_view(request):
     if request.method == 'POST':
+        quiere_json = (
+            request.headers.get('x-requested-with') == 'XMLHttpRequest'
+            or 'application/json' in request.headers.get('accept', '')
+            or request.GET.get('format') == 'json'
+        )
+        es_htmx = request.headers.get('HX-Request') == 'true' and not quiere_json
+
         email = (request.POST.get('email') or '').strip()
+        if es_htmx and not email:
+            return render(
+                request,
+                'publico/partials/_recuperar_respuesta.html',
+                {
+                    'ok': False,
+                    'es_error': True,
+                    'mensaje': 'Por favor, ingresa un correo electrónico válido.',
+                },
+            )
+
         try:
             usuario = Usuario.objects.get(email=email)
             token = secrets.token_urlsafe(32)
@@ -163,8 +181,14 @@ def recuperar_view(request):
             pass # No revelamos si el email existe o no por seguridad
 
         mensaje_exito = "Si el correo electrónico existe en nuestra base de datos, recibirás instrucciones para restablecer tu contraseña."
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.headers.get('accept', ''):
+        if quiere_json:
             return JsonResponse({'ok': True, 'mensaje': mensaje_exito})
+        if es_htmx:
+            return render(
+                request,
+                'publico/partials/_recuperar_respuesta.html',
+                {'ok': True, 'es_error': False, 'mensaje': mensaje_exito},
+            )
 
         messages.success(request, mensaje_exito)
         return redirect('/?login=1')
