@@ -603,3 +603,165 @@ class TestFirmarContratoDigital:
         assert len(log_segunda.first().valor_nuevo) == 64
 
 
+class TestContratoDigitalHTMX:
+    """S8: Modales HTMX de contrato digital (Empresa y Desarrollador #jdmModal)."""
+
+    def test_ver_contrato_empresa_htmx_retorna_partial_y_escapa_xss(self, empresa_c, contrato):
+        proyecto = contrato.postulacion.proyecto
+        proyecto.titulo = 'Proyecto <script>alert("xss")</script>'
+        proyecto.save(update_fields=['titulo'])
+        contrato.comentarios_adicionales = '<img src=x onerror=alert(1)>'
+        contrato.save(update_fields=['comentarios_adicionales'])
+
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res = empresa_c.get(url, HTTP_HX_REQUEST='true')
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formEditarTerminosContrato"' in html
+        assert 'id="formFirmarContrato"' in html
+        assert f'hx-post="{reverse("firmar_contrato_digital", args=[contrato.id])}"' in html
+        assert 'hx-target="#contratoModalBody"' in html
+        assert 'name="hash_documento"' in html
+        assert '<script>alert("xss")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_ver_contrato_desarrollador_htmx_jdm_retorna_partial_jdm(self, dev_c, contrato):
+        url = reverse('ver_contrato_digital', args=[contrato.id]) + '?jdm=1'
+        res = dev_c.get(url, HTTP_HX_REQUEST='true')
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'jdm-contrato-partial' in html
+        assert 'id="jdmAceptaTerminos"' in html
+        assert 'id="jdmBtnFirmar"' in html
+        assert 'hx-post="' in html
+        assert 'hx-target="#jdmBody"' in html
+        assert 'name="hash_documento"' in html
+        assert 'id="formEditarTerminosContrato"' not in html
+
+    def test_editar_terminos_htmx_error_validacion_rerenderiza_partial(self, empresa_c, contrato):
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res = empresa_c.post(
+            url,
+            {'monto': '-10', 'moneda': 'COP', 'forma_pago': 'mensual', 'medio_pago': 'transferencia'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formEditarTerminosContrato"' in html
+        assert 'El monto debe ser un número válido' in html
+        contrato.refresh_from_db()
+        assert contrato.monto == 0
+
+    def test_editar_terminos_htmx_valido_actualiza_y_emite_hx_trigger(self, empresa_c, contrato):
+        import json
+
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res = empresa_c.post(
+            url,
+            {
+                'monto': '4500000.00',
+                'moneda': 'COP',
+                'forma_pago': 'mensual',
+                'medio_pago': 'transferencia',
+                'comentarios_adicionales': 'Pago mensual verificado',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'Pago mensual verificado' in html
+        assert 'HX-Trigger' in res
+        triggers = json.loads(res['HX-Trigger'])
+        assert 'jobdevs:toast' in triggers
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:contrato-actualizado' in triggers
+        assert triggers['jobdevs:contrato-actualizado']['id'] == contrato.id
+        contrato.refresh_from_db()
+        assert str(contrato.monto) == '4500000.00'
+        assert contrato.forma_pago == 'mensual'
+
+    def test_firmar_contrato_htmx_sin_aceptar_terminos_rerenderiza_error(self, empresa_c, contrato):
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        res = empresa_c.post(url, {}, HTTP_HX_REQUEST='true')
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'Debes aceptar los términos del contrato para firmarlo.' in html
+        assert 'id="formFirmarContrato"' in html
+        contrato.refresh_from_db()
+        assert contrato.firmado_empresa is False
+
+    def test_firmar_contrato_htmx_hash_documento_alterado_rechaza_y_rerenderiza(self, empresa_c, dev_c, contrato):
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        empresa_c.post(url, {'acepta_terminos': 'on'}, HTTP_HX_REQUEST='true')
+        contrato.refresh_from_db()
+        assert contrato.firmado_empresa is True
+        assert contrato.hash_documento is not None
+
+        # Alterar contenido contractual tras congelar hash_documento
+        ContratoDigital.objects.filter(id=contrato.id).update(clausulas='Cláusulas alteradas')
+
+        res = dev_c.post(
+            url + '?jdm=1',
+            {'acepta_terminos': 'on', 'jdm': '1'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode()
+        assert '<!DOCTYPE html>' not in html
+        assert 'jdm-contrato-partial' in html
+        assert 'alterado' in html.lower()
+        contrato.refresh_from_db()
+        assert contrato.firmado_desarrollador is False
+        assert not Contratacion.objects.filter(proyecto=contrato.postulacion.proyecto).exists()
+
+    def test_firmar_contrato_htmx_valido_actualiza_y_emite_hx_trigger(self, empresa_c, dev_c, contrato):
+        import json
+
+        url = reverse('firmar_contrato_digital', args=[contrato.id])
+        res_emp = empresa_c.post(url, {'acepta_terminos': 'on'}, HTTP_HX_REQUEST='true')
+        assert res_emp.status_code == 200
+        html_emp = res_emp.content.decode()
+        assert '<!DOCTYPE html>' not in html_emp
+        assert 'HX-Trigger' in res_emp
+        triggers_emp = json.loads(res_emp['HX-Trigger'])
+        assert 'jobdevs:toast' in triggers_emp
+        assert 'jobdevs:contrato-actualizado' in triggers_emp
+        assert triggers_emp['jobdevs:contrato-actualizado']['firmado_empresa'] is True
+        assert triggers_emp['jobdevs:contrato-actualizado']['esta_firmado'] is False
+
+        res_dev = dev_c.post(
+            url + '?jdm=1',
+            {'acepta_terminos': 'on', 'jdm': '1'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_dev.status_code == 200
+        html_dev = res_dev.content.decode()
+        assert '<!DOCTYPE html>' not in html_dev
+        assert 'jdm-contrato-partial' in html_dev
+        assert 'id="jdmBtnFirmar"' not in html_dev
+        triggers_dev = json.loads(res_dev['HX-Trigger'])
+        assert 'jobdevs:toast' in triggers_dev
+        assert triggers_dev['jobdevs:contrato-actualizado']['esta_firmado'] is True
+        contrato.refresh_from_db()
+        assert contrato.esta_firmado is True
+        assert contrato.estado == 'firmado'
+
+    def test_json_y_full_page_preservados_con_accept_json(self, empresa_c, contrato):
+        url = reverse('ver_contrato_digital', args=[contrato.id])
+        res_json = empresa_c.get(url, HTTP_HX_REQUEST='true', HTTP_ACCEPT='application/json')
+        assert res_json.status_code == 200
+        assert res_json.json()['ok'] is True
+
+        res_full = empresa_c.get(url)
+        assert res_full.status_code == 200
+        assert '<!DOCTYPE html>' in res_full.content.decode()
+
+
+

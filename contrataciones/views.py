@@ -1,3 +1,5 @@
+import json
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.urls import reverse
@@ -157,6 +159,152 @@ def _es_xhr(request):
 def _peticion_ajax(request):
     """True cuando el cliente espera JSON (Fetch con Accept application/json o ?format=json)."""
     return _es_xhr(request) or request.GET.get('format') == 'json'
+
+
+def _es_htmx(request):
+    """True cuando la petición proviene de HTMX y no solicita JSON explícitamente."""
+    return request.headers.get('HX-Request') == 'true' and not _peticion_ajax(request)
+
+
+def _es_modal_jdm(request):
+    """True cuando el destino es el modal compartido #jdmModal del panel desarrollador."""
+    return (
+        request.GET.get('jdm') == '1'
+        or request.POST.get('jdm') == '1'
+        or request.headers.get('HX-Target') == 'jdmBody'
+    )
+
+
+def _es_url_http_segura(url):
+    return bool(re.match(r'^https?://\S+$', str(url or '').strip(), re.I))
+
+
+def _parsear_clausulas(clausulas_raw):
+    items = []
+    for raw in re.split(r'(?=\d+\.\s)', clausulas_raw or ''):
+        texto = raw.strip()
+        if not texto:
+            continue
+        match = re.match(r'^(\d+\.\s*[A-ZÁÉÍÓÚÑ0-9 _/-]+:)\s*(.*)$', texto, re.S)
+        limpia = re.sub(r'^\d+[\.\)]\s*', '', texto)
+        limpia = re.sub(r'^CLÁUSULA\s*\d+[\.\:]\s*', '', limpia, flags=re.I)
+        items.append({
+            'texto': texto,
+            'titulo': match.group(1) if match else '',
+            'cuerpo': match.group(2) if match else texto,
+            'limpia': limpia,
+        })
+    return items
+
+
+def _parsear_mensaje_postulacion(mensaje):
+    texto = str(mensaje or '').strip()
+    if not texto:
+        return []
+    patron = r'(CARTA DE PRESENTACIÓN|EXPERIENCIA|PORTAFOLIO/ENLACE):\s*'
+    if not re.search(patron, texto, re.I):
+        return []
+    partes = re.split(patron, texto, flags=re.I)
+    bloques = []
+    for i in range(1, len(partes), 2):
+        titulo = (partes[i] or '').strip()
+        contenido = (partes[i + 1] if i + 1 < len(partes) else '').strip()
+        if not contenido:
+            continue
+        bloques.append({
+            'titulo': titulo,
+            'contenido': contenido,
+            'es_enlace': bool(re.search(r'PORTAFOLIO', titulo, re.I) and _es_url_http_segura(contenido)),
+        })
+    return bloques
+
+
+def _render_contrato_htmx(
+    request,
+    contrato,
+    rol_contrato,
+    *,
+    error_terminos=None,
+    error_firma=None,
+    aviso_firma=None,
+    form_values=None,
+    toast=None,
+    actualizado=False,
+    recien_firmado=False,
+):
+    postulacion = contrato.postulacion
+    proyecto = postulacion.proyecto
+    perfil = contrato.obtener_perfil_profesional()
+    ya_firmo, puede_firmar = _permisos_firma(contrato, rol_contrato)
+    habilidades_raw = str((perfil or {}).get('habilidades') or '').strip()
+    habilidades_lista = [s.strip() for s in habilidades_raw.split(',') if s.strip()] if habilidades_raw else []
+    portafolio_url = (perfil or {}).get('portafolio_url') or ''
+    valores_form = form_values if form_values is not None else {
+        'monto': f"{contrato.monto:.2f}" if contrato.monto is not None else '',
+        'moneda': contrato.moneda,
+        'forma_pago': contrato.forma_pago,
+        'medio_pago': contrato.medio_pago or 'transferencia',
+        'comentarios_adicionales': contrato.comentarios_adicionales or '',
+    }
+    contexto = {
+        'contrato': contrato,
+        'codigo': f"CTR-{contrato.id:04d}",
+        'postulacion': postulacion,
+        'proyecto': proyecto,
+        'empresa': proyecto.empresa,
+        'desarrollador': postulacion.desarrollador,
+        'perfil_profesional': perfil,
+        'habilidades_lista': habilidades_lista,
+        'portafolio_url_segura': _es_url_http_segura(portafolio_url),
+        'mensaje_postulacion_bloques': _parsear_mensaje_postulacion((perfil or {}).get('mensaje_postulacion')),
+        'clausulas_items': _parsear_clausulas(contrato.clausulas or ''),
+        'rol_contrato': rol_contrato,
+        'puede_editar': rol_contrato == 'empresa' and _contrato_editable(contrato),
+        'puede_firmar': puede_firmar,
+        'ya_firmo': ya_firmo,
+        'monedas': ContratoDigital.MONEDAS,
+        'formas_pago': ContratoDigital.FORMAS_PAGO,
+        'medios_pago': ContratoDigital.MEDIOS_PAGO,
+        'medio_pago_display': (
+            contrato.get_medio_pago_display()
+            if (contrato.medio_pago and hasattr(contrato, 'get_medio_pago_display'))
+            else 'Transferencia bancaria'
+        ),
+        'fecha_creacion_fmt': timezone.localtime(contrato.fecha_creacion).strftime('%d/%m/%Y %H:%M') if contrato.fecha_creacion else '',
+        'fecha_firma_empresa_fmt': timezone.localtime(contrato.fecha_firma_empresa).strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_empresa else None,
+        'fecha_firma_desarrollador_fmt': timezone.localtime(contrato.fecha_firma_desarrollador).strftime('%d/%m/%Y %H:%M') if contrato.fecha_firma_desarrollador else None,
+        'url_editar': reverse('ver_contrato_digital', args=[contrato.id]),
+        'url_firmar': reverse('firmar_contrato_digital', args=[contrato.id]),
+        'error_terminos': error_terminos,
+        'error_firma': error_firma,
+        'aviso_firma': aviso_firma,
+        'form_values': valores_form,
+    }
+    template = (
+        'contrataciones/partials/_modal_contrato_jdm.html'
+        if _es_modal_jdm(request)
+        else 'contrataciones/partials/_modal_contrato_empresa.html'
+    )
+    response = render(request, template, contexto, status=200)
+    triggers = {}
+    if toast:
+        tipo, mensaje = toast
+        triggers['jobdevs:toast'] = {'tipo': tipo, 'mensaje': mensaje}
+    if actualizado:
+        triggers['jobdevs:contrato-actualizado'] = {
+            'id': contrato.id,
+            'estado': contrato.estado,
+            'estado_display': contrato.get_estado_display(),
+            'firmado_empresa': contrato.firmado_empresa,
+            'firmado_desarrollador': contrato.firmado_desarrollador,
+            'esta_firmado': contrato.esta_firmado,
+            'monto_formateado': contrato.monto_formateado,
+            'hash_contrato': contrato.hash_contrato or '',
+            'recien_firmado': recien_firmado,
+        }
+    if triggers:
+        response['HX-Trigger'] = json.dumps(triggers)
+    return response
 
 
 def _permisos_firma(contrato, rol_contrato):
@@ -356,6 +504,9 @@ def ver_contrato_digital(request, contrato_id):
             **c_dict,
         })
 
+    if request.method == 'GET' and _es_htmx(request):
+        return _render_contrato_htmx(request, contrato, rol_contrato)
+
     if request.method == 'POST':
         if rol_contrato != 'empresa':
             raise PermissionDenied
@@ -363,6 +514,12 @@ def ver_contrato_digital(request, contrato_id):
             msg = "El contrato ya no puede editarse porque tiene firmas o no está en negociación."
             if _es_xhr(request):
                 return JsonResponse({'status': 'error', 'message': msg}, status=400)
+            if _es_htmx(request):
+                return _render_contrato_htmx(
+                    request, contrato, rol_contrato,
+                    error_terminos=msg,
+                    toast=('error', msg),
+                )
             messages.error(request, msg)
             return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
@@ -389,6 +546,20 @@ def ver_contrato_digital(request, contrato_id):
         if errores:
             if _es_xhr(request):
                 return JsonResponse({'status': 'error', 'message': ' '.join(errores)}, status=400)
+            if _es_htmx(request):
+                msg_err = ' '.join(errores)
+                return _render_contrato_htmx(
+                    request, contrato, rol_contrato,
+                    error_terminos=msg_err,
+                    form_values={
+                        'monto': request.POST.get('monto', '').strip(),
+                        'moneda': moneda or contrato.moneda,
+                        'forma_pago': forma_pago or contrato.forma_pago,
+                        'medio_pago': medio_pago,
+                        'comentarios_adicionales': request.POST.get('comentarios_adicionales', '').strip(),
+                    },
+                    toast=('error', msg_err),
+                )
             for e in errores:
                 messages.error(request, e)
             return redirect('ver_contrato_digital', contrato_id=contrato.id)
@@ -412,6 +583,12 @@ def ver_contrato_digital(request, contrato_id):
                 'message': 'Términos del contrato actualizados exitosamente.',
                 'contrato': _serializar_contrato_digital(contrato, rol_contrato),
             })
+        if _es_htmx(request):
+            return _render_contrato_htmx(
+                request, contrato, rol_contrato,
+                toast=('success', 'Términos del contrato actualizados exitosamente.'),
+                actualizado=True,
+            )
         messages.success(request, "Términos del contrato actualizados.")
         return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
@@ -477,7 +654,7 @@ def ver_contrato_digital(request, contrato_id):
 
 
 def _respuesta_firma_error(request, contrato, mensaje, nivel='error', status=400):
-    """Devuelve 400/409 JSON para el modal in-situ o el redirect con mensaje tradicional."""
+    """Devuelve 400/409 JSON para el modal in-situ, partial HTMX o el redirect con mensaje tradicional."""
     if _es_xhr(request):
         return JsonResponse({
             'ok': (nivel == 'warning'),
@@ -485,6 +662,15 @@ def _respuesta_firma_error(request, contrato, mensaje, nivel='error', status=400
             'message': mensaje,
             'mensaje': mensaje,
         }, status=200 if nivel == 'warning' else status)
+    if _es_htmx(request):
+        contrato.refresh_from_db()
+        rol_contrato = _rol_en_contrato(request.user, contrato)
+        return _render_contrato_htmx(
+            request, contrato, rol_contrato,
+            error_firma=mensaje if nivel != 'warning' else None,
+            aviso_firma=mensaje if nivel == 'warning' else None,
+            toast=(nivel, mensaje),
+        )
     getattr(messages, nivel)(request, mensaje)
     return redirect('ver_contrato_digital', contrato_id=contrato.id)
 
@@ -590,5 +776,12 @@ def firmar_contrato_digital(request, contrato_id):
             'mensaje': mensaje,
             'esta_firmado': contrato.esta_firmado,
         })
+    if _es_htmx(request):
+        return _render_contrato_htmx(
+            request, contrato, rol_contrato,
+            toast=('success', mensaje),
+            actualizado=True,
+            recien_firmado=True,
+        )
     messages.success(request, mensaje)
     return redirect('ver_contrato_digital', contrato_id=contrato.id)
