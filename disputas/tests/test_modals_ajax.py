@@ -317,6 +317,45 @@ def test_abrir_disputa_htmx_jdm_target_usa_jdmBody(client):
 
 
 @pytest.mark.django_db
+def test_abrir_disputa_htmx_jdm_fuerza_mayor_ids_y_gravedad_disabled(client):
+    """T4: GET ?jdm=1&categoria=fuerza_mayor renderiza IDs #jdm* y deshabilita confirma_gravedad."""
+    empresa = Usuario.objects.create_user(
+        username='emp_t4_jdm_fm', email='emp_t4_jdm_fm@test.com', password='Password123!',
+        rol='empresa', estado='activo',
+    )
+    dev = Usuario.objects.create_user(
+        username='dev_t4_jdm_fm', email='dev_t4_jdm_fm@test.com', password='Password123!',
+        rol='desarrollador', estado='activo',
+    )
+    proyecto = Proyecto.objects.create(
+        titulo='Proyecto Fuerza Mayor JDM', descripcion='Desc', empresa=empresa,
+        estado='en_desarrollo',
+    )
+    contrato = Contratacion.objects.create(
+        proyecto=proyecto, empresa=empresa, desarrollador=dev, estado='activa',
+    )
+
+    client.force_login(empresa)
+    resp = client.get(
+        reverse('disputas:abrir_disputa', args=[proyecto.id])
+        + f'?contratacion_id={contrato.pk}&jdm=1&categoria=fuerza_mayor',
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp.status_code == 200
+    html = resp.content.decode('utf-8')
+    assert 'id="jdmFormNuevaDisputa"' in html
+    assert 'id="jdmCatDisputa"' in html
+    assert 'value="fuerza_mayor" selected' in html
+    assert 'id="jdmMotivoDisputa"' in html
+    assert 'id="jdmEvidenciaDisputa"' in html
+    assert 'id="jdmAceptaSanciones"' in html
+    assert 'id="jdmBtnConfirmarDisputa"' in html
+    assert 'name="confirma_gravedad"' in html
+    assert 'name="confirma_gravedad" id="confirma_gravedad" value="1" disabled' in html
+
+
+
+@pytest.mark.django_db
 def test_detalle_disputa_htmx_get_retorna_partial_sala_con_xss_escapado(client):
     """S6: GET detalle_disputa con HX-Request retorna partial de sala con XSS escapado."""
     from disputas.models import MensajeDisputa

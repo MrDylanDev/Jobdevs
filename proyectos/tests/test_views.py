@@ -356,6 +356,32 @@ class TestListarProyectos:
         assert 'hx-target="#catalogoResultados"' in full_html
         assert 'hx-sync="this:replace"' in full_html
 
+    def test_listar_proyectos_htmx_replace_url_limpia(self, dev_client, empresa_user):
+        """T4: HTMX catalog filter emits clean HX-Replace-Url omitting empty params and encoding spaces as '+'."""
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta de reputación',
+            descripcion='Oferta de prueba',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=Oferta+de+reputaci%C3%B3n&tipo=&prioridad=&modalidad=',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        assert response['HX-Replace-Url'] == f"{reverse('listar_proyectos')}?q=Oferta+de+reputaci%C3%B3n"
+
+        # Empty filters produce bare catalog URL without trailing '?'
+        response_empty = dev_client.get(
+            reverse('listar_proyectos') + '?q=&tipo=&prioridad=&modalidad=',
+            headers={'HX-Request': 'true'},
+        )
+        assert response_empty.status_code == 200
+        assert response_empty['HX-Replace-Url'] == reverse('listar_proyectos')
+
+
 
 
 class TestCrearProyecto:

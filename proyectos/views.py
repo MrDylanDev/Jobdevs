@@ -15,6 +15,7 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from datetime import datetime
 import json
+from urllib.parse import urlencode
 from django.core.paginator import Paginator
 from .models import Proyecto, Valoracion, Entregable, Equipo, CategoriaSolucion
 from . import services
@@ -165,7 +166,24 @@ def listar_proyectos(request):
         'favoritos_ids': favoritos_ids,
     }
     if is_htmx:
-        return render(request, 'proyectos/partials/_catalogo_resultados.html', context)
+        clean_params = []
+        if q:
+            clean_params.append(('q', q))
+        if tipo:
+            clean_params.append(('tipo', tipo))
+        if prioridad:
+            clean_params.append(('prioridad', prioridad))
+        if modalidad:
+            clean_params.append(('modalidad', modalidad))
+        if ciudad:
+            clean_params.append(('ciudad', ciudad))
+        if page_obj.number > 1:
+            clean_params.append(('page', str(page_obj.number)))
+        base_url = reverse('listar_proyectos')
+        clean_url = f"{base_url}?{urlencode(clean_params)}" if clean_params else base_url
+        response = render(request, 'proyectos/partials/_catalogo_resultados.html', context)
+        response['HX-Replace-Url'] = clean_url
+        return response
 
     context['categorias_solucion'] = CategoriaSolucion.objects.filter(activo=True)
     return render(request, 'proyectos/listar.html', context)

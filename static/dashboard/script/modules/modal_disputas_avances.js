@@ -39,10 +39,10 @@ function scrollDisputaChat() {
 
 function enlazarControlesAbrirDisputa(container) {
   if (!container) return;
-  const form = container.querySelector('#form-disputa');
+  const form = container.querySelector('#jdmFormNuevaDisputa, #form-disputa');
   if (!form) return;
 
-  const textarea = form.querySelector('#motivo');
+  const textarea = form.querySelector('[name="motivo"]');
   const charCount = form.querySelector('#char-count');
   if (textarea && charCount) {
     const syncCounter = function () {
@@ -52,18 +52,25 @@ function enlazarControlesAbrirDisputa(container) {
     syncCounter();
   }
 
-  const categoriaSel = form.querySelector('[name="categoria"]');
-  const gravedadInput = form.querySelector('#confirma_gravedad');
+  const categoriaSel = form.querySelector('#jdmCatDisputa, [name="categoria"]');
+  const gravedadInput = form.querySelector('[name="confirma_gravedad"]');
   const gravedadRow = gravedadInput ? gravedadInput.closest('label') : null;
-  const checks = form.querySelectorAll('#confirma_intento_previo, #confirma_gravedad, #acepta_sanciones');
-  const submitBtn = form.querySelector('#btn-submit-disputa');
+  const checks = form.querySelectorAll(
+    '[name="confirma_intento_previo"], [name="confirma_gravedad"], [name="acepta_sanciones"]'
+  );
+  const submitBtn = form.querySelector('#jdmBtnConfirmarDisputa, #btn-submit-disputa');
 
   const syncEstado = function () {
-    const esFuerzaMayor = categoriaSel && categoriaSel.value === 'fuerza_mayor';
+    const esFuerzaMayor = Boolean(categoriaSel && categoriaSel.value === 'fuerza_mayor');
     if (gravedadInput) {
-      gravedadInput.disabled = !!esFuerzaMayor;
+      gravedadInput.disabled = esFuerzaMayor;
       gravedadInput.required = !esFuerzaMayor;
-      if (esFuerzaMayor) gravedadInput.checked = false;
+      if (esFuerzaMayor) {
+        gravedadInput.removeAttribute('required');
+        gravedadInput.checked = false;
+      } else {
+        gravedadInput.setAttribute('required', '');
+      }
     }
     if (gravedadRow) {
       gravedadRow.style.display = esFuerzaMayor ? 'none' : '';
