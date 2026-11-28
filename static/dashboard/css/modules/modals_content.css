@@ -1,6 +1,7 @@
 /* ==========================================================================
    JobDevs Modals Content & Light-Theme Cascade Overrides
    Loaded in parallel immediately after dashboard_modals.css (zero @import).
+   Consumes semantic tokens from static/dashboard/css/dashboard.css.
    ========================================================================== */
 
 /* ─────────────────────────────────────────────────────────────
@@ -14,11 +15,11 @@
   padding: 0 0 14px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   border-radius: 0;
   margin-bottom: 16px;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .jdm-meta-item {
@@ -32,7 +33,7 @@
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #71717a;
+  color: var(--text-soft);
   margin-bottom: 0;
 }
 
@@ -40,7 +41,7 @@
   font-family: var(--font-mono, monospace);
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-contract-parties {
@@ -51,7 +52,7 @@
   padding: 2px 0 16px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   border-radius: 0;
   margin-bottom: 18px;
 }
@@ -81,33 +82,33 @@
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .jdm-party-label svg,
 .jdm-party-label i {
   width: 12px;
   height: 12px;
-  color: var(--accent, #00e676);
+  color: var(--accent);
 }
 
 .jdm-party-name {
   font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 2px 0;
 }
 
 .jdm-party-status {
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .jdm-sign-ok {
-  color: var(--accent, #00e676);
+  color: var(--accent);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -115,14 +116,14 @@
 }
 
 .jdm-sign-wait {
-  color: #94a3b8;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
 .jdm-sign-urgent {
-  color: #f87171;
+  color: var(--danger);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -131,7 +132,7 @@
 
 .jdm-footer-note {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -140,18 +141,19 @@
 .jdm-party-divider {
   width: 1px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-divider);
 }
 
 .jdm-clauses-doc {
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   border-radius: 0;
   padding: 0 4px 16px 0;
   max-height: 260px;
   overflow-y: auto;
   margin-bottom: 14px;
+  color: var(--text-secondary);
 }
 
 .jdm-doc-title {
@@ -160,7 +162,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent, #00e676);
+  color: var(--accent);
   margin: 0 0 12px;
   display: flex;
   align-items: center;
@@ -171,16 +173,16 @@
 .jdm-doc-title i {
   width: 13px;
   height: 13px;
-  color: var(--accent, #00e676);
+  color: var(--accent);
 }
 
 .jdm-clause-item {
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-dim);
   font-size: 13px;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .jdm-clause-item:last-child {
@@ -193,14 +195,14 @@
   font-family: var(--font-mono, monospace);
   font-size: 12px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-right: 4px;
 }
 
 .jdm-clause-text {
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .jdm-contract-profile-details {
@@ -215,7 +217,7 @@
   font-family: var(--font-mono, monospace);
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -225,17 +227,17 @@
 }
 
 .jdm-contract-profile-summary:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-contract-profile-body {
   padding: 10px 0 4px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  border-top: 1px dashed var(--border-divider);
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .jdm-sign-callout {
@@ -245,7 +247,7 @@
   gap: 16px;
   background: transparent;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-divider);
   padding: 14px 0 0;
   border-radius: 0;
   flex-wrap: wrap;
@@ -257,7 +259,7 @@
 .jdm-progress-header {
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   padding: 0 0 16px;
   border-radius: 0;
   margin-bottom: 18px;
@@ -272,19 +274,19 @@
 }
 
 .jdm-progress-lbl {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
 .jdm-progress-pct {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .jdm-progress-bar-bg {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-divider);
   border-radius: 999px;
   overflow: hidden;
   margin: 10px 0 0;
@@ -292,7 +294,7 @@
 
 .jdm-progress-bar-fill {
   height: 100%;
-  background: var(--accent, #00e676);
+  background: var(--accent);
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -303,7 +305,7 @@
   overflow-x: auto;
   padding: 4px 0 16px;
   margin-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
 }
 
 .jdm-hito-pill {
@@ -311,7 +313,7 @@
   padding: 0 16px 0 0;
   background: transparent;
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--border-divider);
   border-radius: 0;
   font-size: 12px;
   display: flex;
@@ -326,28 +328,28 @@
 
 .jdm-hito-pill.is-done i,
 .jdm-hito-pill.is-done svg {
-  color: var(--accent, #00e676);
+  color: var(--accent);
 }
 
 .jdm-hito-pill.is-rev i,
 .jdm-hito-pill.is-rev svg {
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 .jdm-hito-pill.is-wait i,
 .jdm-hito-pill.is-wait svg {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .jdm-hito-pill-title {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   display: block;
 }
 
 .jdm-hito-pill-state {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: var(--font-mono, monospace);
   text-transform: uppercase;
 }
@@ -361,9 +363,10 @@
 .jdm-advance-card {
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   padding: 14px 0;
   border-radius: 0;
+  color: var(--text-primary);
 }
 
 .jdm-advance-card:last-child {
@@ -372,13 +375,13 @@
 }
 
 .jdm-advance-author {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-advance-status {
-  background: rgba(0, 113, 63, 0.12);
-  border: 1px solid rgba(0, 113, 63, 0.3);
-  color: var(--accent, #00e676);
+  background: var(--accent-muted);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  color: var(--accent);
 }
 
 .jdm-advance-head {
@@ -392,19 +395,19 @@
 .jdm-advance-title {
   font-size: 14px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-advance-meta {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-family: var(--font-mono, monospace);
   margin-top: 2px;
 }
 
 .jdm-advance-desc {
   font-size: 13px;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 8px;
   white-space: pre-wrap;
@@ -416,17 +419,18 @@
   gap: 6px;
   padding: 4px 10px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--border-mid);
   border-radius: 6px;
   font-family: var(--font-mono, monospace);
   font-size: 11px;
-  color: var(--accent, #00e676);
+  color: var(--accent);
   text-decoration: none;
   transition: all 0.15s ease;
 }
+
 .jdm-advance-attachment:hover {
-  background: rgba(0, 230, 118, 0.08);
-  border-color: var(--accent, #00e676);
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
 .jdm-advance-feedback {
@@ -434,10 +438,10 @@
   padding: 8px 12px;
   background: transparent;
   border: none;
-  border-left: 2px solid #f59e0b;
+  border-left: 2px solid var(--warning);
   border-radius: 0;
   font-size: 12px;
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -461,7 +465,7 @@
   background: transparent;
   border: none;
   font-size: 28px;
-  color: #28392d;
+  color: var(--border-hover);
   cursor: pointer;
   transition: transform 0.15s, color 0.15s;
   padding: 0;
@@ -469,21 +473,21 @@
 
 .jdm-star-btn:hover,
 .jdm-star-btn.is-active {
-  color: #10b981;
+  color: var(--accent);
   transform: scale(1.15);
 }
 
 .jdm-rating-caption {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
-  color: #a0a0a0;
+  color: var(--text-soft);
   letter-spacing: 0.05em;
 }
 
 .jdm-char-counter {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
-  color: #666666;
+  color: var(--text-muted);
   text-align: right;
   margin-top: 4px;
 }
@@ -496,7 +500,7 @@
   align-items: center;
   gap: 16px;
   padding-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-divider);
   margin-bottom: 18px;
 }
 
@@ -504,9 +508,9 @@
   width: 52px;
   height: 52px;
   border-radius: 8px;
-  background: #14171f;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-mid);
   font-family: var(--font-mono, monospace);
   font-size: 22px;
   font-weight: 700;
@@ -527,7 +531,7 @@
 .jdm-empresa-name {
   font-size: 16.5px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -536,7 +540,7 @@
 
 .jdm-empresa-meta {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 3px;
   font-family: var(--font-mono, monospace);
 }
@@ -547,8 +551,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-divider);
+  border-bottom: 1px solid var(--border-divider);
   margin-bottom: 22px;
 }
 
@@ -565,7 +569,7 @@
   font-family: var(--font-mono, monospace);
   font-size: 17px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -574,14 +578,14 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--text-muted);
   letter-spacing: 0.05em;
 }
 
 .jdm-stat-flat-divider {
   width: 1px;
   height: 30px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-divider);
   flex-shrink: 0;
 }
 
@@ -596,7 +600,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent, #00713f);
+  color: var(--accent);
   display: flex;
   align-items: center;
   gap: 7px;
@@ -606,7 +610,7 @@
 .jdm-clean-desc {
   font-size: 13.5px;
   line-height: 1.65;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -618,7 +622,7 @@
 
 .jdm-resena-flat-item {
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-dim);
 }
 
 .jdm-resena-flat-item:last-child {
@@ -636,18 +640,18 @@
 }
 
 .jdm-resena-author {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .jdm-resena-project {
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
 .jdm-resena-rating {
-  color: #f59e0b;
+  color: var(--warning);
   font-family: var(--font-mono, monospace);
   font-weight: 700;
   font-size: 12px;
@@ -655,7 +659,7 @@
 
 .jdm-resena-comment {
   font-size: 13px;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   line-height: 1.55;
   margin: 0 0 4px;
   font-style: italic;
@@ -663,7 +667,7 @@
 
 .jdm-resena-date {
   font-size: 10.5px;
-  color: #64748b;
+  color: var(--text-soft);
   font-family: var(--font-mono, monospace);
 }
 
@@ -680,11 +684,11 @@
 .jdm-disputa-iniciado {
   font-family: var(--font-mono, monospace);
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .jdm-disputa-iniciado strong {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-disputa-parties-grid {
@@ -692,28 +696,28 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 8px;
   font-size: 12px;
-  color: #94a3b8;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border);
   padding-top: 10px;
 }
 
 .jdm-disputa-parties-grid strong {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-disputa-motivo-box {
   margin-top: 12px;
   font-size: 12.5px;
-  color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  background: var(--surface-subtle);
   border-radius: 6px;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-dim);
   line-height: 1.55;
 }
 
 .jdm-disputa-motivo-box strong {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .jdm-disputa-evidencia-link {
@@ -726,8 +730,8 @@
 .jdm-disputa-resolucion-box {
   margin-top: 12px;
   padding: 14px 16px;
-  background: rgba(0, 230, 118, 0.08);
-  border: 1px solid rgba(0, 230, 118, 0.35);
+  background: var(--accent-light);
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: 6px;
 }
 
@@ -741,23 +745,23 @@
 .jdm-resolucion-dictamen {
   margin-top: 4px;
   font-size: 12.5px;
-  color: #e6f4ec;
+  color: var(--text-secondary);
 }
 
 /* ─────────────────────────────────────────────────────────────
    5. SALA DE DISPUTA
    ───────────────────────────────────────────────────────────── */
 .jdm-disputa-summary {
-  background: #030604;
-  border: 1px solid #14221a;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
   padding: 14px 18px;
   border-radius: 4px;
   margin-bottom: 16px;
 }
 
 .jdm-disputa-chat {
-  background: #020403;
-  border: 1px solid #14221a;
+  background: var(--surface-base);
+  border: 1px solid var(--border);
   border-radius: 4px;
   height: 280px;
   overflow-y: auto;
@@ -779,30 +783,30 @@
 
 .jdm-bubble-own {
   align-self: flex-end;
-  background: #181b22;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 .jdm-bubble-other {
   align-self: flex-start;
-  background: #080d0b;
-  border: 1px solid #1a2920;
-  color: #c0d0c6;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .jdm-bubble-admin {
   align-self: center;
   width: 90%;
-  background: rgba(245, 158, 11, 0.08);
+  background: var(--warning-light);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 .jdm-bubble-header {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
@@ -810,7 +814,7 @@
 }
 
 .jdm-bubble-admin .jdm-bubble-header {
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 .jdm-disputa-composer {
@@ -819,7 +823,7 @@
 }
 
 .jdm-admin-resolution-box {
-  background: rgba(239, 68, 68, 0.05);
+  background: var(--danger-light);
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 4px;
   padding: 16px;
@@ -848,245 +852,28 @@
 }
 
 /* ==========================================================================
-   Tema Claro: Overrides de Cascada para Modales (highest priority)
-   ========================================================================== */
-[data-theme="light"] .jdm-card {
-  background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15) !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-header {
-  background: #f8fafc !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-footer {
-  background: #f8fafc !important;
-  border-top: 1px solid #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-title {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-kicker {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-sub {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-close {
-  border-color: #cbd5e1 !important;
-  color: #475569 !important;
-  background: #ffffff !important;
-}
-
-[data-theme="light"] .jdm-contract-meta-bar {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-meta-val {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-contract-parties {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-party-name {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-party-label {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .jdm-party-label svg,
-[data-theme="light"] .jdm-party-label i {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-sign-ok {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-sign-wait {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .jdm-sign-urgent {
-  color: #dc2626 !important;
-}
-
-[data-theme="light"] .jdm-footer-note {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-party-divider {
-  background: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-clauses-doc {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-doc-title {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-doc-title svg,
-[data-theme="light"] .jdm-doc-title i {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-clause-num {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-clause-text {
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-contract-profile-details {
-  background: transparent !important;
-  border: none !important;
-}
-
-[data-theme="light"] .jdm-contract-profile-summary {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-contract-profile-summary:hover {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-contract-profile-body {
-  color: #334155 !important;
-  border-top-color: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-input,
-[data-theme="light"] .jdm-select,
-[data-theme="light"] .jdm-textarea {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-btn-secondary {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-btn-primary {
-  background: var(--accent, #00713f) !important;
-  border: none !important;
-  color: #ffffff !important;
-}
-
-[data-theme="light"] .jdm-btn-primary:hover {
-  background: var(--accent-dim, #005c33) !important;
-  border: none !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-}
-
-[data-theme="light"] .jdm-progress-header {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-progress-lbl {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-progress-pct {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-hitos-scroll {
-  border-bottom-color: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-hito-pill-title {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-hito-pill-state {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .jdm-hito-pill.is-done i,
-[data-theme="light"] .jdm-hito-pill.is-done svg {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-advance-card {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-advance-card:last-child {
-  border-bottom: none !important;
-}
-
-[data-theme="light"] .jdm-advance-title {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-advance-meta {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .jdm-advance-desc {
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-empresa-avatar {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-/* ==========================================================================
-   ALTO CONTRASTE Y TONALIDADES OSCURAS EN MODO CLARO (LIGHT THEME)
+   Tema Claro: Overrides de Cascada para Modales (semantic tokens)
    ========================================================================== */
 [data-theme="light"] .jdm-modal,
 [data-theme="light"] .jd-modal {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-card,
 [data-theme="light"] .jd-modal-card {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18) !important;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-hover);
+  color: var(--text-primary);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
 }
 
 [data-theme="light"] .jdm-header,
 [data-theme="light"] .jd-modal-header,
 [data-theme="light"] .jdm-footer,
 [data-theme="light"] .jd-modal-actions {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-dim);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-title,
@@ -1096,47 +883,57 @@
 [data-theme="light"] #modalPerfilDevTitulo,
 [data-theme="light"] #modalVerificacionTitulo,
 [data-theme="light"] #modalPostulacionTitulo {
-  color: #0f172a !important;
-  font-weight: 700 !important;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 [data-theme="light"] .jdm-kicker,
 [data-theme="light"] .jd-modal-kicker {
-  color: #00713f !important;
-  font-weight: 700 !important;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 [data-theme="light"] .jdm-sub,
 [data-theme="light"] .jd-modal-sub {
-  color: #334155 !important;
-  font-weight: 500 !important;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+[data-theme="light"] .jdm-close {
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+}
+
+[data-theme="light"] .jdm-sign-urgent {
+  color: #dc2626;
 }
 
 [data-theme="light"] .jdm-modal p,
 [data-theme="light"] .jd-modal p,
 [data-theme="light"] .jdm-body p,
 [data-theme="light"] .jd-modal-body p {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-modal strong,
 [data-theme="light"] .jd-modal strong,
 [data-theme="light"] .jdm-body strong,
 [data-theme="light"] .jd-modal-body strong {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-form-label,
 [data-theme="light"] .jd-label,
 [data-theme="light"] .jdm-party-label {
-  color: #1e293b !important;
-  font-weight: 600 !important;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 [data-theme="light"] .jd-help,
 [data-theme="light"] .jdm-char-counter,
 [data-theme="light"] .jdm-rating-caption {
-  color: #475569 !important;
+  color: var(--text-muted);
 }
 
 /* Inputs, Selects y Textareas en modales */
@@ -1149,186 +946,210 @@
 [data-theme="light"] #modalPostulacion .jd-input,
 [data-theme="light"] #formPerfilDev .jd-input,
 [data-theme="light"] #formProponerCancelacionDev .jd-input {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background: var(--surface-input);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-input::placeholder,
 [data-theme="light"] .jdm-textarea::placeholder,
 [data-theme="light"] .jd-input::placeholder,
 [data-theme="light"] .jd-textarea::placeholder {
-  color: #64748b !important;
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .jdm-btn-secondary {
+  background: var(--surface-elevated);
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .jdm-btn-primary {
+  background: var(--accent);
+  border: none;
+  color: #ffffff;
+}
+
+[data-theme="light"] .jdm-btn-primary:hover {
+  background: var(--accent-hover);
+  border: none;
+  color: #ffffff;
+  box-shadow: none;
 }
 
 /* Callouts y Banners dentro de modales */
 [data-theme="light"] .contratos-security-banner,
 [data-theme="light"] [data-testid="protocolo-arbitraje-banner"],
 [data-theme="light"] .disputas-protocolo-banner {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .contratos-security-text strong,
 [data-theme="light"] .protocolo-banner-head span {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .contratos-security-text p,
 [data-theme="light"] .disputas-protocolo-banner p {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .modal-portafolio-notice {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .modal-portafolio-notice strong {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .modal-portafolio-notice i {
-  color: #00713f !important;
+  color: var(--accent);
 }
 
 /* Selector de proyectos para disputar */
 [data-theme="light"] .disp-proyecto-item,
 [data-theme="light"] .disp-proyecto-item-corp {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-dim);
 }
 
 [data-theme="light"] .disp-proyecto-item:hover,
 [data-theme="light"] .disp-proyecto-item-corp:hover {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
 }
 
 [data-theme="light"] .disp-proyecto-title {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .disp-proyecto-meta,
 [data-theme="light"] .disp-proyecto-meta span {
-  color: #475569 !important;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .disp-empresa-name {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .disp-proyecto-icon {
-  background: #e2e8f0 !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background: var(--border-dim);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .disputas-selector-header {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 /* Chat de disputas y resúmenes */
 [data-theme="light"] .jdm-disputa-summary {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-disputa-summary div,
 [data-theme="light"] .jdm-disputa-summary span {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-disputa-summary strong {
-  color: #0f172a !important;
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .jdm-disputa-motivo-box {
+  background: var(--surface-elevated);
+  border-color: var(--border-hover);
 }
 
 [data-theme="light"] .jdm-chat-bubble {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-bubble-header span {
-  color: #475569 !important;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .jdm-bubble-other {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-bubble-own {
-  background: #e6faf0 !important;
-  border-color: rgba(0, 113, 63, 0.25) !important;
-  color: #0f172a !important;
+  background: var(--accent-light);
+  border-color: rgba(var(--accent-rgb), 0.25);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-bubble-admin {
-  background: #fef2f2 !important;
-  border-color: rgba(239, 68, 68, 0.25) !important;
-  color: #0f172a !important;
+  background: var(--danger-light);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: var(--text-primary);
 }
 
 /* Listas de datos .jd-datalist */
 [data-theme="light"] .jd-datalist dt {
-  color: #475569 !important;
-  font-weight: 600 !important;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 [data-theme="light"] .jd-datalist dd {
-  color: #0f172a !important;
-  font-weight: 700 !important;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 [data-theme="light"] .jd-datalist > div {
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: var(--border-dim);
 }
 
 /* Pestañas dentro de modales (.jd-tabs, .jd-tab) */
 [data-theme="light"] .jd-tabs {
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: var(--border-dim);
 }
 
 [data-theme="light"] .jd-tab {
-  color: #475569 !important;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .jd-tab:hover {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jd-tab.active {
-  color: #00713f !important;
-  border-bottom-color: #00713f !important;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 /* Avisos .jd-callout */
 [data-theme="light"] .jd-callout {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-hover);
 }
 
 [data-theme="light"] .jd-callout strong {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jd-callout p {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jd-callout-meta {
-  color: #475569 !important;
+  color: var(--text-muted);
 }
 
 /* Textos de pie de modal */
 [data-theme="light"] .jdm-footer span {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
-/* Forzar sobreescritura de elementos con estilos oscuros incrustados */
+/* Forzar sobreescritura de elementos con estilos oscuros incrustados (inline style="") */
 [data-theme="light"] .jdm-modal *[style*="color:#ffffff"],
 [data-theme="light"] .jdm-modal *[style*="color: #ffffff"],
 [data-theme="light"] .jdm-modal *[style*="color:#cbd5e1"],
@@ -1336,114 +1157,14 @@
 [data-theme="light"] .jdm-modal *[style*="color:#a0a0a0"],
 [data-theme="light"] .jdm-modal *[style*="color:#c0d0c6"],
 [data-theme="light"] .jdm-modal *[style*="color:#e6f4ec"] {
-  color: #0f172a !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .jdm-modal *[style*="background:#0d0d0d"],
 [data-theme="light"] .jdm-modal *[style*="background: #0d0d0d"],
 [data-theme="light"] .jdm-modal *[style*="background:#050a07"] {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* ── Ficha de Empresa en Modo Claro (Plana, Sin Cajas Onduladas) ── */
-[data-theme="light"] .jdm-empresa-header {
-  border-bottom-color: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-empresa-avatar {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-[data-theme="light"] .jdm-empresa-name {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-empresa-meta {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-empresa-stats-flat {
-  border-top-color: #e2e8f0 !important;
-  border-bottom-color: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-stat-flat-divider {
-  background: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-stat-val {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-stat-lbl {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .jdm-clean-label {
-  color: #00713f !important;
-}
-
-[data-theme="light"] .jdm-clean-desc {
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-resena-flat-item {
-  border-bottom-color: #e2e8f0 !important;
-}
-
-[data-theme="light"] .jdm-resena-author {
-  color: #0f172a !important;
-}
-
-[data-theme="light"] .jdm-resena-project {
-  color: #64748b !important;
-}
-
-[data-theme="light"] .jdm-resena-comment {
-  color: #334155 !important;
-}
-
-[data-theme="light"] .jdm-resena-date {
-  color: #64748b !important;
-}
-
-/* ── Resumen de Disputa en Modo Claro ── */
-[data-theme="light"] .jdm-disputa-iniciado {
-  color: #475569 !important;
-}
-[data-theme="light"] .jdm-disputa-iniciado strong {
-  color: #0f172a !important;
-}
-[data-theme="light"] .jdm-disputa-parties-grid {
-  color: #475569 !important;
-  border-top-color: #e2e8f0 !important;
-}
-[data-theme="light"] .jdm-disputa-parties-grid strong {
-  color: #0f172a !important;
-}
-[data-theme="light"] .jdm-disputa-motivo-box {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-}
-[data-theme="light"] .jdm-disputa-motivo-box strong {
-  color: #0f172a !important;
-}
-[data-theme="light"] .jdm-disputa-evidencia-link {
-  color: #00713f !important;
-}
-[data-theme="light"] .jdm-disputa-resolucion-box {
-  background: #e6faf0 !important;
-  border-color: rgba(0, 113, 63, 0.3) !important;
-}
-[data-theme="light"] .jdm-resolucion-header {
-  color: #00713f !important;
-}
-[data-theme="light"] .jdm-resolucion-dictamen {
-  color: #1e293b !important;
+  background: var(--surface-subtle) !important;
+  border-color: var(--border-dim) !important;
 }
 
 /* ── Toast Fallback & Modal Confirmación Personalizado ── */
@@ -1452,28 +1173,24 @@
   bottom: 24px;
   right: 24px;
   z-index: 9999;
-  background: #0a0a0a;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-left: 3px solid #00713f;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-mid);
+  border-left: 3px solid var(--accent);
   padding: 12px 18px;
   border-radius: 10px;
   font-family: var(--font-main, 'Space Grotesk', sans-serif);
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-lg);
   transition: opacity 0.3s ease;
   max-width: 380px;
 }
 
 .jobdevs-toast-fallback.is-error {
-  border-left-color: #ef4444;
+  border-left-color: var(--danger);
 }
 
 [data-theme="light"] .jobdevs-toast-fallback {
-  background: #ffffff;
-  color: #0f172a;
-  border-color: #cbd5e1;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+  border-color: var(--border-hover);
 }
-
