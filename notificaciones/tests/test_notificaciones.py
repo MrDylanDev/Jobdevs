@@ -163,4 +163,111 @@ class TestListaNotificaciones:
         assert Notificacion.objects.filter(id=notif_otra.id).exists()
 
 
+@pytest.mark.django_db
+class TestNotificacionesHTMX:
+    """Pruebas S2 (Phase 4): Notificaciones lista vía HTMX (`HX-Request: true`)."""
+
+    def test_lista_renderiza_wrapper_y_forms_htmx(self, dev_client, desarrollador_user):
+        n1 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Noti HTMX', leida=False
+        )
+        res = dev_client.get(reverse('notificaciones_lista'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="notificacionesListaWrap"' in html
+        assert f'hx-post="{reverse("notificaciones_marcar_todas_leidas")}"' in html
+        assert f'hx-post="{reverse("notificacion_marcar_leida", args=[n1.id])}"' in html
+        assert 'hx-target="#notificacionesListaWrap"' in html
+        assert 'hx-swap="outerHTML"' in html
+        assert 'hx-disabled-elt="find button[type=\'submit\']"' in html
+
+    def test_marcar_leida_htmx_retorna_parcial_y_toast(self, dev_client, desarrollador_user):
+        import json
+
+        n1 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Noti 1', leida=False
+        )
+        n2 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Noti 2', leida=False
+        )
+
+        res = dev_client.post(
+            reverse('notificacion_marcar_leida', args=[n1.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        n1.refresh_from_db()
+        n2.refresh_from_db()
+        assert n1.leida is True
+        assert n2.leida is False
+
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="notificacionesListaWrap"' in html
+        assert reverse('notificacion_marcar_leida', args=[n1.id]) not in html
+        assert reverse('notificacion_marcar_leida', args=[n2.id]) in html
+
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'leída' in hx_trigger['jobdevs:toast']['mensaje'].lower()
+
+    def test_marcar_todas_leidas_htmx_retorna_parcial_y_toast(self, dev_client, desarrollador_user):
+        import json
+
+        n1 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Todas 1', leida=False
+        )
+        n2 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Todas 2', leida=False
+        )
+
+        res = dev_client.post(
+            reverse('notificaciones_marcar_todas_leidas'),
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        assert Notificacion.objects.filter(usuario=desarrollador_user, leida=False).count() == 0
+
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="notificacionesListaWrap"' in html
+        assert reverse('notificacion_marcar_leida', args=[n1.id]) not in html
+        assert reverse('notificacion_marcar_leida', args=[n2.id]) not in html
+
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'leídas' in hx_trigger['jobdevs:toast']['mensaje'].lower()
+
+    def test_marcar_leida_htmx_con_accept_json_preserva_json(self, dev_client, desarrollador_user):
+        n1 = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='JSON 1', leida=False
+        )
+        res = dev_client.post(
+            reverse('notificacion_marcar_leida', args=[n1.id]),
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert res.status_code == 200
+        assert res.headers['Content-Type'] == 'application/json'
+        data = res.json()
+        assert data['status'] == 'ok'
+        assert data['notificacion_id'] == n1.id
+
+    def test_marcar_todas_leidas_htmx_con_accept_json_preserva_json(self, dev_client, desarrollador_user):
+        Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='JSON T1', leida=False
+        )
+        res = dev_client.post(
+            reverse('notificaciones_marcar_todas_leidas'),
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert res.status_code == 200
+        assert res.headers['Content-Type'] == 'application/json'
+        data = res.json()
+        assert data['status'] == 'ok'
+        assert data['unread_count'] == 0
+
+
+
 

@@ -1113,3 +1113,147 @@ class TestPostularseHTMX:
         assert response.status_code == 200
         assert response.json()['ok'] is True
 
+
+@pytest.mark.django_db
+class TestListaRecibidasStandaloneHTMX:
+    """Pruebas S2 (Phase 4): Postulaciones Recibidas standalone vía HTMX (`HX-Target: postulacionesSplitWrap`)."""
+
+    @pytest.fixture
+    def escenario(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Convocatoria Split HTMX",
+            descripcion="Descripción",
+            tipo_solucion="app_web",
+            estado="publicado",
+            vacantes=1,
+        )
+        post = Postulacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            mensaje="Carta de prueba.",
+            estado="pendiente",
+        )
+        return proyecto, post
+
+    def test_lista_recibidas_carga_htmx_y_forms_split(self, auth_client, escenario):
+        proyecto, post = escenario
+        res = auth_client.get(reverse('ver_postulaciones_empresa', args=[proyecto.id]))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'htmx.min.js' in html
+        assert 'htmx_bridge.js' in html
+        assert 'id="postulacionesSplitWrap"' in html
+        assert f'hx-post="{reverse("iniciar_negociacion", args=[post.id])}"' in html
+        assert f'hx-post="{reverse("rechazar_postulacion", args=[post.id])}"' in html
+        assert 'hx-target="#postulacionesSplitWrap"' in html
+        assert 'hx-swap="outerHTML"' in html
+
+    def test_iniciar_negociacion_htmx_split_retorna_partial_y_toast(self, auth_client, escenario):
+        import json
+
+        _, post = escenario
+        url = reverse('iniciar_negociacion', args=[post.id])
+        res = auth_client.post(
+            url,
+            {'estado_filtro': ''},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='postulacionesSplitWrap',
+        )
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'en_negociacion'
+
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="postulacionesSplitWrap"' in html
+        assert 'candidatos-split-layout' in html
+        assert 'drawer-funnel-tabs' not in html
+        assert 'Ver Contrato Digital' in html
+
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'Negociación iniciada' in hx_trigger['jobdevs:toast']['mensaje']
+
+    def test_rechazar_postulacion_htmx_split_retorna_partial_y_toast(self, auth_client, escenario):
+        import json
+
+        _, post = escenario
+        url = reverse('rechazar_postulacion', args=[post.id])
+        res = auth_client.post(
+            url,
+            {'estado_filtro': 'pendiente'},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='postulacionesSplitWrap',
+        )
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'rechazada'
+
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="postulacionesSplitWrap"' in html
+        assert 'drawer-funnel-tabs' not in html
+
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'ha sido rechazada' in hx_trigger['jobdevs:toast']['mensaje']
+
+    def test_iniciar_negociacion_htmx_split_error_cupo_retorna_partial_y_toast_error(
+        self, auth_client, escenario
+    ):
+        import json
+
+        proyecto, post = escenario
+        dev2 = User.objects.create_user(
+            username='dev_cupo_split', email='dev_cupo_split@test.jobdevs',
+            nombre='Dev Cupo', rol='desarrollador', estado='activo',
+            password='TestPass123!',
+        )
+        Postulacion.objects.create(proyecto=proyecto, desarrollador=dev2, estado='en_negociacion')
+
+        res = auth_client.post(
+            reverse('iniciar_negociacion', args=[post.id]),
+            {'estado_filtro': ''},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='postulacionesSplitWrap',
+        )
+        assert res.status_code == 200
+        post.refresh_from_db()
+        assert post.estado == 'pendiente'
+
+        html = res.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="postulacionesSplitWrap"' in html
+        assert 'drawer-funnel-tabs' not in html
+
+        hx_trigger = json.loads(res['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'error'
+        assert 'vacantes' in hx_trigger['jobdevs:toast']['mensaje'].lower()
+
+    def test_iniciar_negociacion_preserva_json_con_accept_json(self, auth_client, escenario):
+        _, post = escenario
+        res = auth_client.post(
+            reverse('iniciar_negociacion', args=[post.id]),
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='postulacionesSplitWrap',
+            HTTP_ACCEPT='application/json',
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+
+    def test_iniciar_negociacion_drawer_target_preserva_drawer_partial(self, auth_client, escenario):
+        _, post = escenario
+        res = auth_client.post(
+            reverse('iniciar_negociacion', args=[post.id]),
+            {'estado_filtro': ''},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='drawerContent',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'drawer-funnel-tabs' in html
+        assert 'id="postulacionesSplitWrap"' not in html
+
+
