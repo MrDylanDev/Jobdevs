@@ -51,11 +51,11 @@
           <span>Gestionar Grupos</span>
         </a>
       {% endif %}
-      <a class="nav-item active" href="#hitos" onclick="return switchModuloTab('hitos', this)">
+      <a class="nav-item active" href="#hitos" data-call="switchModuloTab" data-arg-0="hitos" data-arg-1="$el">
         <i data-lucide="flag"></i>
         <span>Gestionar Hitos</span>
       </a>
-      <a class="nav-item" href="#avances" onclick="return switchModuloTab('avances', this)">
+      <a class="nav-item" href="#avances" data-call="switchModuloTab" data-arg-0="avances" data-arg-1="$el">
         <i data-lucide="git-pull-request"></i>
         <span>Ver Avances</span>
       </a>
@@ -72,7 +72,7 @@
             <span>Grupos</span>
           </a>
         {% endif %}
-        <a href="#avances" class="btn-corp-action secondary" onclick="return switchModuloTab('avances')">
+        <a href="#avances" class="btn-corp-action secondary" data-call="switchModuloTab" data-arg-0="avances">
           <i data-lucide="git-commit"></i>
           <span>Avances</span>
         </a>
@@ -99,11 +99,11 @@
 
       <!-- Sub-tabs: Hitos / Avances (sin recarga de página) -->
       <div class="corp-subtabs" role="tablist" aria-label="Módulos del proyecto">
-        <button type="button" id="tabHitos" class="corp-subtab-btn active" role="tab" aria-controls="panelHitos" aria-selected="true" onclick="switchModuloTab('hitos')">
+        <button type="button" id="tabHitos" class="corp-subtab-btn active" role="tab" aria-controls="panelHitos" aria-selected="true" data-call="switchModuloTab" data-arg-0="hitos">
           <i data-lucide="flag"></i>
           <span>Hitos del Proyecto ({{ hitos|length }})</span>
         </button>
-        <button type="button" id="tabAvances" class="corp-subtab-btn" role="tab" aria-controls="panelAvances" aria-selected="false" onclick="switchModuloTab('avances')">
+        <button type="button" id="tabAvances" class="corp-subtab-btn" role="tab" aria-controls="panelAvances" aria-selected="false" data-call="switchModuloTab" data-arg-0="avances">
           <i data-lucide="git-commit"></i>
           <span>Línea de Tiempo de Avances ({{ avances|length }})</span>
         </button>
@@ -146,5 +146,6 @@
 <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
 <script type="module" src="{% static 'dashboard/script/modulo_hitos_avances.js' %}" data-modulo-default-tab="hitos"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
+<script type="module" src="{% static 'dashboard/script/action_delegate.js' %}"></script>
 </body>
 </html>

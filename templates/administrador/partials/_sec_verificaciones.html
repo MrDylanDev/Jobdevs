@@ -8,10 +8,10 @@
         </div>
 
         <div class="admin-tabs" role="tablist">
-          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('disputasSection')">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="disputasSection">
             <i data-lucide="scale"></i> Disputas
           </button>
-          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('cancelacionesSection')">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="cancelacionesSection">
             <i data-lucide="file-x"></i> Cancelaciones
           </button>
         </div>
@@ -19,7 +19,7 @@
           <div class="users-shell-top">
             <div class="users-search-box">
               <i data-lucide="search"></i>
-              <input type="text" id="disputasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('disputasSearch', '#disputasSection .users-pro-table tbody')">
+              <input type="text" id="disputasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." data-input-call="filterAdminQuickSearch" data-input-arg-0="disputasSearch" data-input-arg-1="#disputasSection .users-pro-table tbody">
             </div>
           </div>
           <div class="users-table-scroll">
@@ -70,10 +70,10 @@
         </div>
 
         <div class="admin-tabs" role="tablist">
-          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('disputasSection')">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="disputasSection">
             <i data-lucide="scale"></i> Disputas
           </button>
-          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('cancelacionesSection')">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="cancelacionesSection">
             <i data-lucide="file-x"></i> Cancelaciones
           </button>
         </div>
@@ -158,7 +158,7 @@
           <div class="admin-quick-search-wrap">
             <div class="users-search-box">
               <i data-lucide="search"></i>
-              <input type="text" id="verifEmpresasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifEmpresasSearch', '#verificacionEmpresasSection table tbody')">
+              <input type="text" id="verifEmpresasSearch" placeholder="Buscar por nombre, NIT, ficha o título..." data-input-call="filterAdminQuickSearch" data-input-arg-0="verifEmpresasSearch" data-input-arg-1="#verificacionEmpresasSection table tbody">
             </div>
           </div>
           {% if empresas_en_revision %}
@@ -264,10 +264,10 @@
         </div>
 
         <div class="admin-tabs" role="tablist">
-          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('verificacionDevsSection')">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="verificacionDevsSection">
             <i data-lucide="user-check"></i> Solicitudes
           </button>
-          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('fichasSenaSection')">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="fichasSenaSection">
             <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
           </button>
         </div>
@@ -276,7 +276,7 @@
           <div class="users-shell-top">
             <div class="users-search-box">
               <i data-lucide="search"></i>
-              <input type="text" id="verifDevsSearch" placeholder="Buscar por nombre, NIT, ficha o título..." oninput="filterAdminQuickSearch('verifDevsSearch', '#verificacionDevsSection .users-pro-table tbody')">
+              <input type="text" id="verifDevsSearch" placeholder="Buscar por nombre, NIT, ficha o título..." data-input-call="filterAdminQuickSearch" data-input-arg-0="verifDevsSearch" data-input-arg-1="#verificacionDevsSection .users-pro-table tbody">
             </div>
           </div>
           <div class="users-table-scroll">
@@ -394,10 +394,10 @@
         </div>
 
         <div class="admin-tabs" role="tablist">
-          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('verificacionDevsSection')">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="verificacionDevsSection">
             <i data-lucide="user-check"></i> Solicitudes
           </button>
-          <button type="button" id="senaTabBtnFichas" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('fichasSenaSection')">
+          <button type="button" id="senaTabBtnFichas" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="fichasSenaSection">
             <i data-lucide="id-card"></i> Fichas SENA ({{ total_fichas_sena }})
           </button>
         </div>

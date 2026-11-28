@@ -32,10 +32,10 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     page.goto(live_server.url + reverse('dashboard_empresa'))
     if page.locator('#modalBienvenidaEmpresa').is_visible():
         page.locator('#chkNoVolverAMostrarBienvenida').check()
-        page.locator('button[onclick="cerrarModalBienvenida()"]:visible').click()
+        page.locator('button[data-call="cerrarModalBienvenida"]:visible').click()
     assert page.locator('#modalProyecto').count() == 1
-    page.locator('button[onclick="switchTab(\'ofertas\', this)"]').click()
-    boton_nueva = page.locator('#ofertas .page-header button[onclick="abrirModal()"]')
+    page.locator('button[data-call="switchTab"][data-arg-0="ofertas"]').click()
+    boton_nueva = page.locator('#ofertas .page-header button[data-call="abrirModal"]')
     boton_nueva.wait_for(state='visible')
     page.wait_for_timeout(400)
     boton_nueva.click()
@@ -84,7 +84,7 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     page.locator('button.notif-btn').click()
     from playwright.sync_api import expect
 
-    page.locator('button[onclick="switchTab(\'ofertas\', this)"]').click()
+    page.locator('button[data-call="switchTab"][data-arg-0="ofertas"]').click()
     assert page.locator(f'form[action="{reverse("desactivar_proyecto", args=[con_contrato.id])}"]').count() == 0
     retiro = page.locator(f'form[action="{reverse("desactivar_proyecto", args=[proyecto.id])}"]')
     expect(retiro).to_be_visible()
@@ -94,7 +94,7 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     retiro.locator('button[type="submit"]').click()
     assert page.locator('#modalConfirmarRetiro').is_visible()
     page.locator('#modalConfirmarRetiro').screenshot(path=str(salida / 'confirmacion-retiro.png'))
-    page.locator('#modalConfirmarRetiro button[onclick="ejecutarRetiroConfirmado()"]').click()
+    page.locator('#modalConfirmarRetiro button[data-call="ejecutarRetiroConfirmado"]').click()
     expect(retiro).to_have_count(0)
     proyecto.refresh_from_db()
     con_contrato.refresh_from_db()

@@ -31,11 +31,11 @@
           <i data-lucide="arrow-left"></i>
           <span>Volver a En Desarrollo</span>
         </a>
-        <a class="nav-item" href="#hitos" onclick="return switchModuloTab('hitos', this)">
+        <a class="nav-item" href="#hitos" data-call="switchModuloTab" data-arg-0="hitos" data-arg-1="$el">
           <i data-lucide="flag"></i>
           <span>Gestionar Hitos</span>
         </a>
-        <a class="nav-item active" href="#avances" onclick="return switchModuloTab('avances', this)">
+        <a class="nav-item active" href="#avances" data-call="switchModuloTab" data-arg-0="avances" data-arg-1="$el">
           <i data-lucide="git-commit"></i>
           <span>Ver Avances</span>
         </a>
@@ -77,7 +77,7 @@
         {% endif %}
 
         {% if request.user.rol == 'empresa' %}
-          <a href="#hitos" class="btn-corp-action secondary" onclick="return switchModuloTab('hitos')">
+          <a href="#hitos" class="btn-corp-action secondary" data-call="switchModuloTab" data-arg-0="hitos">
             <i data-lucide="flag"></i>
             <span>Hitos</span>
           </a>
@@ -100,11 +100,11 @@
       <!-- Sub-tabs: Avances / Hitos (sin recarga de página) -->
       {% if request.user.rol == 'empresa' %}
       <div class="corp-subtabs" role="tablist" aria-label="Módulos del proyecto">
-        <button type="button" id="tabHitos" class="corp-subtab-btn" role="tab" aria-controls="panelHitos" aria-selected="false" onclick="switchModuloTab('hitos')">
+        <button type="button" id="tabHitos" class="corp-subtab-btn" role="tab" aria-controls="panelHitos" aria-selected="false" data-call="switchModuloTab" data-arg-0="hitos">
           <i data-lucide="flag"></i>
           <span>Hitos del Proyecto ({{ hitos|length }})</span>
         </button>
-        <button type="button" id="tabAvances" class="corp-subtab-btn active" role="tab" aria-controls="panelAvances" aria-selected="true" onclick="switchModuloTab('avances')">
+        <button type="button" id="tabAvances" class="corp-subtab-btn active" role="tab" aria-controls="panelAvances" aria-selected="true" data-call="switchModuloTab" data-arg-0="avances">
           <i data-lucide="git-commit"></i>
           <span>Línea de Tiempo de Avances ({{ avances|length }})</span>
         </button>
@@ -188,5 +188,6 @@
 <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
 <script type="module" src="{% static 'dashboard/script/modulo_hitos_avances.js' %}" data-modulo-default-tab="avances"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
+<script type="module" src="{% static 'dashboard/script/action_delegate.js' %}"></script>
 </body>
 </html>

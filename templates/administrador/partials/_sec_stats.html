@@ -9,7 +9,7 @@
 
         <!-- Fila fija de 4 KPIs -->
         <div class="metrics-grid bento-kpi-row">
-          <div class="metric-card dark metric-card--clickable" onclick="showSection('usersSection')">
+          <div class="metric-card dark metric-card--clickable" data-call="showSection" data-arg-0="usersSection">
             <div class="mc-header">
               <div class="mc-label">Usuarios Totales</div>
               <div class="mc-icon"><i data-lucide="users"></i></div>
@@ -17,7 +17,7 @@
             <div class="mc-value">{{ total_usuarios }}</div>
             <div class="mc-sub">{{ total_empresas }} empresas · {{ total_devs }} devs</div>
           </div>
-          <div class="metric-card info metric-card--clickable" onclick="showSection('projectsSection')">
+          <div class="metric-card info metric-card--clickable" data-call="showSection" data-arg-0="projectsSection">
             <div class="mc-header">
               <div class="mc-label">En Desarrollo</div>
               <div class="mc-icon"><i data-lucide="rocket"></i></div>
@@ -25,7 +25,7 @@
             <div class="mc-value">{{ p_des }}</div>
             <div class="mc-sub">{{ p_pub }} disponibles · {{ p_fin }} finalizados</div>
           </div>
-          <div class="metric-card accent metric-card--clickable" onclick="showSection('projectsSection')">
+          <div class="metric-card accent metric-card--clickable" data-call="showSection" data-arg-0="projectsSection">
             <div class="mc-header">
               <div class="mc-label">Postulaciones</div>
               <div class="mc-icon"><i data-lucide="file-text"></i></div>
@@ -33,7 +33,7 @@
             <div class="mc-value">{{ post_pen }}</div>
             <div class="mc-sub">Pendientes de revisión</div>
           </div>
-          <div class="metric-card danger metric-card--clickable" onclick="showSection('projectsSection')">
+          <div class="metric-card danger metric-card--clickable" data-call="showSection" data-arg-0="projectsSection">
             <div class="mc-header">
               <div class="mc-label">En Retraso</div>
               <div class="mc-icon"><i data-lucide="alert-triangle"></i></div>
@@ -59,8 +59,8 @@
             <div class="card-header">
               <div class="card-title"><i class="card-title-icon" data-lucide="activity"></i><span id="adminLineChartTitle">Pipeline de Proyectos</span></div>
               <div class="chart-cat-switcher" role="tablist" aria-label="Categoría de gráfica">
-                <button type="button" class="chart-cat-btn is-active" role="tab" aria-selected="true" onclick="switchAdminLineChart('proyectos', this)">Proyectos</button>
-                <button type="button" class="chart-cat-btn" role="tab" aria-selected="false" onclick="switchAdminLineChart('tendencia', this)">Tendencia (6m)</button>
+                <button type="button" class="chart-cat-btn is-active" role="tab" aria-selected="true" data-call="switchAdminLineChart" data-arg-0="proyectos" data-arg-1="$el">Proyectos</button>
+                <button type="button" class="chart-cat-btn" role="tab" aria-selected="false" data-call="switchAdminLineChart" data-arg-0="tendencia" data-arg-1="$el">Tendencia (6m)</button>
               </div>
             </div>
             <script type="application/json" id="adminTendenciaData">{{ tendencia_mensual_json|safe }}</script>
@@ -92,7 +92,7 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title"><i class="card-title-icon" data-lucide="folder-open"></i>Últimos Proyectos</div>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="showSection('projectsSection')">Ver todos</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-call="showSection" data-arg-0="projectsSection">Ver todos</button>
             </div>
             <table class="data-table" style="margin-top:0;">
               <tbody>
@@ -118,27 +118,27 @@
               <span class="stats-block-meta">Acción rápida</span>
             </div>
             <div class="bento-status-list">
-              <div class="bento-status-row" onclick="showSection('verificacionEmpresasSection')">
+              <div class="bento-status-row" data-call="showSection" data-arg-0="verificacionEmpresasSection">
                 <span><i data-lucide="building"></i> Empresas por verificar</span>
                 <strong>{{ total_empresas_en_revision|default:0 }}</strong>
               </div>
-              <div class="bento-status-row" onclick="showSection('verificacionDevsSection')">
+              <div class="bento-status-row" data-call="showSection" data-arg-0="verificacionDevsSection">
                 <span><i data-lucide="id-card"></i> Devs por verificar</span>
                 <strong>{{ total_desarrolladores_en_revision|default:0 }}</strong>
               </div>
-              <div class="bento-status-row" onclick="showSection('disputasSection')">
+              <div class="bento-status-row" data-call="showSection" data-arg-0="disputasSection">
                 <span><i data-lucide="scale"></i> Disputas activas</span>
                 <strong>{{ total_disputas_activas|default:0 }}</strong>
               </div>
-              <div class="bento-status-row" data-testid="metric-usuarios-inactivos" onclick="showSection('usersSection')">
+              <div class="bento-status-row" data-testid="metric-usuarios-inactivos" data-call="showSection" data-arg-0="usersSection">
                 <span><i data-lucide="user-x"></i> Usuarios Inactivos</span>
                 <strong>{{ usuarios_inactivos }}</strong>
               </div>
-              <div class="bento-status-row" data-testid="metric-usuarios-suspendidos" onclick="showSection('usersSection')">
+              <div class="bento-status-row" data-testid="metric-usuarios-suspendidos" data-call="showSection" data-arg-0="usersSection">
                 <span><i data-lucide="shield-ban"></i> Usuarios Suspendidos</span>
                 <strong>{{ usuarios_suspendidos }}</strong>
               </div>
-              <div class="bento-status-row" onclick="showSection('projectsSection')">
+              <div class="bento-status-row" data-call="showSection" data-arg-0="projectsSection">
                 <span><i data-lucide="alert-triangle"></i> Proyectos en Retraso</span>
                 <strong>{{ p_ret }}</strong>
               </div>

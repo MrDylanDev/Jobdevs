@@ -43,19 +43,19 @@
         <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs" class="sidebar-brand-logo">
         <div class="sidebar-brand-sub">[ PANEL MAESTRO ]</div>
       </div>
-      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" data-call="toggleSidebarCollapse" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
         <i data-lucide="panel-left-close"></i>
       </button>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Resumen</div>
-      <button class="nav-item active" onclick="showSection('statsSection', this)">
+      <button class="nav-item active" data-call="showSection" data-arg-0="statsSection" data-arg-1="$el">
         <i data-lucide="pie-chart"></i>
         <span>Estadísticas</span>
         <span class="nav-badge" data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}>{{ notificaciones_pendientes_count }}</span>
       </button>
-      <button class="nav-item" onclick="showSection('chatSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="chatSection" data-arg-1="$el">
         <i data-lucide="message-square"></i>
         <span>Chat Central</span>
         {% if mensajes_no_leidos_admin > 0 %}
@@ -66,15 +66,15 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Operación</div>
-      <button class="nav-item" onclick="showSection('usersSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="usersSection" data-arg-1="$el">
         <i data-lucide="users"></i>
         <span>Usuarios</span>
       </button>
-      <button class="nav-item" onclick="showSection('projectsSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="projectsSection" data-arg-1="$el">
         <i data-lucide="folder-kanban"></i>
         <span>Proyectos</span>
       </button>
-      <button class="nav-item" onclick="showSection('disputasSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="disputasSection" data-arg-1="$el">
         <i data-lucide="scale"></i>
         <span>Mediación y Disputas</span>
         {% if total_disputas_activas %}<span class="badge bg-danger ms-auto">{{ total_disputas_activas }}</span>{% endif %}
@@ -87,17 +87,17 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Control SENA</div>
-      <button class="nav-item" onclick="showSection('verificacionEmpresasSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="verificacionEmpresasSection" data-arg-1="$el">
         <i data-lucide="building"></i>
         <span>Verificación Empresas</span>
         {% if total_empresas_en_revision %}<span class="badge bg-danger ms-auto">{{ total_empresas_en_revision }}</span>{% endif %}
       </button>
-      <button class="nav-item" onclick="showSection('verificacionDevsSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="verificacionDevsSection" data-arg-1="$el">
         <i data-lucide="user-check"></i>
         <span>Verificación Talento SENA</span>
         {% if total_desarrolladores_en_revision %}<span class="badge bg-danger ms-auto">{{ total_desarrolladores_en_revision }}</span>{% endif %}
       </button>
-      <button class="nav-item" onclick="showSection('auditSection', this)">
+      <button class="nav-item" data-call="showSection" data-arg-0="auditSection" data-arg-1="$el">
         <i data-lucide="shield"></i>
         <span>Auditoría</span>
       </button>
@@ -112,7 +112,7 @@
 
     <!-- Top header (minimal: solo Notificaciones + Perfil Admin desplegable) -->
     <header class="top-header top-header--minimal">
-      <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-expanded="false" aria-controls="adminSidebar" aria-label="Abrir menú de navegación">
+      <button type="button" class="mobile-menu-toggle" data-call="toggleSidebar" aria-expanded="false" aria-controls="adminSidebar" aria-label="Abrir menú de navegación">
         <i data-lucide="menu"></i>
       </button>
       <div class="top-header-right">
@@ -160,7 +160,7 @@
       <div class="user-dropdown-wrapper" id="adminUserDropdown">
         <button type="button" class="user-chip" id="adminUserDropdownBtn"
                 aria-haspopup="true" aria-expanded="false" aria-controls="adminUserDropdownMenu"
-                onclick="toggleAdminUserDropdown(event)">
+                data-call="toggleAdminUserDropdown" data-arg-0="$event">
           <div class="user-avatar" style="overflow:hidden; padding:0; background:transparent;">
             <img src="{% static 'IMG/admin_soporte.svg' %}" alt="Administrador" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
           </div>
@@ -182,16 +182,16 @@
             </div>
           </div>
           <div class="user-dropdown-body">
-            <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeAdminUserDropdown(); showSection('configSection');">
+            <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeAdminUserDropdown" data-then="showSection" data-then-arg-0="configSection">
               <i data-lucide="settings"></i>
               <span>Configuración</span>
             </button>
-            <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeAdminUserDropdown(); showSection('reportsSection');">
+            <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeAdminUserDropdown" data-then="showSection" data-then-arg-0="reportsSection">
               <i data-lucide="file-bar-chart"></i>
               <span>Reportes Oficiales</span>
             </button>
             <div class="user-dropdown-divider" role="separator"></div>
-            <button type="button" class="user-dropdown-item" id="adminThemeToggle" role="menuitem" onclick="toggleAdminTheme()" aria-pressed="true">
+            <button type="button" class="user-dropdown-item" id="adminThemeToggle" role="menuitem" data-call="toggleAdminTheme" aria-pressed="true">
               <span class="theme-toggle-morph" aria-hidden="true">
                 <span class="sun-rays"></span>
                 <span class="main-circle"></span>
@@ -199,7 +199,7 @@
               <span id="adminThemeLabel">Tema oscuro</span>
             </button>
             <div class="user-dropdown-divider" role="separator"></div>
-            <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" onclick="cerrarSesionConSpinner(event, this);">
+            <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" data-call="cerrarSesionConSpinner" data-arg-0="$event" data-arg-1="$el">
               <i data-lucide="log-out"></i>
               <span>Cerrar Sesión</span>
             </a>

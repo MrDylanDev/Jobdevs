@@ -10,14 +10,14 @@
         <!-- Tabs de Usuarios + Acción Principal -->
         <div class="admin-tabs admin-tabs--with-action" role="tablist">
           <div class="admin-tabs-group">
-            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="switchUsersTab('directorio', this)">
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="switchUsersTab" data-arg-0="directorio" data-arg-1="$el">
               <i data-lucide="users"></i> Directorio
             </button>
-            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="switchUsersTab('desempeno', this)">
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="switchUsersTab" data-arg-0="desempeno" data-arg-1="$el">
               <i data-lucide="star"></i> Desempeño y Alertas
             </button>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="openCreateUserModal()">
+          <button type="button" class="btn btn-primary btn-sm" data-call="openCreateUserModal">
             <i data-lucide="user-plus"></i> Nuevo Usuario
           </button>
         </div>
@@ -47,10 +47,10 @@
         <div class="users-table-shell">
           <div class="users-shell-top">
             <div class="users-role-pills" role="group" aria-label="Filtrar por rol">
-              <button type="button" class="users-role-pill is-active" onclick="setAdminUserRolePill('', this)">Todos</button>
-              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('desarrollador', this)">Desarrolladores</button>
-              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('empresa', this)">Empresas</button>
-              <button type="button" class="users-role-pill" onclick="setAdminUserRolePill('administrador', this)">Admins</button>
+              <button type="button" class="users-role-pill is-active" data-call="setAdminUserRolePill" data-arg-0="" data-arg-1="$el">Todos</button>
+              <button type="button" class="users-role-pill" data-call="setAdminUserRolePill" data-arg-0="desarrollador" data-arg-1="$el">Desarrolladores</button>
+              <button type="button" class="users-role-pill" data-call="setAdminUserRolePill" data-arg-0="empresa" data-arg-1="$el">Empresas</button>
+              <button type="button" class="users-role-pill" data-call="setAdminUserRolePill" data-arg-0="administrador" data-arg-1="$el">Admins</button>
             </div>
 
             <div class="users-shell-controls">
@@ -63,7 +63,7 @@
                        hx-trigger="input changed delay:300ms, change"
                        hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
                        hx-sync="this:replace"
-                       oninput="if(!window.htmx) debouncedFilterUsers()">
+                       data-input-call="debouncedFilterUsers" data-if-no-htmx="true">
               </div>
               <select id="userRoleFilter" name="rol" class="users-select"
                       hx-get="{% url 'api_usuarios' %}"
@@ -72,7 +72,7 @@
                       hx-trigger="change"
                       hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
                       hx-sync="this:replace"
-                      onchange="if(!window.htmx) filterUsers()" style="display:none;" aria-hidden="true">
+                      data-change-call="filterUsers" data-if-no-htmx="true" style="display:none;" aria-hidden="true">
                 <option value="">Todos los roles</option>
                 <option value="desarrollador">Desarrollador</option>
                 <option value="empresa">Empresa</option>
@@ -85,7 +85,7 @@
                       hx-trigger="change"
                       hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
                       hx-sync="this:replace"
-                      onchange="if(!window.htmx) filterUsers()">
+                      data-change-call="filterUsers" data-if-no-htmx="true">
                 <option value="">Estado: Todos</option>
                 <option value="active">Solo Activos</option>
                 <option value="inactive">Inactivos / Suspendidos</option>
@@ -94,7 +94,7 @@
           </div>
 
           <div class="users-shell-subbar">
-            <form method="get" action="{% url 'dashboard_admin' %}" class="users-date-form" onsubmit="event.preventDefault(); filterUsers();">
+            <form method="get" action="{% url 'dashboard_admin' %}" class="users-date-form" data-submit-call="filterUsers" data-prevent="true">
               <input type="hidden" name="section" value="usersSection">
               <span class="users-date-label"><i data-lucide="calendar"></i> Registro</span>
               <input type="date" name="fecha_desde" value="{{ fecha_desde }}" data-testid="filtro-fecha-desde" class="users-date-input"
@@ -112,7 +112,7 @@
                      hx-trigger="change"
                      hx-include="#userSearch, #userRoleFilter, #userStatusFilter, [data-testid='filtro-fecha-desde'], [data-testid='filtro-fecha-hasta']"
                      hx-sync="this:replace">
-              <button type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()">Aplicar</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" data-call="filterUsers">Aplicar</button>
             </form>
           </div>
 

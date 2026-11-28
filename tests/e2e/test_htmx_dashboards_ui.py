@@ -42,7 +42,7 @@ class TestHtmxDashboardsE2E:
         assert page.evaluate('() => window.__e2eNoReload') is True
 
         # Open Create User modal and close it via declarative data-action="close-modal"
-        page.locator('button[onclick="openCreateUserModal()"]').click()
+        page.locator('button[data-call="openCreateUserModal"]').click()
         modal = page.locator('#createUserModal')
         modal.wait_for(state='visible', timeout=5000)
 

@@ -94,16 +94,16 @@
         {% for post in postulaciones %}
           <div class="candidate-row-corp {% if forloop.first %}is-selected{% endif %}"
                id="cand-card-{{ post.id }}"
-               onclick="seleccionarCandidato({{ post.id }}, this)"
-               onkeydown="if (event.target === this && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); seleccionarCandidato({{ post.id }}, this); }"
+               data-call="seleccionarCandidato" data-arg-0="{{ post.id }}" data-arg-1="$el"
+
                role="button"
                tabindex="0"
                aria-label="Ver detalles de {{ post.desarrollador.nombre }}">
             <input type="checkbox" data-comparar-id="{{ post.id }}"
                    aria-label="Seleccionar {{ post.desarrollador.nombre }} para comparar"
-                   onclick="event.stopPropagation();" class="cand-row-check">
+                   data-call="__noop" data-stop="true" class="cand-row-check">
             <div class="cand-row-main">
-              <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" data-abrir-desarrollador data-url="{% url 'detalle_desarrollador' post.desarrollador.id %}" onclick="event.stopPropagation();" title="Ver perfil público" class="cand-row-avatar-link">
+              <a href="{% url 'detalle_desarrollador' post.desarrollador.id %}" data-abrir-desarrollador data-url="{% url 'detalle_desarrollador' post.desarrollador.id %}" data-call="__noop" data-stop="true" title="Ver perfil público" class="cand-row-avatar-link">
                 <div class="user-avatar cand-row-avatar">
                   {% if post.desarrollador.foto_perfil %}
                     <img src="{{ post.desarrollador.foto_perfil }}" alt="{{ post.desarrollador.nombre }}" class="cand-row-avatar-img">

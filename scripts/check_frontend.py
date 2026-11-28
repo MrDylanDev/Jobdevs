@@ -26,6 +26,25 @@ CSS_COMMENT_OR_STRING_RE = re.compile(
     re.DOTALL,
 )
 CSS_IMPORT_RE = re.compile(r"@import\b", re.IGNORECASE)
+INLINE_HANDLER_RE = re.compile(r'\bon(?:click|input|change|keydown|submit)\s*=', re.IGNORECASE)
+
+
+def check_inline_event_handlers(templates_dir: Path) -> list[str]:
+    """Return errors for any inline on*= event handlers in templates (strict CSP guard)."""
+    errors: list[str] = []
+    if not templates_dir.exists():
+        return errors
+    for tpl_file in sorted(templates_dir.rglob("*.html")):
+        if _is_ignored(tpl_file, templates_dir):
+            continue
+        rel = tpl_file.relative_to(templates_dir).as_posix()
+        text = tpl_file.read_text(encoding="utf-8")
+        matches = INLINE_HANDLER_RE.findall(text)
+        if matches:
+            errors.append(
+                f"Disallowed inline event handler(s) ({len(matches)}) in templates/{rel} — use data-call/data-action"
+            )
+    return errors
 
 
 def _is_ignored(path: Path, root: Path) -> bool:
@@ -184,6 +203,7 @@ def main(argv: list[str] | None = None) -> int:
     errors: list[str] = []
     errors.extend(check_case_collisions([templates_dir, static_dir]))
     errors.extend(check_css_files(static_dir))
+    errors.extend(check_inline_event_handlers(templates_dir))
     errors.extend(check_django_templates(templates_dir))
     js_errors, ran_node = check_js_files(static_dir, require_node=args.require_node)
     errors.extend(js_errors)

@@ -428,7 +428,7 @@ def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarroll
     assert response.context['contratos_pendientes_firma_count'] == 1
 
     content = response.content.decode()
-    assert 'verSeccion(\'contratos\'' in content or 'verSeccion("contratos"' in content
+    assert 'data-call="verSeccion" data-arg-0="contratos"' in content
     assert 'id="contratos"' in content
     assert 'Proyecto Seccion Contratos' in content
     assert '$ 3.500.000 COP' in content
@@ -731,7 +731,7 @@ def test_dev_dashboard_incluye_seccion_explorar_integrada(client, desarrollador_
 
     content = response.content.decode()
     # Verifica que el botón de navegación llama a verSeccion y no redirige a /proyectos/
-    assert "verSeccion('explorar', this)" in content
+    assert 'data-call="verSeccion" data-arg-0="explorar"' in content
     assert 'id="explorar"' in content
     assert 'id="devExploreSearch"' in content
     assert 'id="devExploreCategory"' in content
@@ -1172,16 +1172,16 @@ def test_empresa_dashboard_user_dropdown_menu(auth_client, empresa_user):
     # Estructura del dropdown en el topbar
     assert 'user-dropdown-wrapper' in content
     assert 'id="userMenuBtn"' in content
-    assert 'onclick="toggleUserMenu(event)"' in content
+    assert 'data-call="toggleUserMenu"' in content
     assert 'id="userDropdownMenu"' in content
     assert 'user-dropdown-menu' in content
 
     # Opciones del menú desplegable
     assert 'Perfil de Empresa' in content
-    assert "switchTab('perfil')" in content
+    assert 'data-then="switchTab" data-then-arg-0="perfil"' in content
     assert 'Vista Pública para Talentos' not in content
     assert 'Verificación NIT / Legal' in content
-    assert 'abrirModalVerificacion(event)' in content
+    assert 'data-then="abrirModalVerificacion"' in content
     assert 'user-dropdown-divider' in content
     assert 'Cerrar Sesión' in content
     assert reverse('logout') in content

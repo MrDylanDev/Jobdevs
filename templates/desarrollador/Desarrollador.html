@@ -48,19 +48,19 @@
         <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs" class="sidebar-brand-logo">
         <div class="sidebar-brand-sub">[ DESARROLLADOR ]</div>
       </div>
-      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" data-call="toggleSidebarCollapse" title="Colapsar menú (solo iconos)" aria-label="Colapsar menú lateral">
         <i data-lucide="panel-left-close"></i>
       </button>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Principal</div>
-      <button class="nav-item active" onclick="verSeccion('inicio', this)">
+      <button class="nav-item active" data-call="verSeccion" data-arg-0="inicio" data-arg-1="$el">
         <i data-lucide="layout-dashboard"></i>
         <span>Inicio</span>
         <span class="nav-badge" data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}>{{ notificaciones_pendientes_count }}</span>
       </button>
-      <button class="nav-item" onclick="verSeccion('centro-chat', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="centro-chat" data-arg-1="$el">
         <i data-lucide="message-square"></i>
         <span>Mensajes</span>
         {% if mensajes_no_leidos > 0 %}
@@ -71,14 +71,14 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">Proyectos</div>
-      <button class="nav-item" onclick="verSeccion('explorar', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="explorar" data-arg-1="$el">
         <i data-lucide="compass"></i>
         <span>Explorar</span>
         {% if proyectos_explorar|length > 0 %}
           <span class="nav-badge">{{ proyectos_explorar|length }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="verSeccion('contratos', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="contratos" data-arg-1="$el">
         <i data-lucide="file-signature"></i>
         <span>Contratos & Postulaciones</span>
         {% if contratos_pendientes_firma_count > 0 %}
@@ -87,15 +87,15 @@
           <span class="nav-badge" style="background:rgba(255, 255, 255, 0.08); color:var(--text-secondary);">{{ postulaciones_vigentes_count }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="verSeccion('activos', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="activos" data-arg-1="$el">
         <i data-lucide="rocket"></i>
         <span>Trabajo Actual</span>
       </button>
-      <button class="nav-item" onclick="verSeccion('completados', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="completados" data-arg-1="$el">
         <i data-lucide="trophy"></i>
         <span>Finalizados</span>
       </button>
-      <button class="nav-item" onclick="verSeccion('favoritos', this)">
+      <button class="nav-item" data-call="verSeccion" data-arg-0="favoritos" data-arg-1="$el">
         <i data-lucide="heart"></i>
         <span>Favoritos</span>
         <span class="nav-badge" id="sidebarFavoritosCountBadge" {% if favoritos_count == 0 %}style="display:none;"{% endif %}>{{ favoritos_count }}</span>
@@ -110,12 +110,12 @@
 
     <!-- Top header -->
     <header class="top-header">
-      <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-expanded="false" aria-controls="devSidebar" aria-label="Abrir menú de navegación">
+      <button type="button" class="mobile-menu-toggle" data-call="toggleSidebar" aria-expanded="false" aria-controls="devSidebar" aria-label="Abrir menú de navegación">
         <i data-lucide="menu"></i>
       </button>
 
       <div class="header-actions">
-        <button type="button" class="theme-toggle" id="devThemeToggle" style="display:none;" aria-pressed="false" onclick="toggleDevTheme()"></button>
+        <button type="button" class="theme-toggle" id="devThemeToggle" style="display:none;" aria-pressed="false" data-call="toggleDevTheme"></button>
 
         <div class="notif-wrapper">
           <button type="button" class="notif-btn" title="Notificaciones" aria-label="Notificaciones"
@@ -160,7 +160,7 @@
         </div>
 
         <div class="user-dropdown-wrapper">
-          <button type="button" class="user-chip user-chip-dev" id="userMenuBtn" onclick="toggleUserMenu(event)" aria-haspopup="true" aria-expanded="false" title="Menú de cuenta">
+          <button type="button" class="user-chip user-chip-dev" id="userMenuBtn" data-call="toggleUserMenu" data-arg-0="$event" aria-haspopup="true" aria-expanded="false" title="Menú de cuenta">
             <div class="user-avatar" id="devUserChipAvatar">
               {% if perfil and perfil.foto %}
                 <img src="{{ perfil.foto.url }}" alt="Perfil">
@@ -208,19 +208,19 @@
             </div>
 
             <div class="user-dropdown-body">
-              <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); abrirModalPerfilDev();">
+              <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeUserMenu" data-then="abrirModalPerfilDev">
                 <i data-lucide="user"></i>
                 <span>Mi Perfil</span>
               </button>
               {% if perfil and not perfil.es_verificado_sena %}
-                <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); abrirVerificacion();">
+                <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeUserMenu" data-then="abrirVerificacion">
                   <i data-lucide="shield-alert" style="color:var(--text-secondary);"></i>
                   <span style="flex:1;">Verificación SENA</span>
                   <span class="nav-badge" style="position:static;background:var(--border-mid);color:var(--text-primary);font-size:9px;padding:1px 5px;font-weight:700;">!</span>
                 </button>
               {% endif %}
               <div class="user-dropdown-divider" role="separator"></div>
-              <button type="button" class="user-dropdown-item" id="devDropdownThemeToggle" role="menuitem" onclick="toggleDevTheme()" aria-pressed="false">
+              <button type="button" class="user-dropdown-item" id="devDropdownThemeToggle" role="menuitem" data-call="toggleDevTheme" aria-pressed="false">
                 <span class="theme-toggle-morph" aria-hidden="true">
                   <span class="sun-rays"></span>
                   <span class="main-circle"></span>
@@ -228,7 +228,7 @@
                 <span id="devDropdownThemeLabel">Tema claro</span>
               </button>
               <div class="user-dropdown-divider" role="separator"></div>
-              <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" onclick="cerrarSesionConSpinner(event, this);">
+              <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" data-call="cerrarSesionConSpinner" data-arg-0="$event" data-arg-1="$el">
                 <i data-lucide="log-out"></i>
                 <span>Cerrar Sesión</span>
               </a>

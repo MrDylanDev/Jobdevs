@@ -3,12 +3,12 @@
     {% if error %}
       <div id="calificarModalError" class="msg-error" role="alert" style="margin-bottom:14px;">{{ error }}</div>
     {% endif %}
-    <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cerrar</button>
+    <button type="button" class="btn-corp-action secondary" data-call="cerrarModalCalificar">Cerrar</button>
   </div>
 {% elif todos_calificados %}
   <div class="drawer-loading" style="padding:28px 16px;">
     <p>Todos los colaboradores de este proyecto ya fueron calificados.</p>
-    <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()" style="margin-top:12px;">Cerrar</button>
+    <button type="button" class="btn-corp-action secondary" data-call="cerrarModalCalificar" style="margin-top:12px;">Cerrar</button>
   </div>
 {% elif not desarrollador %}
   <form id="formCalificarModal"
@@ -25,7 +25,7 @@
       Todos los colaboradores han sido calificados. Confirma el cierre oficial del proyecto <strong>{{ proyecto.titulo }}</strong>.
     </p>
     <div class="modal-footer-corp">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cancelar</button>
+      <button type="button" class="btn-corp-action secondary" data-call="cerrarModalCalificar">Cancelar</button>
       <button type="submit" class="btn-corp-primary">Confirmar y Finalizar</button>
     </div>
   </form>
@@ -64,7 +64,7 @@
       <div id="calificarModalError" class="msg-error" role="alert" style="display:none; margin-bottom:12px;"></div>
     {% endif %}
     <div class="modal-footer-corp">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalCalificar()">Cancelar</button>
+      <button type="button" class="btn-corp-action secondary" data-call="cerrarModalCalificar">Cancelar</button>
       <button type="submit" class="btn-corp-primary">
         <i data-lucide="star"></i>
         <span>Enviar Calificación</span>

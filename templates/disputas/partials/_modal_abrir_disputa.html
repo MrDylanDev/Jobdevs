@@ -94,7 +94,7 @@
     {% if is_jdm %}
       <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cancelar</button>
     {% else %}
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalDisputa()">Cancelar</button>
+      <button type="button" class="btn-corp-action secondary" data-call="cerrarModalDisputa">Cancelar</button>
     {% endif %}
     <button type="submit" id="{% if is_jdm %}jdmBtnConfirmarDisputa{% else %}btn-submit-disputa{% endif %}" class="btn-corp-primary" style="background:#e11d48; border-color:#e11d48; color:#ffffff;">
       <i data-lucide="gavel"></i>

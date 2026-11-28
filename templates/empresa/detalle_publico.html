@@ -61,15 +61,15 @@
     </div>
 
     <div class="linkedin-subnav">
-      <button type="button" class="linkedin-tab-btn active" onclick="switchPublicPerfilTab('info', this)">
+      <button type="button" class="linkedin-tab-btn active" data-call="switchPublicPerfilTab" data-arg-0="info" data-arg-1="$el">
         <i data-lucide="building-2"></i>
         <span>{% trans "Información General" %}</span>
       </button>
-      <button type="button" class="linkedin-tab-btn" onclick="switchPublicPerfilTab('jobs', this)">
+      <button type="button" class="linkedin-tab-btn" data-call="switchPublicPerfilTab" data-arg-0="jobs" data-arg-1="$el">
         <i data-lucide="briefcase"></i>
         <span>{% blocktrans with total=total_proyectos_abiertos %}Convocatorias Abiertas ({{ total }}){% endblocktrans %}</span>
       </button>
-      <button type="button" class="linkedin-tab-btn" onclick="switchPublicPerfilTab('reviews', this)">
+      <button type="button" class="linkedin-tab-btn" data-call="switchPublicPerfilTab" data-arg-0="reviews" data-arg-1="$el">
         <i data-lucide="star"></i>
         <span>{% blocktrans with total=total_resenas %}Opiniones & Reputación ({{ total }}){% endblocktrans %}</span>
       </button>

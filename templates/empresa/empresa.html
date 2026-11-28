@@ -46,19 +46,19 @@
     <div class="sidebar-brand">
       <img src="{% static 'IMG/JobDevs_logo_vector_transparente.svg' %}" alt="JobDevs">
       <div class="sidebar-brand-sub">{% trans "Empresa" %}</div>
-      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="{% trans "Colapsar menú (solo iconos)" %}" aria-label="{% trans "Colapsar menú lateral" %}">
+      <button type="button" class="sidebar-brand-collapse-btn" id="sidebarCollapseBtn" data-call="toggleSidebarCollapse" title="{% trans "Colapsar menú (solo iconos)" %}" aria-label="{% trans "Colapsar menú lateral" %}">
         <i data-lucide="panel-left-close"></i>
       </button>
     </div>
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">{% trans "Principal" %}</div>
-      <button class="nav-item active" onclick="switchTab('inicio', this)" title="{% trans "Dashboard" %}">
+      <button class="nav-item active" data-call="switchTab" data-arg-0="inicio" data-arg-1="$el" title="{% trans "Dashboard" %}">
         <i data-lucide="layout-dashboard"></i>
         <span>{% trans "Dashboard" %}</span>
         <span class="nav-badge" data-notif-badge{% if notificaciones_pendientes_count == 0 %} hidden{% endif %}>{{ notificaciones_pendientes_count }}</span>
       </button>
-      <button class="nav-item" onclick="switchTab('centro-chat', this)" title="{% trans "Mensajes" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="centro-chat" data-arg-1="$el" title="{% trans "Mensajes" %}">
         <i data-lucide="message-square"></i>
         <span>{% trans "Mensajes" %}</span>
         {% if mensajes_no_leidos > 0 %}
@@ -69,30 +69,30 @@
 
     <div class="sidebar-group">
       <div class="sidebar-group-label">{% trans "Gestión" %}</div>
-      <button class="nav-item" onclick="switchTab('ofertas', this)" title="{% trans "Mis Ofertas" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="ofertas" data-arg-1="$el" title="{% trans "Mis Ofertas" %}">
         <i data-lucide="megaphone"></i>
         <span>{% trans "Mis Ofertas" %}</span>
         {% if total_postulaciones > 0 %}
           <span class="nav-badge">{{ total_postulaciones }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('desarrollo', this)" title="{% trans "En Desarrollo" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="desarrollo" data-arg-1="$el" title="{% trans "En Desarrollo" %}">
         <i data-lucide="folder-kanban"></i>
         <span>{% trans "En Desarrollo" %}</span>
       </button>
-      <button class="nav-item" onclick="switchTab('contratos', this)" title="{% trans "Contratos" %}"><i data-lucide="file-signature"></i><span>{% trans "Contratos" %}</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
-      <button class="nav-item" onclick="switchTab('cancelaciones', this)" title="{% trans "Solicitudes de cancelación" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="contratos" data-arg-1="$el" title="{% trans "Contratos" %}"><i data-lucide="file-signature"></i><span>{% trans "Contratos" %}</span>{% if contratos_pendientes_firma_count > 0 %}<span class="nav-badge">{{ contratos_pendientes_firma_count }}</span>{% endif %}</button>
+      <button class="nav-item" data-call="switchTab" data-arg-0="cancelaciones" data-arg-1="$el" title="{% trans "Solicitudes de cancelación" %}">
         <i data-lucide="file-x"></i>
         <span>{% trans "Cancelaciones" %}</span>
         {% if cancelaciones_pendientes_count > 0 %}
           <span class="nav-badge">{{ cancelaciones_pendientes_count }}</span>
         {% endif %}
       </button>
-      <button class="nav-item" onclick="switchTab('historial', this)" title="{% trans "Historial" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="historial" data-arg-1="$el" title="{% trans "Historial" %}">
         <i data-lucide="history"></i>
         <span>{% trans "Historial" %}</span>
       </button>
-      <button class="nav-item" onclick="switchTab('disputas', this)" title="{% trans "Disputas" %}">
+      <button class="nav-item" data-call="switchTab" data-arg-0="disputas" data-arg-1="$el" title="{% trans "Disputas" %}">
         <i data-lucide="scale"></i>
         <span>{% trans "Disputas" %}</span>
         {% if disputas_activas_count > 0 %}
@@ -109,14 +109,14 @@
     <header class="top-header">
       {% get_current_language as IDIOMA %}
       {% if IDIOMA == 'en' %}{% url_idioma 'es-co' as URL_IDIOMA %}{% else %}{% url_idioma 'en' as URL_IDIOMA %}{% endif %}
-      <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="{% trans "Abrir menú de navegación" %}">
+      <button class="mobile-menu-toggle" data-call="toggleSidebar" aria-label="{% trans "Abrir menú de navegación" %}">
         <i data-lucide="menu"></i>
       </button>
 
       <div class="header-actions">
         <!-- Notificaciones Popover -->
         <div class="notif-wrapper">
-          <button class="notif-btn" onclick="toggleNotifPopover(event)" title="{% trans "Notificaciones" %}" aria-label="{% trans "Notificaciones" %}" aria-expanded="false" aria-controls="notifPopover">
+          <button class="notif-btn" data-call="toggleNotifPopover" data-arg-0="$event" title="{% trans "Notificaciones" %}" aria-label="{% trans "Notificaciones" %}" aria-expanded="false" aria-controls="notifPopover">
             <svg viewBox="0 0 448 512" class="bell" aria-hidden="true"><path d="M224 0c-17.7 0-32 14.3-32 32V49.9C119.5 61.4 64 124.2 64 200v33.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V200c0-75.8-55.5-138.6-128-150.1V32c0-17.7-14.3-32-32-32zm0 96h8c57.4 0 104 46.6 104 104v33.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V200c0-57.4 46.6-104 104-104h8zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z"></path></svg>
             {% if notificaciones_pendientes_count > 0 %}
               <span class="notif-badge">{{ notificaciones_pendientes_count }}</span>
@@ -126,7 +126,7 @@
             <div class="notif-popover-header">
               <span class="notif-popover-title">{% trans "Notificaciones" %}</span>
               {% if notificaciones %}
-                <form action="{% url 'notificaciones_limpiar' %}" method="POST" style="margin:0;" onsubmit="limpiarNotificacionesAjax(event, this)">
+                <form action="{% url 'notificaciones_limpiar' %}" method="POST" style="margin:0;" data-submit-call="limpiarNotificacionesAjax" data-submit-arg-0="$event" data-submit-arg-1="$el">
                   {% csrf_token %}
                   <button type="submit" class="btn-corp-action danger-subtle" style="font-size:12px; padding:3px 8px;" title="{% trans "Borrar todas las notificaciones para que no se acumulen" %}">
                     <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
@@ -152,7 +152,7 @@
         </div>
 
         <div class="user-dropdown-wrapper">
-          <button type="button" class="user-chip-corp" id="userMenuBtn" onclick="toggleUserMenu(event)" aria-haspopup="true" aria-expanded="false" title="{% trans "Menú de cuenta" %}">
+          <button type="button" class="user-chip-corp" id="userMenuBtn" data-call="toggleUserMenu" data-arg-0="$event" aria-haspopup="true" aria-expanded="false" title="{% trans "Menú de cuenta" %}">
             <div class="user-avatar">
               {% if perfil.logo %}
                 <img src="{{ perfil.logo.url }}" alt="{% trans "Logo" %}">
@@ -184,29 +184,29 @@
             </div>
 
             <div class="user-dropdown-body">
-              <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); switchTab('perfil');">
+              <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeUserMenu" data-then="switchTab" data-then-arg-0="perfil">
                 <i data-lucide="building-2"></i>
                 <span>{% trans "Perfil de Empresa" %}</span>
               </button>
-              <button type="button" class="user-dropdown-item" role="menuitem" onclick="closeUserMenu(); abrirModalVerificacion(event);">
+              <button type="button" class="user-dropdown-item" role="menuitem" data-call="closeUserMenu" data-then="abrirModalVerificacion" data-then-arg-0="$event">
                 <i data-lucide="shield-check"></i>
                 <span>{% trans "Verificación NIT / Legal" %}</span>
               </button>
               <div class="user-dropdown-divider" role="separator"></div>
-              <button type="button" class="user-dropdown-item" id="empresaThemeToggle" role="menuitem" onclick="toggleEmpresaTheme()" aria-pressed="false">
+              <button type="button" class="user-dropdown-item" id="empresaThemeToggle" role="menuitem" data-call="toggleEmpresaTheme" aria-pressed="false">
                 <span class="theme-toggle-morph" aria-hidden="true">
                   <span class="sun-rays"></span>
                   <span class="main-circle"></span>
                 </span>
                 <span id="empresaThemeLabel">{% trans "Tema claro" %}</span>
               </button>
-              <a class="user-dropdown-item lang-toggle-item" id="empresaLangToggle" role="menuitem" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" onclick="switchEmpresaIdioma(event, this);">
+              <a class="user-dropdown-item lang-toggle-item" id="empresaLangToggle" role="menuitem" href="{{ URL_IDIOMA }}" hreflang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" lang="{% if IDIOMA == 'en' %}es-CO{% else %}en{% endif %}" data-call="switchEmpresaIdioma" data-arg-0="$event" data-arg-1="$el">
                 <i data-lucide="globe" class="lang-globe-icon"></i>
                 <span style="flex:1;">{% if IDIOMA == 'en' %}{% trans "Cambiar a Español" %}{% else %}{% trans "Switch to English" %}{% endif %}</span>
                 <span class="lang-code-badge">{% if IDIOMA == 'en' %}ES{% else %}EN{% endif %}</span>
               </a>
               <div class="user-dropdown-divider" role="separator"></div>
-              <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" onclick="cerrarSesionConSpinner(event, this);">
+              <a class="user-dropdown-item is-danger" role="menuitem" href="{% url 'logout' %}" data-call="cerrarSesionConSpinner" data-arg-0="$event" data-arg-1="$el">
                 <i data-lucide="log-out"></i>
                 <span>{% trans "Cerrar Sesión" %}</span>
               </a>

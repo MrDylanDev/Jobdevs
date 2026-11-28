@@ -50,7 +50,7 @@
       <p class="cancel-disputa-link">
         {% trans "¿Hay un incumplimiento o conflicto grave?" %}
         <a href="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}"
-           onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}', '{{ contrato.proyecto.titulo|escapejs }}'); return false;">{% trans "Abrir una disputa formal para este contrato" %}</a>.
+           data-call="abrirModalDisputa" data-arg-0="$event" data-arg-1="{% url 'disputas:abrir_disputa' contrato.proyecto_id %}?contratacion_id={{ contrato.pk }}" data-arg-2="{{ contrato.proyecto.titulo }}" data-prevent="true">{% trans "Abrir una disputa formal para este contrato" %}</a>.
       </p>
     </article>
   {% empty %}
@@ -110,7 +110,7 @@
         {% if solicitud.estado == 'pendiente_acuerdo' or solicitud.estado == 'rechazada' %}
           <p>{% trans "Si no hay acuerdo o respuesta, puedes pedir mediación sin declarar incumplimiento." %}</p>
           <a href="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&amp;categoria=fuerza_mayor"
-             onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&categoria=fuerza_mayor', '{{ solicitud.contratacion.proyecto.titulo|escapejs }}'); return false;">{% trans "Solicitar revisión por fuerza mayor" %}</a>
+             data-call="abrirModalDisputa" data-arg-0="$event" data-arg-1="{% url 'disputas:abrir_disputa' solicitud.contratacion.proyecto_id %}?contratacion_id={{ solicitud.contratacion_id }}&categoria=fuerza_mayor" data-arg-2="{{ solicitud.contratacion.proyecto.titulo }}" data-prevent="true">{% trans "Solicitar revisión por fuerza mayor" %}</a>
         {% endif %}
       {% endif %}
     </article>

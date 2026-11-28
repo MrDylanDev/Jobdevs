@@ -21,11 +21,11 @@
               </div>
 
               <div class="linkedin-header-actions">
-                <button type="button" class="btn-linkedin-edit" onclick="abrirModalPerfil()" title="{% trans "Editar información del perfil" %}">
+                <button type="button" class="btn-linkedin-edit" data-call="abrirModalPerfil" title="{% trans "Editar información del perfil" %}">
                   <i data-lucide="pencil"></i>
                   <span>{% trans "Editar página" %}</span>
                 </button>
-                <a href="{% url 'solicitar_verificacion_empresa' %}" onclick="abrirModalVerificacion(event); return false;" class="btn-linkedin-verify {% if perfil.es_verificada %}is-verified{% endif %}" title="{% if perfil.es_verificada %}{% trans "Empresa Verificada" %}{% else %}{% trans "Verificar personería jurídica" %}{% endif %}">
+                <a href="{% url 'solicitar_verificacion_empresa' %}" data-call="abrirModalVerificacion" data-arg-0="$event" data-prevent="true" class="btn-linkedin-verify {% if perfil.es_verificada %}is-verified{% endif %}" title="{% if perfil.es_verificada %}{% trans "Empresa Verificada" %}{% else %}{% trans "Verificar personería jurídica" %}{% endif %}">
                   <i data-lucide="{% if perfil.es_verificada %}check-circle-2{% elif perfil.estado_verificacion == 'rechazada' %}x-circle{% else %}shield-alert{% endif %}"></i>
                   <span>{% if perfil.es_verificada %}{% trans "Verificado" %}{% else %}{% trans "Sin verificar" %}{% endif %}</span>
                 </a>
@@ -57,15 +57,15 @@
 
         <!-- Sub-navegación estilo LinkedIn -->
         <div class="linkedin-subnav">
-          <button type="button" class="linkedin-tab-btn active" onclick="switchPerfilSubTab('info', this)">
+          <button type="button" class="linkedin-tab-btn active" data-call="switchPerfilSubTab" data-arg-0="info" data-arg-1="$el">
             <i data-lucide="building-2"></i>
             <span>{% trans "Información General" %}</span>
           </button>
-          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('jobs', this)">
+          <button type="button" class="linkedin-tab-btn" data-call="switchPerfilSubTab" data-arg-0="jobs" data-arg-1="$el">
             <i data-lucide="briefcase"></i>
             <span>{% blocktrans with total=mis_ofertas|length %}Convocatorias Abiertas ({{ total }}){% endblocktrans %}</span>
           </button>
-          <button type="button" class="linkedin-tab-btn" onclick="switchPerfilSubTab('reviews', this)">
+          <button type="button" class="linkedin-tab-btn" data-call="switchPerfilSubTab" data-arg-0="reviews" data-arg-1="$el">
             <i data-lucide="star"></i>
             <span>{% blocktrans with total=valoraciones_recibidas|length %}Opiniones & Reputación ({{ total }}){% endblocktrans %}</span>
           </button>
@@ -127,7 +127,7 @@
                     <i data-lucide="cpu" class="text-corp-brand"></i>
                     <span>{% trans "Especialidades y Stack Tecnológico de Interés" %}</span>
                   </div>
-                  <button type="button" class="btn-corp-action secondary btn-sm" onclick="abrirModalPerfil()" style="font-size:12px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
+                  <button type="button" class="btn-corp-action secondary btn-sm" data-call="abrirModalPerfil" style="font-size:12px; padding:3px 10px;" title="{% trans "Editar tecnologías de interés" %}">
                     <i data-lucide="pencil"></i> {% trans "Editar" %}
                   </button>
                 </div>
@@ -192,7 +192,7 @@
                 <i data-lucide="briefcase" class="text-corp-brand"></i>
                 <span>{% trans "Convocatorias Abiertas para Desarrolladores" %}</span>
               </div>
-              <button class="btn-corp-primary btn-sm" onclick="abrirModal()">
+              <button class="btn-corp-primary btn-sm" data-call="abrirModal">
                 <i data-lucide="plus"></i> {% trans "Nueva Convocatoria" %}
               </button>
             </div>
@@ -213,7 +213,7 @@
                   <div style="display:flex; gap:8px;">
                     <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
                        class="btn-corp-action primary"
-                       onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;">
+                       data-call="abrirDrawerCandidatos" data-arg-0="$event" data-arg-1="{% url 'ver_postulaciones_empresa' proyecto.id %}" data-arg-2="{{ proyecto.titulo }}" data-prevent="true">
                       <i data-lucide="users"></i>
                       <span>{% trans "Ver Candidatos" %}</span>
                     </a>
@@ -221,7 +221,7 @@
                     <a href="{% url 'editar_proyecto' proyecto.id %}"
                        class="btn-corp-action secondary"
                        {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
-                       onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                       data-call="abrirModalEditarProyecto" data-arg-0="$event" data-arg-1="{{ proyecto.id }}" data-arg-2="{% url 'editar_proyecto' proyecto.id %}" data-arg-3="{{ proyecto.titulo }}" data-arg-4="{{ proyecto.descripcion }}" data-arg-5="{{ proyecto.tipo_solucion }}" data-arg-6="{{ proyecto.prioridad }}" data-arg-7="{{ proyecto.modalidad }}" data-arg-8="{{ proyecto.ciudad }}" data-arg-9="{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}" data-arg-10="{{ proyecto.vacantes }}" data-arg-11="{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}" data-prevent="true"
                        {% endif %}
                        title="{% trans "Editar especificaciones" %}">
                       <i data-lucide="square-pen"></i>
@@ -234,7 +234,7 @@
                 <div class="activity-empty">
                   <i data-lucide="briefcase"></i>
                   <p>{% trans "Tu empresa no tiene convocatorias abiertas actualmente." %}</p>
-                  <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:12px;">
+                  <button class="btn-corp-primary" data-call="abrirModal" style="margin-top:12px;">
                     <i data-lucide="plus"></i> {% trans "Publicar oferta" %}
                   </button>
                 </div>

@@ -48,7 +48,7 @@
           </thead>
           <tbody>
             {% for msg in mensajes %}
-              <tr style="cursor:pointer;" onclick="window.location='{% url 'ver_mensaje' msg.id %}'">
+              <tr style="cursor:pointer;" data-call="__navigate" data-arg-0="{% url 'ver_mensaje' msg.id %}">
                 <td>
                   <div style="display:flex; align-items:center; gap:10px;">
                     <div class="user-avatar" style="width:28px; height:28px; font-size:11px;">{{ msg.receptor.nombre|default:msg.receptor.username|slice:":1"|upper }}</div>

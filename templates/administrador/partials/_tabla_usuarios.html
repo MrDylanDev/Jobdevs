@@ -31,7 +31,7 @@
           <form action="{% url 'admin_toggle_usuario' u.id %}" method="POST" style="display:inline;" class="form-toggle-usuario">
             {% csrf_token %}
             <button type="button" class="user-icon-btn {% if u.is_active %}is-active{% endif %}"
-              onclick="openToggleUserConfirmModal(this, '{{ u.nombre|default:u.username|escapejs }}', '{{ u.get_rol_display|escapejs }}', {{ u.is_active|yesno:'true,false' }})"
+              data-call="openToggleUserConfirmModal" data-arg-0="$el" data-arg-1="{{ u.nombre|default:u.username }}" data-arg-2="{{ u.get_rol_display }}" data-arg-3="{{ u.is_active|yesno:'true,false' }}"
               title="{% if u.is_active %}Suspender usuario{% else %}Reactivar usuario{% endif %}">
               {% if u.is_active %}
                 <i data-lucide="toggle-right"></i>
@@ -40,10 +40,10 @@
               {% endif %}
             </button>
           </form>
-          <button type="button" class="user-icon-btn" onclick="openEditUserModal({{ u.id }})" title="Editar">
+          <button type="button" class="user-icon-btn" data-call="openEditUserModal" data-arg-0="{{ u.id }}" title="Editar">
             <i data-lucide="pencil"></i>
           </button>
-          <button type="button" class="user-icon-btn is-danger" onclick="deleteUser({{ u.id }}, '{{ u.username|escapejs }}')" title="Eliminar">
+          <button type="button" class="user-icon-btn is-danger" data-call="deleteUser" data-arg-0="{{ u.id }}" data-arg-1="{{ u.username }}" title="Eliminar">
             <i data-lucide="trash-2"></i>
           </button>
         </div>

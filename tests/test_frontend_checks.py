@@ -7,7 +7,13 @@ from scripts.check_frontend import (
     check_case_collisions,
     check_css_files,
     check_django_templates,
+    check_inline_event_handlers,
 )
+
+
+def test_repo_has_no_inline_event_handlers():
+    errors = check_inline_event_handlers(BASE_DIR / "templates")
+    assert errors == []
 
 
 def test_repo_has_no_case_insensitive_collisions():

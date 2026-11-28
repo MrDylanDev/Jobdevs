@@ -74,7 +74,7 @@
                       </div>
                     {% endif %}
                   </div>
-                  <button type="button" class="btn-corp-action primary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})" style="flex-shrink:0;">
+                  <button type="button" class="btn-corp-action primary btn-sm" data-call="toggleFormularioRevision" data-arg-0="{{ proyecto.avance_pendiente.id }}" style="flex-shrink:0;">
                     <i data-lucide="clipboard-check"></i>
                     <span>{% trans "Revisar y Calificar" %}</span>
                   </button>
@@ -88,7 +88,7 @@
                         hx-target="#avance-inline-desarrollo-{{ proyecto.avance_pendiente.id }}"
                         hx-swap="outerHTML"
                         hx-disabled-elt="find button[type='submit']"
-                        onsubmit="return validarRechazoAvance(this, event)">
+                        data-submit-call="validarRechazoAvance" data-submit-arg-0="$el" data-submit-arg-1="$event">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#desarrollo">
                     <div style="font-size:12px; font-weight:700; color:var(--corp-slate-800); margin-bottom:6px; text-transform:uppercase;">
@@ -96,7 +96,7 @@
                     </div>
                     <textarea name="comentario" class="form-input-corp" rows="2" aria-label="{% trans "Comentario o feedback para el desarrollador" %}" placeholder="{% trans "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..." %}" style="font-size:12.5px; margin-bottom:10px;"></textarea>
                     <div style="display:flex; justify-content:flex-end; gap:8px;">
-                      <button type="button" class="btn-corp-action secondary btn-sm" onclick="toggleFormularioRevision({{ proyecto.avance_pendiente.id }})">
+                      <button type="button" class="btn-corp-action secondary btn-sm" data-call="toggleFormularioRevision" data-arg-0="{{ proyecto.avance_pendiente.id }}">
                         {% trans "Cancelar" %}
                       </button>
                       <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm">
@@ -148,7 +148,7 @@
                 {% if proyecto.vacantes_disponibles > 0 %}
                   <a href="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}"
                      class="btn-corp-action primary"
-                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     data-call="abrirDrawerCandidatos" data-arg-0="$event" data-arg-1="{% url 'ver_postulaciones_empresa' proyecto.proyecto_id %}" data-arg-2="{{ proyecto.titulo }}" data-prevent="true"
                      title="{% blocktrans with vac=proyecto.vacantes_disponibles count counter=proyecto.vacantes_disponibles %}{{ vac }} vacante disponible{% plural %}{{ vac }} vacantes disponibles{% endblocktrans %}">
                     <i data-lucide="user-plus"></i>
                     <span>{% trans "Ver Candidatos" %} ({{ proyecto.vacantes_disponibles }})</span>
@@ -167,7 +167,7 @@
                 {% if proyecto.hitos_completados == proyecto.hitos_totales and proyecto.hitos_totales > 0 %}
                   <a href="{% url 'finalizar_proyecto' proyecto.proyecto_id %}"
                      class="btn-corp-action success"
-                     onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
+                     data-call="abrirModalCalificar" data-arg-0="$event" data-arg-1="$href" data-arg-2="{{ proyecto.titulo }}" data-prevent="true">
                     <i data-lucide="check-check"></i>
                     <span>{% trans "Finalizar Proyecto" %}</span>
                   </a>
@@ -204,7 +204,7 @@
                     <a href="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}"
                        class="dev-more-item is-danger"
                        role="menuitem"
-                       onclick="abrirModalDisputa(event, '{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                       data-call="abrirModalDisputa" data-arg-0="$event" data-arg-1="{% url 'disputas:abrir_disputa' proyecto.proyecto_id %}" data-arg-2="{{ proyecto.titulo }}" data-prevent="true"
                        title="{% trans 'Iniciar mediación por conflicto formal' %}">
                       <i data-lucide="gavel"></i><span>{% trans "Reportar Disputa" %}</span>
                     </a>
