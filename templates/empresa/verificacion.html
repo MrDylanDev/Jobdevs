@@ -210,24 +210,6 @@
 </div>
 
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
-<script>
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-  (function () {
-    var persona = document.getElementById('tipo_persona');
-    var documento = document.getElementById('tipo_documento');
-    if (!persona || !documento) return;
-    function sync() {
-      var juridica = persona.value === 'juridica';
-      if (juridica) documento.value = 'NIT';
-      Array.prototype.forEach.call(documento.options, function (o) {
-        o.disabled = juridica && o.value !== 'NIT';
-      });
-    }
-    persona.addEventListener('change', sync);
-    sync();
-  })();
-</script>
+<script type="module" src="{% static 'empresa/script/verificacion_form.js' %}"></script>
 </body>
 </html>
