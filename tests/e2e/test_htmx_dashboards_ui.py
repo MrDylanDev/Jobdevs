@@ -21,7 +21,7 @@ class TestHtmxDashboardsE2E:
         page_errors = []
         page.on('pageerror', lambda err: page_errors.append(str(err)))
 
-        page.goto(live_server.url + reverse('dashboard_administrador'), wait_until='domcontentloaded')
+        page.goto(live_server.url + reverse('dashboard_admin'), wait_until='domcontentloaded')
         page.wait_for_function('() => typeof window.showSection === "function" && window.__jobdevsActionDelegateBound === true')
         page.evaluate('() => { window.__e2eNoReload = true; }')
 
@@ -71,8 +71,14 @@ class TestHtmxDashboardsE2E:
         )
         assert page.evaluate('() => window.__e2eNoReload') is True
 
-        # Switch to light theme and verify semantic CSS token resolves
+        # Toggle theme and verify semantic light-theme CSS token resolves
+        initial_theme = page.evaluate('() => document.documentElement.getAttribute("data-theme")')
         page.evaluate('() => window.toggleDevTheme()')
+        toggled_theme = page.evaluate('() => document.documentElement.getAttribute("data-theme")')
+        assert toggled_theme != initial_theme
+
+        if toggled_theme != 'light':
+            page.evaluate('() => window.toggleDevTheme()')
         theme = page.evaluate('() => document.documentElement.getAttribute("data-theme")')
         surface_elevated = page.evaluate(
             '() => getComputedStyle(document.documentElement).getPropertyValue("--surface-elevated").trim()'
@@ -95,9 +101,10 @@ class TestHtmxDashboardsE2E:
         page_errors = []
         page.on('pageerror', lambda err: page_errors.append(str(err)))
 
+        page.add_init_script("localStorage.setItem('jobdevs_bienvenida_no_mostrar', '1');")
         page.goto(live_server.url + reverse('dashboard_empresa'), wait_until='domcontentloaded')
         page.wait_for_function('() => typeof window.switchTab === "function" && window.__jobdevsActionDelegateBound === true')
-        page.evaluate('() => { window.__e2eNoReload = true; }')
+        page.evaluate('() => { window.cerrarModalBienvenida?.(); window.__e2eNoReload = true; }')
 
         # Open create-project modal via declarative data-action="abrir-modal"
         page.locator('button[data-action="abrir-modal"]').first.click()
