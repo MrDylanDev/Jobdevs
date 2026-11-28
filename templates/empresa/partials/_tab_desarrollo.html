@@ -47,7 +47,7 @@
 
               {% if proyecto.avance_pendiente %}
               <!-- ALERTA DE ENTREGA PENDIENTE DE REVISIÓN -->
-              <div class="deliverable-alert-corp" data-testid="alerta-avance-pendiente-empresa">
+              <div class="deliverable-alert-corp" id="avance-inline-desarrollo-{{ proyecto.avance_pendiente.id }}" data-testid="alerta-avance-pendiente-empresa">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
                   <div>
                     <div style="font-size:14px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">
@@ -82,7 +82,13 @@
 
                 <!-- Formulario in-situ desplegable para aprobar o rechazar -->
                 <div id="form-revision-{{ proyecto.avance_pendiente.id }}" class="deliverable-review-form" style="display:none;">
-                  <form method="post" action="{% url 'revisar_avance' proyecto.avance_pendiente.id %}" onsubmit="return validarRechazoAvance(this, event)">
+                  <form method="post"
+                        action="{% url 'revisar_avance' proyecto.avance_pendiente.id %}"
+                        hx-post="{% url 'revisar_avance' proyecto.avance_pendiente.id %}"
+                        hx-target="#avance-inline-desarrollo-{{ proyecto.avance_pendiente.id }}"
+                        hx-swap="outerHTML"
+                        hx-disabled-elt="find button[type='submit']"
+                        onsubmit="return validarRechazoAvance(this, event)">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#desarrollo">
                     <div style="font-size:12px; font-weight:700; color:var(--corp-slate-800); margin-bottom:6px; text-transform:uppercase;">

@@ -1,0 +1,144 @@
+<div id="hitosPanelWrap">
+  <!-- Formulario nuevo hito -->
+  <div class="card" style="margin-bottom:28px; background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:0; box-shadow:none; padding:22px;">
+    <div class="card-header" style="margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--corp-border);">
+      <div class="card-title" style="display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; color:var(--corp-slate-900);">
+        <i data-lucide="plus-circle" style="color:var(--corp-brand);"></i>
+        <span>Agregar Nuevo Hito</span>
+      </div>
+    </div>
+    <form method="post"
+          action="{% url 'gestionar_hitos' proyecto.id %}"
+          hx-post="{% url 'gestionar_hitos' proyecto.id %}"
+          hx-target="#hitosPanelWrap"
+          hx-swap="outerHTML"
+          hx-disabled-elt="find button[type='submit']"
+          style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      {% if hitos_next_url %}
+        <input type="hidden" name="next" value="{{ hitos_next_url }}">
+      {% endif %}
+      <div class="form-group-corp" style="margin-bottom:0;">
+        <label class="form-label-corp">Nombre del Hito</label>
+        <input type="text" name="titulo" class="form-input-corp" placeholder="Ej: Implementar módulo de Login y Autenticación JWT" required>
+      </div>
+      <div class="form-group-corp" style="margin-bottom:0;">
+        <label class="form-label-corp">Descripción <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+        <textarea name="descripcion" class="form-input-corp" rows="3" placeholder="Describe los requerimientos específicos que se esperan en esta entrega..."></textarea>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px;">
+        {% if tiene_multiples_contratos %}
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp">Asignar a Equipo <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+            <select name="equipo_id" class="form-input-corp">
+              <option value="">-- Todo el Proyecto (General) --</option>
+              {% for equipo in equipos %}
+                <option value="{{ equipo.id }}">{{ equipo.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endif %}
+
+        {% if desarrolladores_activos %}
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp">Asignar a Desarrollador <span style="font-weight:400; color:var(--corp-slate-500);">(Opcional)</span></label>
+            <select name="desarrollador_id" data-testid="select-desarrollador-hito" class="form-input-corp">
+              <option value="">-- Sin asignación individual --</option>
+              {% for contratacion in desarrolladores_activos %}
+                <option value="{{ contratacion.desarrollador.id }}">{{ contratacion.desarrollador.nombre|default:contratacion.desarrollador.username }}</option>
+              {% endfor %}
+            </select>
+            <div style="margin-top:5px; font-size:11.5px; color:var(--corp-slate-500);">Si asignas un desarrollador, solo él podrá enviar avances para este hito.</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+        <button type="submit" class="btn-corp-primary">
+          <i data-lucide="plus"></i>
+          <span>Agregar Hito</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de hitos -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+    <div style="font-size:15px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:8px;">
+      <i data-lucide="list-checks" style="color:var(--corp-brand);"></i>
+      <span>Hitos Configurados ({{ hitos|length }})</span>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    {% for hito in hitos %}
+      <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if hito.estado == 'completado' %}var(--corp-brand){% elif hito.estado == 'en_revision' %}var(--corp-warning){% else %}var(--corp-border){% endif %}; border-radius:0; box-shadow:none; padding:18px 22px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+              <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">{{ hito.titulo }}</span>
+              {% if hito.estado == 'completado' %}
+                <span class="badge" style="background:var(--corp-brand-light); color:var(--corp-brand); border:1px solid rgba(0,200,83,0.3); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                  <i data-lucide="check-circle-2" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
+                  Completado
+                </span>
+              {% elif hito.estado == 'en_revision' %}
+                <span class="badge" style="background:rgba(245,158,11,0.14); color:var(--corp-warning); border:1px solid rgba(245,158,11,0.32); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                  <i data-lucide="clock" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
+                  En Revisión
+                </span>
+              {% else %}
+                <span class="badge" style="background:var(--corp-surface-alt); color:var(--corp-slate-600); border:1px solid var(--corp-border); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:12px;">
+                  <i data-lucide="circle" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
+                  Pendiente
+                </span>
+              {% endif %}
+            </div>
+            <p style="font-size:13.5px; color:var(--corp-slate-600); margin:0 0 10px 0; line-height:1.5;">{{ hito.descripcion|default:"Sin descripción adicional." }}</p>
+            <div style="display:flex; align-items:center; gap:12px; font-size:12px;">
+              {% if hito.desarrollador %}
+                <span data-testid="hito-asignado-desarrollador" style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-900); font-weight:600; background:var(--corp-surface-alt); padding:3px 8px; border-radius:6px; border:1px solid var(--corp-border);">
+                  <i data-lucide="user" style="width:13px; height:13px; color:var(--corp-brand);"></i>
+                  Asignado a {{ hito.desarrollador.nombre|default:hito.desarrollador.username }}
+                </span>
+              {% elif hito.equipo %}
+                <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-info); font-weight:600; background:rgba(2,132,199,0.12); padding:3px 8px; border-radius:6px; border:1px solid rgba(2,132,199,0.3);">
+                  <i data-lucide="users" style="width:13px; height:13px;"></i>
+                  Equipo {{ hito.equipo.nombre }}
+                </span>
+              {% else %}
+                <span style="display:inline-flex; align-items:center; gap:5px; color:var(--corp-slate-500); background:var(--corp-surface-alt); padding:3px 8px; border-radius:6px; border:1px solid var(--corp-border);">
+                  <i data-lucide="globe" style="width:13px; height:13px;"></i>
+                  Hito General
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          {% if hito.estado == 'pendiente' %}
+            <form method="post"
+                  action="{% url 'eliminar_hito' hito.id %}"
+                  hx-post="{% url 'eliminar_hito' hito.id %}"
+                  hx-target="#hitosPanelWrap"
+                  hx-swap="outerHTML"
+                  hx-disabled-elt="find button[type='submit']"
+                  style="display:inline; margin:0;"
+                  data-confirm-title="Eliminar hito"
+                  data-confirm="¿Estás seguro de eliminar este hito?">
+              {% csrf_token %}
+              <button type="submit" class="btn-corp-action danger-subtle" title="Eliminar hito" style="padding:6px 10px;">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:0; box-shadow:none; padding:48px 24px;">
+        <i data-lucide="flag" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
+        <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">No has definido hitos para este proyecto todavía</p>
+        <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Define el primer hito para organizar las entregas y el avance de los desarrolladores.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
