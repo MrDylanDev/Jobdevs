@@ -3,9 +3,9 @@
 El archivo original de Descargas no se modifica. Páginas separadas mantienen
 legibles las asociaciones y conservan un único actor por página.
 """
-from pathlib import Path
 import argparse
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]
 OUTPUT = BASE / 'docs' / 'ADMIN_JOBDEVS.drawio'

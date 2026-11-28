@@ -8,7 +8,7 @@ import pytest
 
 from logs import backups
 
-UTC = dt.timezone.utc
+UTC = dt.UTC
 #: Lunes de referencia para las pruebas de la capa semanal.
 LUNES = dt.datetime(2026, 6, 15, 3, 0, tzinfo=UTC)
 

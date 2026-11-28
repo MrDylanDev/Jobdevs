@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import PerfilEmpresa, PerfilDesarrollador
+
+from .models import PerfilDesarrollador, PerfilEmpresa
 
 
 @admin.register(PerfilDesarrollador)

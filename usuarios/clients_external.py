@@ -23,8 +23,8 @@ import logging
 import os
 from typing import Any
 
-from django.conf import settings
 import httpx
+from django.conf import settings
 
 from . import utils_dian
 

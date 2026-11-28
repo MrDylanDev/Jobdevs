@@ -356,13 +356,15 @@ def construir_xml(tablas: dict, posiciones: dict, titulo: str) -> ET.ElementTree
 
         celda = ET.SubElement(raiz, 'mxCell', {
             'id': f't_{t}', 'value': cabecera, 'vertex': '1', 'parent': '1',
-            'style': ('swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;'
-                      'horizontal=1;startSize=%d;horizontalStack=0;resizeParent=1;resizeParentMax=0;'
-                      'resizeLast=0;collapsible=0;marginBottom=0;html=1;rounded=0;'
-                      'fillColor=%s;strokeColor=%s;verticalAlign=top;spacingTop=2;'
-                      'fontSize=12;swimlaneFillColor=%s;' % (ALTO_CABECERA, fill, stroke, '#ffffff')),
+            'style': (
+                'swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;'
+                f'horizontal=1;startSize={ALTO_CABECERA};horizontalStack=0;resizeParent=1;resizeParentMax=0;'
+                'resizeLast=0;collapsible=0;marginBottom=0;html=1;rounded=0;'
+                f'fillColor={fill};strokeColor={stroke};verticalAlign=top;spacingTop=2;'
+                'fontSize=12;swimlaneFillColor=#ffffff;'
+            ),
         })
-        geo = ET.SubElement(celda, 'mxGeometry', {
+        ET.SubElement(celda, 'mxGeometry', {
             'x': str(p['x']), 'y': str(p['y']), 'width': str(p['w']), 'height': str(p['h']),
             'as': 'geometry',
         })
@@ -370,10 +372,11 @@ def construir_xml(tablas: dict, posiciones: dict, titulo: str) -> ET.ElementTree
         for i, fila in enumerate(info['filas']):
             valor = valor_fila(fila)
             color_fondo = '#f5f5f5' if fila['pk'] else 'none'
-            estilo = ('text;strokeColor=none;fillColor=%s;align=left;verticalAlign=middle;'
-                      'spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;'
-                      'points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;html=1;'
-                      % color_fondo)
+            estilo = (
+                f'text;strokeColor=none;fillColor={color_fondo};align=left;verticalAlign=middle;'
+                'spacingLeft=6;spacingRight=4;overflow=hidden;rotatable=0;'
+                'points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;html=1;'
+            )
             fila_cell = ET.SubElement(raiz, 'mxCell', {
                 'id': f'f_{t}_{fila["nombre"]}', 'value': valor, 'vertex': '1',
                 'parent': f't_{t}', 'style': estilo,
@@ -402,10 +405,12 @@ def construir_xml(tablas: dict, posiciones: dict, titulo: str) -> ET.ElementTree
                 'value': '',
                 'edge': '1', 'parent': '1',
                 'source': origen_id, 'target': destino_id,
-                'style': ('edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;'
-                          'jettySize=auto;html=1;endArrow=ERone;endFill=0;'
-                          'startArrow=ERmany;startFill=0;strokeColor=%s;'
-                          'fontSize=10;labelBackgroundColor=#ffffff;' % stroke),
+                'style': (
+                    'edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;'
+                    'jettySize=auto;html=1;endArrow=ERone;endFill=0;'
+                    f'startArrow=ERmany;startFill=0;strokeColor={stroke};'
+                    'fontSize=10;labelBackgroundColor=#ffffff;'
+                ),
             })
             ET.SubElement(arista, 'mxGeometry', {'relative': '1', 'as': 'geometry'})
 

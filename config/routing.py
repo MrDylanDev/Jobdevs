@@ -6,9 +6,10 @@ Enruta las conexiones WebSocket a sus respectivos consumers:
 - ws/disputas/<disputa_id>/ -> Sala de mediación tripartita
 """
 
-from django.urls import re_path, path
-from mensajes import consumers as mensajes_consumers
+from django.urls import path
+
 from disputas import consumers as disputas_consumers
+from mensajes import consumers as mensajes_consumers
 
 websocket_urlpatterns = [
     path('ws/chat/grupal/<int:proyecto_id>/', mensajes_consumers.ChatGrupalConsumer.as_asgi()),

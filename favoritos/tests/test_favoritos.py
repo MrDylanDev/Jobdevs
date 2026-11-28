@@ -1,9 +1,10 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto
+
 from favoritos.models import Favorito
+from proyectos.models import Proyecto
 
 User = get_user_model()
 
@@ -205,7 +206,7 @@ class TestToggleFavorito:
     def test_templates_incluyen_script_favoritos_async(self):
         """SCRUM-192: Los templates de proyectos y favoritos cargan favoritos_async.js."""
         for tpl in ['proyectos/listar.html', 'favoritos/lista.html', 'desarrollador/Desarrollador.html']:
-            with open(f'templates/{tpl}', 'r', encoding='utf-8') as f:
+            with open(f'templates/{tpl}', encoding='utf-8') as f:
                 content = f.read()
             assert 'favoritos_async.js' in content, f"Template {tpl} debe cargar favoritos_async.js"
 

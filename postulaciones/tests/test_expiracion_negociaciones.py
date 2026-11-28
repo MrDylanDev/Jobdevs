@@ -1,16 +1,17 @@
 from datetime import timedelta
-import pytest
-from django.utils import timezone
-from django.urls import reverse
-from django.core.management import call_command
-from django.contrib.auth import get_user_model
 
-from proyectos.models import Proyecto
-from postulaciones.models import Postulacion
+import pytest
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.urls import reverse
+from django.utils import timezone
+
 from contrataciones.models import ContratoDigital
-from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
+from notificaciones.models import Notificacion
+from postulaciones.models import Postulacion
 from postulaciones.services import expirar_negociaciones_vencidas
+from proyectos.models import Proyecto
 
 User = get_user_model()
 

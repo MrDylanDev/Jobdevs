@@ -113,8 +113,7 @@ def notificaciones_event_generator(user, interval=2.0, max_iterations=None):
         eventos, ultimo_id, ultimo_count, heartbeat_cycles = _paso_sse(
             user_id, ultimo_id, ultimo_count, heartbeat_cycles
         )
-        for evento in eventos:
-            yield evento
+        yield from eventos
 
 
 async def notificaciones_event_generator_async(user, interval=2.0, max_iterations=None):

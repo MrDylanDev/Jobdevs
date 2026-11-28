@@ -1,7 +1,9 @@
+from datetime import date
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Usuario, PerfilEmpresa, PerfilDesarrollador, FichaSena
-from datetime import date
+
+from .models import FichaSena, PerfilDesarrollador, PerfilEmpresa, Usuario
 from .services_sena import (
     normalizar_numero_ficha,
     programa_formacion_es_valido,
@@ -9,6 +11,7 @@ from .services_sena import (
     verificar_desarrollador_automatico,
 )
 from .utils_dian import validar_documento_identidad
+
 
 class RegistroUsuarioForm(UserCreationForm):
     nombre = forms.CharField(

@@ -17,7 +17,7 @@ import datetime as dt
 import hashlib
 import re
 from collections.abc import Iterable, Sequence
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 #: Prefijo de los archivos de respaldo.
@@ -42,8 +42,8 @@ _NAME_RE = re.compile(
 def to_utc(moment: dt.datetime) -> dt.datetime:
     """Normaliza ``moment`` a UTC (los ingenuos se asumen ya en UTC)."""
     if moment.tzinfo is None:
-        return moment.replace(tzinfo=dt.timezone.utc)
-    return moment.astimezone(dt.timezone.utc)
+        return moment.replace(tzinfo=dt.UTC)
+    return moment.astimezone(dt.UTC)
 
 
 def backup_filename(moment: dt.datetime) -> str:
@@ -73,7 +73,7 @@ def parse_backup_datetime(name: str) -> dt.datetime | None:
         ingenuo = dt.datetime.strptime(coincidencia.group(1), TIMESTAMP_FORMAT)
     except ValueError:  # pragma: no cover - protegido por la expresión regular
         return None
-    return ingenuo.replace(tzinfo=dt.timezone.utc)
+    return ingenuo.replace(tzinfo=dt.UTC)
 
 
 def sha256_of(path: Path, *, bloque: int = 1024 * 1024) -> str:

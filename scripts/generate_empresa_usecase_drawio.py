@@ -1,7 +1,7 @@
 """Genera el diagrama UML de casos de uso de Empresa, sin tocar Descargas."""
-from pathlib import Path
 import argparse
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]
 OUTPUT = BASE / 'docs' / 'EMPRESA_JOBDEVS.drawio'

@@ -3,6 +3,7 @@ Tests unitarios y de integración para la configuración de Celery y Mailpit (SC
 """
 
 from django.conf import settings
+
 from config import celery_app
 
 
@@ -30,7 +31,7 @@ class TestCeleryConfiguration:
 
     def test_docker_compose_configura_mailpit_y_celery(self):
         """docker-compose.yml incluye los servicios mailpit y celery_worker en teir_network."""
-        with open('docker-compose.yml', 'r', encoding='utf-8') as f:
+        with open('docker-compose.yml', encoding='utf-8') as f:
             content = f.read()
 
         assert 'mailpit:' in content

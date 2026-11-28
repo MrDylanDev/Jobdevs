@@ -1,8 +1,8 @@
-import pytest
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto
+from django.urls import reverse
+
 from contrataciones.models import Contratacion
+from proyectos.models import Proyecto
 
 User = get_user_model()
 

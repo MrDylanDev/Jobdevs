@@ -6,13 +6,13 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models.query import QuerySet
 from django.urls import reverse
 
+from avances.models import Avance
 from contrataciones.models import Contratacion
 from disputas.models import Disputa
 from disputas.services import resolver_disputa
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from proyectos.models import HistorialEstadoProyecto, Proyecto, Entregable
-from avances.models import Avance
+from proyectos.models import Entregable, HistorialEstadoProyecto, Proyecto
 
 User = get_user_model()
 

@@ -30,8 +30,10 @@ class TestDashboardAccess:
         self, auth_client, empresa_user, desarrollador_user
     ):
         from datetime import timedelta
+
         from django.contrib.auth import get_user_model
         from django.utils import timezone
+
         from contrataciones.models import ContratoDigital
         from postulaciones.models import Postulacion
         from proyectos.models import Proyecto
@@ -69,9 +71,9 @@ class TestDashboardAccess:
     def test_empresa_dashboard_renders_mini_roadmap_and_deliverable_alert(
         self, auth_client, empresa_user, desarrollador_user
     ):
-        from proyectos.models import Proyecto, Entregable
-        from contrataciones.models import Contratacion
         from avances.models import Avance
+        from contrataciones.models import Contratacion
+        from proyectos.models import Entregable, Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='Proyecto con Hitos y Avance',
@@ -81,7 +83,7 @@ class TestDashboardAccess:
             proyecto=proyecto, empresa=empresa_user, desarrollador=desarrollador_user,
             estado='activa',
         )
-        h1 = Entregable.objects.create(
+        Entregable.objects.create(
             proyecto=proyecto, titulo='Hito 1 Setup', estado='completado'
         )
         h2 = Entregable.objects.create(
@@ -103,7 +105,9 @@ class TestDashboardAccess:
 
     def test_empresa_ve_alerta_de_cumplimiento_sin_confundirla_con_cierre(self, auth_client, empresa_user):
         from datetime import timedelta
+
         from django.utils import timezone
+
         from proyectos.models import Proyecto
 
         hoy = timezone.localdate()
@@ -120,8 +124,8 @@ class TestDashboardAccess:
         assert 'Cumplimiento vencido' in response.content.decode()
 
     def test_oferta_con_contrato_historico_no_ofrece_retiro(self, auth_client, empresa_user, desarrollador_user):
-        from proyectos.models import Proyecto
         from contrataciones.models import Contratacion
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user, titulo='Oferta con historial contractual',
@@ -136,9 +140,9 @@ class TestDashboardAccess:
 
     def test_empresa_dashboard_incluye_postulaciones_y_vacantes_en_desarrollo(self, auth_client, empresa_user, desarrollador_user):
         """Dashboard de empresa debe contabilizar postulaciones de proyectos en desarrollo y reportar vacantes disponibles."""
-        from proyectos.models import Proyecto
-        from postulaciones.models import Postulacion
         from contrataciones.models import Contratacion
+        from postulaciones.models import Postulacion
+        from proyectos.models import Proyecto
         from usuarios.models import Usuario
 
         proyecto = Proyecto.objects.create(
@@ -206,6 +210,7 @@ class TestDashboardAccess:
         self, dev_client, empresa_user,
     ):
         from django.contrib.auth import get_user_model
+
         from contrataciones.models import Contratacion
         from proyectos.models import Proyecto
 
@@ -312,9 +317,10 @@ class TestDashboardAccess:
 
 def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, desarrollador_user, db):
     from django.urls import reverse
-    from usuarios.models import Usuario
-    from proyectos.models import Proyecto
+
     from postulaciones.models import Postulacion
+    from proyectos.models import Proyecto
+    from usuarios.models import Usuario
 
     empresa = Usuario.objects.create_user(
         username="emp_nego", email="emp_nego@test.local", rol="empresa", estado="activo"
@@ -341,10 +347,11 @@ def test_dev_dashboard_muestra_chat_de_postulacion_en_negociacion(dev_client, de
 def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_client, desarrollador_user, db):
     """SCRUM-203: El dashboard del desarrollador muestra el botón y enlace para firmar el contrato digital."""
     from django.urls import reverse
-    from usuarios.models import Usuario
-    from proyectos.models import Proyecto
-    from postulaciones.models import Postulacion
+
     from contrataciones.models import ContratoDigital
+    from postulaciones.models import Postulacion
+    from proyectos.models import Proyecto
+    from usuarios.models import Usuario
 
     empresa = Usuario.objects.create_user(
         username="emp_contrato", email="emp_contrato@test.local", rol="empresa", estado="activo"
@@ -371,9 +378,10 @@ def test_dev_dashboard_muestra_boton_firmar_contrato_digital_en_negociacion(dev_
 def test_dev_dashboard_muestra_esperando_contrato_si_no_hay_contrato_digital(dev_client, desarrollador_user, db):
     """Muestra 'Esperando contrato' en la postulación cuando la empresa aún no ha emitido el contrato digital."""
     from django.urls import reverse
-    from usuarios.models import Usuario
-    from proyectos.models import Proyecto
+
     from postulaciones.models import Postulacion
+    from proyectos.models import Proyecto
+    from usuarios.models import Usuario
 
     empresa = Usuario.objects.create_user(
         username="emp_sin_contrato", email="emp_sin_c@test.local", rol="empresa", estado="activo"
@@ -394,10 +402,11 @@ def test_dev_dashboard_muestra_esperando_contrato_si_no_hay_contrato_digital(dev
 def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarrollador_user, db):
     """SCRUM-204: El dashboard incluye la sección dedicada #contratos y el ítem de menú en sidebar."""
     from django.urls import reverse
-    from usuarios.models import Usuario
-    from proyectos.models import Proyecto
-    from postulaciones.models import Postulacion
+
     from contrataciones.models import ContratoDigital
+    from postulaciones.models import Postulacion
+    from proyectos.models import Proyecto
+    from usuarios.models import Usuario
 
     empresa = Usuario.objects.create_user(
         username="emp_contratos_sec", email="emp_sec@test.local", rol="empresa", estado="activo"
@@ -408,7 +417,7 @@ def test_dev_dashboard_incluye_seccion_contratos_digitales(dev_client, desarroll
     post = Postulacion.objects.create(
         proyecto=proyecto, desarrollador=desarrollador_user, estado="en_negociacion"
     )
-    contrato = ContratoDigital.objects.create(
+    ContratoDigital.objects.create(
         postulacion=post, monto=3500000, moneda="COP"
     )
 
@@ -436,6 +445,7 @@ def _crear_proyecto(empresa, titulo, estado='publicado'):
 def test_dev_dashboard_separa_postulaciones_vigentes_e_historial(dev_client, desarrollador_user, empresa_user, db):
     """SCRUM-227 (RF 1.2.3): postulaciones vigentes vs historial de rechazadas."""
     from django.urls import reverse
+
     from postulaciones.models import Postulacion
 
     proyecto_vigente = _crear_proyecto(empresa_user, 'Proyecto Postulacion Vigente')
@@ -476,6 +486,7 @@ def test_dev_dashboard_separa_postulaciones_vigentes_e_historial(dev_client, des
 def test_postulacion_de_proyecto_finalizado_no_aparece_en_vigentes(dev_client, desarrollador_user, empresa_user, db):
     """Las postulaciones de proyectos que ya finalizaron no deben figurar como activas/vigentes."""
     from django.urls import reverse
+
     from postulaciones.models import Postulacion
 
     proyecto_finalizado = _crear_proyecto(empresa_user, 'Proyecto Ya Concluido', estado='finalizado')
@@ -496,6 +507,7 @@ def test_postulacion_de_proyecto_finalizado_no_aparece_en_vigentes(dev_client, d
 def test_dev_dashboard_detecta_y_alerta_calificacion_pendiente_empresa(dev_client, desarrollador_user, empresa_user, db):
     """El dashboard del desarrollador detecta proyectos finalizados sin calificar a la empresa."""
     from django.urls import reverse
+
     from contrataciones.models import Contratacion
     from proyectos.models import Valoracion
 
@@ -523,6 +535,7 @@ def test_dev_dashboard_detecta_y_alerta_calificacion_pendiente_empresa(dev_clien
 def test_dev_dashboard_ui_muestra_bloques_vigente_e_historial_postulaciones(dev_client, desarrollador_user, empresa_user, db):
     """SCRUM-227 (RF 1.2.3): la UI expone un bloque vigente y un historial de rechazadas."""
     from django.urls import reverse
+
     from postulaciones.models import Postulacion
 
     proyecto_vigente = _crear_proyecto(empresa_user, 'Proyecto UI Vigente')
@@ -553,6 +566,7 @@ def test_dev_dashboard_ui_muestra_bloques_vigente_e_historial_postulaciones(dev_
 def test_dev_dashboard_separa_contratos_vigentes_e_historial(dev_client, desarrollador_user, empresa_user, db):
     """SCRUM-227 (RF 1.2.3): contratos vigentes vs historial (finalizada/cancelada)."""
     from django.urls import reverse
+
     from contrataciones.models import Contratacion
 
     proyecto_activa = _crear_proyecto(empresa_user, 'Contrato Activa', estado='en_desarrollo')
@@ -772,9 +786,10 @@ def test_empresa_dashboard_historial_reorganizado_y_disputas_sin_cerradas(auth_c
        sin la subpestaña/panel duplicado de disputas ('btn-historial-disputas', 'pane-historial-disputas').
     """
     from django.utils import timezone
-    from proyectos.models import Proyecto
+
     from contrataciones.models import Contratacion
     from disputas.models import Disputa
+    from proyectos.models import Proyecto
 
     proyecto = Proyecto.objects.create(
         empresa=empresa_user, titulo='Proyecto Con Disputa Resuelta', descripcion='D',
@@ -853,9 +868,10 @@ def test_empresa_dashboard_renders_donut_chart_with_offsets_and_tooltips(auth_cl
 def test_empresa_dashboard_renders_pending_deliverables_queue(auth_client, empresa_user, desarrollador_user):
     """Verifica que dashboard_empresa entregue avances_pendientes_revision y renderice la bandeja de aprobación."""
     from django.urls import reverse
-    from proyectos.models import Proyecto, Entregable
-    from contrataciones.models import Contratacion
+
     from avances.models import Avance
+    from contrataciones.models import Contratacion
+    from proyectos.models import Entregable, Proyecto
 
     proyecto = Proyecto.objects.create(
         empresa=empresa_user,
@@ -939,9 +955,10 @@ def test_empresa_dashboard_no_usa_espacio_con_firma_pendiente(
 ):
     """El aviso de contrato por firmar vive en la campana, no en el cuerpo del panel."""
     from django.urls import reverse
-    from proyectos.models import Proyecto
-    from postulaciones.models import Postulacion
+
     from contrataciones.models import ContratoDigital
+    from postulaciones.models import Postulacion
+    from proyectos.models import Proyecto
 
     proyecto = Proyecto.objects.create(
         empresa=empresa_user, titulo='Proyecto pendiente de firma', descripcion='D',
@@ -966,11 +983,13 @@ def test_empresa_dashboard_no_usa_espacio_con_firma_pendiente(
 def test_empresa_dashboard_financial_escrow_widget(auth_client, empresa_user, desarrollador_user):
     """Valida el cálculo en context y renderizado del widget Presupuesto de Contratos Vigentes (Opción A)."""
     from decimal import Decimal
+
     from django.contrib.auth import get_user_model
     from django.urls import reverse
-    from proyectos.models import Proyecto, Entregable
-    from postulaciones.models import Postulacion
+
     from contrataciones.models import Contratacion, ContratoDigital
+    from postulaciones.models import Postulacion
+    from proyectos.models import Entregable, Proyecto
 
     # 1. Estado inicial sin compromisos activos
     empty_resp = auth_client.get(reverse('dashboard_empresa'))
@@ -1065,11 +1084,13 @@ def test_empresa_dashboard_historial_chart_datasets_and_controls(auth_client, em
     import json
     from datetime import timedelta
     from decimal import Decimal
+
     from django.urls import reverse
     from django.utils import timezone
-    from proyectos.models import Proyecto, Entregable
-    from postulaciones.models import Postulacion
+
     from contrataciones.models import ContratoDigital
+    from postulaciones.models import Postulacion
+    from proyectos.models import Entregable, Proyecto
 
     proyecto = Proyecto.objects.create(
         empresa=empresa_user,
@@ -1135,6 +1156,7 @@ def test_empresa_dashboard_historial_chart_datasets_and_controls(auth_client, em
     assert 'id="empresa-ledger-datasets"' in content
     assert 'empresa/script/empresa.js' in content
     from pathlib import Path
+
     from django.conf import settings
     ledger_js = Path(settings.BASE_DIR) / 'static/empresa/script/modules/ledger_chart.js'
     assert ledger_js.exists()

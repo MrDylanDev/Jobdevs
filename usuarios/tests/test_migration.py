@@ -1,5 +1,6 @@
 import pytest
 from django.db import connection
+
 from usuarios.models import Usuario
 
 

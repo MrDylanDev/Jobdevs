@@ -72,8 +72,8 @@ class TestRechazarPostulacion:
         ).exists()
 
     def test_rechazar_postulacion_en_negociacion_cancela_contrato(self, empresa_user, desarrollador_user, postulacion):
-        from postulaciones.services import rechazar_postulacion
         from contrataciones.models import ContratoDigital
+        from postulaciones.services import rechazar_postulacion
         postulacion.estado = 'en_negociacion'
         postulacion.save()
         contrato = ContratoDigital.objects.create(postulacion=postulacion, estado='pendiente_firma')

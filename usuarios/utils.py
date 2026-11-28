@@ -1,5 +1,7 @@
 from django.core.cache import cache
+
 from .models import Usuario
+
 
 def get_admin_id():
     """

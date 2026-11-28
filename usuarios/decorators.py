@@ -1,10 +1,12 @@
-from django.shortcuts import redirect
+import time
+from functools import wraps
+
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.http import JsonResponse
-from functools import wraps
-import time
+from django.shortcuts import redirect
+
 
 def requiere_usuario_activo(view_func):
     """

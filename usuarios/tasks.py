@@ -6,8 +6,8 @@ Procesamiento 100% local sin bloqueo de la interfaz web.
 
 import logging
 import os
+
 from celery import shared_task
-from django.conf import settings
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
@@ -24,10 +24,11 @@ def analizar_documento_soporte_task(self, perfil_id: int, tipo_perfil: str) -> d
     Tarea Celery asíncrona que ejecuta el análisis heurístico y OCR local
     del documento de soporte de una empresa o talento SENA.
     """
-    from .models import PerfilEmpresa, PerfilDesarrollador, Usuario
+    from notificaciones.models import Notificacion
+
+    from .models import PerfilDesarrollador, PerfilEmpresa
     from .services_ia_docs import analizar_documento_soporte
     from .utils import get_admin_ids
-    from notificaciones.models import Notificacion
 
     logger.info("Iniciando análisis documental para perfil_id=%s, tipo=%s", perfil_id, tipo_perfil)
 

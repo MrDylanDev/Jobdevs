@@ -1,10 +1,11 @@
+import secrets
+from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
-import secrets
 
 User = get_user_model()
 
@@ -252,7 +253,7 @@ class TestLoginView:
 
     def test_login_inactive_user_blocked(self, db, client):
         """Inactive user cannot log in."""
-        user = User.objects.create_user(
+        User.objects.create_user(
             username='inactive_test',
             email='inactive@test.jobdevs',
             nombre='Inactive',

@@ -1,10 +1,12 @@
-import pytest
 from datetime import timedelta
-from django.urls import reverse
+
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
 from django.test import Client, override_settings
+from django.urls import reverse
 from django.utils import timezone
+
 from proyectos.models import Proyecto
 
 User = get_user_model()
@@ -356,6 +358,7 @@ class TestApiRateLimit:
     def test_api_usuarios_rate_limit(self, admin_client):
         """Exceeding rate limit on api_usuarios returns 429 Too Many Requests."""
         import time
+
         from django.core.cache import cache
         cache.clear()
 
@@ -377,6 +380,7 @@ class TestApiRateLimit:
     def test_api_crear_usuario_rate_limit(self, admin_client):
         """Mutation endpoints like api_crear_usuario enforce tighter rate limiting."""
         import time
+
         from django.core.cache import cache
         cache.clear()
 
@@ -431,7 +435,7 @@ class TestAdminPaginacionYBusqueda:
 
     def test_api_usuarios_busqueda_y_paginacion(self, admin_client, db):
         """api_usuarios soporta parámetros q, limit y page."""
-        target = User.objects.create_user(
+        User.objects.create_user(
             username='api_search_target',
             email='apisearch@test.jobdevs',
             nombre='Api Target',
@@ -525,6 +529,7 @@ class TestAdminDepurarNotificaciones:
     def test_administrador_ejecuta_depuracion_y_audita(self, admin_client, admin_user, desarrollador_user):
         """Admin POST borra notificaciones antiguas leídas, audita y redirige al dashboard."""
         from django.contrib.messages import get_messages
+
         from logs.models import LogAuditoria
         from notificaciones.models import Notificacion
 
@@ -1371,6 +1376,7 @@ class TestAdminChatAvatars:
         self, admin_client, admin_user, empresa_user, desarrollador_user, tmp_path
     ):
         from django.core.files.uploadedfile import SimpleUploadedFile
+
         from mensajes.models import Mensaje
         from usuarios.models import PerfilDesarrollador, PerfilEmpresa
 
@@ -1490,6 +1496,7 @@ class TestApiUsuariosYActualizarAdmin:
     def test_api_actualizar_usuario_actualiza_cc_sanitizada_y_audita(self, admin_client, desarrollador_user):
         """Point 2: api_actualizar_usuario valida y sanitiza CC, actualiza y registra en LogAuditoria."""
         import json as _json
+
         from logs.models import LogAuditoria
 
         resp = admin_client.put(
@@ -1583,6 +1590,7 @@ class TestAdminEsModules:
     def test_todos_los_handlers_inline_tienen_binding_window(self):
         import re
         from pathlib import Path
+
         from django.conf import settings
 
         base = Path(settings.BASE_DIR)
@@ -1847,6 +1855,7 @@ class TestAdminHtmxPhase4S1:
 
     def test_admin_resolver_verificacion_empresa_htmx(self, admin_client, empresa_user):
         import json as _json
+
         from usuarios.models import PerfilEmpresa
 
         perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
@@ -1908,6 +1917,7 @@ class TestAdminHtmxPhase4S1:
 
     def test_admin_crear_y_toggle_ficha_sena_htmx(self, admin_client):
         import json as _json
+
         from usuarios.models import FichaSena
 
         # Crear ficha via HTMX
@@ -1959,6 +1969,7 @@ class TestAdminHtmxPhase4S1:
         self, admin_client, desarrollador_user
     ):
         import json as _json
+
         from usuarios.models import ExcepcionFichaSena
 
         perfil = desarrollador_user.perfil_desarrollador
@@ -2021,6 +2032,7 @@ class TestAdminHtmxPhase4S1:
 
     def test_admin_depurar_notificaciones_htmx(self, admin_client, desarrollador_user):
         import json as _json
+
         from notificaciones.models import Notificacion
 
         vieja = Notificacion.objects.create(
@@ -2045,6 +2057,7 @@ class TestAdminHtmxPhase4S1:
 
     def test_admin_regularizar_cierre_proyecto_htmx(self, admin_client, empresa_user):
         import json as _json
+
         from proyectos.models import RegularizacionCierreProyecto
 
         proyecto = Proyecto.objects.create(

@@ -1,6 +1,7 @@
 import pytest
 from django.core.management import call_command
-from usuarios.models import Usuario, PerfilEmpresa, PerfilDesarrollador
+
+from usuarios.models import PerfilDesarrollador, PerfilEmpresa, Usuario
 
 
 @pytest.mark.django_db

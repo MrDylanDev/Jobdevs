@@ -2,9 +2,9 @@
 Tests unitarios para las tareas Celery de correos transaccionales (SCRUM-198).
 """
 
-from unittest import mock
 import pytest
 from django.core import mail
+
 from notificaciones.tasks import enviar_email_transaccional_task
 
 
@@ -81,8 +81,10 @@ class TestEmailTransaccionalTask:
     def test_purgar_notificaciones_elimina_leidas_antiguas_y_conserva_recientes(self):
         """SCRUM-200: Celery Beat purga notificaciones leídas anteriores al corte y conserva recientes y no leídas."""
         from datetime import timedelta
-        from django.utils import timezone
+
         from django.contrib.auth import get_user_model
+        from django.utils import timezone
+
         from notificaciones.models import Notificacion
         from notificaciones.tasks import purgar_notificaciones_antiguas_task
 
@@ -121,8 +123,10 @@ class TestEmailTransaccionalTask:
     def test_purgar_notificaciones_incluye_no_leidas_con_flag(self):
         """SCRUM-200: Con incluir_no_leidas=True, purga tanto leídas como no leídas antiguas."""
         from datetime import timedelta
-        from django.utils import timezone
+
         from django.contrib.auth import get_user_model
+        from django.utils import timezone
+
         from notificaciones.models import Notificacion
         from notificaciones.tasks import purgar_notificaciones_antiguas_task
 

@@ -5,7 +5,7 @@ from django.urls import reverse
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
-from usuarios.models import PerfilEmpresa, Usuario
+from usuarios.models import PerfilEmpresa
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +28,7 @@ class TestWorkflowCompletoVerificacionEmpresa:
         assert not perfil.es_verificada
 
         # 2. Proyecto publicado muestra advertencia de empresa no verificada
-        proyecto = Proyecto.objects.create(
+        Proyecto.objects.create(
             empresa=empresa_user,
             titulo="Proyecto Test Verificación",
             descripcion="Descripción del proyecto de prueba",

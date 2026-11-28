@@ -5,7 +5,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
 
 from contrataciones.models import Contratacion, SolicitudCancelacion
-from contrataciones.services import resolver_solicitud_cancelacion, solicitar_cancelacion
+from contrataciones.services import (
+    resolver_solicitud_cancelacion,
+    solicitar_cancelacion,
+)
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto

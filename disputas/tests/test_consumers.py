@@ -5,12 +5,13 @@ Prueba la sala de mediación tripartita WebSocket.
 
 import pytest
 from channels.testing import WebsocketCommunicator
+
 from config.asgi import application
-from usuarios.models import Usuario
-from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
 from disputas.models import Disputa, MensajeDisputa
 from logs.models import LogAuditoria
+from proyectos.models import Proyecto
+from usuarios.models import Usuario
 
 
 @pytest.mark.django_db(transaction=True)

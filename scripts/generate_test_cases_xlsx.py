@@ -4,16 +4,16 @@ Uso: /usr/bin/python3 scripts/generate_test_cases_xlsx.py
 Fuente: docs/CASOS_DE_PRUEBA.md y docs/TRAZABILIDAD_REQUISITOS.md.
 """
 import argparse
-from pathlib import Path
 import re
+from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.formatting.rule import CellIsRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from openpyxl.workbook.properties import CalcProperties
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'docs' / 'CASOS_DE_PRUEBA.md'
@@ -132,6 +132,7 @@ def role(rf, precondition):
          'Empresa / Desarrollador', 'Remitente autenticado', 'Desarrollador',
          'Administrador', 'Administrador', 'Administrador', 'Administrador',
          'Operador', 'Empresa / Administrador', 'Administrador', 'Operador'],
+        strict=True,
     )))
     if rf in specified:
         return specified[rf]

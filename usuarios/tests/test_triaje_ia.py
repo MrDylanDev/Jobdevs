@@ -3,31 +3,29 @@ Pruebas automatizadas para el sistema de verificación documental asistida (JobD
 Cubre Fase 10: heurísticas, extracción, OCR, tareas Celery y control administrativo.
 """
 
-import io
-import json
 import os
 import sys
 import tempfile
-from unittest.mock import patch, MagicMock
-from django.test import TestCase, override_settings
+from unittest.mock import MagicMock, patch
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.utils import timezone
+from django.test import TestCase
 
-from usuarios.models import PerfilEmpresa, PerfilDesarrollador, FichaSena
-from usuarios.services_ia_docs import (
-    extraer_datos_empresa,
-    extraer_datos_desarrollador,
-    analizar_empresa,
-    analizar_desarrollador,
-    detectar_borrosidad,
-    _validar_dv_nit,
-    _similitud,
-    ResultadoTriaje,
-)
-from usuarios.tasks import analizar_documento_soporte_task
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
+from usuarios.models import PerfilDesarrollador, PerfilEmpresa
+from usuarios.services_ia_docs import (
+    ResultadoTriaje,
+    _similitud,
+    _validar_dv_nit,
+    analizar_desarrollador,
+    analizar_empresa,
+    detectar_borrosidad,
+    extraer_datos_desarrollador,
+    extraer_datos_empresa,
+)
+from usuarios.tasks import analizar_documento_soporte_task
 
 Usuario = get_user_model()
 
@@ -249,7 +247,7 @@ class TriajeCeleryYAdminTestCase(TestCase):
             )
             mock_analizar.return_value = resultado_mock
 
-            dictamen = analizar_documento_soporte_task(self.perfil_empresa.id, "empresa")
+            analizar_documento_soporte_task(self.perfil_empresa.id, "empresa")
 
             self.perfil_empresa.refresh_from_db()
             self.assertIsNotNone(self.perfil_empresa.dictamen_ia)

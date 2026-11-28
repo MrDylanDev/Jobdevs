@@ -1,6 +1,8 @@
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
+
 from usuarios.models import Usuario
+
 
 class LogAuditoria(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)

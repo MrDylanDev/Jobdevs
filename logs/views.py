@@ -3,20 +3,20 @@ from collections import deque
 from datetime import datetime
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Q, Value, FloatField
+from django.core.exceptions import PermissionDenied
+from django.db.models import Avg, Count, FloatField, Q, Value
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+
 from contrataciones.models import Contratacion
-from proyectos.models import Proyecto, Valoracion
-from usuarios.models import Usuario, PerfilDesarrollador, PerfilEmpresa
 from logs.models import LogAuditoria
 from logs.pdf_reports import render_reporte_mensual_pdf, render_reporte_tabla_pdf
-
+from proyectos.models import Proyecto
+from usuarios.models import PerfilDesarrollador, PerfilEmpresa, Usuario
 
 MAX_EXPORT_AUDITORIA = 5000
 
@@ -598,7 +598,7 @@ def visor_logs_tecnicos(request):
 
     archivo = settings.LOG_FILE_APP
     try:
-        with open(archivo, 'r', encoding='utf-8', errors='replace') as f:
+        with open(archivo, encoding='utf-8', errors='replace') as f:
             lineas_leidas = [linea.rstrip('\n') for linea in deque(f, maxlen=lineas)]
     except OSError:
         lineas_leidas = ["(Archivo de log técnico jobdevs.log inicializándose...)"]

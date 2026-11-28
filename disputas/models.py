@@ -3,6 +3,7 @@ from django.db import models
 from contrataciones.models import Contratacion
 from proyectos.models import Proyecto
 from usuarios.models import Usuario
+
 from .validators import validar_evidencia_archivo
 
 

@@ -3,8 +3,10 @@ import json
 from decimal import Decimal
 
 from django.db import models
-from usuarios.models import Usuario
+
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
+
 
 class ContratacionManager(models.Manager):
     def desarrolladores_activos(self, proyecto):

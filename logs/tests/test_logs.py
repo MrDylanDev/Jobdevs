@@ -2,10 +2,11 @@ import csv
 import io
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+
 from logs.models import LogAuditoria
 
 User = get_user_model()
@@ -314,11 +315,13 @@ class TestReportes:
         self, admin_client, empresa_user
     ):
         from datetime import timedelta
+
         from django.utils import timezone
+
         from logs.models import LogAuditoria
         from proyectos.models import Proyecto
 
-        p_inyeccion = Proyecto.objects.create(
+        Proyecto.objects.create(
             empresa=empresa_user,
             titulo='=SUM(A1:A2)',
             descripcion='Desc',
@@ -376,6 +379,7 @@ class TestReportes:
         self, admin_client, empresa_user, desarrollador_user, nombre_ruta, titulo_esperado
     ):
         import pymupdf
+
         from logs.models import LogAuditoria
         from proyectos.models import Proyecto
         from usuarios.models import PerfilDesarrollador, PerfilEmpresa

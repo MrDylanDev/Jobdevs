@@ -1,7 +1,9 @@
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-from usuarios.models import Usuario
+from django.db import models
+
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
+
 
 class Postulacion(models.Model):
     ESTADO = [

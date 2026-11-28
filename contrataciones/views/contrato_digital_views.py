@@ -1,231 +1,31 @@
 import json
 import re
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
-from decimal import Decimal, InvalidOperation
-from .models import Contratacion, ContratoDigital, SolicitudCancelacion
-from . import services
-from postulaciones.models import Postulacion
-from notificaciones.models import Notificacion
-from proyectos.models import Proyecto, Equipo
+from django.views.decorators.http import require_POST
+
 from logs.models import LogAuditoria
+from notificaciones.models import Notificacion
+from postulaciones.models import Postulacion
+from proyectos.models import Equipo, Proyecto
 
-
-def _destino_cancelaciones(usuario):
-    """Empresa vive en la pestaña de su panel; dev y admin, en la página propia."""
-    if getattr(usuario, 'rol', None) == 'empresa':
-        return f"{reverse('dashboard_empresa')}?section=cancelaciones"
-    return reverse('solicitudes_cancelacion')
-
-
-@login_required
-def listar_contrataciones_empresa(request):
-    """Listado de todos los desarrolladores contratados por la empresa"""
-    if request.user.rol != 'empresa':
-        return redirect('inicio')
-    
-    contrataciones = Contratacion.objects.filter(empresa=request.user).select_related('proyecto', 'desarrollador').order_by('-fecha_inicio')
-    return render(request, 'contrataciones/lista_empresa.html', {'contrataciones': contrataciones})
-
-@login_required
-def ver_detalle_contrato(request, contratacion_id):
-    """Ver detalles técnicos de un contrato específico"""
-    contrato = get_object_or_404(Contratacion, id=contratacion_id)
-    
-    # Seguridad
-    if request.user != contrato.empresa and request.user != contrato.desarrollador and request.user.rol != 'administrador':
-        return redirect('inicio')
-        
-    return render(request, 'contrataciones/detalle.html', {'contrato': contrato})
-
-def _contexto_solicitudes_cancelacion(usuario):
-    """Construye el contexto compartido para la página de solicitudes de dev/admin."""
-    rol = usuario.rol
-    solicitudes = SolicitudCancelacion.objects.select_related(
-        'contratacion__proyecto', 'contratacion__empresa',
-        'contratacion__desarrollador', 'solicitante', 'resuelto_por',
-    )
-    contratos = Contratacion.objects.none()
-    if rol == 'desarrollador':
-        solicitudes = solicitudes.filter(contratacion__desarrollador=usuario)
-        contratos = Contratacion.objects.filter(
-            desarrollador=usuario, estado='activa',
-        ).exclude(
-            proyecto__estado='en_disputa',
-        ).exclude(
-            solicitudes_cancelacion__estado__in=['pendiente_acuerdo', 'pendiente_revision'],
-        ).select_related('proyecto', 'empresa', 'desarrollador')
-    else:
-        solicitudes = solicitudes.exclude(causal='acuerdo_mutuo').exclude(estado='pendiente_acuerdo')
-
-    return {
-        'solicitudes': solicitudes.order_by('-fecha_creacion'),
-        'contratos': contratos,
-        'causales': SolicitudCancelacion.CAUSALES,
-        'rol': rol,
-    }
-
-
-def _render_cancelaciones_htmx(request, *, toast=None):
-    """Devuelve el partial/panel actualizado de cancelaciones + HX-Trigger toast."""
-    if request.user.rol == 'empresa':
-        response = render(
-            request,
-            'empresa/partials/_tab_cancelaciones.html',
-            services.datos_dashboard_cancelaciones(request.user),
-        )
-    else:
-        response = render(
-            request,
-            'contrataciones/solicitudes_cancelacion.html',
-            _contexto_solicitudes_cancelacion(request.user),
-        )
-    if toast:
-        tipo, mensaje = toast
-        response['HX-Trigger'] = json.dumps({
-            'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
-        })
-    return response
-
-
-@login_required
-@require_POST
-def cancelar_contratacion(request, contratacion_id):
-    """Ruta histórica: inicia una solicitud; nunca cancela inmediatamente."""
-    if request.user.rol not in ('empresa', 'desarrollador'):
-        raise PermissionDenied
-
-    titular = 'empresa' if request.user.rol == 'empresa' else 'desarrollador'
-    contrato = get_object_or_404(Contratacion, id=contratacion_id, **{titular: request.user})
-    motivo = request.POST.get('motivo_cancelacion') or request.POST.get('motivo') or ''
-    causal = request.POST.get('causal', '')
-    evidencia = request.POST.get('evidencia', '')
-    if causal in ('incumplimiento', 'inactividad'):
-        messages.info(request, 'Para un conflicto grave completa el formulario formal de disputa; esta solicitud no se guardó.')
-        return redirect(
-            f"{reverse('disputas:abrir_disputa', args=[contrato.proyecto_id])}"
-            f"?contratacion_id={contrato.pk}"
-        )
-
-    try:
-        services.solicitar_cancelacion(
-            contratacion_id, request.user, causal=causal, motivo=motivo, evidencia=evidencia,
-        )
-        toast_tipo = 'success'
-        msg = 'Solicitud registrada. El contrato sigue activo hasta su aprobación.'
-    except PermissionDenied as exc:
-        toast_tipo = 'error'
-        msg = str(exc)
-    except ValidationError as exc:
-        toast_tipo = 'error'
-        msg = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
-
-    if _es_htmx(request):
-        return _render_cancelaciones_htmx(request, toast=(toast_tipo, msg))
-
-    getattr(messages, toast_tipo)(request, msg)
-    return redirect(_destino_cancelaciones(request.user))
-
-
-@login_required
-def solicitudes_cancelacion(request):
-    """Consulta privada de solicitudes y contratos que aún admiten una solicitud."""
-    rol = request.user.rol
-    if rol not in ('empresa', 'desarrollador', 'administrador'):
-        raise PermissionDenied
-    if rol == 'empresa':
-        # La empresa gestiona el flujo dentro de su panel; la URL histórica
-        # sobrevive como atajo para no romper enlaces ni marcadores.
-        return redirect(_destino_cancelaciones(request.user))
-    return render(
-        request,
-        'contrataciones/solicitudes_cancelacion.html',
-        _contexto_solicitudes_cancelacion(request.user),
-    )
-
-
-@login_required
-@require_POST
-def resolver_solicitud_cancelacion(request, solicitud_id):
-    decision = request.POST.get('decision')
-    if decision not in ('aprobar', 'rechazar'):
-        msg = 'Selecciona una decisión válida.'
-        if _es_htmx(request):
-            return _render_cancelaciones_htmx(request, toast=('error', msg))
-        messages.error(request, msg)
-        return redirect(_destino_cancelaciones(request.user))
-    try:
-        services.resolver_solicitud_cancelacion(
-            solicitud_id, request.user, aprobar=(decision == 'aprobar'),
-            dictamen=request.POST.get('dictamen', ''),
-        )
-        toast_tipo = 'success'
-        msg = 'Decisión registrada y notificada a ambas partes.'
-    except ValidationError as exc:
-        toast_tipo = 'error'
-        msg = ' '.join(exc.messages)
-
-    if _es_htmx(request):
-        return _render_cancelaciones_htmx(request, toast=(toast_tipo, msg))
-
-    getattr(messages, toast_tipo)(request, msg)
-    return redirect(_destino_cancelaciones(request.user))
-
-
-# ---------------------------------------------------------------------------
-# Contrato digital (Módulo 8)
-# ---------------------------------------------------------------------------
-
-def _rol_en_contrato(user, contrato):
-    """Devuelve 'empresa', 'desarrollador', 'administrador' o None según la relación con el contrato."""
-    postulacion = contrato.postulacion
-    if user.id == postulacion.proyecto.empresa_id:
-        return 'empresa'
-    if user.id == postulacion.desarrollador_id:
-        return 'desarrollador'
-    if user.rol == 'administrador':
-        return 'administrador'
-    return None
-
-
-def _es_xhr(request):
-    """True cuando la petición proviene del modal in-situ (Fetch con Accept application/json o XHR)."""
-    accept = request.headers.get('Accept', '')
-    return (
-        'application/json' in accept
-        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
-        or request.POST.get('origen') == 'dashboard'
-    )
-
-
-def _peticion_ajax(request):
-    """True cuando el cliente espera JSON (Fetch con Accept application/json o ?format=json)."""
-    return _es_xhr(request) or request.GET.get('format') == 'json'
-
-
-def _es_htmx(request):
-    """True cuando la petición proviene de HTMX y no solicita JSON explícitamente."""
-    return request.headers.get('HX-Request') == 'true' and not _peticion_ajax(request)
-
-
-def _es_modal_jdm(request):
-    """True cuando el destino es el modal compartido #jdmModal del panel desarrollador."""
-    return (
-        request.GET.get('jdm') == '1'
-        or request.POST.get('jdm') == '1'
-        or request.headers.get('HX-Target') == 'jdmBody'
-    )
-
-
-def _es_url_http_segura(url):
-    return bool(re.match(r'^https?://\S+$', str(url or '').strip(), re.I))
+from ..models import Contratacion, ContratoDigital
+from ._helpers import (
+    _es_htmx,
+    _es_modal_jdm,
+    _es_url_http_segura,
+    _es_xhr,
+    _peticion_ajax,
+    _rol_en_contrato,
+)
 
 
 def _parsear_clausulas(clausulas_raw):
@@ -538,7 +338,6 @@ def ver_contrato_digital(request, contrato_id):
 
     if request.method == 'GET' and _peticion_ajax(request):
         clausulas_raw = contrato.clausulas or ''
-        import re
         clausulas_list = [c.strip() for c in re.split(r'(?=\d+\.\s)', clausulas_raw) if c.strip()]
         c_dict = _serializar_contrato_digital(contrato, rol_contrato)
         c_dict['clausulas'] = clausulas_list
@@ -646,7 +445,6 @@ def ver_contrato_digital(request, contrato_id):
 
     if _es_xhr(request) or request.headers.get('Accept') == 'application/json':
         clausulas_raw = contrato.clausulas or ''
-        import re
         # Split numbered clauses like "1. FOO: ... 2. BAR: ..." into a list
         clausulas_list = [c.strip() for c in re.split(r'(?=\d+\.\s)', clausulas_raw) if c.strip()]
         return JsonResponse({

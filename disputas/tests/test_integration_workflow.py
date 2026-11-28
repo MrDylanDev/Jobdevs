@@ -4,7 +4,6 @@ from django.urls import reverse
 from contrataciones.models import Contratacion
 from disputas.models import Disputa, MensajeDisputa
 from logs.models import LogAuditoria
-from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
 
 

@@ -75,6 +75,7 @@ CHANNEL_LAYERS = {
 
 # SCRUM-180: Aislar MEDIA_ROOT en carpeta temporal para no ensuciar media/ local en tests
 import tempfile
+
 MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='jobdevs_test_media_'))
 
 # Celery in eager mode for tests (SCRUM-197: ejecución síncrona sin workers externos)

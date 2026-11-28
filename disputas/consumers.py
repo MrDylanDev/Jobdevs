@@ -4,15 +4,20 @@ Maneja conexiones WebSocket para la Sala de Mediación Tripartita:
 - ws/disputas/<disputa_id>/
 """
 
-import json
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
-from django.core.exceptions import PermissionDenied, ValidationError
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.db import transaction
-from .models import Disputa, MensajeDisputa
-from .views import ESTADOS_MENSAJERIA, _es_participante, _rol_emisor, _destinatarios_mensaje
-from .services import auditar_mensaje_disputa
+
 from notificaciones.models import Notificacion
+
+from .models import Disputa, MensajeDisputa
+from .services import auditar_mensaje_disputa
+from .views import (
+    ESTADOS_MENSAJERIA,
+    _destinatarios_mensaje,
+    _es_participante,
+    _rol_emisor,
+)
 
 
 class DisputaConsumer(AsyncJsonWebsocketConsumer):

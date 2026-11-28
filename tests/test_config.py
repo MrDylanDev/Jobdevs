@@ -1,6 +1,4 @@
-import os
 import importlib
-import pytest
 
 
 def test_allowed_hosts_strips_whitespace(monkeypatch):
@@ -35,8 +33,8 @@ def test_csrf_trusted_origins_not_hardcoding_zero_ip_and_loads_from_env(monkeypa
 
 def test_settings_test_fails_loudly_outside_pytest():
     """Importing settings_test outside pytest must raise RuntimeError."""
-    import sys
     import subprocess
+    import sys
     cmd = [
         sys.executable,
         "-c",
