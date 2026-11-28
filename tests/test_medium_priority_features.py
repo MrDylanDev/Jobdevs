@@ -42,7 +42,7 @@ def test_scrum_411_drawer_movil_en_los_tres_dashboards():
         content = (base / tpl).read_text(encoding='utf-8')
         assert 'id="sidebarBackdrop"' in content, f"Falta sidebarBackdrop en {tpl}"
         assert 'mobile-menu-toggle' in content, f"Falta mobile-menu-toggle en {tpl}"
-        assert 'toggleSidebar()' in content, f"Falta toggleSidebar() en {tpl}"
+        assert 'data-call="toggleSidebar"' in content, f"Falta toggleSidebar en {tpl}"
 
     css = (base / 'static/dashboard/css/dashboard.css').read_text(encoding='utf-8')
     assert '.sidebar.is-open' in css
@@ -169,8 +169,8 @@ def test_scrum_407_408_admin_confirmacion_y_buscador_debounce():
     )
     assert 'id="toggleUserConfirmModal"' in html
     assert 'openToggleUserConfirmModal' in html
-    assert 'debouncedFilterUsers()' in html
-    assert 'debouncedFilterProjects()' in html
+    assert 'data-input-call="debouncedFilterUsers"' in html
+    assert 'data-input-call="debouncedFilterProjects"' in html
     assert 'id="usersResultCount"' in html
     assert 'id="projectsResultCount"' in html
 

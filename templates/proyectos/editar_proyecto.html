@@ -82,7 +82,7 @@
 
             <div class="form-group">
               <label class="form-label" for="modalidad_select_editar"><i style="margin-right:6px;" data-lucide="laptop-house"></i>Modalidad</label>
-              <select name="modalidad" id="modalidad_select_editar" onchange="toggleCiudadEditar(this)" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
+              <select name="modalidad" id="modalidad_select_editar" data-change-call="toggleCiudadEditar" data-change-arg-0="$el" required style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13.5px; color:var(--text-primary); background:var(--card-bg); outline:none;">
                 <option value="remoto" {% if proyecto.modalidad == 'remoto' %}selected{% endif %}>Remoto (Nivel Nacional)</option>
                 <option value="presencial" {% if proyecto.modalidad == 'presencial' %}selected{% endif %}>Presencial</option>
                 <option value="hibrido" {% if proyecto.modalidad == 'hibrido' %}selected{% endif %}>Híbrido</option>

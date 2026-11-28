@@ -40,7 +40,7 @@
             </select>
           </div>
 
-          <button type="button" class="explore-reset-btn" id="devExploreResetBtn" onclick="resetDevExploreFilters()" title="Restablecer filtros">
+          <button type="button" class="explore-reset-btn" id="devExploreResetBtn" data-call="resetDevExploreFilters" title="Restablecer filtros">
             <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i>
             <span>Limpiar</span>
           </button>
@@ -57,14 +57,14 @@
                  data-tipo="{{ p.tipo_solucion|lower }}"
                  data-prioridad="{{ p.prioridad|lower }}"
                  data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}">
-              
+
               <div>
                 <div class="explore-card-top">
                   <div class="explore-card-tags">
                     <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
                     {% if p.modalidad %}<span class="meta-dot">·</span><span class="tag-modalidad"><i data-lucide="{% if p.modalidad == 'remoto' %}wifi{% elif p.modalidad == 'hibrido' %}split{% else %}map-pin{% endif %}" style="width:12px; height:12px;"></i> {{ p.get_modalidad_display|default:p.modalidad }}{% if p.ciudad and p.modalidad != 'remoto' %} · {{ p.ciudad }}{% endif %}</span>{% endif %}
                   </div>
-                  
+
                   <form method="post" action="{% url 'toggle_favorito' p.id %}" style="display:inline; margin:0; padding:0;">
                     {% csrf_token %}
                     <button type="submit"

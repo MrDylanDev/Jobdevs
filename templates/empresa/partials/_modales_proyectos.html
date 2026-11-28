@@ -5,7 +5,7 @@
   <div class="modal-box-corp">
     <div class="modal-header-corp">
       <h2 class="modal-title-corp" id="modalProyectoTitulo">{% trans "Nueva Convocatoria de Proyecto" %}</h2>
-      <button onclick="cerrarModal()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button data-call="cerrarModal" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -50,7 +50,7 @@
       <div class="form-grid-2-corp">
         <div class="form-group-corp">
           <label class="form-label-corp" for="modalidad_select_crear">{% trans "Modalidad de Trabajo" %}</label>
-          <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'ciudad_group_crear')">
+          <select name="modalidad" id="modalidad_select_crear" class="form-input-corp" data-change-call="toggleCiudadProyecto" data-change-arg-0="$el" data-change-arg-1="ciudad_group_crear">
             <option value="remoto" selected>{% trans "Remoto (Nivel Nacional)" %}</option>
             <option value="presencial">{% trans "Presencial" %}</option>
             <option value="hibrido">{% trans "Híbrido" %}</option>
@@ -87,7 +87,7 @@
         </div>
       </div>
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModal()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="button" data-call="cerrarModal" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
           <i data-lucide="send"></i> {% trans "Publicar Convocatoria" %}
         </button>
@@ -107,7 +107,7 @@
         </h2>
         <span class="contract-modal-subtitle">{% trans "Documento con validez jurídica y firma electrónica verificable" %}</span>
       </div>
-      <button type="button" onclick="cerrarModalContrato()" class="modal-close-btn" aria-label="{% trans "Cerrar contrato digital" %}">
+      <button type="button" data-call="cerrarModalContrato" class="modal-close-btn" aria-label="{% trans "Cerrar contrato digital" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -128,7 +128,7 @@
         <h2 class="modal-title-corp" id="modalEditarProyectoTitulo">{% trans "Editar Oferta de Proyecto" %}</h2>
         <span class="text-corp-meta">{% trans "Modifica las especificaciones de tu convocatoria" %}</span>
       </div>
-      <button onclick="cerrarModalEditarProyecto()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button data-call="cerrarModalEditarProyecto" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -167,7 +167,7 @@
       <div class="form-grid-2-corp">
         <div class="form-group-corp">
           <label class="form-label-corp" for="edit_modalidad">{% trans "Modalidad de Trabajo" %}</label>
-          <select id="edit_modalidad" name="modalidad" class="form-input-corp" onchange="toggleCiudadProyecto(this, 'edit_ciudad_group')">
+          <select id="edit_modalidad" name="modalidad" class="form-input-corp" data-change-call="toggleCiudadProyecto" data-change-arg-0="$el" data-change-arg-1="edit_ciudad_group">
             <option value="remoto">{% trans "Remoto (Nivel Nacional)" %}</option>
             <option value="presencial">{% trans "Presencial" %}</option>
             <option value="hibrido">{% trans "Híbrido" %}</option>
@@ -202,7 +202,7 @@
         </div>
       </div>
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModalEditarProyecto()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="button" data-call="cerrarModalEditarProyecto" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
           <i data-lucide="save"></i>
           <span>{% trans "Guardar Cambios" %}</span>
@@ -229,7 +229,7 @@
         <h2 id="drawerProjectTitle" class="drawer-title">{% trans "Candidatos Postulados" %}</h2>
       </div>
       <div>
-        <button type="button" onclick="cerrarDrawerCandidatos()" class="modal-close-btn" aria-label="{% trans "Cerrar panel" %}">
+        <button type="button" data-call="cerrarDrawerCandidatos" class="modal-close-btn" aria-label="{% trans "Cerrar panel" %}">
           <i data-lucide="x"></i>
         </button>
       </div>
@@ -243,14 +243,14 @@
 </div>
 
 <!-- Modal Calificar Equipo (100% in-situ sin salir del panel) -->
-<div id="modalCalificarEquipo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalCalificarTitulo" onclick="if (event.target === this) cerrarModalCalificar()">
+<div id="modalCalificarEquipo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalCalificarTitulo" data-call="cerrarModalCalificar" data-self-only="true">
   <div class="modal-box-corp" style="max-width: 520px;">
     <div class="modal-header-corp">
       <div>
         <h2 class="modal-title-corp" id="modalCalificarTitulo">{% trans "Calificar al Desarrollador" %}</h2>
         <div id="modalCalificarSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
       </div>
-      <button type="button" onclick="cerrarModalCalificar()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button type="button" data-call="cerrarModalCalificar" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -269,10 +269,10 @@
       {% trans "La oferta" %} <strong id="nombreOfertaRetirar">{% trans "este proyecto" %}</strong> {% trans "dejará de estar visible para postulaciones de desarrolladores y se moverá a tu historial de proyectos inactivos." %}
     </p>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
-      <button type="button" onclick="cerrarModalConfirmarRetiro()" class="btn-corp-action secondary">
+      <button type="button" data-call="cerrarModalConfirmarRetiro" class="btn-corp-action secondary">
         {% trans "Cancelar" %}
       </button>
-      <button type="button" onclick="ejecutarRetiroConfirmado()" class="btn-corp-danger">
+      <button type="button" data-call="ejecutarRetiroConfirmado" class="btn-corp-danger">
         <i data-lucide="ban"></i>
         <span>{% trans "Sí, retirar oferta" %}</span>
       </button>
@@ -281,14 +281,14 @@
 </div>
 
 <!-- Modal Reportar Disputa In-Situ -->
-<div id="modalReportarDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalDisputaTitulo" onclick="if (event.target === this) cerrarModalDisputa()">
+<div id="modalReportarDisputa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalDisputaTitulo" data-call="cerrarModalDisputa" data-self-only="true">
   <div class="modal-box-corp" style="max-width: 640px;">
     <div class="modal-header-corp">
       <div>
         <h2 class="modal-title-corp" id="modalDisputaTitulo">{% trans "Reportar Disputa Formal" %}</h2>
         <div id="modalDisputaSubtitulo" style="font-size:12px; color:var(--corp-slate-500); margin-top:2px;"></div>
       </div>
-      <button type="button" onclick="cerrarModalDisputa()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button type="button" data-call="cerrarModalDisputa" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>

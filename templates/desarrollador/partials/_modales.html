@@ -272,7 +272,7 @@
 
 <!-- Modal In-Situ de Solicitudes de Cancelación / Terminación (SCRUM) -->
 <div id="modalCancelacionDev" class="jdm-modal" hidden>
-  <div class="jdm-backdrop" onclick="cerrarModalCancelacionDev()"></div>
+  <div class="jdm-backdrop" data-call="cerrarModalCancelacionDev"></div>
   <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalCancelDevTitle">
     <header class="jdm-header">
       <div style="min-width:0; flex:1;">
@@ -280,7 +280,7 @@
         <h2 class="jdm-title" id="modalCancelDevTitle">Terminación y Cancelación de Contrato</h2>
         <div class="jdm-sub">Acuerdos bilaterales de terminación y causales de fuerza mayor</div>
       </div>
-      <button type="button" class="jdm-close" onclick="cerrarModalCancelacionDev()" aria-label="Cerrar modal">&times;</button>
+      <button type="button" class="jdm-close" data-call="cerrarModalCancelacionDev" aria-label="Cerrar modal">&times;</button>
     </header>
 
     <div class="jdm-body">
@@ -341,7 +341,7 @@
           {% csrf_token %}
           <div class="jd-field">
             <label class="jd-label" for="cancelContratoSelect">Seleccionar Contrato Activo</label>
-            <select id="cancelContratoSelect" name="contrato_id" class="jd-input" onchange="actualizarActionCancelacion(this)" required>
+            <select id="cancelContratoSelect" name="contrato_id" class="jd-input" data-change-call="actualizarActionCancelacion" data-change-arg-0="$el" required>
               {% for c in contratos_cancelables_dev %}
                 <option value="{{ c.id }}">{{ c.proyecto.titulo }} — {{ c.empresa.nombre|default:c.empresa.username }}</option>
               {% endfor %}
@@ -378,16 +378,16 @@
 
     <footer class="jdm-footer" style="display:flex; justify-content:space-between; align-items:center;">
       <span style="font-size:12px; color:var(--text-muted);">
-        ¿Conflicto o incumplimiento grave? <a href="#disputas" style="color:var(--accent); text-decoration:none; font-weight:600;" onclick="cerrarModalCancelacionDev(); abrirModalNuevaDisputaDev(); return false;">Ir a Disputas</a>
+        ¿Conflicto o incumplimiento grave? <a href="#disputas" style="color:var(--accent); text-decoration:none; font-weight:600;" data-call="cerrarModalCancelacionDev" data-prevent="true" data-then="abrirModalNuevaDisputaDev">Ir a Disputas</a>
       </span>
-      <button type="button" class="btn-cockpit" onclick="cerrarModalCancelacionDev()">Cerrar</button>
+      <button type="button" class="btn-cockpit" data-call="cerrarModalCancelacionDev">Cerrar</button>
     </footer>
   </div>
 </div>
 
 <!-- Modal Flotante: Mi Perfil y Credencial SENA -->
 <div id="modalEditarPerfilDev" class="jdm-modal" hidden>
-  <div class="jdm-backdrop" onclick="cerrarModalPerfilDev()"></div>
+  <div class="jdm-backdrop" data-call="cerrarModalPerfilDev"></div>
   <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalPerfilDevTitulo">
     <header class="jdm-header">
       <div style="min-width:0; flex:1;">
@@ -395,7 +395,7 @@
         <h2 class="jdm-title" id="modalPerfilDevTitulo">Mi Perfil y Credencial SENA</h2>
         <div class="jdm-sub">Actualiza tu información profesional y gestiona tu certificación</div>
       </div>
-      <button type="button" class="jdm-close" onclick="cerrarModalPerfilDev()" aria-label="Cerrar modal">&times;</button>
+      <button type="button" class="jdm-close" data-call="cerrarModalPerfilDev" aria-label="Cerrar modal">&times;</button>
     </header>
 
     <div class="jdm-body" style="padding:24px;">
@@ -460,7 +460,7 @@
           </dl>
 
           {% if not perfil.es_verificado_sena and perfil.estado_verificacion != 'en_revision' %}
-            <button type="button" class="btn-cockpit" style="width:100%; justify-content:center; margin-top:4px;" onclick="cerrarModalPerfilDev(); abrirVerificacion();">
+            <button type="button" class="btn-cockpit" style="width:100%; justify-content:center; margin-top:4px;" data-call="cerrarModalPerfilDev" data-then="abrirVerificacion">
               <i data-lucide="shield-check"></i>
               <span>{% if perfil.estado_verificacion == 'rechazado' %}Reenviar verificación SENA{% else %}Verificar cuenta SENA{% endif %}</span>
             </button>
@@ -470,7 +470,7 @@
     </div>
 
     <footer class="jdm-footer" style="display:flex; justify-content:flex-end; gap:10px; padding:16px 26px;">
-      <button type="button" class="jdm-btn jdm-btn-secondary" onclick="cerrarModalPerfilDev()">Cerrar</button>
+      <button type="button" class="jdm-btn jdm-btn-secondary" data-call="cerrarModalPerfilDev">Cerrar</button>
       <button type="submit" form="formPerfilDev" id="btnGuardarPerfilDev" class="jdm-btn jdm-btn-primary">
         <i data-lucide="save"></i>
         <span>Guardar cambios</span>
@@ -481,7 +481,7 @@
 
 <!-- Modal In-Situ: Iniciar Mediación / Disputa Formal (SCRUM / Dev) -->
 <div id="modalNuevaDisputa" class="jdm-modal" hidden>
-  <div class="jdm-backdrop" onclick="cerrarModalNuevaDisputaDev()"></div>
+  <div class="jdm-backdrop" data-call="cerrarModalNuevaDisputaDev"></div>
   <div class="jdm-card jdm-card-lg" role="dialog" aria-modal="true" aria-labelledby="modalNuevaDisputaTitulo" style="max-width:680px;">
     <header class="jdm-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding:22px 26px;">
       <div>
@@ -495,7 +495,7 @@
           Resolución arbitral neutral y vinculante para proyectos en controversia
         </div>
       </div>
-      <button type="button" class="jdm-close" onclick="cerrarModalNuevaDisputaDev()" aria-label="Cerrar modal">&times;</button>
+      <button type="button" class="jdm-close" data-call="cerrarModalNuevaDisputaDev" aria-label="Cerrar modal">&times;</button>
     </header>
 
     <div class="jdm-body" style="padding:22px 26px;">
@@ -521,7 +521,7 @@
             <a href="{% url 'disputas:abrir_disputa' p.id %}"
                data-abrir-formulario-disputa
                data-url="{% url 'disputas:abrir_disputa' p.id %}"
-               onclick="cerrarModalNuevaDisputaDev();"
+               data-call="cerrarModalNuevaDisputaDev"
                class="disp-proyecto-item-corp disp-proyecto-item">
               <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
                 <div class="disp-proyecto-icon">
@@ -552,11 +552,11 @@
     </div>
 
     <footer class="jdm-footer" style="padding:16px 26px; display:flex; justify-content:space-between; align-items:center;">
-      <button type="button" class="btn-cockpit" style="font-size:12px;" onclick="cerrarModalNuevaDisputaDev(); verSeccion('completados'); switchHistorialTab('disputas', document.getElementById('tabBtnHistDisputas'));">
+      <button type="button" class="btn-cockpit" style="font-size:12px;" data-call="cerrarModalNuevaDisputaDev" data-then="verSeccion" data-then-arg-0="completados" data-then2="switchHistorialTab" data-then2-arg-0="disputas" data-then2-arg-1="$id:tabBtnHistDisputas">
         <i data-lucide="archive"></i>
         <span>Ver Historial de Disputas</span>
       </button>
-      <button type="button" class="jdm-btn jdm-btn-secondary" onclick="cerrarModalNuevaDisputaDev()">Cerrar</button>
+      <button type="button" class="jdm-btn jdm-btn-secondary" data-call="cerrarModalNuevaDisputaDev">Cerrar</button>
     </footer>
   </div>
 </div>

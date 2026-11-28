@@ -8,10 +8,10 @@
         </div>
 
         <div class="admin-tabs" role="tablist">
-          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('projectsSection')">
+          <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="projectsSection">
             <i data-lucide="folder-kanban"></i> Proyectos
           </button>
-          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('categoriesSection')">
+          <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="categoriesSection">
             <i data-lucide="tags"></i> Categorías
           </button>
         </div>
@@ -40,19 +40,19 @@
         <div class="users-table-shell">
           <div class="users-shell-top">
             <div class="users-role-pills" role="group" aria-label="Filtrar proyectos por estado">
-              <button type="button" class="users-role-pill project-estado-pill is-active" onclick="setAdminProjectEstadoPill('', this)">Todos</button>
-              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('publicado', this)">Publicados</button>
-              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('en_desarrollo', this)">En Desarrollo</button>
-              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('finalizado', this)">Finalizados</button>
-              <button type="button" class="users-role-pill project-estado-pill" onclick="setAdminProjectEstadoPill('rechazado', this)">Rechazados</button>
+              <button type="button" class="users-role-pill project-estado-pill is-active" data-call="setAdminProjectEstadoPill" data-arg-0="" data-arg-1="$el">Todos</button>
+              <button type="button" class="users-role-pill project-estado-pill" data-call="setAdminProjectEstadoPill" data-arg-0="publicado" data-arg-1="$el">Publicados</button>
+              <button type="button" class="users-role-pill project-estado-pill" data-call="setAdminProjectEstadoPill" data-arg-0="en_desarrollo" data-arg-1="$el">En Desarrollo</button>
+              <button type="button" class="users-role-pill project-estado-pill" data-call="setAdminProjectEstadoPill" data-arg-0="finalizado" data-arg-1="$el">Finalizados</button>
+              <button type="button" class="users-role-pill project-estado-pill" data-call="setAdminProjectEstadoPill" data-arg-0="rechazado" data-arg-1="$el">Rechazados</button>
             </div>
 
             <div class="users-shell-controls">
               <div class="users-search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="projectSearch" placeholder="Buscar proyecto o empresa..." oninput="debouncedFilterProjects()">
+                <input type="text" id="projectSearch" placeholder="Buscar proyecto o empresa..." data-input-call="debouncedFilterProjects">
               </div>
-              <select id="projectEstadoFilter" class="users-select" onchange="filterProjects()" style="display:none;" aria-hidden="true">
+              <select id="projectEstadoFilter" class="users-select" data-change-call="filterProjects" style="display:none;" aria-hidden="true">
                 <option value="">Todos los estados</option>
                 <option value="publicado">Publicado</option>
                 <option value="en_desarrollo">En Desarrollo</option>
@@ -202,14 +202,14 @@
 
         <div class="admin-tabs admin-tabs--with-action" role="tablist">
           <div class="admin-tabs-group">
-            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" onclick="showSection('projectsSection')">
+            <button type="button" class="admin-tab-btn" role="tab" aria-selected="false" data-call="showSection" data-arg-0="projectsSection">
               <i data-lucide="folder-kanban"></i> Proyectos
             </button>
-            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" onclick="showSection('categoriesSection')">
+            <button type="button" class="admin-tab-btn is-active" role="tab" aria-selected="true" data-call="showSection" data-arg-0="categoriesSection">
               <i data-lucide="tags"></i> Categorías
             </button>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="openCategoryModal()">
+          <button type="button" class="btn btn-primary btn-sm" data-call="openCategoryModal">
             <i data-lucide="plus"></i> Nueva Categoría
           </button>
         </div>
@@ -237,10 +237,10 @@
                     {% if c.activo %}<span class="badge badge-success">Activa</span>{% else %}<span style="color:var(--text-muted);">Inactiva</span>{% endif %}
                   </td>
                   <td style="text-align:center; white-space:nowrap;">
-                    <button onclick="openCategoryModal({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
+                    <button data-call="openCategoryModal" data-arg-0="{{ c.id }}" style="border:none;background:none;cursor:pointer;font-size:16px; margin-right:8px; color:var(--info);" title="Editar">
                       <i data-lucide="pencil"></i>
                     </button>
-                    <button onclick="toggleCategory({{ c.id }})" style="border:none;background:none;cursor:pointer;font-size:16px;" title="{% if c.activo %}Desactivar{% else %}Activar{% endif %}">
+                    <button data-call="toggleCategory" data-arg-0="{{ c.id }}" style="border:none;background:none;cursor:pointer;font-size:16px;" title="{% if c.activo %}Desactivar{% else %}Activar{% endif %}">
                       {% if c.activo %}
                         <i style="color:var(--success);" data-lucide="toggle-on"></i>
                       {% else %}

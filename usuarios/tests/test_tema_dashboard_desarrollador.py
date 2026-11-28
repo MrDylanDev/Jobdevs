@@ -25,7 +25,7 @@ def test_dashboard_desarrollador_incluye_toggle_de_tema(dev_client):
     html = response.content.decode()
     assert 'id="devThemeToggle"' in html
     assert 'class="theme-toggle"' in html
-    assert "toggleDevTheme()" in html
+    assert 'data-call="toggleDevTheme"' in html
     assert 'aria-pressed="false"' in html
 
 

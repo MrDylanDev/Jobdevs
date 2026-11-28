@@ -16,7 +16,7 @@
               <i data-lucide="shield-alert" style="width:16px; height:16px; color:#f87171; flex-shrink:0;"></i>
               <span>Tienes <strong>{{ disputas_activas_count }} controversia{{ disputas_activas_count|pluralize }} en mediación arbitral</strong> activa{{ disputas_activas_count|pluralize }}.</span>
             </div>
-            <button type="button" class="btn-cockpit" onclick="verSeccion('disputas', this)" style="font-size:11.5px; padding:6px 14px; color:#ffffff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14);">
+            <button type="button" class="btn-cockpit" data-call="verSeccion" data-arg-0="disputas" data-arg-1="$el" style="font-size:11.5px; padding:6px 14px; color:#ffffff; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14);">
               <span>Ingresar a Sala de Mediación</span>
               <i data-lucide="arrow-right" style="width:12px; height:12px;"></i>
             </button>
@@ -150,7 +150,7 @@
               <i data-lucide="rocket" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
               <p style="font-weight:600; font-size:15px; margin-bottom:4px;">Sin proyectos activos en curso</p>
               <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Postúlate a proyectos disponibles; cuando una empresa acepte tu postulación y firmen el contrato digital, el proyecto aparecerá aquí.</p>
-              <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+              <button type="button" class="btn-cockpit primary" data-call="verSeccion" data-arg-0="explorar">
                 <i data-lucide="compass"></i>
                 <span>Explorar Proyectos Disponibles</span>
               </button>

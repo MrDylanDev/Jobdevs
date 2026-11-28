@@ -9,7 +9,7 @@
              data-url-proyecto="{% url 'api_conversacion_proyecto' 987654321 987654321 %}">
           <aside class="jd-chat-list">
             <div class="jd-chat-list-head">
-              <button type="button" class="mobile-menu-toggle chat-mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menú" style="display:none; margin-right:8px; padding:4px; background:transparent; border:none; color:var(--fg); cursor:pointer;">
+              <button type="button" class="mobile-menu-toggle chat-mobile-menu-toggle" data-call="toggleSidebar" aria-label="Abrir menú" style="display:none; margin-right:8px; padding:4px; background:transparent; border:none; color:var(--fg); cursor:pointer;">
                 <i data-lucide="menu"></i>
               </button>
               <span>Conversaciones</span>
@@ -38,7 +38,7 @@
                       data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
                 <span class="jd-chat-avatar">
                   {% if conv.empresa_logo %}
-                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" onerror="this.parentElement.textContent='{{ conv.empresa_nombre|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" data-fallback-text="{{ conv.empresa_nombre|slice:":1"|upper }}">
                   {% else %}
                     {{ conv.empresa_nombre|slice:":1"|upper }}
                   {% endif %}
@@ -81,7 +81,7 @@
                 <div class="jd-chat-head-info">
                   <div class="jd-chat-head-name-row">
                     <div class="jd-chat-head-name" data-chat-name>—</div>
-                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" onclick="toggleChatContextSidebarDev()" title="Mostrar contexto del proyecto" aria-label="Alternar panel de contexto del proyecto">
+                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" data-call="toggleChatContextSidebarDev" title="Mostrar contexto del proyecto" aria-label="Alternar panel de contexto del proyecto">
                       <i data-lucide="panel-right-open" style="width:16px; height:16px;"></i>
                     </button>
                   </div>
@@ -115,7 +115,7 @@
                 <i data-lucide="layers" style="width:14px; height:14px; color:#94a3b8;"></i>
                 <span>Contexto del Proyecto</span>
               </div>
-              <button type="button" onclick="toggleChatContextSidebarDev()" title="Ocultar panel de contexto" aria-label="Ocultar panel de contexto" style="background:transparent; border:none; color:var(--fg-dim); cursor:pointer; padding:4px; display:flex; align-items:center; border-radius:4px;">
+              <button type="button" data-call="toggleChatContextSidebarDev" title="Ocultar panel de contexto" aria-label="Ocultar panel de contexto" style="background:transparent; border:none; color:var(--fg-dim); cursor:pointer; padding:4px; display:flex; align-items:center; border-radius:4px;">
                 <i data-lucide="x" style="width:16px; height:16px;"></i>
               </button>
             </div>
@@ -129,11 +129,11 @@
               <div class="jd-context-desc" data-context-project-desc style="font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:10px; max-height:130px; overflow-y:auto; word-break:break-word;">—</div>
               <div class="jd-context-meta" data-context-project-meta style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px; font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono);"></div>
               <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px; display:flex; flex-direction:column; gap:8px;">
-                <button type="button" class="jd-context-btn" onclick="verSeccion('activos')">
+                <button type="button" class="jd-context-btn" data-call="verSeccion" data-arg-0="activos">
                   <i data-lucide="flag"></i>
                   <span>Ver Hitos del Proyecto</span>
                 </button>
-                <button type="button" class="jd-context-btn secondary" onclick="verSeccion('completados')">
+                <button type="button" class="jd-context-btn secondary" data-call="verSeccion" data-arg-0="completados">
                   <i data-lucide="file-signature"></i>
                   <span>Ver Contratos Digitales</span>
                 </button>

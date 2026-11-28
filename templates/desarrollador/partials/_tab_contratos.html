@@ -15,12 +15,12 @@
 
         <!-- Subpestañas superiores fluidas -->
         <div class="contratos-subtabs-bar" role="tablist" aria-label="Vistas de Contratos y Postulaciones">
-          <button type="button" class="contratos-subtab-btn active" id="tabBtnContratoContratos" role="tab" aria-selected="true" onclick="switchContratosSubTab('contratos', this)">
+          <button type="button" class="contratos-subtab-btn active" id="tabBtnContratoContratos" role="tab" aria-selected="true" data-call="switchContratosSubTab" data-arg-0="contratos" data-arg-1="$el">
             <i data-lucide="file-signature"></i>
             <span>Contratos Digitales</span>
             <span class="contratos-subtab-count">{{ total_contratos_digitales }}</span>
           </button>
-          <button type="button" class="contratos-subtab-btn" id="tabBtnContratoPostulaciones" role="tab" aria-selected="false" onclick="switchContratosSubTab('postulaciones', this)">
+          <button type="button" class="contratos-subtab-btn" id="tabBtnContratoPostulaciones" role="tab" aria-selected="false" data-call="switchContratosSubTab" data-arg-0="postulaciones" data-arg-1="$el">
             <i data-lucide="send"></i>
             <span>Candidaturas en Evaluación</span>
             <span class="contratos-subtab-count">{{ postulaciones_revision_count }}</span>
@@ -162,7 +162,7 @@
                 <i data-lucide="file-text" style="width:36px; height:36px; margin-bottom:12px; opacity:0.4;"></i>
                 <p style="font-weight:600; font-size:15px; margin-bottom:4px;">No tienes contratos vigentes en este momento</p>
                 <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Cuando una empresa inicie negociación en tus postulaciones, tus contratos aparecerán aquí para su firma y seguimiento.</p>
-                <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                <button type="button" class="btn-cockpit primary" data-call="verSeccion" data-arg-0="explorar">
                   <i data-lucide="compass"></i>
                   <span>Explorar Proyectos Disponibles</span>
                 </button>
@@ -217,7 +217,7 @@
           <div style="margin-top:24px; padding-top:16px; border-top:1px dashed var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div style="font-size:12px; color:var(--text-muted);">
               ¿Buscas contratos anteriores concluidos o cancelados?
-              <a href="#completados" onclick="verSeccion('completados'); switchHistorialTab('contratos', document.getElementById('tabBtnHistContratos')); return false;" class="archived-contracts-link" style="color:#94a3b8; text-decoration:none; font-weight:600; margin-left:4px;">
+              <a href="#completados" data-call="verSeccion" data-arg-0="completados" data-prevent="true" data-then="switchHistorialTab" data-then-arg-0="contratos" data-then-arg-1="$id:tabBtnHistContratos" class="archived-contracts-link" style="color:#94a3b8; text-decoration:none; font-weight:600; margin-left:4px;">
                 Ver Contratos Archivados en Historial
               </a>
             </div>
@@ -227,7 +227,7 @@
               {% if cancelaciones_pendientes_dev_count > 0 %}
                 <span class="badge badge-warning" style="font-size:11px;"><i data-lucide="alert-triangle"></i> {{ cancelaciones_pendientes_dev_count }} solicitud pendiente</span>
               {% endif %}
-              <button type="button" class="btn-cockpit" onclick="abrirModalCancelacionDev()" title="Gestionar acuerdos y solicitudes de terminación">
+              <button type="button" class="btn-cockpit" data-call="abrirModalCancelacionDev" title="Gestionar acuerdos y solicitudes de terminación">
                 <i data-lucide="file-x"></i>
                 <span>Solicitudes de terminación</span>
                 {% if cancelaciones_pendientes_dev_count > 0 %}
@@ -307,7 +307,7 @@
                   <i data-lucide="inbox" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
                   <p style="font-weight:600; font-size:15px; margin-bottom:4px;">No tienes candidaturas en evaluación</p>
                   <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Explora proyectos disponibles en el catálogo y postula tu talento.</p>
-                  <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                  <button type="button" class="btn-cockpit primary" data-call="verSeccion" data-arg-0="explorar">
                     <i data-lucide="compass"></i>
                     <span>Explorar Proyectos Disponibles</span>
                   </button>
@@ -318,7 +318,7 @@
 
           <div style="margin-top:20px; padding-top:16px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <span>¿Buscas tus postulaciones cerradas o no seleccionadas?</span>
-            <button type="button" class="btn-cockpit" onclick="verSeccion('completados'); switchHistorialTab('postulaciones', document.getElementById('tabBtnHistPostulaciones'));">
+            <button type="button" class="btn-cockpit" data-call="verSeccion" data-arg-0="completados" data-then="switchHistorialTab" data-then-arg-0="postulaciones" data-then-arg-1="$id:tabBtnHistPostulaciones">
               <i data-lucide="history"></i>
               <span>Ver Postulaciones Rechazadas en Historial</span>
               {% if postulaciones_historial_count > 0 %}

@@ -1,9 +1,9 @@
 /* ========== EXPLORAR CATÁLOGO (base de tag-solucion, project-desc y lucide en dashboard.css) ========== */
 .tag-solucion {
-  color: #94a3b8 !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  padding: 0;
   border-radius: 0;
 }
 
@@ -75,8 +75,8 @@
 
 .explore-search-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 2px var(--border-dim);
 }
 
 .explore-select {
@@ -95,7 +95,7 @@
 
 .explore-select:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-color: var(--border-hover);
 }
 
 .explore-reset-btn {
@@ -125,9 +125,9 @@
 .dev-explore-card,
 .admin-explore-card {
   position: relative;
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: var(--radius, 14px) !important;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius, 14px);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -139,8 +139,8 @@
 .dev-explore-card:hover,
 .admin-explore-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5) !important;
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .explore-card-top {
@@ -162,24 +162,24 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 !important;
+  padding: 0;
   border-radius: 0;
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 500;
-  background: transparent !important;
-  border: none !important;
-  color: #94a3b8;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
 }
 
 .tag-modalidad.remoto {
-  color: #94a3b8;
-  border: none !important;
-  background: transparent !important;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
 }
 
 .meta-dot {
-  color: #52525b;
+  color: var(--text-soft);
   font-size: 12px;
   margin: 0 4px;
   user-select: none;
@@ -204,34 +204,34 @@
   margin-bottom: 12px;
   font-family: var(--font-mono, monospace);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .explore-meta-item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 11px;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .explore-meta-item svg {
-  width: 12px !important;
-  height: 12px !important;
-  color: #64748b !important;
+  width: 12px;
+  height: 12px;
+  color: var(--text-muted);
 }
 
 .explore-meta-item.prio-alta {
-  color: #f87171 !important;
+  color: #f87171;
   font-weight: 600;
 }
 
 .explore-meta-item.prio-media,
 .explore-meta-item.prio-baja {
-  color: #94a3b8 !important;
+  color: var(--text-muted);
 }
 
 .explore-time-tag {
@@ -361,16 +361,16 @@
 }
 
 .dev-page-btn:hover:not(.is-disabled):not(.is-active) {
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background: var(--nav-hover-bg);
 }
 
 .dev-page-btn.is-active {
-  background: #ffffff !important;
-  border-color: #ffffff !important;
-  color: #000000 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .dev-page-btn.is-disabled {
@@ -475,7 +475,7 @@
 }
 
 .post-kpi-icon.warning {
-  color: #f59e0b;
+  color: var(--warning);
   background: rgba(245, 158, 11, 0.08);
   border-color: rgba(245, 158, 11, 0.25);
 }
@@ -494,16 +494,16 @@
 
 /* Lista y Filas Compactas para Candidaturas en Evaluación (Estilo Linear) */
 .post-list-compact {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-  grid-template-columns: none !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  grid-template-columns: none;
 }
 
 .post-row-compact {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 12px !important;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
@@ -512,10 +512,10 @@
 }
 
 .post-row-compact:hover {
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  background: #0f0f0f !important;
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .post-compact-line-1 {
@@ -607,7 +607,7 @@
   font-family: var(--font-main);
   font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -738,7 +738,7 @@
   gap: 5px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   padding: 0;
@@ -748,19 +748,19 @@
 .post-tag i {
   width: 12px;
   height: 12px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .archived-contracts-link {
   transition: color 0.15s ease;
 }
 .archived-contracts-link:hover {
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .post-tag {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--surface-subtle);
+  border-color: var(--border);
 }
 
 /* Franja de Estado Contractual */
@@ -851,7 +851,7 @@
 }
 
 .btn-cockpit.icon-only {
-  padding: 6px 10px !important;
+  padding: 6px 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -859,9 +859,9 @@
 
 .btn-cockpit.icon-only svg,
 .btn-cockpit.icon-only i {
-  width: 15px !important;
-  height: 15px !important;
-  margin: 0 !important;
+  width: 15px;
+  height: 15px;
+  margin: 0;
 }
 
 .post-row-card.post-row-history {
@@ -1006,7 +1006,7 @@
 }
 
 .post-status-dot.is-pendiente {
-  background: #f59e0b;
+  background: var(--warning);
 }
 
 .post-row-date {
@@ -1088,23 +1088,23 @@
    PROYECTOS EN DESARROLLO (DISEÑO LIMPIO Y PROFESIONAL)
    ============================================================ */
 .active-project-card {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: var(--radius, 14px) !important;
-  padding: 20px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  gap: 16px !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease !important;
-  position: relative !important;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius, 14px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 
 .active-project-card:hover {
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5) !important;
-  transform: translateY(-2px) !important;
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
 }
 
 .active-project-header {
@@ -1114,7 +1114,7 @@
   gap: 12px;
   padding-bottom: 12px;
   margin-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-dim);
 }
 
 .active-project-empresa {
@@ -1129,15 +1129,15 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--bg-darker, #111317);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-darker);
+  border: 1px solid var(--border-dim);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 13.5px;
-  color: #ffffff;
+  color: var(--text-primary);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -1159,7 +1159,7 @@
   font-family: var(--font-main);
   font-size: 14.5px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -1171,19 +1171,19 @@
 }
 
 .active-project-empresa-link:hover {
-  color: #e2e8f0;
+  color: var(--text-secondary);
 }
 
 .active-project-empresa-link svg {
   width: 13px;
   height: 13px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .active-project-deadline {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1193,14 +1193,14 @@
 .active-project-deadline svg {
   width: 13px;
   height: 13px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .active-project-title {
   font-family: var(--font-main);
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff !important;
+  color: var(--text-primary);
   line-height: 1.35;
   letter-spacing: -0.015em;
   margin: 0;
@@ -1212,13 +1212,13 @@
 
 /* Progreso Limpio (sin cajas anidadas) */
 .active-project-progress-wrap {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  margin: 6px 0 !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .active-project-progress-header {
@@ -1230,18 +1230,18 @@
 }
 
 .active-project-progress-label {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .active-project-progress-val {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .active-project-progress-bar {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-dim);
   overflow: hidden;
 }
 
@@ -1258,19 +1258,19 @@
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   padding: 6px 0;
 }
 
 .active-project-next-row svg {
   width: 14px;
   height: 14px;
-  color: #64748b;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .active-project-next-row strong {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -1284,7 +1284,7 @@
 .active-project-hitos-summary {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1299,7 +1299,7 @@
 }
 
 .active-project-hitos-summary:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .active-project-hitos-body {
@@ -1308,7 +1308,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid var(--border-dim);
 }
 
 .active-project-hito-item {
@@ -1316,12 +1316,12 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   padding-left: 8px;
 }
 
 .active-project-hito-item.is-done {
-  color: #71717a;
+  color: var(--text-soft);
 }
 
 .active-project-hito-item.is-done span {
@@ -1341,7 +1341,7 @@
   justify-content: space-between;
   gap: 12px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-dim);
   margin-top: auto;
   flex-wrap: wrap;
 }
@@ -1357,14 +1357,14 @@
   font-family: var(--font-mono, monospace);
   font-size: 11.5px;
   font-weight: 500;
-  color: #f87171 !important;
+  color: #f87171;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
+  background: transparent;
+  border: none;
+  padding: 0;
   transition: opacity 0.15s ease, color 0.15s ease;
 }
 
@@ -1372,38 +1372,38 @@
 .active-project-dispute-link i {
   width: 13px;
   height: 13px;
-  color: #f87171 !important;
+  color: #f87171;
 }
 
 .active-project-dispute-link:hover {
-  background: transparent !important;
-  border: none !important;
-  color: #fca5a5 !important;
+  background: transparent;
+  border: none;
+  color: #fca5a5;
   opacity: 0.85;
 }
 
 .active-project-dispute-link:hover svg,
 .active-project-dispute-link:hover i {
-  color: #fca5a5 !important;
+  color: #fca5a5;
 }
 
 /* Historial Section Cards & Details */
 .historial-testimonial-box {
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
   padding: 14px 16px;
   font-style: italic;
   font-size: 13px;
-  color: #cbd5e1 !important;
-  border-left: 3px solid #64748b !important;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--text-muted);
   margin-bottom: 12px;
 }
 
 [data-theme="light"] .historial-testimonial-box {
-  background: #f8fafc !important;
-  color: #334155 !important;
-  border-left-color: #00713f !important;
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  border-left-color: var(--accent);
 }
 
 .historial-details {
@@ -1415,8 +1415,8 @@
 }
 
 [data-theme="light"] .historial-details {
-  background: #ffffff !important;
-  border-color: var(--border) !important;
+  background: var(--surface-elevated);
+  border-color: var(--border);
 }
 
 .historial-summary {
@@ -1429,7 +1429,7 @@
 }
 
 [data-theme="light"] .historial-summary {
-  color: var(--text-primary) !important;
+  color: var(--text-primary);
 }
 
 /* ============================================================
@@ -1472,15 +1472,15 @@
 }
 
 .historial-tab.is-active {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .historial-tab.is-active i,
 .historial-tab.is-active svg {
-  color: var(--accent, #16a34a);
+  color: var(--accent);
 }
 
 .historial-tab-count {
@@ -1497,13 +1497,13 @@
 }
 
 .historial-tab.is-active .historial-tab-count {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
 }
 
 .historial-project-card {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
   border-radius: 12px;
   padding: 22px;
   display: flex;

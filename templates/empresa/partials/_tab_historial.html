@@ -59,21 +59,21 @@
 
             <div class="ledger-chart-controls">
               <div class="ledger-filter-pills" role="tablist" aria-label="{% trans 'Métricas del historial' %}">
-                <button type="button" class="ledger-filter-pill active" data-metric="contratado" onclick="seleccionarMetricaLedger('contratado', this)">
+                <button type="button" class="ledger-filter-pill active" data-metric="contratado" data-call="seleccionarMetricaLedger" data-arg-0="contratado" data-arg-1="$el">
                   {% trans "Presupuesto Contratado" %}
                 </button>
-                <button type="button" class="ledger-filter-pill" data-metric="liquidado" onclick="seleccionarMetricaLedger('liquidado', this)">
+                <button type="button" class="ledger-filter-pill" data-metric="liquidado" data-call="seleccionarMetricaLedger" data-arg-0="liquidado" data-arg-1="$el">
                   {% trans "Hitos Aprobados (COP)" %}
                 </button>
-                <button type="button" class="ledger-filter-pill" data-metric="hitos_qty" onclick="seleccionarMetricaLedger('hitos_qty', this)">
+                <button type="button" class="ledger-filter-pill" data-metric="hitos_qty" data-call="seleccionarMetricaLedger" data-arg-0="hitos_qty" data-arg-1="$el">
                   {% trans "Volumen de Hitos" %}
                 </button>
               </div>
               <div class="time-selector-corp" role="group" aria-label="{% trans 'Período temporal' %}">
-                <button type="button" class="time-tab-corp active" data-period="6m" onclick="seleccionarPeriodoLedger('6m', this)">
+                <button type="button" class="time-tab-corp active" data-period="6m" data-call="seleccionarPeriodoLedger" data-arg-0="6m" data-arg-1="$el">
                   {% trans "6 Meses" %}
                 </button>
-                <button type="button" class="time-tab-corp" data-period="12m" onclick="seleccionarPeriodoLedger('12m', this)">
+                <button type="button" class="time-tab-corp" data-period="12m" data-call="seleccionarPeriodoLedger" data-arg-0="12m" data-arg-1="$el">
                   {% trans "12 Meses" %}
                 </button>
               </div>
@@ -204,31 +204,31 @@
           <div class="segmented-filters-corp" aria-label="{% trans 'Filtros por estado del historial' %}">
             <a href="?section=historial"
                class="segmented-pill {% if not historial_estado_actual %}is-active{% endif %}"
-               onclick="filtrarHistorialEnTiempoReal(event, 'todos', this); return false;">
+               data-call="filtrarHistorialEnTiempoReal" data-arg-0="$event" data-arg-1="todos" data-arg-2="$el" data-prevent="true">
               <span>{% trans "Todos" %}</span>
               <span class="pill-counter{% if total_proyectos_historial == 0 %} is-zero{% endif %}">{{ total_proyectos_historial }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=finalizado"
                class="segmented-pill {% if historial_estado_actual == 'finalizado' %}is-active{% endif %}"
-               onclick="filtrarHistorialEnTiempoReal(event, 'finalizado', this); return false;">
+               data-call="filtrarHistorialEnTiempoReal" data-arg-0="$event" data-arg-1="finalizado" data-arg-2="$el" data-prevent="true">
               <span>{% trans "Finalizados" %}</span>
               <span class="pill-counter{% if historial_por_estado.finalizado == 0 %} is-zero{% endif %}">{{ historial_por_estado.finalizado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=rechazado"
                class="segmented-pill {% if historial_estado_actual == 'rechazado' %}is-active{% endif %}"
-               onclick="filtrarHistorialEnTiempoReal(event, 'rechazado', this); return false;">
+               data-call="filtrarHistorialEnTiempoReal" data-arg-0="$event" data-arg-1="rechazado" data-arg-2="$el" data-prevent="true">
               <span>{% trans "Rechazados" %}</span>
               <span class="pill-counter{% if historial_por_estado.rechazado == 0 %} is-zero{% endif %}">{{ historial_por_estado.rechazado }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=inactivo"
                class="segmented-pill {% if historial_estado_actual == 'inactivo' %}is-active{% endif %}"
-               onclick="filtrarHistorialEnTiempoReal(event, 'inactivo', this); return false;">
+               data-call="filtrarHistorialEnTiempoReal" data-arg-0="$event" data-arg-1="inactivo" data-arg-2="$el" data-prevent="true">
               <span>{% trans "Inactivos" %}</span>
               <span class="pill-counter{% if historial_por_estado.inactivo == 0 %} is-zero{% endif %}">{{ historial_por_estado.inactivo }}</span>
             </a>
             <a href="?section=historial&amp;historial_estado=en_disputa"
                class="segmented-pill {% if historial_estado_actual == 'en_disputa' %}is-active{% endif %}"
-               onclick="filtrarHistorialEnTiempoReal(event, 'en_disputa', this); return false;">
+               data-call="filtrarHistorialEnTiempoReal" data-arg-0="$event" data-arg-1="en_disputa" data-arg-2="$el" data-prevent="true">
               <span>{% trans "En disputa" %}</span>
               <span class="pill-counter{% if historial_por_estado.en_disputa == 0 %} is-zero{% endif %}">{{ historial_por_estado.en_disputa }}</span>
             </a>
@@ -312,13 +312,13 @@
                     <a href="{% url 'finalizar_proyecto' proyecto.id %}"
                        class="btn-corp-primary"
                        style="justify-content:center; padding:8px 12px; font-size:12px;"
-                       onclick="abrirModalCalificar(event, this.href, '{{ proyecto.titulo|escapejs }}'); return false;">
+                       data-call="abrirModalCalificar" data-arg-0="$event" data-arg-1="$href" data-arg-2="{{ proyecto.titulo }}" data-prevent="true">
                       <i data-lucide="star"></i>
                       <span>{% trans "Calificar Equipo" %}</span>
                     </a>
                   {% endif %}
                   {% if proyecto.estado == 'finalizado' %}
-                    <button type="button" class="btn-corp-primary" onclick="abrirModal()" style="justify-content:center; padding:8px 12px; font-size:12px;">
+                    <button type="button" class="btn-corp-primary" data-call="abrirModal" style="justify-content:center; padding:8px 12px; font-size:12px;">
                       <i data-lucide="sparkles"></i>
                       <span>{% trans "Volver a Contratar" %}</span>
                     </button>

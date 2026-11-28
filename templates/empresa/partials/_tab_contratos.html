@@ -57,7 +57,7 @@
                   <a href="{% url 'ver_contrato_digital' contrato.id %}"
                      class="btn-corp-action {% if contrato.firmado_empresa %}secondary{% else %}primary{% endif %}"
                      style="flex:1; justify-content:center;"
-                     onclick="abrirModalContrato(event, {{ contrato.id }}); return false;"
+                     data-call="abrirModalContrato" data-arg-0="$event" data-arg-1="{{ contrato.id }}" data-prevent="true"
                      title="{% trans "Revisar y firmar el contrato sin salir del panel" %}">
                     <i data-lucide="file-signature"></i>
                     <span>{% if contrato.firmado_empresa %}{% trans "Ver Documento Legal" %}{% else %}{% trans "Firmar Contrato Digital" %}{% endif %}</span>
@@ -65,7 +65,7 @@
                   <a href="{% url 'sala_chat' contrato.postulacion.desarrollador_id contrato.postulacion.proyecto.id %}"
                      class="btn-corp-action secondary"
                      style="padding:8px 12px;"
-                     onclick="abrirChatEnCentro(event, '{{ contrato.postulacion.desarrollador_id }}', '{{ contrato.postulacion.proyecto.id }}'); return false;"
+                     data-call="abrirChatEnCentro" data-arg-0="$event" data-arg-1="{{ contrato.postulacion.desarrollador_id }}" data-arg-2="{{ contrato.postulacion.proyecto.id }}" data-prevent="true"
                      title="{% trans "Chatear con el desarrollador" %}" aria-label="{% trans "Chatear con el desarrollador" %}">
                     <i data-lucide="message-square"></i>
                   </a>

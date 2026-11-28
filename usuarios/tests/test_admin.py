@@ -793,8 +793,8 @@ class TestAdminFiltroFechaRegistroSCRUM226:
         content = admin_client.get(reverse('dashboard_admin')).content.decode()
 
         assert 'data-testid="btn-aplicar-fecha-registro"' in content
-        assert 'type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" onclick="filterUsers()"' in content
-        assert 'onsubmit="event.preventDefault(); filterUsers();"' in content
+        assert 'type="button" class="btn btn-secondary btn-sm" data-testid="btn-aplicar-fecha-registro" data-call="filterUsers"' in content
+        assert 'data-submit-call="filterUsers" data-prevent="true"' in content
 
     def test_api_usuarios_filtra_por_fecha_desde(self, admin_client, db):
         """api_usuarios respeta el parámetro fecha_desde."""
@@ -1359,7 +1359,7 @@ class TestAdminSidebar:
         assert 'class="sidebar-brand-logo"' in sidebar_html
         assert '[ PANEL MAESTRO ]' in sidebar_html
         assert 'id="sidebarCollapseBtn"' in sidebar_html
-        assert 'onclick="toggleSidebarCollapse()"' in sidebar_html
+        assert 'data-call="toggleSidebarCollapse"' in sidebar_html
         assert 'Cerrar Sesión' not in sidebar_html
         assert 'sidebar-sep' not in sidebar_html
 
@@ -1423,7 +1423,7 @@ class TestAdminChatAvatars:
             assert perfil_emp.logo.url in chat_html
             assert perfil_dev.foto_perfil.url in chat_html
             assert '<img ' in chat_html
-            assert 'onerror=' in chat_html
+            assert 'data-fallback-text=' in chat_html
             # Usuario sin perfil hace fallback a la inicial
             import re
             inicial = sin_perfil_user.username[:1].upper()
@@ -1847,7 +1847,7 @@ class TestUsuariosHtmxPartial:
         assert 'hx-target="#usersTableBody"' in html
         assert 'hx-swap="innerHTML"' in html
         assert 'hx-sync=' in html
-        assert 'debouncedFilterUsers()' in html
+        assert 'data-input-call="debouncedFilterUsers"' in html
 
 
 class TestAdminHtmxPhase4S1:

@@ -6,7 +6,7 @@
           <div>
             <h1 class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</h1>
           </div>
-          <button class="btn-corp-primary" onclick="abrirModal()">
+          <button class="btn-corp-primary" data-call="abrirModal">
             <i data-lucide="plus"></i>
             <span>{% trans "Nueva Convocatoria" %}</span>
           </button>
@@ -17,13 +17,13 @@
           <div class="offers-toolbar-controls">
             <div class="offers-search-wrap">
               <i data-lucide="search"></i>
-              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)">
+              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" data-input-call="filtrarOfertasEnTiempoReal" data-input-arg-0="$el">
             </div>
             <div class="offers-filter-bar" role="group" aria-label="{% trans "Filtrar por modalidad" %}">
-              <button type="button" class="offers-filter-pill is-active" onclick="filtrarOfertasPorModalidad('todas', this)">{% trans "Todas" %}</button>
-              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('remoto', this)">{% trans "Remoto" %}</button>
-              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('presencial', this)">{% trans "Presencial" %}</button>
-              <button type="button" class="offers-filter-pill" onclick="filtrarOfertasPorModalidad('hibrido', this)">{% trans "Híbrido" %}</button>
+              <button type="button" class="offers-filter-pill is-active" data-call="filtrarOfertasPorModalidad" data-arg-0="todas" data-arg-1="$el">{% trans "Todas" %}</button>
+              <button type="button" class="offers-filter-pill" data-call="filtrarOfertasPorModalidad" data-arg-0="remoto" data-arg-1="$el">{% trans "Remoto" %}</button>
+              <button type="button" class="offers-filter-pill" data-call="filtrarOfertasPorModalidad" data-arg-0="presencial" data-arg-1="$el">{% trans "Presencial" %}</button>
+              <button type="button" class="offers-filter-pill" data-call="filtrarOfertasPorModalidad" data-arg-0="hibrido" data-arg-1="$el">{% trans "Híbrido" %}</button>
             </div>
           </div>
           <div class="offers-stats-wrap">
@@ -92,7 +92,7 @@
                 <div class="offer-actions">
                   <a href="{% url 'ver_postulaciones_empresa' proyecto.id %}"
                      class="btn-corp-action primary"
-                     onclick="abrirDrawerCandidatos(event, '{% url 'ver_postulaciones_empresa' proyecto.id %}', '{{ proyecto.titulo|escapejs }}'); return false;"
+                     data-call="abrirDrawerCandidatos" data-arg-0="$event" data-arg-1="{% url 'ver_postulaciones_empresa' proyecto.id %}" data-arg-2="{{ proyecto.titulo }}" data-prevent="true"
                      title="{% trans "Revisar candidatos de esta convocatoria en el embudo" %}">
                     <i data-lucide="users"></i>
                     <span>{% trans "Ver Candidatos" %} {% if proyecto.num_candidatos > 0 %}({{ proyecto.num_candidatos }}){% endif %}</span>
@@ -101,7 +101,7 @@
                   <a href="{% url 'editar_proyecto' proyecto.id %}"
                      class="btn-corp-action secondary"
                      {% if not proyecto.num_contratos and not proyecto.num_negociaciones %}
-                     onclick="abrirModalEditarProyecto(event, '{{ proyecto.id }}', '{% url 'editar_proyecto' proyecto.id %}', '{{ proyecto.titulo|escapejs }}', '{{ proyecto.descripcion|escapejs }}', '{{ proyecto.tipo_solucion|escapejs }}', '{{ proyecto.prioridad|escapejs }}', '{{ proyecto.modalidad|escapejs }}', '{{ proyecto.ciudad|escapejs }}', '{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}', '{{ proyecto.vacantes }}', '{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}'); return false;"
+                     data-call="abrirModalEditarProyecto" data-arg-0="$event" data-arg-1="{{ proyecto.id }}" data-arg-2="{% url 'editar_proyecto' proyecto.id %}" data-arg-3="{{ proyecto.titulo }}" data-arg-4="{{ proyecto.descripcion }}" data-arg-5="{{ proyecto.tipo_solucion }}" data-arg-6="{{ proyecto.prioridad }}" data-arg-7="{{ proyecto.modalidad }}" data-arg-8="{{ proyecto.ciudad }}" data-arg-9="{{ proyecto.fecha_limite|date:'Y-m-d'|default:'' }}" data-arg-10="{{ proyecto.vacantes }}" data-arg-11="{{ proyecto.fecha_cumplimiento|date:'Y-m-d'|default:'' }}" data-prevent="true"
                      {% endif %}
                      title="{% if proyecto.num_contratos or proyecto.num_negociaciones %}{% trans 'Editar título y prioridad' %}{% else %}{% trans 'Editar especificaciones de la oferta sin salir del panel' %}{% endif %}">
                     <i data-lucide="square-pen"></i>
@@ -131,7 +131,7 @@
             <div class="activity-empty" style="grid-column: 1 / -1; background: var(--corp-surface); border: 1px solid var(--corp-border);">
               <i data-lucide="megaphone"></i>
               <p>{% trans "No tienes ofertas publicadas actualmente." %}</p>
-              <button class="btn-corp-primary" onclick="abrirModal()" style="margin-top:14px;">
+              <button class="btn-corp-primary" data-call="abrirModal" style="margin-top:14px;">
                 <i data-lucide="plus"></i> {% trans "Publicar primera convocatoria" %}
               </button>
             </div>

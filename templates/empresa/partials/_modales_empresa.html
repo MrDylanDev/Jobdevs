@@ -2,7 +2,7 @@
 
 <!-- Modal de Bienvenida para Cuentas Nuevas (Primera vez - Obligatorio con opción de no volver a mostrar) -->
 <div id="modalBienvenidaEmpresa" class="modal-overlay" style="display:none; backdrop-filter:blur(4px); background:rgba(0,0,0,0.75);" role="dialog" aria-modal="true" aria-labelledby="bienvenidaModalTitulo">
-  <div class="modal-box-corp" onclick="event.stopPropagation()" style="max-width:540px; text-align:center; padding:32px 28px; box-shadow:var(--corp-shadow-pop); border:1px solid var(--corp-border);">
+  <div class="modal-box-corp" data-call="__noop" data-stop="true" style="max-width:540px; text-align:center; padding:32px 28px; box-shadow:var(--corp-shadow-pop); border:1px solid var(--corp-border);">
     <div style="width:64px; height:64px; border-radius:50%; background:var(--corp-brand-light); color:var(--corp-brand); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
       <i data-lucide="sparkles" style="width:32px; height:32px;"></i>
     </div>
@@ -37,10 +37,10 @@
     </div>
 
     <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalBienvenida()">
+      <button type="button" class="btn-corp-action secondary" data-call="cerrarModalBienvenida">
         {% trans "Explorar Panel" %}
       </button>
-      <button type="button" class="btn-corp-primary" onclick="empezarConvocatoriaDesdeBienvenida()">
+      <button type="button" class="btn-corp-primary" data-call="empezarConvocatoriaDesdeBienvenida">
         <i data-lucide="plus-circle"></i>
         <span>{% trans "Publicar Convocatoria" %}</span>
       </button>
@@ -56,13 +56,13 @@
         <h2 class="modal-title-corp" id="modalEditarPerfilTitulo" style="margin-bottom:2px;">{% trans "Editar Página de Empresa" %}</h2>
         <span class="text-corp-meta">{% trans "Actualiza la presencia institucional y de contacto" %}</span>
       </div>
-      <button onclick="cerrarModalPerfil()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button data-call="cerrarModalPerfil" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
     <form method="post" action="{% url 'editar_perfil' %}" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:0;">
       {% csrf_token %}
-      
+
       <!-- Preview y carga de logo -->
       <div class="logo-upload-preview">
         <div id="logoPreviewBox" class="logo-preview-box">
@@ -74,7 +74,7 @@
         </div>
         <div style="flex:1;">
           <label class="form-label-corp" for="perfil_logo" style="margin-bottom:3px;">{% trans "Logo de la Empresa" %}</label>
-          <input type="file" id="perfil_logo" name="logo" class="form-input-corp" accept="image/*" onchange="previewLogo(this)" style="padding:5px 8px; font-size:12px;">
+          <input type="file" id="perfil_logo" name="logo" class="form-input-corp" accept="image/*" data-change-call="previewLogo" data-change-arg-0="$el" style="padding:5px 8px; font-size:12px;">
           <div style="font-size:12px; color:var(--corp-slate-500); margin-top:3px;">{% trans "Formatos recomendados: PNG, JPG o WebP cuadrado (400x400)." %}</div>
         </div>
       </div>
@@ -113,7 +113,7 @@
       </div>
 
       <div class="modal-footer-corp">
-        <button type="button" onclick="cerrarModalPerfil()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+        <button type="button" data-call="cerrarModalPerfil" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
         <button type="submit" class="btn-corp-primary">
           <i data-lucide="save"></i>
           <span>{% trans "Guardar Cambios" %}</span>
@@ -131,7 +131,7 @@
         <h2 class="modal-title-corp" id="modalTodasValoracionesTitulo" style="margin-bottom: 3px;">{% trans "Expediente de Reputación y Valoraciones" %}</h2>
         <span style="font-size: 12px; color: var(--corp-slate-500);">{% blocktrans with total=total_valoraciones count counter=total_valoraciones %}Registro completo de {{ total }} evaluación recibida de desarrolladores contratados{% plural %}Registro completo de {{ total }} evaluaciones recibidas de desarrolladores contratados{% endblocktrans %}</span>
       </div>
-      <button onclick="cerrarModalTodasValoraciones()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button data-call="cerrarModalTodasValoraciones" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -143,17 +143,17 @@
                class="form-input-corp"
                aria-label="{% trans "Buscar reseñas por desarrollador o proyecto" %}"
                placeholder="{% trans "Buscar por desarrollador o proyecto..." %}"
-               onkeyup="filtrarResenasModal(this)"
+               data-input-call="filtrarResenasModal" data-input-arg-0="$el"
                style="padding-left: 32px;">
         <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
       </div>
 
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button type="button" class="datepicker-preset-pill active" onclick="filtrarPorEstrellasModal(0, this)">{% blocktrans with total=total_valoraciones %}Todas ({{ total }}){% endblocktrans %}</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(5, this)">{% blocktrans with count=conteo_estrellas.5 %}5 ★ ({{ count }}){% endblocktrans %}</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(4, this)">{% blocktrans with count=conteo_estrellas.4 %}4 ★ ({{ count }}){% endblocktrans %}</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(3, this)">{% blocktrans with count=conteo_estrellas.3 %}3 ★ ({{ count }}){% endblocktrans %}</button>
-        <button type="button" class="datepicker-preset-pill" onclick="filtrarPorEstrellasModal(1, this)">{% blocktrans with count=conteo_estrellas.1|add:conteo_estrellas.2 %}1-2 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill active" data-call="filtrarPorEstrellasModal" data-arg-0="$num:0" data-arg-1="$el">{% blocktrans with total=total_valoraciones %}Todas ({{ total }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" data-call="filtrarPorEstrellasModal" data-arg-0="$num:5" data-arg-1="$el">{% blocktrans with count=conteo_estrellas.5 %}5 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" data-call="filtrarPorEstrellasModal" data-arg-0="$num:4" data-arg-1="$el">{% blocktrans with count=conteo_estrellas.4 %}4 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" data-call="filtrarPorEstrellasModal" data-arg-0="$num:3" data-arg-1="$el">{% blocktrans with count=conteo_estrellas.3 %}3 ★ ({{ count }}){% endblocktrans %}</button>
+        <button type="button" class="datepicker-preset-pill" data-call="filtrarPorEstrellasModal" data-arg-0="$num:1" data-arg-1="$el">{% blocktrans with count=conteo_estrellas.1|add:conteo_estrellas.2 %}1-2 ★ ({{ count }}){% endblocktrans %}</button>
       </div>
     </div>
 
@@ -213,7 +213,7 @@
 
     <!-- Footer modal -->
     <div style="padding: 14px 24px; border-top: 1px solid var(--corp-border); display: flex; justify-content: flex-end; background: var(--corp-surface);">
-      <button type="button" class="btn-corp-action secondary" onclick="cerrarModalTodasValoraciones()">{% trans "Cerrar" %}</button>
+      <button type="button" class="btn-corp-action secondary" data-call="cerrarModalTodasValoraciones">{% trans "Cerrar" %}</button>
     </div>
   </div>
 </div>
@@ -231,7 +231,7 @@
           <span class="text-corp-meta">{% trans "Validación oficial de persona jurídica o natural con personería comercial" %}</span>
         </div>
       </div>
-      <button onclick="cerrarModalVerificacion()" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
+      <button data-call="cerrarModalVerificacion" class="modal-close-btn" aria-label="{% trans "Cerrar modal" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -334,7 +334,7 @@
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--corp-border); padding-top:16px;">
-          <button type="button" onclick="cerrarModalVerificacion()" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
+          <button type="button" data-call="cerrarModalVerificacion" class="btn-corp-action secondary">{% trans "Cancelar" %}</button>
           <button type="submit" class="btn-corp-primary">
             <i data-lucide="upload-cloud"></i>
             <span>{% trans "Radicar Solicitud de Verificación" %}</span>

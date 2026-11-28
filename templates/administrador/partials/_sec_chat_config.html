@@ -109,7 +109,7 @@
           </div>
 
           <div style="display:flex; gap:8px;">
-            <button type="button" class="btn btn-secondary" id="adminExploreResetBtn" style="height:40px; padding:0 16px; font-size:12.5px;" onclick="resetAdminExploreFilters()">
+            <button type="button" class="btn btn-secondary" id="adminExploreResetBtn" style="height:40px; padding:0 16px; font-size:12.5px;" data-call="resetAdminExploreFilters">
               <i data-lucide="rotate-ccw" style="width:14px; height:14px; margin-right:4px;"></i> Limpiar
             </button>
           </div>
@@ -127,7 +127,7 @@
                  data-estado="{{ p.estado|lower }}"
                  data-empresa="{{ p.empresa.nombre|default:p.empresa.username|lower }}"
                  style="display:flex; flex-direction:column; justify-content:space-between;">
-              
+
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:8px;">
                   <span class="tag-solucion">{{ p.get_tipo_solucion_display|default:p.tipo_solucion }}</span>
@@ -207,7 +207,7 @@
             <i data-lucide="search-x" style="width:36px; height:36px; margin-bottom:12px; opacity:0.5;"></i>
             <p style="font-size:15px; font-weight:600; margin-bottom:4px;">No se encontraron proyectos con los filtros actuales</p>
             <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Prueba ajustando los términos de búsqueda o limpiando los filtros.</p>
-            <button type="button" class="btn btn-primary btn-sm" onclick="resetAdminExploreFilters()">
+            <button type="button" class="btn btn-primary btn-sm" data-call="resetAdminExploreFilters">
               Limpiar filtros
             </button>
           </div>
@@ -233,7 +233,7 @@
                       data-receptor="{{ conv.usuario.id }}" data-proyecto="0">
                 <span class="jd-chat-avatar">
                   {% if conv.foto_url %}
-                    <img src="{{ conv.foto_url }}" alt="{{ conv.usuario.username }}" onerror="this.parentElement.textContent='{{ conv.usuario.username|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ conv.foto_url }}" alt="{{ conv.usuario.username }}" data-fallback-text="{{ conv.usuario.username|slice:":1"|upper }}">
                   {% else %}
                     {{ conv.usuario.username|slice:":1"|upper }}
                   {% endif %}

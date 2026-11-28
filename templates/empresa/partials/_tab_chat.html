@@ -33,7 +33,7 @@
                       data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
                 <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" onerror="this.parentElement.textContent='{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" data-fallback-text="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}
@@ -74,7 +74,7 @@
                 <div class="jd-chat-head-info">
                   <div class="jd-chat-head-name-row">
                     <div class="jd-chat-head-name" data-chat-name>—</div>
-                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" onclick="toggleChatContextSidebar()" title="{% trans "Mostrar contexto del proyecto" %}" aria-label="{% trans "Alternar panel de contexto del proyecto" %}">
+                    <button type="button" class="jd-chat-context-toggle" id="chatContextToggleBtn" data-call="toggleChatContextSidebar" title="{% trans "Mostrar contexto del proyecto" %}" aria-label="{% trans "Alternar panel de contexto del proyecto" %}">
                       <i data-lucide="panel-right-open"></i>
                     </button>
                   </div>
