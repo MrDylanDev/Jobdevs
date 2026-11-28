@@ -15,7 +15,7 @@
           {% if post.estado == 'en_negociacion' and post.contrato_digital and not post.contrato_digital.firmado_desarrollador %}
             <div id="popupContrato_{{ post.contrato_digital.id }}" class="contrato-popup-overlay" role="dialog" aria-modal="false" aria-labelledby="popupContratoTitle_{{ post.contrato_digital.id }}">
               <div class="contrato-popup-card">
-                <button type="button" class="contrato-popup-close" onclick="cerrarPopupContrato('popupContrato_{{ post.contrato_digital.id }}')" title="Cerrar aviso" aria-label="Cerrar aviso">
+                <button type="button" class="contrato-popup-close" data-action="cerrar-popup-contrato" data-target="popupContrato_{{ post.contrato_digital.id }}" title="Cerrar aviso" aria-label="Cerrar aviso">
                   <i data-lucide="x"></i>
                 </button>
                 <div class="contrato-popup-icon">
@@ -28,11 +28,11 @@
                     La empresa <strong>{{ post.proyecto.empresa.nombre|default:post.proyecto.empresa.username }}</strong> inició negociación para el proyecto <strong>'{{ post.proyecto.titulo }}'</strong>{% if post.contrato_digital.monto > 0 %} ({{ post.contrato_digital.monto_formateado }}){% endif %}.
                   </p>
                   <div class="contrato-popup-actions">
-                    <button type="button" class="btn-cockpit primary" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" onclick="cerrarPopupContrato('popupContrato_{{ post.contrato_digital.id }}')">
+                    <button type="button" class="btn-cockpit primary" data-abrir-contrato data-url="{% url 'ver_contrato_digital' post.contrato_digital.id %}" data-action="cerrar-popup-contrato" data-target="popupContrato_{{ post.contrato_digital.id }}">
                       <i data-lucide="file-signature"></i>
                       <span>Revisar y Firmar</span>
                     </button>
-                    <button type="button" class="btn-cockpit" onclick="cerrarPopupContrato('popupContrato_{{ post.contrato_digital.id }}')">
+                    <button type="button" class="btn-cockpit" data-action="cerrar-popup-contrato" data-target="popupContrato_{{ post.contrato_digital.id }}">
                       Más tarde
                     </button>
                   </div>
@@ -44,7 +44,7 @@
 
         <!-- Tarjetas de Métricas Cockpit -->
         <div class="dev-cards-grid">
-          <div class="dev-card" onclick="verSeccion('activos')" title="Ver proyectos en desarrollo">
+          <div class="dev-card" data-action="ver-seccion" data-target="activos" title="Ver proyectos en desarrollo">
             <div class="dev-card-top">
               <span class="dev-card-label">Trabajo en Curso</span>
               <div class="dev-card-icon"><i data-lucide="rocket"></i></div>
@@ -52,7 +52,7 @@
             <div class="dev-card-val"><span class="kpi-num">{{ hitos_pendientes_count|default:proyectos_activos_count }}</span></div>
           </div>
 
-          <div class="dev-card" onclick="verSeccion('postulaciones')" title="Ver mis postulaciones">
+          <div class="dev-card" data-action="ver-seccion" data-target="postulaciones" title="Ver mis postulaciones">
             <div class="dev-card-top">
               <span class="dev-card-label">Postulaciones</span>
               <div class="dev-card-icon"><i data-lucide="send"></i></div>
@@ -60,7 +60,7 @@
             <div class="dev-card-val"><span class="kpi-num">{{ postulaciones_negociacion_count|default:postulaciones_vigentes_count }}</span></div>
           </div>
 
-          <div class="dev-card" onclick="verSeccion('completados')" title="Ver contratos cerrados">
+          <div class="dev-card" data-action="ver-seccion" data-target="completados" title="Ver contratos cerrados">
             <div class="dev-card-top">
               <span class="dev-card-label">Contratos Cerrados</span>
               <div class="dev-card-icon"><i data-lucide="check-circle-2"></i></div>
@@ -68,7 +68,7 @@
             <div class="dev-card-val"><span class="kpi-num">{{ proyectos_completados }}</span></div>
           </div>
 
-          <div class="dev-card" onclick="verSeccion('completados')" title="Ver reputación">
+          <div class="dev-card" data-action="ver-seccion" data-target="completados" title="Ver reputación">
             <div class="dev-card-top">
               <span class="dev-card-label">Reputación</span>
               <div class="dev-card-icon"><i data-lucide="star"></i></div>
@@ -98,13 +98,13 @@
                   <span class="cockpit-chart-kpi-label" id="devChartKpiLabel">Hitos Completados</span>
                 </div>
                 <div class="cockpit-chart-tabs" role="tablist">
-                  <button type="button" class="cockpit-chart-tab active" id="tabHitos" onclick="cambiarMetricaGrafica('hitos', this)">
+                  <button type="button" class="cockpit-chart-tab active" id="tabHitos" data-action="cambiar-metrica-grafica" data-metric="hitos">
                     Hitos
                   </button>
-                  <button type="button" class="cockpit-chart-tab" id="tabPostulaciones" onclick="cambiarMetricaGrafica('postulaciones', this)">
+                  <button type="button" class="cockpit-chart-tab" id="tabPostulaciones" data-action="cambiar-metrica-grafica" data-metric="postulaciones">
                     Postulaciones
                   </button>
-                  <button type="button" class="cockpit-chart-tab" id="tabCalificacion" onclick="cambiarMetricaGrafica('calificacion', this)">
+                  <button type="button" class="cockpit-chart-tab" id="tabCalificacion" data-action="cambiar-metrica-grafica" data-metric="calificacion">
                     ★ Calificación
                   </button>
                 </div>
@@ -186,7 +186,7 @@
                   <div class="dev-deadline-date">Estás al día</div>
                 {% endif %}
               </div>
-              <button type="button" class="btn-cockpit primary" style="padding:6px 12px; font-size:11px;" onclick="verSeccion('activos')">
+              <button type="button" class="btn-cockpit primary" style="padding:6px 12px; font-size:11px;" data-action="ver-seccion" data-target="activos">
                 Subir Avance
               </button>
             </div>
@@ -202,7 +202,7 @@
                 <i data-lucide="code-2"></i>
                 <span>Trabajo Actual en Desarrollo</span>
               </h2>
-              <button type="button" class="cockpit-card-link" onclick="verSeccion('activos')">
+              <button type="button" class="cockpit-card-link" data-action="ver-seccion" data-target="activos">
                 Ver todos ({{ proyectos_activos_count }}) →
               </button>
             </div>
@@ -224,10 +224,10 @@
                       </div>
                     </div>
                     <div class="linear-item-actions">
-                      <button type="button" class="btn-cockpit" style="padding:4px 10px;font-size:11px;" onclick="verSeccion('centro-chat')" title="Abrir chat">
+                      <button type="button" class="btn-cockpit" style="padding:4px 10px;font-size:11px;" data-action="ver-seccion" data-target="centro-chat" title="Abrir chat">
                         <i data-lucide="message-square"></i>
                       </button>
-                      <button type="button" class="btn-cockpit primary" style="padding:4px 12px;font-size:11px;" onclick="verSeccion('activos')" title="Subir avance">
+                      <button type="button" class="btn-cockpit primary" style="padding:4px 12px;font-size:11px;" data-action="ver-seccion" data-target="activos" title="Subir avance">
                         <span>Subir Avance</span>
                       </button>
                     </div>
@@ -237,7 +237,7 @@
                 <div class="cockpit-empty-state" style="border:none; background:transparent; padding:28px 16px;">
                   <i data-lucide="briefcase"></i>
                   <p style="margin-bottom:12px;">Sin proyectos en desarrollo activo actualmente.</p>
-                  <button type="button" class="btn-cockpit primary" onclick="verSeccion('explorar')">
+                  <button type="button" class="btn-cockpit primary" data-action="ver-seccion" data-target="explorar">
                     Explorar Vacantes
                   </button>
                 </div>
@@ -254,7 +254,7 @@
                   <i data-lucide="send"></i>
                   <span>Pipeline de Postulaciones</span>
                 </h2>
-                <button type="button" class="cockpit-card-link" onclick="verSeccion('postulaciones')">
+                <button type="button" class="cockpit-card-link" data-action="ver-seccion" data-target="postulaciones">
                   Ver todas ({{ postulaciones_vigentes_count }}) →
                 </button>
               </div>
@@ -281,7 +281,7 @@
                         {% else %}
                           <span class="badge-status" style="font-size:10px;">{{ post.get_estado_display }}</span>
                         {% endif %}
-                        <button type="button" class="cockpit-card-link" style="margin-left:4px;" onclick="verSeccion('postulaciones')">
+                        <button type="button" class="cockpit-card-link" style="margin-left:4px;" data-action="ver-seccion" data-target="postulaciones">
                           <i data-lucide="chevron-right"></i>
                         </button>
                       </div>
@@ -291,7 +291,7 @@
                   <div class="cockpit-empty-state" style="border:none; background:transparent; padding:28px 16px;">
                     <i data-lucide="inbox"></i>
                     <p style="margin-bottom:12px;">No tienes postulaciones vigentes.</p>
-                    <button type="button" class="btn-cockpit" onclick="verSeccion('explorar')">
+                    <button type="button" class="btn-cockpit" data-action="ver-seccion" data-target="explorar">
                       Buscar Oportunidades
                     </button>
                   </div>
@@ -307,7 +307,7 @@
                     <i data-lucide="sparkles"></i>
                     <span>Vacantes Recomendadas</span>
                   </h2>
-                  <button type="button" class="cockpit-card-link" onclick="verSeccion('explorar')">
+                  <button type="button" class="cockpit-card-link" data-action="ver-seccion" data-target="explorar">
                     Explorar ({{ proyectos_explorar|length }}) →
                   </button>
                 </div>
@@ -328,7 +328,7 @@
                             ${{ p.presupuesto|floatformat:0 }} COP
                           </span>
                         {% endif %}
-                        <button type="button" class="btn-cockpit primary" style="padding:3px 9px; font-size:10.5px;" onclick="verSeccion('explorar')">
+                        <button type="button" class="btn-cockpit primary" style="padding:3px 9px; font-size:10.5px;" data-action="ver-seccion" data-target="explorar">
                           Postularme
                         </button>
                       </div>

@@ -24,7 +24,7 @@ class TestRNF04InterfazResponsiva:
     def test_meta_viewport_en_plantillas_autonomas(self):
         """Las plantillas de dashboards y vistas públicas deben ser responsivas."""
         plantillas = [
-            'templates/Desarrollador/Desarrollador.html',
+            'templates/desarrollador/Desarrollador.html',
             'templates/empresa/empresa.html',
             'templates/administrador/Administrador.html',
             'templates/publico/index.html',

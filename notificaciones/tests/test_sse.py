@@ -128,7 +128,7 @@ class TestNotificacionesSSE:
         for tpl in [
             'base.html',
             'avances/registrar.html',
-            'Desarrollador/Desarrollador.html',
+            'desarrollador/Desarrollador.html',
             'empresa/empresa.html',
             'administrador/Administrador.html',
         ]:

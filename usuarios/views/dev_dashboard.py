@@ -460,7 +460,7 @@ def dashboard_desarrollador(request):
     }
     context.update(datos_dashboard_disputas(request.user, estado=request.GET.get('estado')))
     context['disputas_activas_count'] = len(context['disputas_activas'])
-    return render(request, 'Desarrollador/Desarrollador.html', context)
+    return render(request, 'desarrollador/Desarrollador.html', context)
 
 
 @login_required
@@ -554,7 +554,7 @@ def detalle_desarrollador(request, desarrollador_id):
         promedio_redondeado = round(float(promedio), 1)
 
         if es_htmx:
-            return render(request, 'Desarrollador/partials/_modal_perfil_publico.html', {
+            return render(request, 'desarrollador/partials/_modal_perfil_publico.html', {
                 'desarrollador': desarrollador,
                 'perfil': perfil,
                 'nombre_desarrollador': nombre_desarrollador,

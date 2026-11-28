@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}JobDevs | Verificación de Aprendiz SENA{% endblock %}
 
 {% block content %}
@@ -200,55 +201,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  (function () {
-    var tablist = document.getElementById('metodoTab');
-    var content = document.getElementById('metodoTabContent');
-    if (!tablist || !content) return;
-
-    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[data-tab-target]'));
-    var panes = Array.prototype.slice.call(content.querySelectorAll('.tab-pane'));
-
-    function activateTab(tab) {
-      var targetSelector = tab.getAttribute('data-tab-target');
-      var targetPane = targetSelector ? document.querySelector(targetSelector) : null;
-      if (!targetPane) return;
-
-      tabs.forEach(function (btn) {
-        var isCurrent = btn === tab;
-        btn.classList.toggle('active', isCurrent);
-        btn.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
-        btn.setAttribute('tabindex', isCurrent ? '0' : '-1');
-      });
-
-      panes.forEach(function (pane) {
-        var isCurrent = pane === targetPane;
-        pane.classList.toggle('active', isCurrent);
-        pane.classList.toggle('show', isCurrent);
-      });
-    }
-
-    tabs.forEach(function (tab, index) {
-      tab.setAttribute('tabindex', tab.classList.contains('active') ? '0' : '-1');
-
-      tab.addEventListener('click', function () {
-        activateTab(tab);
-      });
-
-      tab.addEventListener('keydown', function (event) {
-        var nextIndex = null;
-        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
-        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
-        else if (event.key === 'Home') nextIndex = 0;
-        else if (event.key === 'End') nextIndex = tabs.length - 1;
-
-        if (nextIndex !== null) {
-          event.preventDefault();
-          tabs[nextIndex].focus();
-          activateTab(tabs[nextIndex]);
-        }
-      });
-    });
-  })();
-</script>
+<script type="module" src="{% static 'Desarrollador/script/verificacion_tabs.js' %}"></script>
 {% endblock %}

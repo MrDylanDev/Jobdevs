@@ -73,6 +73,13 @@ def page(browser, live_server):
     # que acceden a la BD de pruebas tras su cierre. Los SSE se prueban aparte.
     page.route('**/notificaciones/stream/**', lambda route: route.fulfill(status=204))
     yield page
+    # Drenar peticiones HTMX/fetch en vuelo antes de cerrar el contexto y que
+    # django_db(transaction=True) haga FLUSH sobre SQLite :memory: compartido.
+    try:
+        if not page.is_closed():
+            page.wait_for_load_state('networkidle', timeout=3000)
+    except Exception:
+        pass
     context.close()
 
 

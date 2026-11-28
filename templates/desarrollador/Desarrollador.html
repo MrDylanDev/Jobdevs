@@ -243,19 +243,19 @@
       <!-- Mensajes Django -->
       {% include 'partials/_flash_toasts.html' %}
 
-      {% include 'Desarrollador/partials/_tab_inicio.html' %}
+      {% include 'desarrollador/partials/_tab_inicio.html' %}
 
-      {% include 'Desarrollador/partials/_tab_chat.html' %}
+      {% include 'desarrollador/partials/_tab_chat.html' %}
 
-      {% include 'Desarrollador/partials/_tab_explorar.html' %}
+      {% include 'desarrollador/partials/_tab_explorar.html' %}
 
-      {% include 'Desarrollador/partials/_tab_contratos.html' %}
+      {% include 'desarrollador/partials/_tab_contratos.html' %}
 
-      {% include 'Desarrollador/partials/_tab_activos.html' %}
+      {% include 'desarrollador/partials/_tab_activos.html' %}
 
-      {% include 'Desarrollador/partials/_tab_historial.html' %}
+      {% include 'desarrollador/partials/_tab_historial.html' %}
 
-      {% include 'Desarrollador/partials/_tab_favoritos.html' %}
+      {% include 'desarrollador/partials/_tab_favoritos.html' %}
 
       <!-- Perfil (Integrado como Modal bajo demanda) -->
       <div id="perfil" class="seccion-v" style="display:none;" hidden></div>
@@ -264,7 +264,7 @@
   </div>
 </div>
 
-{% include 'Desarrollador/partials/_modales.html' %}
+{% include 'desarrollador/partials/_modales.html' %}
 
 <!-- Overlay de Spinner al Cerrar Sesión (Idéntico a Empresa) -->
 <div id="logoutSpinnerOverlay" class="logout-spinner-overlay" aria-hidden="true" style="display:none;">
@@ -282,12 +282,13 @@
 <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
 <script type="module" src="{% static 'Desarrollador/script/desarrollador.js' %}?v=20261126_mod1"></script>
 <script type="module" src="{% static 'mensajes/script/chat_inline.js' %}?v=20261121_v10"></script>
-<script src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
+<script type="module" src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
 <script type="module" src="{% static 'dashboard/script/notificaciones_sse.js' %}?v=2"></script>
-<script src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
-<script src="{% static 'dashboard/script/favoritos_async.js' %}?v=20261121_v5"></script>
-<script src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}?v=20261121_v4"></script>
+<script type="module" src="{% static 'dashboard/script/notificaciones_popover.js' %}?v=3"></script>
+<script type="module" src="{% static 'dashboard/script/favoritos_async.js' %}?v=20261121_v5"></script>
+<script type="module" src="{% static 'dashboard/script/proyecto_detalle_modal.js' %}?v=20261121_v4"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
+<script type="module" src="{% static 'dashboard/script/action_delegate.js' %}"></script>
 
 {% if contrataciones_pendientes_calificar %}
 <script>

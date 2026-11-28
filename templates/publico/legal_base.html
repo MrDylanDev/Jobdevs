@@ -92,37 +92,6 @@
     </article>
   </main>
 
-  <script>
-    (function () {
-      var btn = document.getElementById('legalThemeToggle');
-      if (btn) {
-        btn.addEventListener('click', function () {
-          var current = document.documentElement.getAttribute('data-theme') || 'dark';
-          var next = current === 'light' ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', next);
-          try { localStorage.setItem('jobdevs-theme', next); } catch (e) {}
-        });
-      }
-
-      var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.legal-toc-list a[href^="#"]'));
-      if (tocLinks.length && 'IntersectionObserver' in window) {
-        var map = {};
-        tocLinks.forEach(function (link) {
-          var id = link.getAttribute('href').slice(1);
-          var el = document.getElementById(id);
-          if (el) map[id] = { link: link, el: el };
-        });
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting && map[entry.target.id]) {
-              tocLinks.forEach(function (l) { l.classList.remove('is-current'); });
-              map[entry.target.id].link.classList.add('is-current');
-            }
-          });
-        }, { rootMargin: '-18% 0px -70% 0px', threshold: 0 });
-        Object.keys(map).forEach(function (id) { observer.observe(map[id].el); });
-      }
-    })();
-  </script>
+  <script type="module" src="{% static 'publico/script/legal.js' %}"></script>
 </body>
 </html>

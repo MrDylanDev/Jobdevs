@@ -71,6 +71,19 @@
   --morph-hover-bg:  #1b1b1b;
   --morph-hover-fg:  #ffffff;
   --dropdown-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+
+  /* Extended semantic tokens (surfaces, text, borders, shadows) */
+  --surface-base:       #0a0a0a;
+  --surface-elevated:   #0f0f0f;
+  --surface-subtle:     #141414;
+  --surface-hover:      #18181b;
+  --surface-input:      #0f0f0f;
+  --text-strong:        #ffffff;
+  --text-soft:          #a1a1aa;
+  --border-hover:       rgba(255, 255, 255, 0.22);
+  --border-divider:     rgba(255, 255, 255, 0.08);
+  --shadow-card:        0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover:  0 6px 20px rgba(0, 0, 0, 0.65);
 }
 
 /* ---- Tema Claro Compartido ([data-theme="light"]) ---- */
@@ -129,6 +142,19 @@
   --morph-hover-bg:  #f1f5f9;
   --morph-hover-fg:  var(--text-primary);
   --dropdown-shadow: var(--shadow-lg);
+
+  /* Extended semantic tokens (light mode) */
+  --surface-base:       #eef1f4;
+  --surface-elevated:   #ffffff;
+  --surface-subtle:     #f8fafc;
+  --surface-hover:      #f1f5f9;
+  --surface-input:      #ffffff;
+  --text-strong:        #0b0f0c;
+  --text-soft:          #6b7280;
+  --border-hover:       #cbd5e1;
+  --border-divider:     #e4e7e5;
+  --shadow-card:        0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover:  0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* ---- Reset & Base ---- */

@@ -205,7 +205,7 @@ class TestToggleFavorito:
 
     def test_templates_incluyen_script_favoritos_async(self):
         """SCRUM-192: Los templates de proyectos y favoritos cargan favoritos_async.js."""
-        for tpl in ['proyectos/listar.html', 'favoritos/lista.html', 'Desarrollador/Desarrollador.html']:
+        for tpl in ['proyectos/listar.html', 'favoritos/lista.html', 'desarrollador/Desarrollador.html']:
             with open(f'templates/{tpl}', encoding='utf-8') as f:
                 content = f.read()
             assert 'favoritos_async.js' in content, f"Template {tpl} debe cargar favoritos_async.js"
