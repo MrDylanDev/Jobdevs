@@ -26,11 +26,12 @@ class TestHtmxDashboardsE2E:
         page.evaluate('() => { window.__e2eNoReload = true; }')
 
         # Switch to Users section and trigger HTMX search
-        page.evaluate('() => window.showSection("usuariosSection")')
+        page.evaluate('() => window.showSection("usersSection")')
         search = page.locator('#userSearch')
         search.wait_for(state='visible', timeout=5000)
 
-        with page.expect_response(lambda r: '/api/usuarios' in r.url and r.status == 200, timeout=5000):
+        api_url = reverse('api_usuarios')
+        with page.expect_response(lambda r: api_url in r.url and r.status == 200, timeout=5000):
             search.fill(test_dev.username)
 
         page.wait_for_function(
