@@ -13,7 +13,7 @@ from django.db.models import (
     Avg, Q, Count, Prefetch, Value, FloatField, F, IntegerField, OuterRef, Subquery,
 )
 from django.db.models.functions import Coalesce
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from urllib.parse import urlencode
 from django.core.paginator import Paginator
@@ -1055,6 +1055,80 @@ def eliminar_hito(request, hito_id):
         messages.error(request, msg)
     return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
+def _render_ofertas_htmx(request, *, toast=None):
+    """Renderiza el partial _tab_ofertas.html actualizado para respuestas HTMX."""
+    hoy = timezone.localdate()
+    limite_48h = hoy + timedelta(days=2)
+    mis_ofertas = list(
+        Proyecto.objects.filter(empresa=request.user, estado='publicado')
+        .select_related('categoria')
+        .annotate(
+            num_candidatos=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado__in=['pendiente', 'en_negociacion']),
+                distinct=True,
+            ),
+            num_pendientes=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado='pendiente'),
+                distinct=True,
+            ),
+            num_contratos=Count('contrataciones', distinct=True),
+            num_contratos_cancelados=Count(
+                'contrataciones',
+                filter=Q(contrataciones__estado='cancelada'),
+                distinct=True,
+            ),
+            num_contratos_activos=Count(
+                'contrataciones',
+                filter=Q(contrataciones__estado='activa'),
+                distinct=True,
+            ),
+            num_negociaciones=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado='en_negociacion'),
+                distinct=True,
+            ),
+        )
+        .order_by('-fecha_publicacion')
+    )
+    for proyecto in mis_ofertas:
+        proyecto.cierra_pronto = bool(
+            proyecto.fecha_limite and hoy <= proyecto.fecha_limite <= limite_48h
+        )
+        proyecto.puede_reabrir = bool(
+            proyecto.fecha_limite
+            and proyecto.fecha_limite < hoy
+            and proyecto.num_contratos_cancelados
+            and proyecto.vacantes > proyecto.num_contratos_activos + proyecto.num_negociaciones
+        )
+
+    total_vacantes_ofertas = sum(p.vacantes for p in mis_ofertas)
+    total_postulaciones = Postulacion.objects.filter(
+        proyecto__empresa=request.user,
+        estado='pendiente',
+        proyecto__estado__in=['publicado', 'en_desarrollo'],
+    ).count()
+
+    response = render(
+        request,
+        'empresa/partials/_tab_ofertas.html',
+        {
+            'mis_ofertas': mis_ofertas,
+            'total_vacantes_ofertas': total_vacantes_ofertas,
+            'total_postulaciones': total_postulaciones,
+            'fecha_minima_reapertura': (hoy + timedelta(days=1)).isoformat(),
+            'htmx_ofertas_activa': True,
+        },
+    )
+    if toast:
+        tipo, mensaje = toast
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+        })
+    return response
+
+
 @login_required
 @require_POST
 def reabrir_postulaciones(request, proyecto_id):
@@ -1062,6 +1136,7 @@ def reabrir_postulaciones(request, proyecto_id):
     if request.user.rol != 'empresa':
         raise PermissionDenied
 
+    error_msg = None
     with transaction.atomic():
         proyecto = get_object_or_404(
             Proyecto.objects.select_for_update(), id=proyecto_id, empresa=request.user,
@@ -1074,28 +1149,37 @@ def reabrir_postulaciones(request, proyecto_id):
             and Contratacion.objects.filter(proyecto=proyecto, estado='cancelada').exists()
             and proyecto.vacantes_disponibles > 0
         ):
-            messages.error(request, "Este proyecto no admite reabrir postulaciones.")
-            return redirect('dashboard_empresa')
+            error_msg = "Este proyecto no admite reabrir postulaciones."
+        else:
+            try:
+                nueva_fecha = datetime.strptime(request.POST.get('fecha_limite', ''), '%Y-%m-%d').date()
+            except (TypeError, ValueError):
+                error_msg = "Indica una fecha válida de cierre de postulaciones."
+                nueva_fecha = None
 
-        try:
-            nueva_fecha = datetime.strptime(request.POST.get('fecha_limite', ''), '%Y-%m-%d').date()
-        except (TypeError, ValueError):
-            messages.error(request, "Indica una fecha válida de cierre de postulaciones.")
-            return redirect('dashboard_empresa')
-        if nueva_fecha <= hoy:
-            messages.error(request, "El nuevo cierre debe ser posterior a hoy.")
-            return redirect('dashboard_empresa')
+            if error_msg is None and nueva_fecha <= hoy:
+                error_msg = "El nuevo cierre debe ser posterior a hoy."
 
-        anterior = proyecto.fecha_limite
-        proyecto.fecha_limite = nueva_fecha
-        proyecto.save(update_fields=['fecha_limite'])
-        LogAuditoria.objects.create(
-            usuario=request.user, tabla_afectada='proyectos', registro_id=proyecto.pk,
-            accion=f"Amplió cierre de postulaciones de {proyecto.titulo}"[:300],
-            valor_anterior=anterior.isoformat(), valor_nuevo=nueva_fecha.isoformat(),
-        )
+            if error_msg is None:
+                anterior = proyecto.fecha_limite
+                proyecto.fecha_limite = nueva_fecha
+                proyecto.save(update_fields=['fecha_limite'])
+                LogAuditoria.objects.create(
+                    usuario=request.user, tabla_afectada='proyectos', registro_id=proyecto.pk,
+                    accion=f"Amplió cierre de postulaciones de {proyecto.titulo}"[:300],
+                    valor_anterior=anterior.isoformat(), valor_nuevo=nueva_fecha.isoformat(),
+                )
 
-    messages.success(request, "Convocatoria reabierta con el nuevo plazo de postulación.")
+    if error_msg:
+        if _es_htmx(request):
+            return _render_ofertas_htmx(request, toast=('error', error_msg))
+        messages.error(request, error_msg)
+        return redirect('dashboard_empresa')
+
+    msg_ok = "Convocatoria reabierta con el nuevo plazo de postulación."
+    if _es_htmx(request):
+        return _render_ofertas_htmx(request, toast=('success', msg_ok))
+    messages.success(request, msg_ok)
     return redirect(f"{reverse('dashboard_empresa')}#ofertas")
 
 
@@ -1282,10 +1366,15 @@ def desactivar_proyecto(request, proyecto_id):
                 # Creación masiva de notificaciones
                 Notificacion.objects.bulk_create(notificaciones_lista)
 
-            messages.info(request, f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados.")
+            msg = f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados."
+            toast_tipo = 'info'
         else:
-            messages.error(request, "Solo puedes retirar una oferta publicada sin contratos. Los proyectos en ejecución requieren el flujo de terminación o resolución contractual.")
-        
+            msg = "Solo puedes retirar una oferta publicada sin contratos. Los proyectos en ejecución requieren el flujo de terminación o resolución contractual."
+            toast_tipo = 'error'
+
+    if _es_htmx(request):
+        return _render_ofertas_htmx(request, toast=(toast_tipo, msg))
+    getattr(messages, toast_tipo)(request, msg)
     return redirect('dashboard_empresa')
 
 

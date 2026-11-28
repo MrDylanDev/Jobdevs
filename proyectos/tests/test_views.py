@@ -2116,3 +2116,194 @@ class TestHitosEquiposHTMX:
         assert resp_del_eq.status_code == 302
 
 
+@pytest.mark.django_db
+class TestEmpresaOfertasHtmx:
+    """S4: desactivar_proyecto y reabrir_postulaciones devuelven _tab_ofertas.html + HX-Trigger."""
+
+    def test_desactivar_proyecto_htmx_exito_retorna_partial_ofertas_y_toast(
+        self, auth_client, empresa_user
+    ):
+        import json
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Retirable HTMX',
+            descripcion='Proyecto publicado sin contratos',
+            tipo_solucion='web',
+            estado='publicado',
+        )
+        response = auth_client.post(
+            reverse('desactivar_proyecto', args=[proyecto.pk]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'seccion-v activa' in html
+        assert 'Oferta Retirable HTMX' not in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'info'
+        assert 'retirado' in triggers['jobdevs:toast']['mensaje'].lower()
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'inactivo'
+
+    def test_desactivar_proyecto_htmx_con_contrato_retorna_toast_error_y_preserva_estado(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from contrataciones.models import Contratacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Con Contrato HTMX',
+            descripcion='Proyecto con contrato activo',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=2,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='activa',
+        )
+        response = auth_client.post(
+            reverse('desactivar_proyecto', args=[proyecto.pk]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'Oferta Con Contrato HTMX' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+
+    def test_reabrir_postulaciones_htmx_exito_retorna_partial_ofertas_y_toast(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Reabrible HTMX',
+            descripcion='Proyecto con cierre vencido y contrato cancelado',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=hoy - timedelta(days=2),
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        nueva_fecha = hoy + timedelta(days=10)
+        response = auth_client.post(
+            reverse('reabrir_postulaciones', args=[proyecto.pk]),
+            {'fecha_limite': nueva_fecha.isoformat()},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'seccion-v activa' in html
+        assert 'Oferta Reabrible HTMX' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == nueva_fecha
+
+    def test_reabrir_postulaciones_htmx_fecha_invalida_retorna_toast_error_y_no_modifica(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        fecha_original = hoy - timedelta(days=2)
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Fecha Invalida HTMX',
+            descripcion='Proyecto con cierre vencido',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=fecha_original,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        response = auth_client.post(
+            reverse('reabrir_postulaciones', args=[proyecto.pk]),
+            {'fecha_limite': hoy.isoformat()},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == fecha_original
+
+    def test_ofertas_htmx_preserva_redirect_sin_htmx(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        p_retirar = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Redirect Retiro',
+            descripcion='Sin HTMX',
+            tipo_solucion='web',
+            estado='publicado',
+        )
+        resp_retiro = auth_client.post(reverse('desactivar_proyecto', args=[p_retirar.pk]))
+        assert resp_retiro.status_code == 302
+
+        p_reabrir = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Redirect Reabrir',
+            descripcion='Sin HTMX',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=hoy - timedelta(days=1),
+        )
+        Contratacion.objects.create(
+            proyecto=p_reabrir,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        resp_reabrir = auth_client.post(
+            reverse('reabrir_postulaciones', args=[p_reabrir.pk]),
+            {'fecha_limite': (hoy + timedelta(days=5)).isoformat()},
+        )
+        assert resp_reabrir.status_code == 302
+
+
+

@@ -45,6 +45,56 @@ def ver_detalle_contrato(request, contratacion_id):
         
     return render(request, 'contrataciones/detalle.html', {'contrato': contrato})
 
+def _contexto_solicitudes_cancelacion(usuario):
+    """Construye el contexto compartido para la página de solicitudes de dev/admin."""
+    rol = usuario.rol
+    solicitudes = SolicitudCancelacion.objects.select_related(
+        'contratacion__proyecto', 'contratacion__empresa',
+        'contratacion__desarrollador', 'solicitante', 'resuelto_por',
+    )
+    contratos = Contratacion.objects.none()
+    if rol == 'desarrollador':
+        solicitudes = solicitudes.filter(contratacion__desarrollador=usuario)
+        contratos = Contratacion.objects.filter(
+            desarrollador=usuario, estado='activa',
+        ).exclude(
+            proyecto__estado='en_disputa',
+        ).exclude(
+            solicitudes_cancelacion__estado__in=['pendiente_acuerdo', 'pendiente_revision'],
+        ).select_related('proyecto', 'empresa', 'desarrollador')
+    else:
+        solicitudes = solicitudes.exclude(causal='acuerdo_mutuo').exclude(estado='pendiente_acuerdo')
+
+    return {
+        'solicitudes': solicitudes.order_by('-fecha_creacion'),
+        'contratos': contratos,
+        'causales': SolicitudCancelacion.CAUSALES,
+        'rol': rol,
+    }
+
+
+def _render_cancelaciones_htmx(request, *, toast=None):
+    """Devuelve el partial/panel actualizado de cancelaciones + HX-Trigger toast."""
+    if request.user.rol == 'empresa':
+        response = render(
+            request,
+            'empresa/partials/_tab_cancelaciones.html',
+            services.datos_dashboard_cancelaciones(request.user),
+        )
+    else:
+        response = render(
+            request,
+            'contrataciones/solicitudes_cancelacion.html',
+            _contexto_solicitudes_cancelacion(request.user),
+        )
+    if toast:
+        tipo, mensaje = toast
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+        })
+    return response
+
+
 @login_required
 @require_POST
 def cancelar_contratacion(request, contratacion_id):
@@ -68,12 +118,19 @@ def cancelar_contratacion(request, contratacion_id):
         services.solicitar_cancelacion(
             contratacion_id, request.user, causal=causal, motivo=motivo, evidencia=evidencia,
         )
-        messages.success(request, 'Solicitud registrada. El contrato sigue activo hasta su aprobación.')
+        toast_tipo = 'success'
+        msg = 'Solicitud registrada. El contrato sigue activo hasta su aprobación.'
     except PermissionDenied as exc:
-        messages.error(request, str(exc))
+        toast_tipo = 'error'
+        msg = str(exc)
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc))
+        toast_tipo = 'error'
+        msg = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
 
+    if _es_htmx(request):
+        return _render_cancelaciones_htmx(request, toast=(toast_tipo, msg))
+
+    getattr(messages, toast_tipo)(request, msg)
     return redirect(_destino_cancelaciones(request.user))
 
 
@@ -87,29 +144,11 @@ def solicitudes_cancelacion(request):
         # La empresa gestiona el flujo dentro de su panel; la URL histórica
         # sobrevive como atajo para no romper enlaces ni marcadores.
         return redirect(_destino_cancelaciones(request.user))
-    solicitudes = SolicitudCancelacion.objects.select_related(
-        'contratacion__proyecto', 'contratacion__empresa',
-        'contratacion__desarrollador', 'solicitante', 'resuelto_por',
+    return render(
+        request,
+        'contrataciones/solicitudes_cancelacion.html',
+        _contexto_solicitudes_cancelacion(request.user),
     )
-    contratos = Contratacion.objects.none()
-    if rol == 'desarrollador':
-        solicitudes = solicitudes.filter(contratacion__desarrollador=request.user)
-        contratos = Contratacion.objects.filter(
-            desarrollador=request.user, estado='activa',
-        ).exclude(
-            proyecto__estado='en_disputa',
-        ).exclude(
-            solicitudes_cancelacion__estado__in=['pendiente_acuerdo', 'pendiente_revision'],
-        ).select_related('proyecto', 'empresa', 'desarrollador')
-    else:
-        solicitudes = solicitudes.exclude(causal='acuerdo_mutuo').exclude(estado='pendiente_acuerdo')
-
-    return render(request, 'contrataciones/solicitudes_cancelacion.html', {
-        'solicitudes': solicitudes.order_by('-fecha_creacion'),
-        'contratos': contratos,
-        'causales': SolicitudCancelacion.CAUSALES,
-        'rol': rol,
-    })
 
 
 @login_required
@@ -117,16 +156,26 @@ def solicitudes_cancelacion(request):
 def resolver_solicitud_cancelacion(request, solicitud_id):
     decision = request.POST.get('decision')
     if decision not in ('aprobar', 'rechazar'):
-        messages.error(request, 'Selecciona una decisión válida.')
+        msg = 'Selecciona una decisión válida.'
+        if _es_htmx(request):
+            return _render_cancelaciones_htmx(request, toast=('error', msg))
+        messages.error(request, msg)
         return redirect(_destino_cancelaciones(request.user))
     try:
         services.resolver_solicitud_cancelacion(
             solicitud_id, request.user, aprobar=(decision == 'aprobar'),
             dictamen=request.POST.get('dictamen', ''),
         )
-        messages.success(request, 'Decisión registrada y notificada a ambas partes.')
+        toast_tipo = 'success'
+        msg = 'Decisión registrada y notificada a ambas partes.'
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages))
+        toast_tipo = 'error'
+        msg = ' '.join(exc.messages)
+
+    if _es_htmx(request):
+        return _render_cancelaciones_htmx(request, toast=(toast_tipo, msg))
+
+    getattr(messages, toast_tipo)(request, msg)
     return redirect(_destino_cancelaciones(request.user))
 
 
