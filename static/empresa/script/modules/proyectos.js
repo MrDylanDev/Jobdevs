@@ -207,13 +207,14 @@ export function initProyectos() {
   document.addEventListener('jobdevs:proyecto-creado', function (event) {
     const detail = (event && event.detail) || {};
     const formCrear = document.getElementById('formCrearProyecto');
+    const targetTab = detail.reload_hash || 'ofertas';
     cerrarModal();
     if (formCrear) formCrear.reset();
-    switchTab(detail.reload_hash || 'ofertas');
-    window.location.hash = '#' + (detail.reload_hash || 'ofertas');
-    setTimeout(function () {
-      window.location.reload();
-    }, 350);
+    switchTab(targetTab);
+    window.location.hash = '#' + targetTab;
+    if (window.JobDevsHTMX && typeof window.JobDevsHTMX.refreshSections === 'function') {
+      window.JobDevsHTMX.refreshSections(['#' + targetTab, '#inicio']);
+    }
   });
 
   // Backdrop del modal de proyectos

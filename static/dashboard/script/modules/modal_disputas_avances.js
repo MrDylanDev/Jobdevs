@@ -116,17 +116,43 @@ function initHtmxModalListeners() {
     });
   });
 
-  function cerrarYRecargar() {
+  function cerrarYRecargar(selectors) {
     cerrarModal();
-    setTimeout(function () { window.location.reload(); }, 900);
+    if (window.JobDevsHTMX && typeof window.JobDevsHTMX.refreshSections === 'function') {
+      window.JobDevsHTMX.refreshSections(selectors);
+    }
   }
 
-  document.addEventListener('jobdevs:avance-registrado', cerrarYRecargar);
-  document.addEventListener('jobdevs:disputa-resuelta', cerrarYRecargar);
+  document.addEventListener('jobdevs:avance-registrado', function () {
+    cerrarYRecargar([
+      '#activos',
+      '#desarrollo',
+      '#inicio',
+      '#bandeja-entregables-pendientes',
+      '#listaAvancesRevision',
+    ]);
+  });
+  document.addEventListener('jobdevs:disputa-resuelta', function () {
+    cerrarYRecargar([
+      '#disputasSection',
+      '#disputas',
+      '#projectsSection',
+      '#desarrollo',
+      '#activos',
+      '#statsSection',
+      '#inicio',
+    ]);
+  });
   document.addEventListener('jobdevs:disputa-creada', function () {
     const modal = document.getElementById('jdmModal');
     if (modal && !modal.hidden) {
-      cerrarYRecargar();
+      cerrarYRecargar([
+        '#disputas',
+        '#disputasSection',
+        '#desarrollo',
+        '#activos',
+        '#inicio',
+      ]);
     }
   });
 }

@@ -88,3 +88,48 @@ class TestHtmxBridgeContrato:
         assert 'JobDevsToast' in js
         assert 'JobDevsSSE' in js
         assert 'mostrarToast' in js
+
+
+JS_ZERO_RELOAD_MODULES = {
+    'proyectos': BASE / 'static' / 'empresa' / 'script' / 'modules' / 'proyectos.js',
+    'evaluaciones_modales': BASE / 'static' / 'empresa' / 'script' / 'modules' / 'evaluaciones_modales.js',
+    'modal_disputas_avances': BASE / 'static' / 'dashboard' / 'script' / 'modules' / 'modal_disputas_avances.js',
+    'proyectos_postulaciones': BASE / 'static' / 'Desarrollador' / 'script' / 'modules' / 'proyectos_postulaciones.js',
+}
+
+LOCATION_RELOAD_PATTERN = re.compile(r'location\.reload\s*\(')
+
+
+class TestHtmxBridgeS5RefreshYCsrf403:
+    def test_bridge_expone_jobdevs_htmx_refresh_sections(self):
+        js = _leer(HTMX_BRIDGE_JS)
+        assert 'window.JobDevsHTMX' in js
+        assert 'refreshSections' in js
+        assert "htmx.ajax('GET'" in js or 'htmx.ajax("GET"' in js
+        assert 'window.location.pathname + window.location.search' in js
+        assert "swap: 'outerHTML'" in js or 'swap: "outerHTML"' in js
+        assert 'activa' in js and 'active' in js
+
+    def test_bridge_centraliza_recuperacion_csrf_403(self):
+        js = _leer(HTMX_BRIDGE_JS)
+        assert 'htmx:responseError' in js
+        assert '403' in js
+        assert re.search(r'csrf', js, re.IGNORECASE)
+        assert 'jobdevs:toast' in js
+
+    @pytest.mark.parametrize('nombre,ruta', JS_ZERO_RELOAD_MODULES.items())
+    def test_modulos_dashboard_sin_location_reload(self, nombre, ruta):
+        js = _leer(ruta)
+        assert not LOCATION_RELOAD_PATTERN.search(js), (
+            f'{nombre} ({ruta.name}) todavía contiene llamadas a location.reload()'
+        )
+
+    @pytest.mark.parametrize(
+        'nombre',
+        ['proyectos', 'evaluaciones_modales', 'modal_disputas_avances'],
+    )
+    def test_modulos_modales_usan_jobdevs_htmx_refresh_sections(self, nombre):
+        js = _leer(JS_ZERO_RELOAD_MODULES[nombre])
+        assert 'JobDevsHTMX' in js
+        assert 'refreshSections' in js
+

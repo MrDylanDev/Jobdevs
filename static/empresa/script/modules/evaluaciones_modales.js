@@ -100,20 +100,28 @@ if (!window.__jobdevsEvalModalesHtmxInit) {
 
   document.addEventListener('jobdevs:disputa-creada', function (event) {
     const detail = (event && event.detail) || {};
+    const targetTab = detail.reload_hash || 'desarrollo';
     cerrarModalDisputa();
-    setTimeout(function () {
-      window.location.hash = detail.reload_hash || 'desarrollo';
-      window.location.reload();
-    }, 900);
+    if (typeof window.switchTab === 'function') {
+      window.switchTab(targetTab);
+    }
+    window.location.hash = '#' + targetTab;
+    if (window.JobDevsHTMX && typeof window.JobDevsHTMX.refreshSections === 'function') {
+      window.JobDevsHTMX.refreshSections(['#' + targetTab, '#disputas', '#desarrollo', '#inicio']);
+    }
   });
 
   document.addEventListener('jobdevs:calificacion-guardada', function (event) {
     const detail = (event && event.detail) || {};
+    const targetTab = detail.reload_hash || 'historial';
     cerrarModalCalificar();
-    setTimeout(function () {
-      window.location.hash = detail.reload_hash || 'historial';
-      window.location.reload();
-    }, 700);
+    if (typeof window.switchTab === 'function') {
+      window.switchTab(targetTab);
+    }
+    window.location.hash = '#' + targetTab;
+    if (window.JobDevsHTMX && typeof window.JobDevsHTMX.refreshSections === 'function') {
+      window.JobDevsHTMX.refreshSections(['#' + targetTab, '#historial', '#inicio']);
+    }
   });
 }
 

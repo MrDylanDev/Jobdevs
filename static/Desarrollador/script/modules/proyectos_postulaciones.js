@@ -245,11 +245,13 @@ export function initProyectosPostulaciones() {
     }
 
     if (xhr && xhr.status === 403) {
+      const esCsrf = /csrf/i.test(xhr.responseText || '');
       mostrarFeedbackPostulacion(
-        'Tu token de seguridad expiró. Recargando la página para continuar…',
+        esCsrf
+          ? 'Tu token de seguridad expiró. Actualizando la página para continuar…'
+          : 'No tienes permisos para realizar esta postulación.',
         true
       );
-      setTimeout(() => window.location.reload(), 1200);
       return;
     }
 
