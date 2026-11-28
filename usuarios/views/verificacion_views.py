@@ -27,6 +27,11 @@ from ..services_storage import (
     generar_url_subida_prefirmada,
 )
 from ..utils_dian import calcular_dv_dian, limpiar_documento
+from .admin_dashboard import (
+    _contexto_sec_verificaciones,
+    _es_htmx_request,
+    _htmx_admin_section_response,
+)
 
 MAX_SOPORTE_BYTES = 5 * 1024 * 1024  # 5 MB
 
@@ -193,14 +198,30 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
         raise PermissionDenied
 
     destino = redirect(reverse('dashboard_admin') + '?section=verificacionEmpresasSection')
+    es_htmx = _es_htmx_request(request)
     accion = request.POST.get('accion', '').strip()
     notas = request.POST.get('notas', '').strip()
 
+    def _htmx_verif_resp(tipo, msg):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='verificacionEmpresasSection'),
+            tipo,
+            msg,
+        )
+
     if accion not in ('aprobar', 'rechazar', 'solicitar_documento'):
-        messages.error(request, 'Acción de verificación no válida.')
+        msg = 'Acción de verificación no válida.'
+        if es_htmx:
+            return _htmx_verif_resp('error', msg)
+        messages.error(request, msg)
         return destino
     if accion in ('rechazar', 'solicitar_documento') and not notas:
-        messages.error(request, 'Debes indicar el motivo del rechazo.')
+        msg = 'Debes indicar el motivo del rechazo.'
+        if es_htmx:
+            return _htmx_verif_resp('error', msg)
+        messages.error(request, msg)
         return destino
 
     dashboard_url = request.build_absolute_uri(reverse('solicitar_verificacion_empresa'))
@@ -211,7 +232,10 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             id=perfil_id,
         )
         if perfil.estado_verificacion != 'en_revision':
-            messages.warning(request, 'Esta solicitud ya no está en revisión.')
+            msg = 'Esta solicitud ya no está en revisión.'
+            if es_htmx:
+                return _htmx_verif_resp('warning', msg)
+            messages.warning(request, msg)
             return destino
 
         nombre = perfil.razon_social or perfil.usuario.nombre
@@ -228,7 +252,10 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
             )
             if notas:
                 mensaje += f' Observaciones: {notas}'
-            messages.success(request, f'Empresa {nombre} verificada correctamente.')
+            toast_tipo = 'success'
+            toast_msg = f'Empresa {nombre} verificada correctamente.'
+            if not es_htmx:
+                messages.success(request, toast_msg)
         else:
             perfil.estado_verificacion = 'rechazada'
             if accion == 'solicitar_documento':
@@ -240,7 +267,10 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
                     f'Para continuar con la verificación de {nombre} necesitamos que cargues '
                     f'un nuevo documento. Motivo: {notas}.'
                 )
-                messages.info(request, f'Solicitud de nuevo documento enviada a {nombre}.')
+                toast_tipo = 'info'
+                toast_msg = f'Solicitud de nuevo documento enviada a {nombre}.'
+                if not es_htmx:
+                    messages.info(request, toast_msg)
             else:
                 perfil.intentos_verificacion += 1
                 accion_log = f'Rechazó la verificación de la empresa {nombre} ({perfil.documento_completo})'
@@ -248,7 +278,10 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
                     f'Tu solicitud de verificación para {nombre} fue rechazada. '
                     f'Motivo: {notas}. Puedes corregir tus datos y enviarla nuevamente.'
                 )
-                messages.info(request, f'Solicitud de {nombre} rechazada.')
+                toast_tipo = 'info'
+                toast_msg = f'Solicitud de {nombre} rechazada.'
+                if not es_htmx:
+                    messages.info(request, toast_msg)
         perfil.save()
 
         LogAuditoria.objects.create(
@@ -280,10 +313,13 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
                 f'Tu solicitud de verificación para {nombre} fue rechazada y agotaste los {max_intentos} intentos permitidos. '
                 f'Tu cuenta fue {resultado_depuracion}. Motivo: {notas}.'
             )
-            messages.warning(
-                request,
-                f'Cuenta de {nombre} {resultado_depuracion} por agotar los {max_intentos} intentos de verificación.',
+            toast_tipo = 'warning'
+            toast_msg = (
+                f'Cuenta de {nombre} {resultado_depuracion} por agotar los '
+                f'{max_intentos} intentos de verificación.'
             )
+            if not es_htmx:
+                messages.warning(request, toast_msg)
 
         if resultado_depuracion != 'eliminada':
             Notificacion.objects.create(
@@ -317,6 +353,8 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
 
             transaction.on_commit(_enviar_email_verificacion)
 
+    if es_htmx:
+        return _htmx_verif_resp(toast_tipo, toast_msg)
     return destino
 
 
@@ -338,6 +376,20 @@ def admin_resolver_verificacion_desarrollador(request, perfil_id):
         notas=notas,
         dashboard_url=request.build_absolute_uri(reverse('solicitar_verificacion_desarrollador')),
     )
+    if ok:
+        toast_tipo = 'success' if accion == 'aprobar' else 'info'
+    else:
+        toast_tipo = 'error'
+
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='verificacionDevsSection'),
+            toast_tipo,
+            msg,
+        )
+
     if ok:
         if accion == 'aprobar':
             messages.success(request, msg)

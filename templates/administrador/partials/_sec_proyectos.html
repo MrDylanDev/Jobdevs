@@ -1,6 +1,6 @@
 {% load static %}
       <!-- Proyectos -->
-      <section id="projectsSection" class="section-v">
+      <section id="projectsSection" class="section-v{% if active_section == 'projectsSection' %} active{% endif %}">
         <div class="page-header">
           <div>
             <div class="page-title">Monitor Maestro de Proyectos</div>
@@ -126,7 +126,7 @@
             <div class="page-title" style="font-size:16px;">Regularizar cierres históricos</div>
             <p>Solo si existe evidencia verificable de la fecha real de cierre. El plazo de valoración corre desde esa fecha, no desde el registro administrativo.</p>
             {% for proyecto in proyectos_pendientes_regularizacion %}
-              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}" data-admin-confirm="true" data-confirm-title="Registrar cierre histórico" data-confirm-message="¿Confirmas que existe evidencia verificable para registrar el cierre histórico del proyecto {{ proyecto.titulo|escape }}?" data-confirm-ok="Registrar cierre">
+              <form method="post" action="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}" hx-post="{% url 'admin_regularizar_cierre_proyecto' proyecto.id %}" hx-target="#projectsSection" hx-select="#projectsSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Registrar cierre histórico" data-confirm-message="¿Confirmas que existe evidencia verificable para registrar el cierre histórico del proyecto {{ proyecto.titulo|escape }}?" data-confirm-ok="Registrar cierre">
                 {% csrf_token %}
                 <strong>{{ proyecto.titulo }}</strong> — {{ proyecto.empresa.username }}
                 <label>Fecha y hora real de cierre <input type="datetime-local" name="fecha_cierre" required></label>
