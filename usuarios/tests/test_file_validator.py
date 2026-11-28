@@ -16,7 +16,7 @@ class TestFileValidatorIntegration:
         """Los templates principales incluyen file_validator_async.js."""
         templates = [
             'base.html',
-            'Desarrollador/Desarrollador.html',
+            'desarrollador/Desarrollador.html',
             'empresa/empresa.html',
         ]
         for tpl in templates:

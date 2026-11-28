@@ -21,7 +21,7 @@ CHAT_FILES = (
 DASHBOARD_CSS = BASE / 'static' / 'dashboard' / 'css' / 'dashboard.css'
 TEMPLATES = {
     'admin': BASE / 'templates' / 'administrador' / 'Administrador.html',
-    'dev': BASE / 'templates' / 'Desarrollador' / 'Desarrollador.html',
+    'dev': BASE / 'templates' / 'desarrollador' / 'Desarrollador.html',
     'empresa': BASE / 'templates' / 'empresa' / 'empresa.html',
 }
 

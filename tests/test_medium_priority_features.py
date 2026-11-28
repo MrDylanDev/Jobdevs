@@ -35,7 +35,7 @@ def test_scrum_411_drawer_movil_en_los_tres_dashboards():
     """SCRUM-411: Los 3 dashboards incluyen backdrop y botón hamburguesa para el drawer móvil."""
     base = Path(settings.BASE_DIR)
     for tpl in (
-        'templates/Desarrollador/Desarrollador.html',
+        'templates/desarrollador/Desarrollador.html',
         'templates/empresa/empresa.html',
         'templates/administrador/Administrador.html',
     ):
@@ -78,7 +78,7 @@ def test_scrum_411_badge_cero_no_se_revela_en_drawer_movil():
     assert 'hidden' in label_rule, 'la regla móvil no debe pisar el atributo hidden del badge'
 
     for tpl in (
-        'templates/Desarrollador/Desarrollador.html',
+        'templates/desarrollador/Desarrollador.html',
         'templates/empresa/empresa.html',
         'templates/administrador/Administrador.html',
     ):
@@ -139,7 +139,7 @@ def test_scrum_455_456_457_variables_semanticas_y_tema_claro():
     assert '.jdm-disputa-chat' in modals_css
 
     for tpl in (
-        'templates/Desarrollador/Desarrollador.html',
+        'templates/desarrollador/Desarrollador.html',
         'templates/empresa/empresa.html',
     ):
         content = (base / tpl).read_text(encoding='utf-8')
@@ -148,9 +148,9 @@ def test_scrum_455_456_457_variables_semanticas_y_tema_claro():
 
 def test_scrum_401_empty_states_accionables_desarrollador():
     """SCRUM-401: Dashboard Desarrollador incluye empty states accionables con enlace a catálogo."""
-    dev_dir = Path(settings.BASE_DIR) / 'templates/Desarrollador'
+    dev_dir = Path(settings.BASE_DIR) / 'templates/desarrollador'
     partials = sorted((dev_dir / 'partials').glob('*.html'))
-    assert partials, 'Se esperaban parciales en templates/Desarrollador/partials/'
+    assert partials, 'Se esperaban parciales en templates/desarrollador/partials/'
     content = '\n'.join(
         p.read_text(encoding='utf-8') for p in [dev_dir / 'Desarrollador.html', *partials]
     )
