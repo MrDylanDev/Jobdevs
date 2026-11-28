@@ -133,7 +133,7 @@ def enviar_avisos_cumplimiento_task() -> int:
         Q(proyecto__fecha_cumplimiento__isnull=True)
         | ~Q(fecha_cumplimiento=F('proyecto__fecha_cumplimiento'))
     ).select_related('notificacion')
-    for aviso in obsoletos.iterator():
+    for aviso in list(obsoletos):
         with transaction.atomic():
             if aviso.notificacion_id:
                 Notificacion.objects.filter(pk=aviso.notificacion_id, leida=False).delete()
@@ -147,7 +147,7 @@ def enviar_avisos_cumplimiento_task() -> int:
             estado__in=('publicado', 'en_desarrollo', 'en_revision'),
             fecha_cumplimiento=fecha,
         ).select_related('empresa')
-        for proyecto in proyectos.iterator():
+        for proyecto in list(proyectos):
             destinatarios = set(administradores)
             if proyecto.empresa.is_active and proyecto.empresa.estado == 'activo':
                 destinatarios.add(proyecto.empresa_id)
