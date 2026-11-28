@@ -18,7 +18,7 @@ CHAT_FILES = (
 CHAT_TEMPLATES = (
     Path(settings.BASE_DIR) / 'templates' / 'empresa' / 'empresa.html',
     Path(settings.BASE_DIR) / 'templates' / 'administrador' / 'Administrador.html',
-    Path(settings.BASE_DIR) / 'templates' / 'Desarrollador' / 'Desarrollador.html',
+    Path(settings.BASE_DIR) / 'templates' / 'desarrollador' / 'Desarrollador.html',
 )
 
 

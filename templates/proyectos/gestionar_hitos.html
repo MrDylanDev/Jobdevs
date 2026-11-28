@@ -144,54 +144,7 @@
 <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
 <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
 <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
-<script>
-  function switchModuloTab(tab, btnEl) {
-    var esAvances = tab === 'avances';
-
-    var panelHitos = document.getElementById('panelHitos');
-    var panelAvances = document.getElementById('panelAvances');
-    var tabHitos = document.getElementById('tabHitos');
-    var tabAvances = document.getElementById('tabAvances');
-
-    if (panelHitos) { panelHitos.style.display = esAvances ? 'none' : ''; }
-    if (panelAvances) { panelAvances.style.display = esAvances ? '' : 'none'; }
-
-    if (tabHitos) {
-      tabHitos.classList.toggle('active', !esAvances);
-      tabHitos.setAttribute('aria-selected', esAvances ? 'false' : 'true');
-    }
-    if (tabAvances) {
-      tabAvances.classList.toggle('active', esAvances);
-      tabAvances.setAttribute('aria-selected', esAvances ? 'true' : 'false');
-    }
-
-    var navItems = document.querySelectorAll('.sidebar .nav-item');
-    navItems.forEach(function (item) {
-      var href = item.getAttribute('href') || '';
-      if (href === '#hitos' || href === '#avances') {
-        item.classList.toggle('active', href === '#' + tab);
-      }
-    });
-
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', '#' + tab);
-    }
-
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
-    return false;
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var hash = (window.location.hash || '').replace('#', '');
-    switchModuloTab(hash === 'avances' ? 'avances' : 'hitos');
-  });
-
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-</script>
+<script type="module" src="{% static 'dashboard/script/modulo_hitos_avances.js' %}" data-modulo-default-tab="hitos"></script>
 <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
 </body>
 </html>

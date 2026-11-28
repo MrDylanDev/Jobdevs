@@ -13,7 +13,7 @@ HTMX_BRIDGE_JS = BASE / 'static' / 'dashboard' / 'script' / 'htmx_bridge.js'
 TEMPLATES = {
     'base': BASE / 'templates' / 'base.html',
     'administrador': BASE / 'templates' / 'administrador' / 'Administrador.html',
-    'desarrollador': BASE / 'templates' / 'Desarrollador' / 'Desarrollador.html',
+    'desarrollador': BASE / 'templates' / 'desarrollador' / 'Desarrollador.html',
     'empresa': BASE / 'templates' / 'empresa' / 'empresa.html',
 }
 

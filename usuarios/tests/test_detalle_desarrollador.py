@@ -218,7 +218,7 @@ class TestDetalleDesarrolladorHTMX:
 
         assert response.status_code == 200
         template_names = [t.name for t in response.templates]
-        assert 'Desarrollador/partials/_modal_perfil_publico.html' in template_names
+        assert 'desarrollador/partials/_modal_perfil_publico.html' in template_names
         content = response.content.decode('utf-8')
         assert '<!DOCTYPE' not in content
         assert '<html' not in content
@@ -241,7 +241,7 @@ class TestDetalleDesarrolladorHTMX:
         response = client.get(url, HTTP_HX_REQUEST='true')
 
         assert response.status_code == 200
-        assert 'Desarrollador/partials/_modal_perfil_publico.html' in [
+        assert 'desarrollador/partials/_modal_perfil_publico.html' in [
             t.name for t in response.templates
         ]
         content = response.content.decode('utf-8')
