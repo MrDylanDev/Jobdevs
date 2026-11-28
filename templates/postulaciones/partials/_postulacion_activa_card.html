@@ -1,0 +1,47 @@
+<article class="post-row-compact" style="animation: devFade 0.3s ease;">
+  <!-- Línea 1: Empresa + Fecha a la izquierda | Estado a la derecha -->
+  <div class="post-compact-line-1">
+    <div class="post-compact-empresa">
+      <div class="post-compact-avatar">
+        {% if empresa_logo %}
+          <img src="{{ empresa_logo }}" alt="{{ empresa_nombre }}">
+        {% else %}
+          {{ empresa_nombre|default:"E"|slice:":1"|upper }}
+        {% endif %}
+      </div>
+      <div class="post-compact-meta">
+        <a href="{{ detalle_empresa_url }}" data-abrir-empresa data-url="{{ detalle_empresa_url }}" class="post-compact-empresa-link" title="Ver perfil institucional">
+          <span>{{ empresa_nombre }}</span>
+          <i data-lucide="arrow-up-right" style="width:11px; height:11px; opacity:0.6;"></i>
+        </a>
+        <span class="post-compact-date">· Postulado el {{ fecha|default:"Hoy" }} (hace instantes)</span>
+      </div>
+    </div>
+
+    <div class="post-status-pill">
+      <span class="post-status-dot is-pendiente"></span>
+      <span class="post-status-text">{{ estado_display|default:"Pendiente de evaluación" }}</span>
+    </div>
+  </div>
+
+  <!-- Línea 2: Título + Tags a la izquierda | Botón Ver a la derecha -->
+  <div class="post-compact-line-2">
+    <div class="post-compact-project-info">
+      <h3 class="post-compact-title">{{ proyecto.titulo }}</h3>
+      <div class="post-tags-row">
+        <span class="post-tag"><i data-lucide="layers"></i> {{ tipo_solucion }}</span>
+        <span class="post-tag"><i data-lucide="map-pin"></i> {{ modalidad }}</span>
+        <span class="post-tag" style="color:var(--text-muted); border-style:dashed;">
+          <i data-lucide="clock" style="color:var(--text-muted);"></i> Esperando contrato
+        </span>
+      </div>
+    </div>
+
+    <div class="post-actions-group">
+      <button type="button" class="btn-cockpit" data-ver-proyecto data-url="{{ detalle_proyecto_url }}" title="Ver proyecto">
+        <i data-lucide="eye"></i>
+        <span>Ver</span>
+      </button>
+    </div>
+  </div>
+</article>

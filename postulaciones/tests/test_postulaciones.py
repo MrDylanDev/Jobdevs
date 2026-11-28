@@ -939,3 +939,177 @@ class TestPostularseAjax:
         assert data['ok'] is False
         assert 'DB_SECRET_INTERNAL_ERROR_XYZ' not in data['mensaje']
         assert 'error inesperado' in data['mensaje'].lower()
+
+
+@pytest.mark.django_db
+class TestPostularseHTMX:
+    """Pruebas S2: Postulación de Desarrollador vía HTMX (`HX-Request: true`)."""
+
+    def _post_htmx(self, client, proyecto, extra_data=None, **headers):
+        data = {
+            'carta': 'Me interesa aportar al proyecto.',
+            'experiencia': 'Django y HTMX',
+            'link': '',
+            'origen': 'dashboard',
+        }
+        if extra_data:
+            data.update(extra_data)
+        req_headers = {'HTTP_HX_REQUEST': 'true'}
+        req_headers.update(headers)
+        return client.post(
+            reverse('postularse_a_proyecto', args=[proyecto.id]),
+            data,
+            **req_headers,
+        )
+
+    def test_htmx_postulacion_exitosa_retorna_card_y_hx_trigger(
+        self, dev_client, desarrollador_user, empresa_user
+    ):
+        import json
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Plataforma HTMX Dev',
+            descripcion='Desc',
+            tipo_solucion='app_web',
+            modalidad='remoto',
+            estado='publicado',
+        )
+        response = self._post_htmx(dev_client, proyecto)
+
+        assert response.status_code == 200
+        assert Postulacion.objects.filter(
+            proyecto=proyecto, desarrollador=desarrollador_user
+        ).exists()
+
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'post-row-compact' in html
+        assert 'Plataforma HTMX Dev' in html
+        assert 'data-ver-proyecto' in html
+        assert 'data-abrir-empresa' in html
+
+        hx_trigger = json.loads(response['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'Plataforma HTMX Dev' in hx_trigger['jobdevs:toast']['mensaje']
+        assert hx_trigger['jobdevs:postulacion-creada'] == {
+            'proyecto_id': proyecto.id,
+            'requiere_verificacion': False,
+        }
+
+    def test_htmx_postulacion_escapa_xss(self, dev_client, empresa_user):
+        empresa_user.nombre = '<img src=x onerror=alert(1)>'
+        empresa_user.save(update_fields=['nombre'])
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='<script>alert("xss")</script>',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = self._post_htmx(dev_client, proyecto)
+
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<script>alert("xss")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_htmx_carta_obligatoria_retorna_error_y_toast(self, dev_client, empresa_user):
+        import json
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proy Carta HTMX',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = self._post_htmx(dev_client, proyecto, extra_data={'carta': '   '})
+
+        assert response.status_code == 400
+        assert response['HX-Reswap'] == 'none'
+        assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+        hx_trigger = json.loads(response['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'error'
+        assert 'carta' in hx_trigger['jobdevs:toast']['mensaje'].lower()
+
+    def test_htmx_duplicado_retorna_409_y_toast(
+        self, dev_client, desarrollador_user, empresa_user
+    ):
+        import json
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proy Dup HTMX',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        Postulacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            mensaje='Primera',
+            estado='pendiente',
+        )
+        response = self._post_htmx(dev_client, proyecto)
+
+        assert response.status_code == 409
+        assert response['HX-Reswap'] == 'none'
+        assert Postulacion.objects.filter(proyecto=proyecto).count() == 1
+        hx_trigger = json.loads(response['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] in ('warning', 'error')
+        assert 'anteriormente' in hx_trigger['jobdevs:toast']['mensaje'].lower()
+
+    def test_htmx_no_verificado_retorna_403_requiere_verificacion(
+        self, dev_client, desarrollador_user, empresa_user
+    ):
+        import json
+
+        desarrollador_user.perfil_desarrollador.estado_verificacion = 'sin_verificar'
+        desarrollador_user.perfil_desarrollador.save()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proy Verif HTMX',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = self._post_htmx(dev_client, proyecto)
+
+        assert response.status_code == 403
+        assert response['HX-Reswap'] == 'none'
+        assert not Postulacion.objects.filter(proyecto=proyecto).exists()
+        hx_trigger = json.loads(response['HX-Trigger'])
+        assert hx_trigger['jobdevs:toast']['tipo'] == 'error'
+        assert hx_trigger['jobdevs:postulacion-error']['requiere_verificacion'] is True
+
+    def test_htmx_con_accept_json_preserva_respuesta_json(self, dev_client, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proy JSON Accept',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = self._post_htmx(
+            dev_client, proyecto, HTTP_ACCEPT='application/json'
+        )
+        assert response.status_code == 200
+        assert response.json()['ok'] is True
+
+    def test_htmx_con_xhr_preserva_respuesta_json(self, dev_client, empresa_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proy JSON XHR',
+            descripcion='D',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+        response = self._post_htmx(
+            dev_client, proyecto, HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        assert response.status_code == 200
+        assert response.json()['ok'] is True
+
