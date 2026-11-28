@@ -5,7 +5,7 @@
  * ============================================================
  */
 
-import { t, mostrarToastCorp, switchTab } from './ui_core.js';
+import { t, switchTab } from './ui_core.js';
 import { initCorpDatepicker, setDatepickerValue } from './datepicker.js';
 
 // --- Modal de Nuevo Proyecto ---
@@ -204,64 +204,17 @@ window.ejecutarRetiroConfirmado = ejecutarRetiroConfirmado;
 // --- DOM Initialization ---
 
 export function initProyectos() {
-  const formCrear = document.getElementById('formCrearProyecto');
-  if (formCrear) {
-    formCrear.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const submitBtn = formCrear.querySelector('button[type="submit"]');
-      const textoOrig = submitBtn ? submitBtn.innerHTML : '';
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="corp-spinner-sm" style="display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;"></span> Publicando...';
-      }
-
-      try {
-        const formData = new FormData(formCrear);
-        const res = await fetch(formCrear.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-          },
-          credentials: 'same-origin',
-        });
-
-        const data = await res.json().catch(() => null);
-
-        if (res.ok && data && data.ok) {
-          cerrarModal();
-          formCrear.reset();
-          mostrarToastCorp(data.mensaje || '¡Convocatoria publicada exitosamente!');
-          switchTab('ofertas');
-          window.location.hash = '#ofertas';
-          setTimeout(function () {
-            window.location.reload();
-          }, 350);
-        } else {
-          const errMsg = (data && data.mensaje) ? data.mensaje : 'Por favor verifica los datos de la convocatoria.';
-          if (typeof mostrarToastCorp === 'function') {
-            mostrarToastCorp(errMsg, true);
-          } else if (window.JobDevsToast && typeof window.JobDevsToast.mostrar === 'function') {
-            window.JobDevsToast.mostrar({ tipo: 'error', mensaje: errMsg });
-          } else if (typeof window.jdToast === 'function') {
-            window.jdToast(errMsg, true);
-          }
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = textoOrig;
-          }
-        }
-      } catch (err) {
-        console.error('Error al publicar convocatoria:', err);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = textoOrig;
-        }
-        mostrarToastCorp('Error de conexión al publicar la convocatoria. Intenta de nuevo.', true);
-      }
-    });
-  }
+  document.addEventListener('jobdevs:proyecto-creado', function (event) {
+    const detail = (event && event.detail) || {};
+    const formCrear = document.getElementById('formCrearProyecto');
+    cerrarModal();
+    if (formCrear) formCrear.reset();
+    switchTab(detail.reload_hash || 'ofertas');
+    window.location.hash = '#' + (detail.reload_hash || 'ofertas');
+    setTimeout(function () {
+      window.location.reload();
+    }, 350);
+  });
 
   // Backdrop del modal de proyectos
   const modal = document.getElementById('modalProyecto');

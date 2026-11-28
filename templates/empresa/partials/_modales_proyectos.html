@@ -9,7 +9,13 @@
         <i data-lucide="x"></i>
       </button>
     </div>
-    <form id="formCrearProyecto" method="post" action="{% url 'crear_proyecto' %}" style="display:flex;flex-direction:column;gap:0;">
+    <form id="formCrearProyecto"
+          method="post"
+          action="{% url 'crear_proyecto' %}"
+          hx-post="{% url 'crear_proyecto' %}"
+          hx-swap="none"
+          hx-disabled-elt="find button[type='submit']"
+          style="display:flex;flex-direction:column;gap:0;">
       {% csrf_token %}
       <div class="form-group-corp">
         <label class="form-label-corp" for="crear_titulo">{% trans "Título del Proyecto" %}</label>
