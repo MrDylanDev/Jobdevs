@@ -179,9 +179,16 @@ export function cerrarModalConfirmarRetiro() {
     document.body.style.overflow = '';
   }
   window._formRetiroPendiente = null;
+  window._retiroConfirmCallback = null;
 }
 
 export function ejecutarRetiroConfirmado() {
+  if (typeof window._retiroConfirmCallback === 'function') {
+    const callback = window._retiroConfirmCallback;
+    cerrarModalConfirmarRetiro();
+    callback();
+    return;
+  }
   if (window._formRetiroPendiente) {
     const form = window._formRetiroPendiente;
     cerrarModalConfirmarRetiro();
@@ -204,6 +211,16 @@ window.ejecutarRetiroConfirmado = ejecutarRetiroConfirmado;
 // --- DOM Initialization ---
 
 export function initProyectos() {
+  document.addEventListener('htmx:confirm', function (event) {
+    const elt = event && event.detail && event.detail.elt;
+    if (!elt || !elt.matches || !elt.matches('form[data-confirm-retiro]')) return;
+    event.preventDefault();
+    window._retiroConfirmCallback = function () {
+      event.detail.issueRequest(true);
+    };
+    confirmarRetiroOferta(null, elt, elt.getAttribute('data-confirm-retiro') || '');
+  });
+
   document.addEventListener('jobdevs:proyecto-creado', function (event) {
     const detail = (event && event.detail) || {};
     const formCrear = document.getElementById('formCrearProyecto');

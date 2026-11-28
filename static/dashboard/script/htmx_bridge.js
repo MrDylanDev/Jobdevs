@@ -53,6 +53,7 @@
           select: selector,
           target: selector,
           swap: 'outerHTML',
+          headers: { 'Cache-Control': 'no-cache' },
         })
       ).then(
         function () {

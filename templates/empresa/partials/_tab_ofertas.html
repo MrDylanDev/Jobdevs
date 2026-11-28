@@ -109,7 +109,7 @@
                   </a>
                   {% endif %}
                   {% if not proyecto.num_contratos %}
-                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" hx-post="{% url 'desactivar_proyecto' proyecto.id %}" hx-target="#ofertas" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
+                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" hx-post="{% url 'desactivar_proyecto' proyecto.id %}" hx-target="#ofertas" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" hx-confirm="{{ proyecto.titulo }}" data-confirm-retiro="{{ proyecto.titulo }}" style="margin:0;">
                     {% csrf_token %}
                     <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}" aria-label="{% trans "Retirar publicación" %}">
                       <i data-lucide="ban"></i>
