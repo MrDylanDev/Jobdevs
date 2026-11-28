@@ -48,6 +48,19 @@
       var hadActiva = Boolean(currentEl && currentEl.classList.contains('activa'));
       var hadActive = Boolean(currentEl && currentEl.classList.contains('active'));
 
+      var onAfterSwap = function (ev) {
+        var swapped = document.querySelector(selector);
+        if (!swapped || !preserveTabState) return;
+        swapped.classList.toggle('activa', hadActiva);
+        swapped.classList.toggle('active', hadActive);
+        if (ev && ev.detail && ev.detail.target && ev.detail.target.id === swapped.id) {
+          document.removeEventListener('htmx:afterSwap', onAfterSwap);
+        }
+      };
+      if (preserveTabState) {
+        document.addEventListener('htmx:afterSwap', onAfterSwap);
+      }
+
       return Promise.resolve(
         window.htmx.ajax('GET', url, {
           select: selector,
@@ -57,6 +70,7 @@
         })
       ).then(
         function () {
+          document.removeEventListener('htmx:afterSwap', onAfterSwap);
           var updatedEl = document.querySelector(selector);
           if (updatedEl && preserveTabState) {
             updatedEl.classList.toggle('activa', hadActiva);
@@ -65,6 +79,7 @@
           return { selector: selector, ok: true };
         },
         function () {
+          document.removeEventListener('htmx:afterSwap', onAfterSwap);
           return { selector: selector, ok: false };
         }
       );

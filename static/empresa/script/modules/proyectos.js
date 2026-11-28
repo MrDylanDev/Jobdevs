@@ -230,7 +230,9 @@ export function initProyectos() {
     switchTab(targetTab);
     window.location.hash = '#' + targetTab;
     if (window.JobDevsHTMX && typeof window.JobDevsHTMX.refreshSections === 'function') {
-      window.JobDevsHTMX.refreshSections(['#' + targetTab, '#inicio']);
+      window.JobDevsHTMX.refreshSections(['#' + targetTab, '#inicio']).then(function () {
+        switchTab(targetTab);
+      });
     }
   });
 
