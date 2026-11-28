@@ -16,10 +16,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from contrataciones.models import Contratacion
 from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
-from proyectos.models import Proyecto
 
 from .models import ConfiguracionNegociacion, Postulacion
 from .policies import puede_rechazar_postulacion
@@ -172,8 +170,8 @@ def rechazar_postulacion(postulacion_id, ejecutado_por, motivo=''):
                 .select_related('proyecto', 'desarrollador', 'proyecto__empresa')
                 .get(id=postulacion_id)
             )
-        except Postulacion.DoesNotExist:
-            raise ValidationError('La postulación no existe.')
+        except Postulacion.DoesNotExist as err:
+            raise ValidationError('La postulación no existe.') from err
 
         if not puede_rechazar_postulacion(ejecutado_por, postulacion):
             raise PermissionDenied('No tienes autorización para rechazar esta postulación.')

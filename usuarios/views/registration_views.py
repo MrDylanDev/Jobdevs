@@ -1,8 +1,9 @@
 from django.conf import settings
-from django.shortcuts import render, redirect
 from django.contrib.auth import login
+from django.shortcuts import redirect, render
 
 from logs.models import LogAuditoria
+
 from ..forms import RegistroUsuarioForm
 
 

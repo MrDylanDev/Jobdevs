@@ -1,5 +1,5 @@
 import re
-import pytest
+
 from django.template.loader import render_to_string
 
 

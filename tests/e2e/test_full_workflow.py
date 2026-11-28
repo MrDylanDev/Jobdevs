@@ -1,11 +1,12 @@
 import pytest
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 from django.test import Client
-from proyectos.models import Proyecto, Entregable, Equipo, Valoracion
-from contrataciones.models import Contratacion, ContratoDigital
+from django.urls import reverse
+
 from avances.models import Avance
+from contrataciones.models import Contratacion, ContratoDigital
 from mensajes.models import Mensaje
+from proyectos.models import Entregable, Equipo, Proyecto, Valoracion
 from usuarios.models import PerfilDesarrollador
 
 User = get_user_model()
@@ -60,6 +61,7 @@ class TestFullWorkflowE2E:
 
         # ── Empresa publishes ──
         from datetime import timedelta
+
         from django.utils import timezone
         client.login(username='full_emp', password='FullPass123!')
         client.post(reverse('crear_proyecto'), {

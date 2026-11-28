@@ -1,10 +1,10 @@
-import pytest
-from django.urls import reverse
-from django.contrib.auth import get_user_model
 from datetime import date
 
-from usuarios.models import FichaSena
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 from logs.models import LogAuditoria
+from usuarios.models import FichaSena
 
 User = get_user_model()
 

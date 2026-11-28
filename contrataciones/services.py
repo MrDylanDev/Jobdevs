@@ -16,7 +16,6 @@ from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from proyectos.models import Proyecto
 
-
 from .models import Contratacion, SolicitudCancelacion
 from .policies import es_parte_del_contrato, puede_confirmar_acuerdo
 
@@ -147,8 +146,8 @@ def cancelar_contratacion(contratacion_id, ejecutado_por, motivo='', solicitud_i
         contexto = Contratacion.objects.select_related('proyecto').get(
             id=contratacion_id
         )
-    except Contratacion.DoesNotExist:
-        raise PermissionDenied('No tienes autorización sobre este contrato.')
+    except Contratacion.DoesNotExist as err:
+        raise PermissionDenied('No tienes autorización sobre este contrato.') from err
 
     with transaction.atomic():
         contrato = Contratacion.objects.select_for_update().get(

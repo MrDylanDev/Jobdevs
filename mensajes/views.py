@@ -3,34 +3,31 @@ import logging
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
-from django.db.models import Q
-from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.html import format_html, format_html_join
 from django.views.decorators.http import require_POST
+
 from logs.models import LogAuditoria
-from .models import Mensaje
+from proyectos.models import Proyecto
 from usuarios.models import Usuario
 from usuarios.utils import get_admin_ids
-from proyectos.models import Proyecto
-from contrataciones.models import Contratacion
-from notificaciones.models import Notificacion
+
 from . import services
+from .models import Mensaje
 from .policies import (
     obtener_destinatarios_disponibles,
+    proyecto_requiere_comunicacion_grupal,
     puede_comunicarse,
     puede_participar_en_chat_grupal,
     puede_ver_mensaje,
-    proyecto_requiere_comunicacion_grupal,
 )
 
 logger = logging.getLogger(__name__)
@@ -97,7 +94,7 @@ def sala_chat(request, receptor_id, proyecto_id=None):
 
     # Filtro de participantes: Remitente -> Receptor O Receptor -> Remitente
     mensajes_chat = Mensaje.objects.filter(
-        (Q(remitente=request.user, receptor=receptor) | Q(remitente=receptor, receptor=request.user))
+        Q(remitente=request.user, receptor=receptor) | Q(remitente=receptor, receptor=request.user)
     )
 
     # Aislamiento estricto por proyecto (SCRUM-221 / RF 6.1.3)

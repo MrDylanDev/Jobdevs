@@ -1,4 +1,4 @@
-from django.core.checks import register, Tags
+from django.core.checks import Tags, register
 
 
 @register(Tags.database)

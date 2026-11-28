@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import FileResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import FileResponse, Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -18,6 +18,8 @@ from ..decorators import requiere_usuario_activo
 from ..models import PerfilDesarrollador, PerfilEmpresa, Usuario
 from ..services_sena import (
     admin_resolver_verificacion_desarrollador as resolver_desarrollador_sena_service,
+)
+from ..services_sena import (
     solicitar_verificacion_manual_desarrollador,
     verificar_desarrollador_automatico,
 )
@@ -299,7 +301,11 @@ def admin_resolver_verificacion_empresa(request, perfil_id):
         }
 
         from django.conf import settings as django_settings
-        from ..services_sena import MAX_INTENTOS_VERIFICACION, depurar_usuario_por_verificacion
+
+        from ..services_sena import (
+            MAX_INTENTOS_VERIFICACION,
+            depurar_usuario_por_verificacion,
+        )
 
         max_intentos = getattr(django_settings, 'MAX_INTENTOS_VERIFICACION', MAX_INTENTOS_VERIFICACION)
         resultado_depuracion = None
@@ -416,8 +422,8 @@ def descargar_documento_soporte_empresa(request, perfil_id):
             return redirect(url_r2)
     try:
         archivo = perfil.documento_soporte.open('rb')
-    except FileNotFoundError:
-        raise Http404('Documento no disponible.')
+    except FileNotFoundError as err:
+        raise Http404('Documento no disponible.') from err
     return FileResponse(archivo, content_type='application/pdf')
 
 
@@ -551,8 +557,8 @@ def descargar_documento_soporte_desarrollador(request, perfil_id):
             return redirect(url_r2)
     try:
         archivo = perfil.documento_soporte.open('rb')
-    except FileNotFoundError:
-        raise Http404('Documento no disponible.')
+    except FileNotFoundError as err:
+        raise Http404('Documento no disponible.') from err
     return FileResponse(archivo, content_type='application/pdf')
 
 

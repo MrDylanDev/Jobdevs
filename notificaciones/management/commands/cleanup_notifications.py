@@ -1,6 +1,8 @@
 from datetime import timedelta
+
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
+
 from notificaciones.services import depurar_notificaciones
 
 

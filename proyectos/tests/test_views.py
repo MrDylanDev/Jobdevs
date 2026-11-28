@@ -1,11 +1,12 @@
 from datetime import timedelta
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto, HistorialEstadoProyecto
+
 from postulaciones.models import Postulacion
+from proyectos.models import HistorialEstadoProyecto, Proyecto
 
 User = get_user_model()
 
@@ -124,8 +125,8 @@ class TestListarProyectos:
 
     def test_desarrollador_excludes_already_applied_projects(self, dev_client, desarrollador_user, empresa_user):
         """Desarrollador should not see projects they have already applied to (filtered at SQL level)."""
-        from django.test.utils import CaptureQueriesContext
         from django.db import connection
+        from django.test.utils import CaptureQueriesContext
 
         p_aplicado = Proyecto.objects.create(
             empresa=empresa_user, titulo='Proyecto Ya Aplicado', descripcion='Desc',
@@ -214,7 +215,7 @@ class TestListarProyectos:
 
     def test_template_listar_proyectos_incluye_buscador_y_catalogo_async(self, auth_client):
         """SCRUM-195: El template proyectos/listar.html contiene el input de búsqueda q y carga catalogo_async.js."""
-        with open('templates/proyectos/listar.html', 'r', encoding='utf-8') as f:
+        with open('templates/proyectos/listar.html', encoding='utf-8') as f:
             content = f.read()
         assert 'name="q"' in content
         assert 'catalogo_async.js' in content
@@ -712,9 +713,11 @@ class TestReabrirPostulaciones:
         self, auth_client, empresa_user, desarrollador_user,
     ):
         from datetime import timedelta
+
+        from django.test import Client
+
         from contrataciones.models import Contratacion
         from disputas.services import abrir_disputa, resolver_disputa
-        from django.test import Client
         from logs.models import LogAuditoria
         from usuarios.models import PerfilDesarrollador
 
@@ -785,6 +788,7 @@ class TestReabrirPostulaciones:
         self, auth_client, empresa_user, desarrollador_user, estado,
     ):
         from datetime import timedelta
+
         from contrataciones.models import Contratacion
 
         hoy = timezone.localdate()
@@ -807,6 +811,7 @@ class TestReabrirPostulaciones:
         self, auth_client, empresa_user, desarrollador_user,
     ):
         from datetime import timedelta
+
         from contrataciones.models import Contratacion
 
         hoy = timezone.localdate()
@@ -843,6 +848,7 @@ class TestReabrirPostulaciones:
 
     def test_otra_empresa_no_puede_reabrir(self, client, empresa_user):
         from datetime import timedelta
+
         from django.contrib.auth import get_user_model
 
         proyecto = Proyecto.objects.create(
@@ -1311,6 +1317,7 @@ class TestFinalizarProyecto:
     ):
         """S5: POST HTMX exitoso guarda valoración y devuelve 200 con HX-Trigger."""
         import json
+
         from contrataciones.models import Contratacion
         from proyectos.models import HistorialEstadoProyecto, Valoracion
 
@@ -1542,6 +1549,7 @@ class TestCalificarEmpresa:
         self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
     ):
         import json as _json
+
         from proyectos.models import Valoracion
         from usuarios.models import PerfilEmpresa
 
@@ -1654,8 +1662,8 @@ class TestGestionarHitosAsignacionIndividual:
         self, auth_client, proyecto_hitos
     ):
         """POST con desarrollador_id válido persiste la asignación y notifica al dev."""
-        from proyectos.models import Entregable
         from notificaciones.models import Notificacion
+        from proyectos.models import Entregable
         proyecto, dev_contratado, _ = proyecto_hitos
 
         response = auth_client.post(
@@ -1762,8 +1770,9 @@ class TestGestionarHitosAsignacionIndividual:
 
 class TestApiDetalleProyecto:
     def test_desarrollador_puede_ver_ficha_de_proyecto_publicado(self, dev_client, empresa_user):
-        from proyectos.models import Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1781,8 +1790,9 @@ class TestApiDetalleProyecto:
         assert any(a['label'] == 'Postularme' for a in data['acciones'])
 
     def test_desarrollador_bloqueado_en_proyecto_no_publicado_sin_vinculo(self, dev_client, empresa_user):
-        from proyectos.models import Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1799,8 +1809,9 @@ class TestApiDetalleProyecto:
         assert "No tienes permisos" in data['mensaje']
 
     def test_htmx_retorna_partial_html_ficha_proyecto(self, dev_client, empresa_user):
-        from proyectos.models import Entregable, Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Entregable, Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1833,8 +1844,9 @@ class TestApiDetalleProyecto:
         assert 'Postularme' in html
 
     def test_htmx_403_retorna_error_html_con_status_403(self, dev_client, empresa_user):
-        from proyectos.models import Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1855,8 +1867,9 @@ class TestApiDetalleProyecto:
         assert 'No tienes permisos para ver este proyecto.' in html
 
     def test_htmx_escapa_xss_en_titulo_y_descripcion(self, dev_client, empresa_user):
-        from proyectos.models import Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1878,8 +1891,9 @@ class TestApiDetalleProyecto:
         assert '&lt;img src=x onerror=alert(1)&gt;' in html
 
     def test_htmx_con_accept_json_o_format_json_preserva_json(self, dev_client, empresa_user):
-        from proyectos.models import Proyecto
         from django.urls import reverse
+
+        from proyectos.models import Proyecto
 
         proyecto = Proyecto.objects.create(
             empresa=empresa_user,
@@ -1949,6 +1963,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Entregable
 
         proyecto, dev1, _ = proyecto_con_dos_devs
@@ -1975,6 +1990,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Entregable
 
         proyecto, _, _ = proyecto_con_dos_devs
@@ -1999,6 +2015,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Entregable
 
         proyecto, _, _ = proyecto_con_dos_devs
@@ -2023,6 +2040,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Entregable
 
         proyecto, _, _ = proyecto_con_dos_devs
@@ -2046,6 +2064,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Equipo
 
         proyecto, dev1, dev2 = proyecto_con_dos_devs
@@ -2068,6 +2087,7 @@ class TestHitosEquiposHTMX:
         self, auth_client, proyecto_con_dos_devs
     ):
         import json
+
         from proyectos.models import Equipo
 
         proyecto, dev1, _ = proyecto_con_dos_devs
@@ -2153,6 +2173,7 @@ class TestEmpresaOfertasHtmx:
         self, auth_client, empresa_user, desarrollador_user
     ):
         import json
+
         from contrataciones.models import Contratacion
 
         proyecto = Proyecto.objects.create(
@@ -2189,7 +2210,9 @@ class TestEmpresaOfertasHtmx:
     ):
         import json
         from datetime import timedelta
+
         from django.utils import timezone
+
         from contrataciones.models import Contratacion
 
         hoy = timezone.localdate()
@@ -2231,7 +2254,9 @@ class TestEmpresaOfertasHtmx:
     ):
         import json
         from datetime import timedelta
+
         from django.utils import timezone
+
         from contrataciones.models import Contratacion
 
         hoy = timezone.localdate()
@@ -2270,7 +2295,9 @@ class TestEmpresaOfertasHtmx:
         self, auth_client, empresa_user, desarrollador_user
     ):
         from datetime import timedelta
+
         from django.utils import timezone
+
         from contrataciones.models import Contratacion
 
         hoy = timezone.localdate()

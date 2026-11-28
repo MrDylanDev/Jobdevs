@@ -1,9 +1,11 @@
-from django.db import models, transaction
-from usuarios.models import Usuario
-from django.utils import timezone
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models, transaction
+from django.utils import timezone
+
+from usuarios.models import Usuario
+
 
 class CategoriaSolucion(models.Model):
     nombre = models.CharField(max_length=100, unique=True)

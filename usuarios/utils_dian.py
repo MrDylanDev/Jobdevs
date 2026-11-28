@@ -42,7 +42,7 @@ def calcular_dv_dian(numero_documento: str | int) -> int:
     digitos = _solo_digitos(numero_documento)
     if len(digitos) > len(PRIME_FACTORS):
         raise ValueError(f"El documento no puede tener más de {len(PRIME_FACTORS)} dígitos.")
-    total = sum(int(d) * f for d, f in zip(reversed(digitos), reversed(PRIME_FACTORS)))
+    total = sum(int(d) * f for d, f in zip(reversed(digitos), reversed(PRIME_FACTORS), strict=False))
     resto = total % 11
     return resto if resto < 2 else 11 - resto
 

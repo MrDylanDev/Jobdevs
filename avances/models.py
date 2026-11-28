@@ -1,7 +1,9 @@
-from django.db import models
 from django.core.validators import URLValidator
-from usuarios.models import Usuario
+from django.db import models
+
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
+
 
 class Avance(models.Model):
     ESTADOS = [

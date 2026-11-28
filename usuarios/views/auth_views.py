@@ -1,7 +1,7 @@
-from datetime import timedelta
 import hashlib
 import logging
 import secrets
+from datetime import timedelta
 from urllib.parse import quote
 
 from django.conf import settings
@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -98,6 +97,7 @@ def login_view(request):
     return redirect('/?login=1')
 
 from django.views.decorators.http import require_http_methods
+
 
 @require_http_methods(["GET", "POST"])
 def logout_view(request):

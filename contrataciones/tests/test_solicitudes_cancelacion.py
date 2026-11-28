@@ -6,7 +6,9 @@ from django.urls import reverse
 
 from contrataciones.models import Contratacion, SolicitudCancelacion
 from contrataciones.services import (
-    cancelar_contratacion, resolver_solicitud_cancelacion, solicitar_cancelacion,
+    cancelar_contratacion,
+    resolver_solicitud_cancelacion,
+    solicitar_cancelacion,
 )
 from proyectos.models import Proyecto
 

@@ -2,24 +2,25 @@ import json
 from datetime import timedelta
 from decimal import Decimal
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Q, Count, Prefetch, Sum
+from django.db.models import Avg, Count, Prefetch, Q, Sum
 from django.db.models.functions import TruncDate, TruncMonth
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from ..models import Usuario, PerfilEmpresa
-from ..decorators import requiere_usuario_activo
-from ..utils import get_admin_id
-from proyectos.models import Proyecto, Valoracion, CategoriaSolucion, Entregable
-from postulaciones.models import Postulacion
+
+from avances.models import Avance
 from contrataciones.models import Contratacion, ContratoDigital
 from contrataciones.services import datos_dashboard_cancelaciones
-from avances.models import Avance
 from disputas.services import datos_dashboard_disputas
 from mensajes.models import Mensaje
-from ._helpers import get_notificaciones_context
+from postulaciones.models import Postulacion
+from proyectos.models import CategoriaSolucion, Entregable, Proyecto, Valoracion
 
+from ..decorators import requiere_usuario_activo
+from ..models import PerfilEmpresa, Usuario
+from ..utils import get_admin_id
+from ._helpers import get_notificaciones_context
 
 # SCRUM-228 (RF 2.2.1): estados que representan proyectos fuera del ciclo activo.
 ESTADOS_HISTORIAL = ('finalizado', 'rechazado', 'inactivo', 'en_disputa')
@@ -234,7 +235,7 @@ def dashboard_empresa(request):
         if p.get('fecha_fin'):
             dias_restantes = (p['fecha_fin'] - hoy).days
 
-        pct = round((p['hitos_completados'] / p['hitos_totales'] * 100)) if p['hitos_totales'] > 0 else 0
+        pct = round(p['hitos_completados'] / p['hitos_totales'] * 100) if p['hitos_totales'] > 0 else 0
 
         proyectos_roadmap.append({
             'proyecto_id': p['proyecto_id'],

@@ -1,21 +1,24 @@
 import json
 import os
 import zipfile
-from PIL import Image
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Count, Q
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib import messages
-from django.db import transaction
-from django.db.models import Q, Count
-from .models import Avance
-from proyectos.models import Proyecto, Entregable
+from PIL import Image
+
 from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+from proyectos.models import Entregable, Proyecto
+
+from .models import Avance
 
 EXTENSIONES_PERMITIDAS = {'.pdf', '.zip', '.png', '.jpg', '.jpeg'}
 MAX_AVANCE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -230,8 +233,8 @@ def registrar_avance(request, proyecto_id):
                 return _responder_error("Debes ingresar una descripción detallada del progreso realizado.")
             
             if archivo_url:
-                from django.core.validators import URLValidator
                 from django.core.exceptions import ValidationError
+                from django.core.validators import URLValidator
                 url_val = URLValidator(schemes=['http', 'https'])
                 try:
                     url_val(archivo_url)
@@ -275,7 +278,7 @@ def registrar_avance(request, proyecto_id):
                     raise Exception(f"El proyecto '{proyecto.titulo}' ya no se encuentra en estado de desarrollo.")
 
                 # 1. Crear el Avance
-                avance = Avance.objects.create(
+                Avance.objects.create(
                     proyecto=proyecto,
                     desarrollador=request.user,
                     entregable=entregable,
@@ -481,7 +484,10 @@ def revisar_avance(request, avance_id):
 
                 # RF 5.1.1 oficial: aprobar el último hito finaliza el proyecto.
                 if not avance.proyecto.entregables.exclude(estado='completado').exists():
-                    from proyectos.services import finalizar_proyecto, desarrolladores_pendientes
+                    from proyectos.services import (
+                        desarrolladores_pendientes,
+                        finalizar_proyecto,
+                    )
 
                     finalizar_proyecto(avance.proyecto_id, request.user)
                     proyecto_recien_finalizado = desarrolladores_pendientes(avance.proyecto).exists()

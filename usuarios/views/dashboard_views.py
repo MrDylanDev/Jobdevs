@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.shortcuts import render
-from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField
+from django.db.models import Avg, FloatField, Prefetch, Q, Value
 from django.db.models.functions import Coalesce
+from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
-from proyectos.models import Proyecto
+
 from contrataciones.models import Contratacion
+from proyectos.models import Proyecto
 
 
 @ensure_csrf_cookie

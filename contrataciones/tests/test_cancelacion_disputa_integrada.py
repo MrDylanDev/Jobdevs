@@ -4,7 +4,10 @@ import pytest
 from django.urls import reverse
 
 from contrataciones.models import Contratacion, SolicitudCancelacion
-from contrataciones.services import resolver_solicitud_cancelacion, solicitar_cancelacion
+from contrataciones.services import (
+    resolver_solicitud_cancelacion,
+    solicitar_cancelacion,
+)
 from disputas.services import abrir_disputa, resolver_disputa
 from proyectos.models import Proyecto
 
@@ -127,6 +130,7 @@ def test_disputa_en_proyecto_multi_dev_se_asocia_al_contrato_seleccionado(
     auth_client, contrato, empresa_user,
 ):
     from django.contrib.auth import get_user_model
+
     from disputas.models import Disputa
 
     otro = get_user_model().objects.create_user(

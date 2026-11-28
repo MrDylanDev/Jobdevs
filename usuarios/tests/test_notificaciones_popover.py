@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone as dt_timezone
+from datetime import UTC, datetime
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -160,7 +160,7 @@ def test_api_lista_notificaciones_usa_zona_horaria_local(dev_client, desarrollad
         usuario=desarrollador_user, tipo='avance', mensaje='Fecha local',
     )
     # 15/01/2026 12:00 UTC = 07:00 en America/Bogota (UTC-5).
-    fecha_utc = datetime(2026, 1, 15, 12, 0, tzinfo=dt_timezone.utc)
+    fecha_utc = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
     Notificacion.objects.filter(pk=notificacion.pk).update(fecha=fecha_utc)
 
     response = dev_client.get(reverse('notificaciones_api_lista'))

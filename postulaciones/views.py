@@ -1,26 +1,27 @@
 import json
 import logging
-from django.shortcuts import render, redirect, get_object_or_404
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib import messages
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
-from django.utils import timezone
 
-from .models import Postulacion
-from . import services
-from proyectos.models import Proyecto
 from contrataciones.models import Contratacion, ContratoDigital
-from notificaciones.models import Notificacion
 from logs.models import LogAuditoria
-from proyectos.models import Equipo
-from usuarios.models import Usuario, PerfilDesarrollador
+from notificaciones.models import Notificacion
+from proyectos.models import Proyecto
+from usuarios.models import PerfilDesarrollador, Usuario
+
+from . import services
+from .models import Postulacion
 
 logger = logging.getLogger(__name__)
 

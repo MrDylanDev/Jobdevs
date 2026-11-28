@@ -20,13 +20,13 @@ class TestFileValidatorIntegration:
             'empresa/empresa.html',
         ]
         for tpl in templates:
-            with open(f'templates/{tpl}', 'r', encoding='utf-8') as f:
+            with open(f'templates/{tpl}', encoding='utf-8') as f:
                 content = f.read()
             assert 'file_validator_async.js' in content, f"Template {tpl} debe cargar file_validator_async.js"
 
     def test_file_validator_js_estructura_y_reglas(self):
         """El script JavaScript implementa Promesas, FileReader y validación de magic bytes."""
-        with open('static/dashboard/script/file_validator_async.js', 'r', encoding='utf-8') as f:
+        with open('static/dashboard/script/file_validator_async.js', encoding='utf-8') as f:
             js = f.read()
 
         assert 'validarYLeerArchivo' in js

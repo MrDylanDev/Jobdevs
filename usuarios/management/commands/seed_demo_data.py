@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone
-from usuarios.models import Usuario, PerfilEmpresa, PerfilDesarrollador
+
+from usuarios.models import PerfilDesarrollador, PerfilEmpresa, Usuario
 
 
 class Command(BaseCommand):

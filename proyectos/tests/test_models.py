@@ -1,7 +1,8 @@
 import pytest
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto, HistorialEstadoProyecto
+from django.core.exceptions import ValidationError
+
+from proyectos.models import HistorialEstadoProyecto, Proyecto
 
 User = get_user_model()
 

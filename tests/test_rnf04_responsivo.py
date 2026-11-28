@@ -6,7 +6,7 @@ y utilizan clases de rejilla responsiva (Bootstrap 5 y media queries).
 """
 
 from pathlib import Path
-import pytest
+
 from django.conf import settings
 
 

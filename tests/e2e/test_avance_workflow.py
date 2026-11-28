@@ -1,9 +1,10 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from proyectos.models import Proyecto, Entregable, Equipo
-from contrataciones.models import Contratacion
+
 from avances.models import Avance
+from contrataciones.models import Contratacion
+from proyectos.models import Entregable, Equipo, Proyecto
 
 User = get_user_model()
 

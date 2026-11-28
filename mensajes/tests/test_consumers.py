@@ -7,13 +7,13 @@ from unittest.mock import patch
 
 import pytest
 from channels.testing import WebsocketCommunicator
-from django.contrib.auth.models import AnonymousUser
+
 from config.asgi import application
-from usuarios.models import Usuario
-from proyectos.models import Proyecto
 from contrataciones.models import Contratacion
-from mensajes.models import Mensaje
 from mensajes.consumers import ChatDirectoConsumer
+from mensajes.models import Mensaje
+from proyectos.models import Proyecto
+from usuarios.models import Usuario
 
 
 @pytest.mark.django_db(transaction=True)

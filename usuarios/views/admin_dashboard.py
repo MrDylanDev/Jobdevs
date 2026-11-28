@@ -1,42 +1,61 @@
 import json
 import os
 import re
+from datetime import timedelta
+
 from django.conf import settings
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import Http404
-from django.urls import reverse
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.views.decorators.http import require_POST
-from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Avg, Q, Count, Prefetch, OuterRef, Subquery, Value, FloatField, F, Max
+from django.db.models import (
+    Avg,
+    Count,
+    F,
+    FloatField,
+    Max,
+    OuterRef,
+    Prefetch,
+    Q,
+    Subquery,
+    Value,
+)
 from django.db.models.functions import Coalesce, TruncMonth
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
-from datetime import timedelta
-from django.core.paginator import Paginator
-from ..models import (
-    Usuario,
-    PerfilEmpresa,
-    PerfilDesarrollador,
-    FichaSena,
-    ExcepcionFichaSena,
-)
-from ..services_sena import normalizar_numero_ficha
-from ..decorators import requiere_usuario_activo
-from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
-from proyectos.models import Proyecto, Valoracion, CategoriaSolucion, RegularizacionCierreProyecto
-from proyectos.services import regularizar_cierre_historico
-from postulaciones.models import Postulacion
-from postulaciones import services as postulaciones_services
+from django.views.decorators.http import require_POST
+
 from contrataciones.models import Contratacion, SolicitudCancelacion
 from disputas.models import Disputa
+from logs.models import LogAuditoria
+from mensajes.models import Mensaje
 from notificaciones.models import Notificacion
 from notificaciones.services import depurar_notificaciones
-from mensajes.models import Mensaje
-from logs.models import LogAuditoria
-from ._helpers import get_notificaciones_context, cached_or_compute
+from postulaciones import services as postulaciones_services
+from postulaciones.models import Postulacion
+from proyectos.models import (
+    CategoriaSolucion,
+    Proyecto,
+    RegularizacionCierreProyecto,
+    Valoracion,
+)
+from proyectos.services import regularizar_cierre_historico
+
+from ..decorators import requiere_usuario_activo
+from ..models import (
+    ExcepcionFichaSena,
+    FichaSena,
+    PerfilDesarrollador,
+    PerfilEmpresa,
+    Usuario,
+)
+from ..services_sena import normalizar_numero_ficha
+from ..utils import get_admin_ids, invalidar_sesiones_activas_usuario
+from ._helpers import cached_or_compute, get_notificaciones_context
 
 
 def _es_htmx_request(request):
@@ -286,8 +305,8 @@ def _contexto_sec_chat_config(incluir_catalogo_y_chat=False, admin_ids=None, act
             u_ids.add(s)
 
     ultimo_mensaje_sq = Mensaje.objects.filter(
-        (Q(remitente=OuterRef('pk'), receptor_id__in=admin_ids) |
-         Q(remitente_id__in=admin_ids, receptor=OuterRef('pk')))
+        Q(remitente=OuterRef('pk'), receptor_id__in=admin_ids) |
+         Q(remitente_id__in=admin_ids, receptor=OuterRef('pk'))
     ).order_by('-fecha_envio').values('id')[:1]
 
     contactos = Usuario.objects.filter(id__in=u_ids).select_related(

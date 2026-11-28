@@ -11,7 +11,7 @@ llamada al servicio y traducción de la excepción en un mensaje + redirect.
 """
 
 from datetime import timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -364,8 +364,8 @@ def valorar_y_finalizar_si_ultima(
     """
     try:
         puntuacion = int(puntuacion)
-    except (TypeError, ValueError):
-        raise ValidationError('Debes seleccionar una puntuación.')
+    except (TypeError, ValueError) as err:
+        raise ValidationError('Debes seleccionar una puntuación.') from err
     if not 1 <= puntuacion <= 5:
         raise ValidationError('La puntuación debe estar entre 1 y 5.')
 

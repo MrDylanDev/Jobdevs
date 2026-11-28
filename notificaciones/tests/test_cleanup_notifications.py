@@ -1,8 +1,10 @@
 from datetime import timedelta
+
 import pytest
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+
 from notificaciones.models import Notificacion
 
 User = get_user_model()

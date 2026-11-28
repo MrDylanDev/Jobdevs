@@ -5,6 +5,7 @@ Verifica timeouts, reintentos con backoff y degradación elegante ante caídas o
 
 import sys
 from unittest import mock
+
 import httpx
 import pytest
 

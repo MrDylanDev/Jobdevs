@@ -80,7 +80,7 @@ def peor_contraste_bajo_glifos(page, locator, cobertura_minima=0.85):
     locator.evaluate("el => { el.style.color = el.dataset.colorOriginal || ''; }")
 
     ratios = []
-    for pintado, fondo in zip(con_texto, sin_texto):
+    for pintado, fondo in zip(con_texto, sin_texto, strict=False):
         texto = tuple(alfa * color[i] + (1 - alfa) * fondo[i] for i in range(3))
         coberturas = [
             (pintado[i] - fondo[i]) / (texto[i] - fondo[i])

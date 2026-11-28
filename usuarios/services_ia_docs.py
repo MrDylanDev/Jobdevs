@@ -13,7 +13,7 @@ import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
-from datetime import datetime, date
+from datetime import date
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
@@ -503,8 +503,6 @@ def _parsear_fecha(match: re.Match) -> str | None:
 def extraer_datos_empresa(texto: str) -> DatosEmpresaExtraidos:
     """Extrae campos estructurados de empresa desde texto de documento."""
     datos = DatosEmpresaExtraidos()
-    campos_esperados = ["nit", "razon_social", "fecha_expedicion",
-                        "matricula_mercantil", "representante_legal"]
 
     # NIT con contexto
     m = _RE_NIT.search(texto)
@@ -631,7 +629,7 @@ def _similitud_programa_sena(programa_extraido: str, programa_registrado: str) -
     """
     Compara programas SENA usando el catálogo de equivalentes y similitud difusa.
     """
-    from .services_sena import normalizar_programa_formacion, _grupo_programa
+    from .services_sena import _grupo_programa, normalizar_programa_formacion
 
     norm_extraido = normalizar_programa_formacion(programa_extraido)
     norm_registrado = normalizar_programa_formacion(programa_registrado)

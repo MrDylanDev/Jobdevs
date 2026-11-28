@@ -246,6 +246,7 @@ def test_api_categoria_toggle_success(admin_client):
 
 def test_consumo_dinamico_en_vistas_crear_y_listar(client, empresa):
     from datetime import timedelta
+
     from django.utils import timezone
     activa = CategoriaSolucion.objects.create(nombre='Cat Dinámica', slug='cat-dinamica')
     inactiva = CategoriaSolucion.objects.create(nombre='Cat Inactiva', slug='cat-inactiva', activo=False)

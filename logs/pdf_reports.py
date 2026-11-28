@@ -7,7 +7,6 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 
-
 _DARK_BG = (0.06, 0.10, 0.16)
 _SENA_GREEN = (0.22, 0.66, 0.00)  # Verde institucional SENA (#39A900)
 _ACCENT_TEAL = (0.06, 0.73, 0.51)

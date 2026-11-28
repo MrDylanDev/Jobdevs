@@ -3,9 +3,9 @@
 No modifica el diagrama original de Descargas. Reutiliza el maquetador de
 casos de uso de Empresa: ambos roles comparten la misma notación y estilo.
 """
-from pathlib import Path
 import argparse
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 from generate_empresa_usecase_drawio import add_page
 

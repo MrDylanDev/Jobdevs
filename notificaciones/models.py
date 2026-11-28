@@ -1,5 +1,7 @@
 from django.db import models
+
 from usuarios.models import Usuario
+
 
 class Notificacion(models.Model):
     TIPO_CHOICES = [

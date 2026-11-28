@@ -1,6 +1,8 @@
 from django.db import models
-from usuarios.models import Usuario
+
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
+
 
 class Favorito(models.Model):
     desarrollador = models.ForeignKey(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol': 'desarrollador'}, related_name='favoritos')

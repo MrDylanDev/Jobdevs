@@ -1,6 +1,8 @@
 from django.db import models
-from usuarios.models import Usuario
+
 from proyectos.models import Proyecto
+from usuarios.models import Usuario
+
 
 class Mensaje(models.Model):
     remitente = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='mensajes_enviados')

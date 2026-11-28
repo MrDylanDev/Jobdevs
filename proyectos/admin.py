@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Valoracion, HistorialEstadoProyecto
+
+from .models import HistorialEstadoProyecto, Valoracion
 
 
 @admin.register(Valoracion)

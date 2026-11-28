@@ -7,7 +7,6 @@ un archivo nuevo estrena URL y el cache deja de mentir.
 """
 
 from django import template
-from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.templatetags.static import static
 

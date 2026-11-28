@@ -8,9 +8,9 @@ import pytest
 from django.core.cache import cache
 from django.urls import reverse
 
+from logs.models import LogAuditoria
 from usuarios.models import Usuario
 from usuarios.utils import get_admin_ids
-from logs.models import LogAuditoria
 
 
 @pytest.fixture(autouse=True)
@@ -118,6 +118,7 @@ class TestCachedOrCompute:
 
     def test_cached_or_compute_usa_cache_cuando_no_testing(self):
         from django.test import override_settings
+
         from usuarios.views._helpers import cached_or_compute
 
         llamadas = 0

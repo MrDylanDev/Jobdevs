@@ -365,6 +365,7 @@ class TestFirmarContratoDigital:
 
     def test_activacion_directa_sin_firmas_no_crea_contratacion(self, contrato):
         from django.core.exceptions import ValidationError
+
         from contrataciones.views import activar_contratacion_formal
 
         with pytest.raises(ValidationError, match='firmas'):

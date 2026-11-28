@@ -5,18 +5,19 @@ Maneja conexiones WebSocket para:
 - ChatDirectoConsumer: Mensajería 1:1 directa (con o sin proyecto asociado).
 """
 
-import json
 import logging
 
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
-from .models import Mensaje
-from . import services
-from .policies import puede_participar_en_chat_grupal, puede_comunicarse
+
 from proyectos.models import Proyecto
 from usuarios.models import Usuario
+
+from . import services
+from .models import Mensaje
+from .policies import puede_comunicarse, puede_participar_en_chat_grupal
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class ChatGrupalConsumer(AsyncJsonWebsocketConsumer):
             msg = exc.messages[0] if hasattr(exc, "messages") else str(exc)
             await self.send_json({"error": msg})
             return
-        except Exception as exc:
+        except Exception:
             await self.send_json({"error": "Error al procesar el mensaje."})
             return
 
@@ -181,7 +182,7 @@ class ChatDirectoConsumer(AsyncJsonWebsocketConsumer):
             msg = exc.messages[0] if hasattr(exc, "messages") else str(exc)
             await self.send_json({"error": msg})
             return
-        except Exception as exc:
+        except Exception:
             await self.send_json({"error": "Error al procesar el mensaje."})
             return
 

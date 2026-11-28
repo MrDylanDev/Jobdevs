@@ -1,10 +1,10 @@
 import pytest
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto
-from postulaciones.models import Postulacion
+from django.urls import reverse
+
 from contrataciones.models import Contratacion
 from mensajes.models import Mensaje
+from proyectos.models import Proyecto
 
 User = get_user_model()
 
@@ -69,7 +69,6 @@ class TestMensajeModel:
         u1 = User.objects.create_user(username='u_rem', email='u_rem@test.jobdevs', password='Password123!')
         u2 = User.objects.create_user(username='u_rec', email='u_rec@test.jobdevs', password='Password123!')
         msg = Mensaje.objects.create(remitente=u1, receptor=u2, contenido='Mensaje persistente')
-        msg_id = msg.id
 
         u1.delete()
         msg.refresh_from_db()

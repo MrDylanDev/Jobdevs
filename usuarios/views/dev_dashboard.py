@@ -1,22 +1,24 @@
 from django.contrib import messages
-from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Q, Count, Prefetch, Value, FloatField
+from django.db.models import Avg, Count, FloatField, Prefetch, Q, Value
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from ..forms import PerfilDesarrolladorForm
-from ..models import PerfilDesarrollador, Usuario
-from logs.models import LogAuditoria
-from ..decorators import requiere_usuario_activo
-from ..utils import get_admin_id
-from proyectos.models import Proyecto, Valoracion, Entregable, CategoriaSolucion
-from postulaciones.models import Postulacion
+
 from contrataciones.models import Contratacion, ContratoDigital
 from disputas.services import datos_dashboard_disputas
 from favoritos.models import Favorito
+from logs.models import LogAuditoria
 from mensajes.models import Mensaje
+from postulaciones.models import Postulacion
+from proyectos.models import CategoriaSolucion, Entregable, Proyecto, Valoracion
+
+from ..decorators import requiere_usuario_activo
+from ..forms import PerfilDesarrolladorForm
+from ..models import PerfilDesarrollador, Usuario
+from ..utils import get_admin_id
 from ._helpers import get_notificaciones_context
 
 # Secciones navegables del dashboard (usadas para ?seccion= y el estado inicial).
@@ -161,7 +163,7 @@ def dashboard_desarrollador(request):
             dev_ids = [c.desarrollador_id for c in p.contratos_activos]
             hitos_del_proy = hitos_por_proyecto.get(p.id, [])
             hitos_pendientes_dev = sum(1 for h in hitos_del_proy if h.get('estado') == 'pendiente')
-            porcentaje = int((p.hitos_completados / p.hitos_totales * 100)) if p.hitos_totales > 0 else 0
+            porcentaje = int(p.hitos_completados / p.hitos_totales * 100) if p.hitos_totales > 0 else 0
             proximo_hito = next((h for h in hitos_del_proy if h.get('estado') == 'pendiente'), None)
             mis_proyectos_v.append({
                 'proyecto_id': p.id,
@@ -246,7 +248,7 @@ def dashboard_desarrollador(request):
     total_contratos_digitales = mis_contratos_digitales_qs.count()
 
     # Paginación de contratos (8 por página -> 4 filas en grid de 2 columnas)
-    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
     paginator_contratos = Paginator(mis_contratos_digitales_qs, 8)
     page_contratos_num = request.GET.get('page_contratos', 1)
     try:
@@ -274,7 +276,7 @@ def dashboard_desarrollador(request):
             Value(0.0), output_field=FloatField())
     ).order_by('-fecha_publicacion')
 
-    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
     proyectos_explorar_todos = [
         p for p in proyectos_explorar_qs
@@ -346,6 +348,7 @@ def dashboard_desarrollador(request):
 
     # Serie de actividad para la gráfica de evolución del dev (últimos 6 meses)
     import json
+
     from avances.models import Avance
     hoy_grafica = timezone.now().date()
     meses_nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']

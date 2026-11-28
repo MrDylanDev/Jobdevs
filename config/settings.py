@@ -1,9 +1,11 @@
 
 
+import importlib.util
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -73,13 +75,9 @@ MIDDLEWARE = [
 
 
 # Recarga automática del navegador solo en desarrollo si está instalado
-if DEBUG:
-    try:
-        import django_browser_reload
-        INSTALLED_APPS += ['django_browser_reload']
-        MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
-    except ImportError:
-        pass
+if DEBUG and importlib.util.find_spec('django_browser_reload') is not None:
+    INSTALLED_APPS += ['django_browser_reload']
+    MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
 
 ROOT_URLCONF = 'config.urls'
 ASGI_APPLICATION = 'config.asgi.application'
@@ -332,6 +330,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 
 from django.contrib.messages import constants as messages
+
 MESSAGE_TAGS = {
     messages.DEBUG: 'secondary',
     messages.INFO: 'info',
@@ -380,6 +379,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # Celery Beat Periodic Tasks (SCRUM-200)
 from celery.schedules import crontab
+
 CELERY_BEAT_SCHEDULE = {
     'purgar-notificaciones-medianoche': {
         'task': 'notificaciones.purgar_notificaciones_antiguas',

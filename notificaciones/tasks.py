@@ -98,7 +98,9 @@ def purgar_notificaciones_antiguas_task(dias: int = 30, incluir_no_leidas: bool 
     Por defecto elimina solo aquellas marcadas como leídas.
     """
     from datetime import timedelta
+
     from django.utils import timezone
+
     from notificaciones.models import Notificacion
 
     cutoff = timezone.now() - timedelta(days=dias)

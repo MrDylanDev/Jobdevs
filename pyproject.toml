@@ -85,8 +85,10 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["F"]           # Pyflakes: errores reales (imports rotos, variables no definidas)
-ignore = ["F401", "F403", "F841"] # Ignorar re-exports y variables no usadas en tests viejos
+select = ["F", "B", "UP", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings_test.py" = ["F403", "F405"]
 
 [dependency-groups]
 dev = [

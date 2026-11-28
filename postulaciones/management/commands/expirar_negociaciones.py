@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from postulaciones.services import expirar_negociaciones_vencidas
 
 

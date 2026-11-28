@@ -10,7 +10,6 @@ from contrataciones.models import Contratacion, SolicitudCancelacion
 from disputas.models import Disputa
 from disputas.tests import test_apertura_disputa
 
-
 escenario = test_apertura_disputa.escenario
 
 

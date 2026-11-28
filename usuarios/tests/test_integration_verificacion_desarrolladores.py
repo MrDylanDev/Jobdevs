@@ -7,7 +7,7 @@ from logs.models import LogAuditoria
 from notificaciones.models import Notificacion
 from postulaciones.models import Postulacion
 from proyectos.models import Proyecto
-from usuarios.models import FichaSena, PerfilDesarrollador
+from usuarios.models import FichaSena
 
 Usuario = get_user_model()
 

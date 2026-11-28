@@ -2,9 +2,9 @@
 (SCRUM-156, Fase 2)."""
 
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
-from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
@@ -13,13 +13,13 @@ from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
 from proyectos import services
 from proyectos.models import Entregable, HistorialEstadoProyecto, Proyecto, Valoracion
-from usuarios.models import PerfilDesarrollador
 from proyectos.services import (
     desarrolladores_pendientes,
     finalizar_proyecto,
     validar_finalizacion,
     valorar_y_finalizar_si_ultima,
 )
+from usuarios.models import PerfilDesarrollador
 
 User = get_user_model()
 

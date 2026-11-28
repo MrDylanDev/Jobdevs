@@ -1,14 +1,16 @@
 import io
 import zipfile
+
 import pytest
-from PIL import Image
-from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from proyectos.models import Proyecto, Entregable
-from contrataciones.models import Contratacion
+from django.urls import reverse
+from PIL import Image
+
 from avances.models import Avance
+from contrataciones.models import Contratacion
 from notificaciones.models import Notificacion
+from proyectos.models import Entregable, Proyecto
 
 User = get_user_model()
 
@@ -111,7 +113,7 @@ class TestVerAvances:
             proyecto=proyecto, titulo='Hito Evidencia', descripcion='H',
         )
         archivo = SimpleUploadedFile("evidencia_doc.pdf", b"%PDF-1.4 contenido", content_type="application/pdf")
-        avance = Avance.objects.create(
+        Avance.objects.create(
             proyecto=proyecto, entregable=entregable,
             desarrollador=desarrollador_user, descripcion='Avance con archivo',
             archivo_adjunto=archivo,
@@ -164,7 +166,7 @@ class TestRegistrarAvance:
         proyecto.estado = 'en_revision'
         proyecto.save(update_fields=['estado'])
 
-        otro_dev = User.objects.create_user(
+        User.objects.create_user(
             username='otro_dev_ajeno', email='otro@dev.jobdevs', password='Password123!', rol='desarrollador'
         )
         client.login(username='otro_dev_ajeno', password='Password123!')
@@ -499,7 +501,7 @@ class TestRevisarAvance:
     def test_otra_empresa_no_puede_revisar_avance_ajeno(self, client, escenario_revision):
         """Una empresa no puede revisar avances de proyectos que no le pertenecen (404)."""
         _, _, avance = escenario_revision
-        otra_empresa = User.objects.create_user(
+        User.objects.create_user(
             username='otra_empresa',
             email='otra@test.jobdevs',
             nombre='Otra Empresa',
@@ -735,6 +737,7 @@ class TestGuardasHitosIndividuales:
     ):
         """Un dev que no pertenece al equipo del hito es rechazado al enviar avance."""
         from django.test import Client
+
         from proyectos.models import Equipo
         proyecto, _, hito_general, otro_dev = escenario_individual
         dev_miembro = User.objects.create_user(

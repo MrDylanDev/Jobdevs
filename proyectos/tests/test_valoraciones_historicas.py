@@ -9,8 +9,13 @@ from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
-from proyectos.models import Proyecto, RegularizacionCierreProyecto, Valoracion, HistorialEstadoProyecto
 from proyectos import services
+from proyectos.models import (
+    HistorialEstadoProyecto,
+    Proyecto,
+    RegularizacionCierreProyecto,
+    Valoracion,
+)
 from proyectos.services import validar_plazo_valoracion
 
 User = get_user_model()

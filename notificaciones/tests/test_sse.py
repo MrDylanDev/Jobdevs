@@ -1,7 +1,8 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.test import AsyncRequestFactory
 from django.urls import reverse
-from django.contrib.auth import get_user_model
+
 from notificaciones.models import Notificacion
 from notificaciones.views import (
     notificaciones_event_generator,
@@ -37,6 +38,7 @@ class TestNotificacionesSSE:
     def test_sse_endpoint_ignora_params_en_produccion(self, auth_client, desarrollador_user, monkeypatch):
         """SCRUM-447: En producción no se permite forzar interval bajo ni max_iterations vía query params."""
         from django.test import override_settings
+
         import notificaciones.views as n_views
 
         generator_args = {}
@@ -130,7 +132,7 @@ class TestNotificacionesSSE:
             'empresa/empresa.html',
             'administrador/Administrador.html',
         ]:
-            with open(f'templates/{tpl}', 'r', encoding='utf-8') as f:
+            with open(f'templates/{tpl}', encoding='utf-8') as f:
                 content = f.read()
             assert 'notificaciones_sse.js' in content, f"Template {tpl} debe cargar notificaciones_sse.js"
             assert (

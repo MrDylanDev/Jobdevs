@@ -3,7 +3,6 @@ from urllib.parse import urlparse
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.test import Client
 from playwright.sync_api import sync_playwright
 

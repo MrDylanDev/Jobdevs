@@ -1,9 +1,11 @@
 import pytest
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-from proyectos.models import Proyecto
+
 from postulaciones.models import Postulacion
+from proyectos.models import Proyecto
 
 User = get_user_model()
 
@@ -52,7 +54,7 @@ class TestPostulacionModel:
             tipo_solucion='sitio_web', estado='publicado',
         )
         Postulacion.objects.create(proyecto=proyecto, desarrollador=dev)
-        with pytest.raises(Exception):
+        with pytest.raises(IntegrityError):
             Postulacion.objects.create(proyecto=proyecto, desarrollador=dev)
 
     def test_postulacion_str(self, db):
@@ -555,6 +557,7 @@ class TestIniciarNegociacion:
     def test_inicia_negociacion_crea_contrato_notifica_y_redirige_al_chat(
             self, auth_client, escenario, desarrollador_user):
         from django.utils import timezone
+
         from contrataciones.models import ContratoDigital
         from logs.models import LogAuditoria
         from notificaciones.models import Notificacion
