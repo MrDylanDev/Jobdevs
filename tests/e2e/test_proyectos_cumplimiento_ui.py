@@ -54,8 +54,8 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     page.locator('#modalProyecto').screenshot(path=str(salida / 'creacion-fechas.png'))
     with page.expect_response(lambda r: '/proyectos/crear' in r.url and r.request.method == 'POST') as resp:
         page.locator('#modalProyecto button[type="submit"]').click()
-    # El flujo AJAX recarga el dashboard; esperar a que el proyecto aparezca en la UI.
-    page.get_by_text('Convocatoria QA de cumplimiento').first.wait_for(state='visible', timeout=15000)
+    # El flujo HTMX refresca #ofertas sin recargar; esperar a que el proyecto aparezca en la sección.
+    page.locator('#ofertas').get_by_text('Convocatoria QA de cumplimiento').first.wait_for(state='visible', timeout=15000)
     proyecto = Proyecto.objects.get(titulo='Convocatoria QA de cumplimiento')
     assert proyecto.fecha_cumplimiento == timezone.localdate() + timedelta(days=30)
     assert page.get_by_text('Convocatoria QA de cumplimiento').count() >= 1
@@ -95,7 +95,7 @@ def test_empresa_crea_retira_y_recibe_avisos(page, live_server, empresa_user, ad
     assert page.locator('#modalConfirmarRetiro').is_visible()
     page.locator('#modalConfirmarRetiro').screenshot(path=str(salida / 'confirmacion-retiro.png'))
     page.locator('#modalConfirmarRetiro button[onclick="ejecutarRetiroConfirmado()"]').click()
-    page.wait_for_url('**' + reverse('dashboard_empresa'))
+    expect(retiro).to_have_count(0)
     proyecto.refresh_from_db()
     con_contrato.refresh_from_db()
     assert proyecto.estado == 'inactivo'

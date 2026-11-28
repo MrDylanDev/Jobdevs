@@ -39,6 +39,298 @@ from logs.models import LogAuditoria
 from ._helpers import get_notificaciones_context, cached_or_compute
 
 
+def _es_htmx_request(request):
+    return (
+        request.headers.get('HX-Request') == 'true'
+        and request.GET.get('format') != 'json'
+        and 'application/json' not in request.headers.get('Accept', '')
+    )
+
+
+def _htmx_admin_section_response(request, template_name, context, toast_tipo, toast_mensaje):
+    response = render(request, template_name, context)
+    response['HX-Trigger'] = json.dumps({
+        'jobdevs:toast': {
+            'tipo': toast_tipo,
+            'mensaje': toast_mensaje,
+        }
+    })
+    return response
+
+
+def _contexto_sec_verificaciones(active_section=None):
+    disputas_activas = list(
+        Disputa.objects.filter(estado__in=('abierta', 'en_mediacion'))
+        .select_related('proyecto__empresa', 'iniciado_por', 'mediador')
+        .order_by('-fecha_creacion')
+    )
+
+    # SCRUM-232 (RF 10.1.2): conteos por estado para el panel de mediación.
+    disputas_por_estado = {clave: 0 for clave, _ in Disputa.ESTADO}
+    for fila in Disputa.objects.values('estado').annotate(total=Count('id')):
+        disputas_por_estado[fila['estado']] = fila['total']
+
+    solicitudes_cancelacion_admin = list(
+        SolicitudCancelacion.objects.select_related(
+            'contratacion__proyecto', 'contratacion__desarrollador',
+            'contratacion__proyecto__empresa', 'solicitante',
+        ).order_by('-fecha_creacion')[:50]
+    )
+    solicitudes_cancelacion_pendientes_count = sum(
+        1 for s in solicitudes_cancelacion_admin if s.estado == 'pendiente_revision'
+    )
+    solicitudes_cancelacion_resueltas_count = sum(
+        1 for s in solicitudes_cancelacion_admin if s.estado in ('aprobada', 'rechazada')
+    )
+
+    total_empresas_en_revision = PerfilEmpresa.objects.filter(
+        estado_verificacion='en_revision'
+    ).count()
+    empresas_en_revision = list(
+        PerfilEmpresa.objects.filter(estado_verificacion='en_revision')
+        .select_related('usuario')
+        .order_by('fecha_solicitud_verificacion')[:50]
+    )
+
+    total_desarrolladores_en_revision = PerfilDesarrollador.objects.filter(
+        estado_verificacion='en_revision'
+    ).count()
+    desarrolladores_en_revision = list(
+        PerfilDesarrollador.objects.filter(estado_verificacion='en_revision')
+        .select_related('usuario')
+        .order_by('fecha_solicitud_verificacion')[:50]
+    )
+
+    total_fichas_sena = FichaSena.objects.count()
+    fichas_sena = list(FichaSena.objects.all().order_by('-fecha_creacion')[:100])
+
+    # SCRUM-225 (RF 9.1.2): excepciones individuales justificadas a la lista blanca.
+    total_excepciones_fichas_sena = ExcepcionFichaSena.objects.count()
+    excepciones_fichas_sena = list(
+        ExcepcionFichaSena.objects.select_related(
+            'desarrollador__usuario', 'autorizado_por'
+        ).order_by('-fecha_creacion')[:100]
+    )
+    desarrolladores_para_excepcion = list(
+        PerfilDesarrollador.objects.order_by('usuario__nombre').values_list(
+            'id', 'usuario__nombre', 'usuario__username'
+        )
+    )
+
+    # SCRUM-311: mecanismo oficial de verificación SENA. No existe API pública de
+    # SOFIA Plus, así que el padrón institucional SENA (lista blanca local) es el
+    # mecanismo primario y SENA_API_URL queda como pasarela institucional opcional.
+    sena_api_url = getattr(settings, 'SENA_API_URL', os.environ.get('SENA_API_URL', ''))
+    sena_modo_verificacion = 'pasarela_externa' if sena_api_url else 'padron_oficial'
+
+    return {
+        'disputas_activas': disputas_activas,
+        'total_disputas_activas': len(disputas_activas),
+        'disputas_por_estado': disputas_por_estado,
+        'solicitudes_cancelacion_admin': solicitudes_cancelacion_admin,
+        'solicitudes_cancelacion_pendientes_count': solicitudes_cancelacion_pendientes_count,
+        'solicitudes_cancelacion_resueltas_count': solicitudes_cancelacion_resueltas_count,
+        'empresas_en_revision': empresas_en_revision,
+        'total_empresas_en_revision': total_empresas_en_revision,
+        'desarrolladores_en_revision': desarrolladores_en_revision,
+        'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
+        'fichas_sena': fichas_sena,
+        'total_fichas_sena': total_fichas_sena,
+        'excepciones_fichas_sena': excepciones_fichas_sena,
+        'total_excepciones_fichas_sena': total_excepciones_fichas_sena,
+        'desarrolladores_para_excepcion': desarrolladores_para_excepcion,
+        'sena_modo_verificacion': sena_modo_verificacion,
+        'sena_api_url': sena_api_url,
+        'active_section': active_section,
+    }
+
+
+def _contexto_sec_proyectos(request=None, proy_stats=None, p_ret=None, active_section=None):
+    if proy_stats is None:
+        proy_stats = Proyecto.objects.aggregate(
+            p_pub=Count('id', filter=Q(estado='publicado')),
+            p_des=Count('id', filter=Q(estado='en_desarrollo')),
+            p_fin=Count('id', filter=Q(estado='finalizado')),
+        )
+    if p_ret is None:
+        p_ret = Proyecto.objects.filter(
+            estado__in=('en_desarrollo', 'en_revision'),
+            fecha_cumplimiento__lt=timezone.localdate(),
+        ).count()
+
+    p_pub = proy_stats['p_pub']
+    p_des = proy_stats['p_des']
+    p_fin = proy_stats['p_fin']
+    total_proyectos = p_pub + p_des + p_fin
+
+    proy_q = request.GET.get('proy_q', '').strip() if request is not None else ''
+    proy_estado = request.GET.get('proy_estado', '').strip() if request is not None else ''
+    proy_page = request.GET.get('proy_page', 1) if request is not None else 1
+
+    proyectos_qs = Proyecto.objects.all()
+    if proy_q:
+        proyectos_qs = proyectos_qs.filter(
+            Q(titulo__icontains=proy_q) |
+            Q(empresa__nombre__icontains=proy_q) |
+            Q(empresa__username__icontains=proy_q)
+        )
+    if proy_estado:
+        proyectos_qs = proyectos_qs.filter(estado=proy_estado)
+
+    proy_paginator = Paginator(
+        proyectos_qs.select_related('empresa').prefetch_related(
+            Prefetch(
+                'contrataciones',
+                queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador').annotate(
+                    hitos_completados=Count('proyecto__entregables', filter=Q(proyecto__entregables__estado='completado')),
+                    total_hitos=Count('proyecto__entregables')
+                ),
+                to_attr='contratos_activos'
+            )
+        ).order_by('-fecha_publicacion'),
+        25
+    )
+    proyectos_lista = proy_paginator.get_page(proy_page)
+
+    proyectos_pendientes_regularizacion = list(
+        Proyecto.objects.filter(estado='finalizado')
+        .exclude(historial_estados__estado_nuevo='finalizado')
+        .exclude(pk__in=RegularizacionCierreProyecto.objects.values('proyecto_id'))
+        .select_related('empresa').order_by('-fecha_publicacion')[:25]
+    )
+
+    proyectos_cumplimiento_vencido = Proyecto.objects.filter(
+        estado__in=('en_desarrollo', 'en_revision'),
+        fecha_cumplimiento__lt=timezone.localdate(),
+    ).select_related('empresa').order_by('fecha_cumplimiento')[:50]
+
+    # SCRUM-315 (HU-A07): el umbral de inactividad es configurable (15 días por defecto).
+    dias_alerta = getattr(settings, 'PROYECTO_DIAS_ALERTA_RETRASO', 15)
+    fecha_alerta = timezone.now() - timedelta(days=dias_alerta)
+    proyectos_alerta = Proyecto.objects.filter(
+        estado='en_desarrollo'
+    ).annotate(
+        ultimo_avance=Max('entregables__fecha_creacion'),
+    ).filter(
+        Q(ultimo_avance__lt=fecha_alerta) | Q(ultimo_avance__isnull=True)
+    ).select_related('empresa').prefetch_related(
+        Prefetch('contrataciones',
+            queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador'),
+            to_attr='contratos_activos')
+    ).distinct()
+
+    alertas_retraso = []
+    for p in proyectos_alerta:
+        dev_nombre = p.contratos_activos[0].desarrollador.nombre if p.contratos_activos else ''
+        dias = 0
+        if p.ultimo_avance:
+            dias = (timezone.now() - p.ultimo_avance).days
+        elif p.contratos_activos:
+            dias = (timezone.now().date() - p.contratos_activos[0].fecha_inicio).days
+        alertas_retraso.append((p.titulo, p.empresa.nombre, dev_nombre, dias, p.empresa_id))
+
+    categorias_solucion = CategoriaSolucion.objects.annotate(
+        proyectos_count=Count('proyectos')
+    ).order_by('nombre')
+
+    return {
+        'total_proyectos': total_proyectos,
+        'p_pub': p_pub,
+        'p_des': p_des,
+        'p_fin': p_fin,
+        'p_ret': p_ret,
+        'proyectos_todos': proyectos_lista,
+        'proy_q': proy_q,
+        'proy_estado': proy_estado,
+        'proyectos_pendientes_regularizacion': proyectos_pendientes_regularizacion,
+        'proyectos_cumplimiento_vencido': proyectos_cumplimiento_vencido,
+        'alertas_retraso': alertas_retraso,
+        'dias_alerta_retraso': dias_alerta,
+        'categorias_solucion': categorias_solucion,
+        'active_section': active_section,
+    }
+
+
+def _contexto_sec_chat_config(incluir_catalogo_y_chat=False, admin_ids=None, active_section=None):
+    ctx = {
+        'plazo_negociacion_dias': postulaciones_services.obtener_plazo_negociacion_dias(),
+        'active_section': active_section,
+    }
+    if not incluir_catalogo_y_chat:
+        ctx['proyectos_catalogo'] = []
+        ctx['conversaciones'] = []
+        return ctx
+
+    # Catálogo completo para la sección integrada Explorar en Admin
+    proyectos_catalogo = list(Proyecto.objects.select_related(
+        'empresa', 'empresa__perfil_empresa', 'categoria'
+    ).annotate(
+        num_postulaciones=Count('postulaciones', distinct=True),
+        empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
+            filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
+            Value(0.0), output_field=FloatField())
+    ).order_by('-fecha_publicacion')[:60])
+
+    if admin_ids is None:
+        admin_ids = get_admin_ids()
+    mensajes_no_leidos_admin = Mensaje.objects.filter(receptor_id__in=admin_ids, leido=False).count()
+
+    mensajes_soporte = Mensaje.objects.filter(
+        Q(remitente_id__in=admin_ids) | Q(receptor_id__in=admin_ids)
+    ).values_list('remitente_id', 'receptor_id')
+    u_ids = set()
+    for r, s in mensajes_soporte:
+        if r not in admin_ids:
+            u_ids.add(r)
+        if s not in admin_ids:
+            u_ids.add(s)
+
+    ultimo_mensaje_sq = Mensaje.objects.filter(
+        (Q(remitente=OuterRef('pk'), receptor_id__in=admin_ids) |
+         Q(remitente_id__in=admin_ids, receptor=OuterRef('pk')))
+    ).order_by('-fecha_envio').values('id')[:1]
+
+    contactos = Usuario.objects.filter(id__in=u_ids).select_related(
+        'perfil_empresa', 'perfil_desarrollador'
+    ).annotate(
+        ultimo_mensaje_id=Subquery(ultimo_mensaje_sq)
+    )
+
+    conversaciones = []
+    mensajes_ids = [c.ultimo_mensaje_id for c in contactos if c.ultimo_mensaje_id]
+    ultimos_mensajes = {
+        m.id: m for m in Mensaje.objects.filter(id__in=mensajes_ids).select_related('remitente')
+    }
+
+    for contacto in contactos:
+        ultimo_m = ultimos_mensajes.get(contacto.ultimo_mensaje_id)
+        if ultimo_m:
+            tiene_pendientes = (ultimo_m.remitente_id == contacto.id and not ultimo_m.leido)
+            foto_url = ''
+            if contacto.rol == 'empresa':
+                perfil = getattr(contacto, 'perfil_empresa', None)
+                if perfil and perfil.logo:
+                    foto_url = perfil.logo.url
+            elif contacto.rol == 'desarrollador':
+                perfil = getattr(contacto, 'perfil_desarrollador', None)
+                if perfil and perfil.foto_perfil:
+                    foto_url = perfil.foto_perfil.url
+            conversaciones.append({
+                'usuario': contacto,
+                'ultimo_mensaje': ultimo_m,
+                'pendiente': tiene_pendientes,
+                'foto_url': foto_url,
+            })
+    conversaciones.sort(key=lambda x: x['ultimo_mensaje'].fecha_envio, reverse=True)
+
+    ctx.update({
+        'proyectos_catalogo': proyectos_catalogo,
+        'conversaciones': conversaciones,
+        'mensajes_no_leidos_admin': mensajes_no_leidos_admin,
+    })
+    return ctx
+
+
 @login_required
 @requiere_usuario_activo
 def dashboard_admin(request):
@@ -75,10 +367,6 @@ def dashboard_admin(request):
     total_devs = user_stats['total_devs']
     usuarios_inactivos = user_stats['inactivos']
     usuarios_suspendidos = user_stats['suspendidos']
-    p_pub = proy_stats['p_pub']
-    p_des = proy_stats['p_des']
-    p_fin = proy_stats['p_fin']
-    total_proyectos = p_pub + p_des + p_fin
     total_usuarios = total_empresas + total_devs
     
     user_q = request.GET.get('user_q', '').strip()
@@ -112,100 +400,11 @@ def dashboard_admin(request):
     user_page = request.GET.get('user_page', 1)
     usuarios_lista = user_paginator.get_page(user_page)
 
-    proy_q = request.GET.get('proy_q', '').strip()
-    proy_estado = request.GET.get('proy_estado', '').strip()
-
-    proyectos_qs = Proyecto.objects.all()
-    if proy_q:
-        proyectos_qs = proyectos_qs.filter(
-            Q(titulo__icontains=proy_q) |
-            Q(empresa__nombre__icontains=proy_q) |
-            Q(empresa__username__icontains=proy_q)
-        )
-    if proy_estado:
-        proyectos_qs = proyectos_qs.filter(estado=proy_estado)
-
-    proy_paginator = Paginator(
-        proyectos_qs.select_related('empresa').prefetch_related(
-            Prefetch(
-                'contrataciones',
-                queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador').annotate(
-                    hitos_completados=Count('proyecto__entregables', filter=Q(proyecto__entregables__estado='completado')),
-                    total_hitos=Count('proyecto__entregables')
-                ),
-                to_attr='contratos_activos'
-            )
-        ).order_by('-fecha_publicacion'),
-        25
-    )
-    proy_page = request.GET.get('proy_page', 1)
-    proyectos_lista = proy_paginator.get_page(proy_page)
-
-    proyectos_pendientes_regularizacion = list(
-        Proyecto.objects.filter(estado='finalizado')
-        .exclude(historial_estados__estado_nuevo='finalizado')
-        .exclude(pk__in=RegularizacionCierreProyecto.objects.values('proyecto_id'))
-        .select_related('empresa').order_by('-fecha_publicacion')[:25]
-    )
-
-    # Catálogo completo para la sección integrada Explorar en Admin
-    proyectos_catalogo = list(Proyecto.objects.select_related(
-        'empresa', 'empresa__perfil_empresa', 'categoria'
-    ).annotate(
-        num_postulaciones=Count('postulaciones', distinct=True),
-        empresa_reputacion=Coalesce(Avg('empresa__valoraciones_como_empresa__puntuacion',
-            filter=Q(empresa__valoraciones_como_empresa__rol_evaluador='desarrollador')),
-            Value(0.0), output_field=FloatField())
-    ).order_by('-fecha_publicacion')[:60])
-    
     logs = list(LogAuditoria.objects.select_related('usuario').order_by('-fecha_hora').values_list(
         'id', 'usuario__username', 'accion', 'tabla_afectada', 'fecha_hora'
     )[:20])
 
     admin_ids = get_admin_ids()
-    mensajes_no_leidos_admin = Mensaje.objects.filter(receptor_id__in=admin_ids, leido=False).count()
-
-    mensajes_soporte = Mensaje.objects.filter(Q(remitente_id__in=admin_ids) | Q(receptor_id__in=admin_ids)).values_list('remitente_id', 'receptor_id')
-    u_ids = set()
-    for r, s in mensajes_soporte:
-        if r not in admin_ids: u_ids.add(r)
-        if s not in admin_ids: u_ids.add(s)
-    
-    ultimo_mensaje_sq = Mensaje.objects.filter(
-        (Q(remitente=OuterRef('pk'), receptor_id__in=admin_ids) | 
-         Q(remitente_id__in=admin_ids, receptor=OuterRef('pk')))
-    ).order_by('-fecha_envio').values('id')[:1]
-
-    contactos = Usuario.objects.filter(id__in=u_ids).select_related(
-        'perfil_empresa', 'perfil_desarrollador'
-    ).annotate(
-        ultimo_mensaje_id=Subquery(ultimo_mensaje_sq)
-    )
-    
-    conversaciones = []
-    mensajes_ids = [c.ultimo_mensaje_id for c in contactos if c.ultimo_mensaje_id]
-    ultimos_mensajes = {m.id: m for m in Mensaje.objects.filter(id__in=mensajes_ids).select_related('remitente')}
-
-    for contacto in contactos:
-        ultimo_m = ultimos_mensajes.get(contacto.ultimo_mensaje_id)
-        if ultimo_m:
-            tiene_pendientes = (ultimo_m.remitente_id == contacto.id and not ultimo_m.leido)
-            foto_url = ''
-            if contacto.rol == 'empresa':
-                perfil = getattr(contacto, 'perfil_empresa', None)
-                if perfil and perfil.logo:
-                    foto_url = perfil.logo.url
-            elif contacto.rol == 'desarrollador':
-                perfil = getattr(contacto, 'perfil_desarrollador', None)
-                if perfil and perfil.foto_perfil:
-                    foto_url = perfil.foto_perfil.url
-            conversaciones.append({
-                'usuario': contacto, 
-                'ultimo_mensaje': ultimo_m,
-                'pendiente': tiene_pendientes,
-                'foto_url': foto_url,
-            })
-    conversaciones.sort(key=lambda x: x['ultimo_mensaje'].fecha_envio, reverse=True)
 
     desarrolladores_qs = Usuario.objects.filter(rol='desarrollador').annotate(
         promedio=Coalesce(Avg('valoraciones_como_dev__puntuacion',
@@ -222,36 +421,6 @@ def dashboard_admin(request):
         .values_list('nombre', 'proyectos_comp', 'promedio', 'id'))
 
     salud_global = (promedio_global, p_ret)
-
-    proyectos_cumplimiento_vencido = Proyecto.objects.filter(
-        estado__in=('en_desarrollo', 'en_revision'),
-        fecha_cumplimiento__lt=timezone.localdate(),
-    ).select_related('empresa').order_by('fecha_cumplimiento')[:50]
-
-    # SCRUM-315 (HU-A07): el umbral de inactividad es configurable (15 días por defecto).
-    dias_alerta = getattr(settings, 'PROYECTO_DIAS_ALERTA_RETRASO', 15)
-    fecha_alerta = timezone.now() - timedelta(days=dias_alerta)
-    proyectos_alerta = Proyecto.objects.filter(
-        estado='en_desarrollo'
-    ).annotate(
-        ultimo_avance=Max('entregables__fecha_creacion'),
-    ).filter(
-        Q(ultimo_avance__lt=fecha_alerta) | Q(ultimo_avance__isnull=True)
-    ).select_related('empresa').prefetch_related(
-        Prefetch('contrataciones',
-            queryset=Contratacion.objects.filter(estado='activa').select_related('desarrollador'),
-            to_attr='contratos_activos')
-    ).distinct()
-
-    alertas_retraso = []
-    for p in proyectos_alerta:
-        dev_nombre = p.contratos_activos[0].desarrollador.nombre if p.contratos_activos else ''
-        dias = 0
-        if p.ultimo_avance:
-            dias = (timezone.now() - p.ultimo_avance).days
-        elif p.contratos_activos:
-            dias = (timezone.now().date() - p.contratos_activos[0].fecha_inicio).days
-        alertas_retraso.append((p.titulo, p.empresa.nombre, dev_nombre, dias, p.empresa_id))
 
     empresas_qs = Usuario.objects.filter(rol='empresa').annotate(
         promedio=Coalesce(Avg('valoraciones_como_empresa__puntuacion',
@@ -279,60 +448,6 @@ def dashboard_admin(request):
         resenas_auditoria.append((de, para, v.puntuacion, v.comentario, v.rol_evaluador))
 
     notificaciones_admin, notificaciones_pendientes_count = get_notificaciones_context(request.user.id)
-
-    categorias_solucion = CategoriaSolucion.objects.annotate(
-        proyectos_count=Count('proyectos')
-    ).order_by('nombre')
-
-    disputas_activas = list(
-        Disputa.objects.filter(estado__in=('abierta', 'en_mediacion'))
-        .select_related('proyecto__empresa', 'iniciado_por', 'mediador')
-        .order_by('-fecha_creacion')
-    )
-
-    # SCRUM-232 (RF 10.1.2): conteos por estado para el panel de mediación.
-    disputas_por_estado = {clave: 0 for clave, _ in Disputa.ESTADO}
-    for fila in Disputa.objects.values('estado').annotate(total=Count('id')):
-        disputas_por_estado[fila['estado']] = fila['total']
-
-    total_empresas_en_revision = PerfilEmpresa.objects.filter(
-        estado_verificacion='en_revision'
-    ).count()
-    empresas_en_revision = list(
-        PerfilEmpresa.objects.filter(estado_verificacion='en_revision')
-        .select_related('usuario')
-        .order_by('fecha_solicitud_verificacion')[:50]
-    )
-
-    total_desarrolladores_en_revision = PerfilDesarrollador.objects.filter(
-        estado_verificacion='en_revision'
-    ).count()
-    desarrolladores_en_revision = list(
-        PerfilDesarrollador.objects.filter(estado_verificacion='en_revision')
-        .select_related('usuario')
-        .order_by('fecha_solicitud_verificacion')[:50]
-    )
-    total_fichas_sena = FichaSena.objects.count()
-    fichas_sena = list(FichaSena.objects.all().order_by('-fecha_creacion')[:100])
-
-    # SCRUM-225 (RF 9.1.2): excepciones individuales justificadas a la lista blanca.
-    total_excepciones_fichas_sena = ExcepcionFichaSena.objects.count()
-    excepciones_fichas_sena = list(
-        ExcepcionFichaSena.objects.select_related(
-            'desarrollador__usuario', 'autorizado_por'
-        ).order_by('-fecha_creacion')[:100]
-    )
-    desarrolladores_para_excepcion = list(
-        PerfilDesarrollador.objects.order_by('usuario__nombre').values_list(
-            'id', 'usuario__nombre', 'usuario__username'
-        )
-    )
-
-    # SCRUM-311: mecanismo oficial de verificación SENA. No existe API pública de
-    # SOFIA Plus, así que el padrón institucional SENA (lista blanca local) es el
-    # mecanismo primario y SENA_API_URL queda como pasarela institucional opcional.
-    sena_api_url = getattr(settings, 'SENA_API_URL', os.environ.get('SENA_API_URL', ''))
-    sena_modo_verificacion = 'pasarela_externa' if sena_api_url else 'padron_oficial'
 
     def _tendencia_6_meses():
         hoy = timezone.localdate()
@@ -373,67 +488,36 @@ def dashboard_admin(request):
             for yy, mm in meses
         ]
 
-    solicitudes_cancelacion_admin = list(
-        SolicitudCancelacion.objects.select_related(
-            'contratacion__proyecto', 'contratacion__desarrollador',
-            'contratacion__proyecto__empresa', 'solicitante',
-        ).order_by('-fecha_creacion')[:50]
-    )
-    solicitudes_cancelacion_pendientes_count = sum(
-        1 for s in solicitudes_cancelacion_admin if s.estado == 'pendiente_revision'
-    )
-    solicitudes_cancelacion_resueltas_count = sum(
-        1 for s in solicitudes_cancelacion_admin if s.estado in ('aprobada', 'rechazada')
-    )
-
     context = {
-        'solicitudes_cancelacion_admin': solicitudes_cancelacion_admin,
-        'solicitudes_cancelacion_pendientes_count': solicitudes_cancelacion_pendientes_count,
-        'solicitudes_cancelacion_resueltas_count': solicitudes_cancelacion_resueltas_count,
         'tendencia_mensual_json': json.dumps(_tendencia_6_meses()),
-        'desarrolladores_en_revision': desarrolladores_en_revision,
-        'total_desarrolladores_en_revision': total_desarrolladores_en_revision,
-        'fichas_sena': fichas_sena,
-        'total_fichas_sena': total_fichas_sena,
-        'excepciones_fichas_sena': excepciones_fichas_sena,
-        'total_excepciones_fichas_sena': total_excepciones_fichas_sena,
-        'desarrolladores_para_excepcion': desarrolladores_para_excepcion,
-        'sena_modo_verificacion': sena_modo_verificacion,
-        'sena_api_url': sena_api_url,
-        'empresas_en_revision': empresas_en_revision,
-        'total_empresas_en_revision': total_empresas_en_revision,
-        'disputas_activas': disputas_activas,
-        'total_disputas_activas': len(disputas_activas),
-        'disputas_por_estado': disputas_por_estado,
-        'categorias_solucion': categorias_solucion,
-        'total_usuarios': total_usuarios, 'total_proyectos': total_proyectos,
-        'total_devs': total_devs, 'total_empresas': total_empresas,
-        'p_pub': p_pub, 'p_des': p_des, 'p_fin': p_fin,
-        'post_pen': post_pen, 'promedio_global': promedio_global, 'p_ret': p_ret,
-        'usuarios_todos': usuarios_lista, 'proyectos_todos': proyectos_lista,
-        'proyectos_pendientes_regularizacion': proyectos_pendientes_regularizacion,
-        'proyectos_catalogo': proyectos_catalogo,
-        'user_q': user_q, 'user_rol': user_rol, 'user_estado': user_estado,
-        'fecha_desde': fecha_desde, 'fecha_hasta': fecha_hasta, 'usuarios_inactivos': usuarios_inactivos,
+        'total_usuarios': total_usuarios,
+        'total_devs': total_devs,
+        'total_empresas': total_empresas,
+        'post_pen': post_pen,
+        'promedio_global': promedio_global,
+        'usuarios_todos': usuarios_lista,
+        'user_q': user_q,
+        'user_rol': user_rol,
+        'user_estado': user_estado,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'usuarios_inactivos': usuarios_inactivos,
         'usuarios_suspendidos': usuarios_suspendidos,
-        'proy_q': proy_q, 'proy_estado': proy_estado,
-        'logs_auditoria': logs, 'conversaciones': conversaciones, 
-        'mensajes_no_leidos_admin': mensajes_no_leidos_admin,
+        'logs_auditoria': logs,
         'ranking_talento': ranking_top,
         'ranking_bajo': ranking_bajo,
         'ranking_empresas': ranking_empresas_top,
         'ranking_empresas_bajo': ranking_empresas_bajo,
         'resenas_auditoria': resenas_auditoria,
         'salud_global': salud_global,
-        'proyectos_cumplimiento_vencido': proyectos_cumplimiento_vencido,
-        'alertas_retraso': alertas_retraso,
-        'dias_alerta_retraso': dias_alerta,
         'notificaciones': notificaciones_admin,
         'notificaciones_pendientes_count': notificaciones_pendientes_count,
         'admin_id': request.user.id,
         'admin_ids': list(admin_ids),
-        'plazo_negociacion_dias': postulaciones_services.obtener_plazo_negociacion_dias(),
     }
+    context.update(_contexto_sec_verificaciones())
+    context.update(_contexto_sec_proyectos(request, proy_stats=proy_stats, p_ret=p_ret))
+    context.update(_contexto_sec_chat_config(incluir_catalogo_y_chat=True, admin_ids=admin_ids))
     return render(request, 'administrador/Administrador.html', context)
 
 
@@ -448,10 +532,26 @@ def admin_actualizar_configuracion_negociacion(request):
         postulaciones_services.actualizar_plazo_negociacion_dias(
             plazo_dias, request.user
         )
-        messages.success(request, 'Plazo global de negociación actualizado.')
+        toast_tipo = 'success'
+        toast_msg = 'Plazo global de negociación actualizado.'
     except (TypeError, ValueError, ValidationError) as exc:
         mensaje = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
-        messages.error(request, mensaje or 'El plazo debe estar entre 1 y 30 días.')
+        toast_tipo = 'error'
+        toast_msg = mensaje or 'El plazo debe estar entre 1 y 30 días.'
+
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_chat_config.html',
+            _contexto_sec_chat_config(active_section='configSection'),
+            toast_tipo,
+            toast_msg,
+        )
+
+    if toast_tipo == 'success':
+        messages.success(request, toast_msg)
+    else:
+        messages.error(request, toast_msg)
     return redirect(reverse('dashboard_admin') + '?section=configSection')
 
 
@@ -478,9 +578,25 @@ def admin_regularizar_cierre_proyecto(request, proyecto_id):
     except Proyecto.DoesNotExist:
         raise Http404 from None
     except ValidationError as exc:
-        messages.error(request, ' '.join(exc.messages))
+        toast_tipo = 'error'
+        toast_msg = ' '.join(exc.messages)
     else:
-        messages.success(request, 'Fecha de cierre histórico registrada con auditoría.')
+        toast_tipo = 'success'
+        toast_msg = 'Fecha de cierre histórico registrada con auditoría.'
+
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_proyectos.html',
+            _contexto_sec_proyectos(active_section='projectsSection'),
+            toast_tipo,
+            toast_msg,
+        )
+
+    if toast_tipo == 'success':
+        messages.success(request, toast_msg)
+    else:
+        messages.error(request, toast_msg)
     return destino
 
 
@@ -584,17 +700,36 @@ def admin_crear_ficha_sena(request):
         raise PermissionDenied
 
     destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    es_htmx = _es_htmx_request(request)
     numero_ficha = re.sub(r'[\s\-]+', '', request.POST.get('numero_ficha', '').strip())
     programa = request.POST.get('programa_formacion', '').strip()
     regional = request.POST.get('regional', '').strip() or None
     centro = request.POST.get('centro_formacion', '').strip() or None
 
     if not numero_ficha or not programa:
-        messages.error(request, 'El número de ficha y el programa de formación son obligatorios.')
+        msg = 'El número de ficha y el programa de formación son obligatorios.'
+        if es_htmx:
+            return _htmx_admin_section_response(
+                request,
+                'administrador/partials/_sec_verificaciones.html',
+                _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+                'error',
+                msg,
+            )
+        messages.error(request, msg)
         return destino
 
     if FichaSena.objects.filter(numero_ficha=numero_ficha).exists():
-        messages.error(request, f'La ficha {numero_ficha} ya existe en la lista blanca oficial.')
+        msg = f'La ficha {numero_ficha} ya existe en la lista blanca oficial.'
+        if es_htmx:
+            return _htmx_admin_section_response(
+                request,
+                'administrador/partials/_sec_verificaciones.html',
+                _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+                'error',
+                msg,
+            )
+        messages.error(request, msg)
         return destino
 
     with transaction.atomic():
@@ -612,7 +747,16 @@ def admin_crear_ficha_sena(request):
             tabla_afectada='fichas_sena',
             registro_id=ficha.id,
         )
-    messages.success(request, f'Ficha {numero_ficha} registrada exitosamente en la lista blanca.')
+    msg = f'Ficha {numero_ficha} registrada exitosamente en la lista blanca.'
+    if es_htmx:
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+            'success',
+            msg,
+        )
+    messages.success(request, msg)
     return destino
 
 
@@ -637,7 +781,16 @@ def admin_toggle_ficha_sena(request, ficha_id):
             registro_id=ficha.id,
         )
     estado_str = 'activada' if ficha.activa else 'desactivada'
-    messages.success(request, f'Ficha {ficha.numero_ficha} {estado_str} correctamente.')
+    msg = f'Ficha {ficha.numero_ficha} {estado_str} correctamente.'
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+            'success',
+            msg,
+        )
+    messages.success(request, msg)
     return destino
 
 
@@ -649,34 +802,42 @@ def admin_crear_excepcion_ficha_sena(request):
         raise PermissionDenied
 
     destino = redirect(reverse('dashboard_admin') + '?section=fichasSenaSection')
+    es_htmx = _es_htmx_request(request)
     desarrollador_id = request.POST.get('desarrollador_id')
     numero_ficha = normalizar_numero_ficha(request.POST.get('numero_ficha', ''))
     justificacion = request.POST.get('justificacion', '').strip()
     dias_vigencia_raw = request.POST.get('dias_vigencia', '').strip()
 
-    if not desarrollador_id or not numero_ficha or not justificacion:
-        messages.error(
-            request,
-            'El desarrollador, el número de ficha y la justificación son obligatorios.',
-        )
+    def _error_resp(msg):
+        if es_htmx:
+            return _htmx_admin_section_response(
+                request,
+                'administrador/partials/_sec_verificaciones.html',
+                _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+                'error',
+                msg,
+            )
+        messages.error(request, msg)
         return destino
+
+    if not desarrollador_id or not numero_ficha or not justificacion:
+        return _error_resp(
+            'El desarrollador, el número de ficha y la justificación son obligatorios.'
+        )
 
     try:
         perfil = PerfilDesarrollador.objects.select_related('usuario').get(id=desarrollador_id)
     except (PerfilDesarrollador.DoesNotExist, ValueError, TypeError):
-        messages.error(request, 'El desarrollador indicado no existe.')
-        return destino
+        return _error_resp('El desarrollador indicado no existe.')
 
     fecha_expiracion = None
     if dias_vigencia_raw:
         try:
             dias = int(dias_vigencia_raw)
         except (TypeError, ValueError):
-            messages.error(request, 'Los días de vigencia deben ser un número entero.')
-            return destino
+            return _error_resp('Los días de vigencia deben ser un número entero.')
         if dias <= 0:
-            messages.error(request, 'Los días de vigencia deben ser mayores que cero.')
-            return destino
+            return _error_resp('Los días de vigencia deben ser mayores que cero.')
         fecha_expiracion = timezone.now() + timedelta(days=dias)
 
     with transaction.atomic():
@@ -697,7 +858,16 @@ def admin_crear_excepcion_ficha_sena(request):
             tabla_afectada='excepciones_ficha_sena',
             registro_id=excepcion.id,
         )
-    messages.success(request, f'Excepción autorizada para la ficha {numero_ficha}.')
+    msg = f'Excepción autorizada para la ficha {numero_ficha}.'
+    if es_htmx:
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+            'success',
+            msg,
+        )
+    messages.success(request, msg)
     return destino
 
 
@@ -726,9 +896,16 @@ def admin_revocar_excepcion_ficha_sena(request, excepcion_id):
             tabla_afectada='excepciones_ficha_sena',
             registro_id=excepcion.id,
         )
-    messages.success(
-        request, f'Excepción de la ficha {excepcion.numero_ficha} revocada correctamente.'
-    )
+    msg = f'Excepción de la ficha {excepcion.numero_ficha} revocada correctamente.'
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_verificaciones.html',
+            _contexto_sec_verificaciones(active_section='fichasSenaSection'),
+            'success',
+            msg,
+        )
+    messages.success(request, msg)
     return destino
 
 
@@ -758,9 +935,15 @@ def admin_depurar_notificaciones(request):
         accion=f"Depuración de notificaciones: {borradas} eliminadas (> {dias} días)"[:300],
         tabla_afectada='notificaciones',
     )
-    messages.success(
-        request,
-        f"Se depuraron {borradas} notificaciones antiguas exitosamente.",
-    )
+    msg = f"Se depuraron {borradas} notificaciones antiguas exitosamente."
+    if _es_htmx_request(request):
+        return _htmx_admin_section_response(
+            request,
+            'administrador/partials/_sec_chat_config.html',
+            _contexto_sec_chat_config(active_section='configSection'),
+            'success',
+            msg,
+        )
+    messages.success(request, msg)
     return redirect(destino)
 

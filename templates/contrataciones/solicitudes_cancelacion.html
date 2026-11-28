@@ -31,7 +31,7 @@
 
   {% include 'partials/_flash_toasts.html' %}
 
-  <div class="cancel-grid">
+  <div id="solicitudesCancelacionPanelWrap" class="cancel-grid">
     <!-- Columna 1: Proponer acuerdo -->
     {% if rol == 'empresa' or rol == 'desarrollador' %}
       <div>
@@ -47,7 +47,7 @@
               <span>{% if rol == 'desarrollador' %}Empresa: <strong>{{ contrato.empresa.nombre|default:contrato.empresa.username }}</strong>{% else %}Desarrollador: <strong>{{ contrato.desarrollador.nombre|default:contrato.desarrollador.username }}</strong>{% endif %}</span>
             </div>
 
-            <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
+            <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post" hx-post="{% url 'cancelar_contratacion' contrato.id %}" hx-target="#solicitudesCancelacionPanelWrap" hx-select="#solicitudesCancelacionPanelWrap" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']">
               {% csrf_token %}
               <div class="cancel-form-group">
                 <label class="cancel-label form-label" for="causal-{{ contrato.id }}">Motivo de terminación</label>
@@ -117,7 +117,7 @@
               Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución.
             </div>
           {% elif rol == 'administrador' and solicitud.estado == 'pendiente_revision' or rol == 'desarrollador' and solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
-            <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
+            <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post" hx-post="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" hx-target="#solicitudesCancelacionPanelWrap" hx-select="#solicitudesCancelacionPanelWrap" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']">
               {% csrf_token %}
               {% if rol == 'administrador' %}
                 <div class="cancel-form-group">

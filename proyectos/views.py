@@ -13,7 +13,7 @@ from django.db.models import (
     Avg, Q, Count, Prefetch, Value, FloatField, F, IntegerField, OuterRef, Subquery,
 )
 from django.db.models.functions import Coalesce
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from urllib.parse import urlencode
 from django.core.paginator import Paginator
@@ -28,6 +28,10 @@ def _espera_json(request):
         'application/json' in request.headers.get('Accept', '')
         or request.headers.get('x-requested-with') == 'XMLHttpRequest'
     )
+
+
+def _es_htmx(request):
+    return request.headers.get('HX-Request') == 'true' and not _espera_json(request)
 from usuarios.decorators import api_ratelimit
 from usuarios.models import Usuario, PerfilDesarrollador
 from contrataciones.models import Contratacion
@@ -785,37 +789,88 @@ def calificar_empresa(request, proyecto_id):
 
     return render(request, 'proyectos/calificar_empresa.html', {'proyecto': proyecto})
 
+def _contexto_equipos_panel(proyecto):
+    desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
+    equipos = proyecto.equipos.all().prefetch_related('miembros')
+    return {
+        'proyecto': proyecto,
+        'desarrolladores': desarrolladores,
+        'equipos': equipos,
+    }
+
+
+def _render_equipos_panel_htmx(request, proyecto, mensaje, tipo='success'):
+    response = render(request, 'proyectos/partials/_equipos_panel.html', _contexto_equipos_panel(proyecto))
+    response['HX-Trigger'] = json.dumps({
+        'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+    })
+    return response
+
+
+def _contexto_hitos_panel(proyecto):
+    hitos = Entregable.objects.filter(proyecto=proyecto).select_related('desarrollador', 'equipo').order_by('fecha_creacion')
+    equipos = proyecto.equipos.all()
+    contratos_activos = Contratacion.objects.filter(proyecto=proyecto, estado='activa')
+    tiene_multiples_contratos = contratos_activos.count() >= 2
+    desarrolladores_activos = contratos_activos.select_related('desarrollador')
+    return {
+        'proyecto': proyecto,
+        'hitos': hitos,
+        'equipos': equipos,
+        'tiene_multiples_contratos': tiene_multiples_contratos,
+        'desarrolladores_activos': desarrolladores_activos,
+    }
+
+
+def _render_hitos_panel_htmx(request, proyecto, mensaje, tipo='success'):
+    response = render(request, 'proyectos/partials/_hitos_panel.html', _contexto_hitos_panel(proyecto))
+    response['HX-Trigger'] = json.dumps({
+        'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+    })
+    return response
+
+
 @login_required
 def gestionar_equipos(request, proyecto_id):
     if request.user.rol != 'empresa': return redirect('inicio')
-    
+    es_htmx = _es_htmx(request)
+
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     # Hallazgo 19: Usar helper del manager Contratacion
     desarrolladores = Contratacion.objects.desarrolladores_activos(proyecto)
 
     if desarrolladores.count() < 2:
-        messages.warning(request, "Para crear grupos o parejas se requieren al menos 2 desarrolladores contratados.")
+        msg = "Para crear grupos o parejas se requieren al menos 2 desarrolladores contratados."
+        if es_htmx:
+            return _render_equipos_panel_htmx(request, proyecto, msg, tipo='warning')
+        messages.warning(request, msg)
         return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         miembros_ids = request.POST.getlist('miembros')
-        
+
         if nombre and miembros_ids:
             nombre = (request.POST.get('nombre') or '').strip()[:100]
             if not nombre:
-                messages.error(request, "El nombre del equipo es obligatorio.")
+                msg = "El nombre del equipo es obligatorio."
+                if es_htmx:
+                    return _render_equipos_panel_htmx(request, proyecto, msg, tipo='error')
+                messages.error(request, msg)
                 return redirect('gestionar_equipos', proyecto_id=proyecto.id)
 
             # Hallazgo 8: Validar que todos los miembros pertenezcan a los desarrolladores activos contratados
             dev_ids_activos = set(str(uid) for uid in desarrolladores.values_list('id', flat=True))
             if not all(str(m) in dev_ids_activos for m in miembros_ids):
-                messages.error(request, "Error: Solo puedes asignar desarrolladores contratados y activos en este proyecto.")
+                msg = "Error: Solo puedes asignar desarrolladores contratados y activos en este proyecto."
+                if es_htmx:
+                    return _render_equipos_panel_htmx(request, proyecto, msg, tipo='error')
+                messages.error(request, msg)
                 return redirect('gestionar_equipos', proyecto_id=proyecto.id)
 
             equipo = Equipo.objects.create(nombre=nombre, proyecto=proyecto)
             equipo.miembros.set(miembros_ids)
-            
+
             # Notificación: Avisar a cada miembro usando equipo.nombre consistente
             for miembro_id in miembros_ids:
                 Notificacion.objects.create(
@@ -823,12 +878,22 @@ def gestionar_equipos(request, proyecto_id):
                     tipo='mensaje',
                     mensaje=f"Has sido asignado al equipo '{equipo.nombre}' en el proyecto: {proyecto.titulo}"
                 )
-            
-            messages.success(request, f"Equipo '{equipo.nombre}' creado y miembros notificados.")
+
+            msg = f"Equipo '{equipo.nombre}' creado y miembros notificados."
+            if es_htmx:
+                return _render_equipos_panel_htmx(request, proyecto, msg, tipo='success')
+            messages.success(request, msg)
             return redirect('gestionar_equipos', proyecto_id=proyecto.id)
+        elif es_htmx:
+            return _render_equipos_panel_htmx(
+                request,
+                proyecto,
+                "Debes indicar un nombre y seleccionar al menos un miembro.",
+                tipo='error',
+            )
 
     equipos = proyecto.equipos.all().prefetch_related('miembros')
-    
+
     return render(request, 'proyectos/gestionar_equipos.html', {
         'proyecto': proyecto,
         'desarrolladores': desarrolladores,
@@ -838,21 +903,29 @@ def gestionar_equipos(request, proyecto_id):
 @login_required
 @require_POST
 def eliminar_equipo(request, equipo_id):
+    es_htmx = _es_htmx(request)
     equipo = get_object_or_404(Equipo, id=equipo_id, proyecto__empresa=request.user)
-    proyecto_id = equipo.proyecto.id
+    proyecto = equipo.proyecto
     equipo.delete()
-    messages.info(request, "Equipo eliminado.")
-    return redirect('gestionar_equipos', proyecto_id=proyecto_id)
+    msg = "Equipo eliminado."
+    if es_htmx:
+        return _render_equipos_panel_htmx(request, proyecto, msg, tipo='info')
+    messages.info(request, msg)
+    return redirect('gestionar_equipos', proyecto_id=proyecto.id)
 
 @login_required
 def gestionar_hitos(request, proyecto_id):
+    es_htmx = _es_htmx(request)
     proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
     hitos = Entregable.objects.filter(proyecto=proyecto).order_by('fecha_creacion')
 
     if request.method == 'POST':
         # Hallazgo 16: No permitir crear hitos en proyectos finalizados, inactivos o rechazados
         if proyecto.estado in ('finalizado', 'inactivo', 'rechazado'):
-            messages.error(request, f"No se pueden agregar hitos a un proyecto {proyecto.get_estado_display().lower()}.")
+            msg = f"No se pueden agregar hitos a un proyecto {proyecto.get_estado_display().lower()}."
+            if es_htmx:
+                return _render_hitos_panel_htmx(request, proyecto, msg, tipo='error')
+            messages.error(request, msg)
             return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
         titulo = request.POST.get('titulo')
@@ -866,7 +939,10 @@ def gestionar_hitos(request, proyecto_id):
             if equipo_id:
                 equipo = Equipo.objects.filter(id=equipo_id, proyecto=proyecto).first()
                 if not equipo:
-                    messages.error(request, "Error: El equipo seleccionado no pertenece a este proyecto.")
+                    msg = "Error: El equipo seleccionado no pertenece a este proyecto."
+                    if es_htmx:
+                        return _render_hitos_panel_htmx(request, proyecto, msg, tipo='error')
+                    messages.error(request, msg)
                     return redirect('gestionar_hitos', proyecto_id=proyecto.id)
 
             # SCRUM-309 (HU-E13): el desarrollador asignado debe tener contratación activa
@@ -878,10 +954,10 @@ def gestionar_hitos(request, proyecto_id):
                     estado='activa',
                 ).select_related('desarrollador').first()
                 if not contratacion:
-                    messages.error(
-                        request,
-                        "Error: El desarrollador seleccionado no tiene una contratación activa en este proyecto.",
-                    )
+                    msg = "Error: El desarrollador seleccionado no tiene una contratación activa en este proyecto."
+                    if es_htmx:
+                        return _render_hitos_panel_htmx(request, proyecto, msg, tipo='error')
+                    messages.error(request, msg)
                     return redirect('gestionar_hitos', proyecto_id=proyecto.id)
                 desarrollador = contratacion.desarrollador
 
@@ -920,11 +996,18 @@ def gestionar_hitos(request, proyecto_id):
                         mensaje=f"Nueva tarea general en '{proyecto.titulo}': {titulo}"
                     )
 
-            messages.success(request, f"Hito '{titulo}' creado y desarrolladores notificados.")
+            msg = f"Hito '{titulo}' creado y desarrolladores notificados."
+            if es_htmx:
+                return _render_hitos_panel_htmx(request, proyecto, msg, tipo='success')
+            messages.success(request, msg)
             next_url = request.POST.get('next')
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
                 return HttpResponseRedirect(next_url)
             return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+        elif es_htmx:
+            return _render_hitos_panel_htmx(
+                request, proyecto, "El nombre del hito es obligatorio.", tipo='error'
+            )
 
     equipos = proyecto.equipos.all()
     tiene_multiples_contratos = Contratacion.objects.filter(proyecto=proyecto, estado='activa').count() >= 2
@@ -956,14 +1039,95 @@ def gestionar_hitos(request, proyecto_id):
 @login_required
 @require_POST
 def eliminar_hito(request, hito_id):
+    es_htmx = _es_htmx(request)
     hito = get_object_or_404(Entregable, id=hito_id, proyecto__empresa=request.user)
-    proyecto_id = hito.proyecto.id
+    proyecto = hito.proyecto
     if hito.estado == 'pendiente':
         hito.delete()
-        messages.success(request, "Hito eliminado.")
+        msg = "Hito eliminado."
+        if es_htmx:
+            return _render_hitos_panel_htmx(request, proyecto, msg, tipo='success')
+        messages.success(request, msg)
     else:
-        messages.error(request, "No se puede eliminar un hito que ya ha sido completado.")
-    return redirect('gestionar_hitos', proyecto_id=proyecto_id)
+        msg = "No se puede eliminar un hito que ya ha sido completado."
+        if es_htmx:
+            return _render_hitos_panel_htmx(request, proyecto, msg, tipo='error')
+        messages.error(request, msg)
+    return redirect('gestionar_hitos', proyecto_id=proyecto.id)
+
+def _render_ofertas_htmx(request, *, toast=None):
+    """Renderiza el partial _tab_ofertas.html actualizado para respuestas HTMX."""
+    hoy = timezone.localdate()
+    limite_48h = hoy + timedelta(days=2)
+    mis_ofertas = list(
+        Proyecto.objects.filter(empresa=request.user, estado='publicado')
+        .select_related('categoria')
+        .annotate(
+            num_candidatos=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado__in=['pendiente', 'en_negociacion']),
+                distinct=True,
+            ),
+            num_pendientes=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado='pendiente'),
+                distinct=True,
+            ),
+            num_contratos=Count('contrataciones', distinct=True),
+            num_contratos_cancelados=Count(
+                'contrataciones',
+                filter=Q(contrataciones__estado='cancelada'),
+                distinct=True,
+            ),
+            num_contratos_activos=Count(
+                'contrataciones',
+                filter=Q(contrataciones__estado='activa'),
+                distinct=True,
+            ),
+            num_negociaciones=Count(
+                'postulaciones',
+                filter=Q(postulaciones__estado='en_negociacion'),
+                distinct=True,
+            ),
+        )
+        .order_by('-fecha_publicacion')
+    )
+    for proyecto in mis_ofertas:
+        proyecto.cierra_pronto = bool(
+            proyecto.fecha_limite and hoy <= proyecto.fecha_limite <= limite_48h
+        )
+        proyecto.puede_reabrir = bool(
+            proyecto.fecha_limite
+            and proyecto.fecha_limite < hoy
+            and proyecto.num_contratos_cancelados
+            and proyecto.vacantes > proyecto.num_contratos_activos + proyecto.num_negociaciones
+        )
+
+    total_vacantes_ofertas = sum(p.vacantes for p in mis_ofertas)
+    total_postulaciones = Postulacion.objects.filter(
+        proyecto__empresa=request.user,
+        estado='pendiente',
+        proyecto__estado__in=['publicado', 'en_desarrollo'],
+    ).count()
+
+    response = render(
+        request,
+        'empresa/partials/_tab_ofertas.html',
+        {
+            'mis_ofertas': mis_ofertas,
+            'total_vacantes_ofertas': total_vacantes_ofertas,
+            'total_postulaciones': total_postulaciones,
+            'fecha_minima_reapertura': (hoy + timedelta(days=1)).isoformat(),
+            'htmx_ofertas_activa': True,
+        },
+    )
+    if toast:
+        tipo, mensaje = toast
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+        })
+    return response
+
 
 @login_required
 @require_POST
@@ -972,6 +1136,7 @@ def reabrir_postulaciones(request, proyecto_id):
     if request.user.rol != 'empresa':
         raise PermissionDenied
 
+    error_msg = None
     with transaction.atomic():
         proyecto = get_object_or_404(
             Proyecto.objects.select_for_update(), id=proyecto_id, empresa=request.user,
@@ -984,28 +1149,37 @@ def reabrir_postulaciones(request, proyecto_id):
             and Contratacion.objects.filter(proyecto=proyecto, estado='cancelada').exists()
             and proyecto.vacantes_disponibles > 0
         ):
-            messages.error(request, "Este proyecto no admite reabrir postulaciones.")
-            return redirect('dashboard_empresa')
+            error_msg = "Este proyecto no admite reabrir postulaciones."
+        else:
+            try:
+                nueva_fecha = datetime.strptime(request.POST.get('fecha_limite', ''), '%Y-%m-%d').date()
+            except (TypeError, ValueError):
+                error_msg = "Indica una fecha válida de cierre de postulaciones."
+                nueva_fecha = None
 
-        try:
-            nueva_fecha = datetime.strptime(request.POST.get('fecha_limite', ''), '%Y-%m-%d').date()
-        except (TypeError, ValueError):
-            messages.error(request, "Indica una fecha válida de cierre de postulaciones.")
-            return redirect('dashboard_empresa')
-        if nueva_fecha <= hoy:
-            messages.error(request, "El nuevo cierre debe ser posterior a hoy.")
-            return redirect('dashboard_empresa')
+            if error_msg is None and nueva_fecha <= hoy:
+                error_msg = "El nuevo cierre debe ser posterior a hoy."
 
-        anterior = proyecto.fecha_limite
-        proyecto.fecha_limite = nueva_fecha
-        proyecto.save(update_fields=['fecha_limite'])
-        LogAuditoria.objects.create(
-            usuario=request.user, tabla_afectada='proyectos', registro_id=proyecto.pk,
-            accion=f"Amplió cierre de postulaciones de {proyecto.titulo}"[:300],
-            valor_anterior=anterior.isoformat(), valor_nuevo=nueva_fecha.isoformat(),
-        )
+            if error_msg is None:
+                anterior = proyecto.fecha_limite
+                proyecto.fecha_limite = nueva_fecha
+                proyecto.save(update_fields=['fecha_limite'])
+                LogAuditoria.objects.create(
+                    usuario=request.user, tabla_afectada='proyectos', registro_id=proyecto.pk,
+                    accion=f"Amplió cierre de postulaciones de {proyecto.titulo}"[:300],
+                    valor_anterior=anterior.isoformat(), valor_nuevo=nueva_fecha.isoformat(),
+                )
 
-    messages.success(request, "Convocatoria reabierta con el nuevo plazo de postulación.")
+    if error_msg:
+        if _es_htmx(request):
+            return _render_ofertas_htmx(request, toast=('error', error_msg))
+        messages.error(request, error_msg)
+        return redirect('dashboard_empresa')
+
+    msg_ok = "Convocatoria reabierta con el nuevo plazo de postulación."
+    if _es_htmx(request):
+        return _render_ofertas_htmx(request, toast=('success', msg_ok))
+    messages.success(request, msg_ok)
     return redirect(f"{reverse('dashboard_empresa')}#ofertas")
 
 
@@ -1192,10 +1366,15 @@ def desactivar_proyecto(request, proyecto_id):
                 # Creación masiva de notificaciones
                 Notificacion.objects.bulk_create(notificaciones_lista)
 
-            messages.info(request, f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados.")
+            msg = f"El proyecto '{proyecto.titulo}' ha sido retirado y los desarrolladores han sido notificados."
+            toast_tipo = 'info'
         else:
-            messages.error(request, "Solo puedes retirar una oferta publicada sin contratos. Los proyectos en ejecución requieren el flujo de terminación o resolución contractual.")
-        
+            msg = "Solo puedes retirar una oferta publicada sin contratos. Los proyectos en ejecución requieren el flujo de terminación o resolución contractual."
+            toast_tipo = 'error'
+
+    if _es_htmx(request):
+        return _render_ofertas_htmx(request, toast=(toast_tipo, msg))
+    getattr(messages, toast_tipo)(request, msg)
     return redirect('dashboard_empresa')
 
 

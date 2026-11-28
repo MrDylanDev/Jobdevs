@@ -147,7 +147,7 @@
       </section>
 
       <!-- Verificación de Empresas -->
-      <section id="verificacionEmpresasSection" class="section-v">
+      <section id="verificacionEmpresasSection" class="section-v{% if active_section == 'verificacionEmpresasSection' %} active{% endif %}">
         <div class="page-header">
           <div>
             <div class="page-title">Verificación de Empresas</div>
@@ -230,12 +230,12 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Aprobar verificación de empresa" data-confirm-message="¿Confirmas que deseas aprobar la verificación de identidad de {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" hx-post="{% url 'admin_resolver_verificacion_empresa' e.id %}" hx-target="#verificacionEmpresasSection" hx-select="#verificacionEmpresasSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Aprobar verificación de empresa" data-confirm-message="¿Confirmas que deseas aprobar la verificación de identidad de {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="aprobar">
                     <button type="submit" class="btn btn-primary">Aprobar</button>
                   </form>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_empresa' e.id %}" hx-post="{% url 'admin_resolver_verificacion_empresa' e.id %}" hx-target="#verificacionEmpresasSection" hx-select="#verificacionEmpresasSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ e.usuario.nombre|default:e.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="solicitar_documento">
                     <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
@@ -256,7 +256,7 @@
       </section>
 
       <!-- Verificación de Aprendices y Egresados SENA -->
-      <section id="verificacionDevsSection" class="section-v">
+      <section id="verificacionDevsSection" class="section-v{% if active_section == 'verificacionDevsSection' %} active{% endif %}">
         <div class="page-header">
           <div>
             <div class="page-title">Verificación de Talento SENA</div>
@@ -359,12 +359,12 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Aprobar talento SENA" data-confirm-message="¿Confirmas que deseas aprobar la verificación de {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" hx-post="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" hx-target="#verificacionDevsSection" hx-select="#verificacionDevsSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Aprobar talento SENA" data-confirm-message="¿Confirmas que deseas aprobar la verificación de {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Aprobar" style="display:inline-block;margin-bottom:6px;">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="aprobar">
                     <button type="submit" class="btn btn-primary btn-sm">Aprobar</button>
                   </form>
-                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
+                  <form method="post" action="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" hx-post="{% url 'admin_resolver_verificacion_desarrollador' d.id %}" hx-target="#verificacionDevsSection" hx-select="#verificacionDevsSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Solicitar nuevo documento" data-confirm-message="¿Confirmas que deseas rechazar el soporte actual y solicitar un nuevo documento a {{ d.usuario.nombre|default:d.usuario.username|escape }}?" data-confirm-ok="Solicitar documento" data-confirm-danger="true">
                     {% csrf_token %}
                     <input type="hidden" name="accion" value="solicitar_documento">
                     <textarea name="notas" required rows="2" aria-label="Motivo de la solicitud de nuevo documento SENA" placeholder="Motivo de la solicitud de nuevo documento" style="width:100%;margin-bottom:4px;"></textarea>
@@ -386,7 +386,7 @@
       </section>
 
       <!-- Lista Blanca de Fichas SENA -->
-      <section id="fichasSenaSection" class="section-v">
+      <section id="fichasSenaSection" class="section-v{% if active_section == 'fichasSenaSection' %} active{% endif %}">
         <div class="page-header">
           <div>
             <div class="page-title">Verificación de Talento SENA</div>
@@ -407,7 +407,7 @@
           <div class="card-header">
             <div class="card-title"><i class="card-title-icon" data-lucide="plus-circle"></i>Registrar Nueva Ficha SENA</div>
           </div>
-          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;">
+          <form method="post" action="{% url 'admin_crear_ficha_sena' %}" hx-post="{% url 'admin_crear_ficha_sena' %}" hx-target="#fichasSenaSection" hx-select="#fichasSenaSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;">
             {% csrf_token %}
             <div>
               <label class="form-label">Número de Ficha *</label>
@@ -460,7 +460,7 @@
                   {% endif %}
                 </td>
                 <td>
-                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" data-admin-confirm="true" data-confirm-title="{% if f.activa %}Desactivar ficha SENA{% else %}Activar ficha SENA{% endif %}" data-confirm-message="{% if f.activa %}¿Confirmas que deseas desactivar la ficha {{ f.numero_ficha|escape }}?{% else %}¿Confirmas que deseas activar la ficha {{ f.numero_ficha|escape }}?{% endif %}" data-confirm-ok="{% if f.activa %}Desactivar{% else %}Activar{% endif %}" {% if f.activa %}data-confirm-danger="true"{% endif %} style="display:inline;">
+                  <form method="post" action="{% url 'admin_toggle_ficha_sena' f.id %}" hx-post="{% url 'admin_toggle_ficha_sena' f.id %}" hx-target="#fichasSenaSection" hx-select="#fichasSenaSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="{% if f.activa %}Desactivar ficha SENA{% else %}Activar ficha SENA{% endif %}" data-confirm-message="{% if f.activa %}¿Confirmas que deseas desactivar la ficha {{ f.numero_ficha|escape }}?{% else %}¿Confirmas que deseas activar la ficha {{ f.numero_ficha|escape }}?{% endif %}" data-confirm-ok="{% if f.activa %}Desactivar{% else %}Activar{% endif %}" {% if f.activa %}data-confirm-danger="true"{% endif %} style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm {% if f.activa %}btn-warning{% else %}btn-success{% endif %}">
                       {% if f.activa %}Desactivar{% else %}Activar{% endif %}
@@ -484,7 +484,7 @@
           <div class="card-header">
             <div class="card-title"><i class="card-title-icon" data-lucide="shield-check"></i>Autorizar Excepción de Ficha</div>
           </div>
-          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;" data-testid="form-nueva-excepcion-sena">
+          <form method="post" action="{% url 'admin_crear_excepcion_ficha_sena' %}" hx-post="{% url 'admin_crear_excepcion_ficha_sena' %}" hx-target="#fichasSenaSection" hx-select="#fichasSenaSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;" data-testid="form-nueva-excepcion-sena">
             {% csrf_token %}
             <div>
               <label class="form-label">Desarrollador *</label>
@@ -544,7 +544,7 @@
                 </td>
                 <td>
                   {% if e.activa %}
-                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" data-admin-confirm="true" data-confirm-title="Revocar excepción de ficha SENA" data-confirm-message="¿Confirmas que deseas revocar la excepción de la ficha {{ e.numero_ficha|escape }} para {{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username|escape }}?" data-confirm-ok="Revocar" data-confirm-danger="true" style="display:inline;">
+                  <form method="post" action="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" hx-post="{% url 'admin_revocar_excepcion_ficha_sena' e.id %}" hx-target="#fichasSenaSection" hx-select="#fichasSenaSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Revocar excepción de ficha SENA" data-confirm-message="¿Confirmas que deseas revocar la excepción de la ficha {{ e.numero_ficha|escape }} para {{ e.desarrollador.usuario.nombre|default:e.desarrollador.usuario.username|escape }}?" data-confirm-ok="Revocar" data-confirm-danger="true" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-warning" data-testid="btn-revocar-excepcion-sena">Revocar</button>
                   </form>

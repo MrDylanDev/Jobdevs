@@ -1,5 +1,5 @@
 {% load static %}
-      <section id="configSection" class="section-v">
+      <section id="configSection" class="section-v{% if active_section == 'configSection' %} active{% endif %}">
         <div class="page-header">
           <div>
             <div class="page-title">Configuración</div>
@@ -12,7 +12,7 @@
               <div class="card-title"><i class="card-title-icon" data-lucide="sliders-horizontal"></i>Configuración de negociación</div>
             </div>
             <p class="project-card-sub" style="margin-bottom:16px;">Los cambios aplican solo a negociaciones nuevas.</p>
-            <form method="post" action="{% url 'admin_actualizar_configuracion_negociacion' %}">
+            <form method="post" action="{% url 'admin_actualizar_configuracion_negociacion' %}" hx-post="{% url 'admin_actualizar_configuracion_negociacion' %}" hx-target="#configSection" hx-select="#configSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']">
               {% csrf_token %}
               <label for="plazoNegociacionDias" class="form-label">Plazo global (días)</label>
               <input id="plazoNegociacionDias" name="plazo_dias" type="number"
@@ -32,7 +32,7 @@
               Elimina notificaciones antiguas para optimizar el espacio y el rendimiento de la base de datos.
               Cada ejecución queda registrada en el log de auditoría.
             </p>
-            <form method="post" action="{% url 'admin_depurar_notificaciones' %}" data-admin-confirm="true" data-confirm-title="Depurar notificaciones" data-confirm-message="¿Confirmas que deseas eliminar permanentemente las notificaciones antiguas según el criterio configurado? Esta acción quedará registrada en auditoría." data-confirm-ok="Depurar" data-confirm-danger="true" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end;">
+            <form method="post" action="{% url 'admin_depurar_notificaciones' %}" hx-post="{% url 'admin_depurar_notificaciones' %}" hx-target="#configSection" hx-select="#configSection" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-admin-confirm="true" data-confirm-title="Depurar notificaciones" data-confirm-message="¿Confirmas que deseas eliminar permanentemente las notificaciones antiguas según el criterio configurado? Esta acción quedará registrada en auditoría." data-confirm-ok="Depurar" data-confirm-danger="true" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end;">
               {% csrf_token %}
               <div>
                 <label class="form-label">Días de antigüedad mínima</label>

@@ -403,10 +403,37 @@ export function initUiCore() {
   // Flush queued toast from sessionStorage
   flushQueuedAdminToast();
 
-  // Global form[data-admin-confirm="true"] confirmation interceptor
+  // Bridge data-admin-confirm="true" with HTMX htmx:confirm
+  document.addEventListener('htmx:confirm', function (e) {
+    const elt = e.detail && e.detail.elt ? e.detail.elt : e.target;
+    const form = elt && elt.closest ? elt.closest('form[data-admin-confirm="true"]') : null;
+    if (!form) return;
+    e.preventDefault();
+    adminConfirm({
+      titulo: form.dataset.confirmTitle || 'Confirmar acción',
+      mensaje: form.dataset.confirmMessage || '¿Deseas continuar con esta acción?',
+      textoConfirmar: form.dataset.confirmOk || 'Confirmar',
+      peligro: form.dataset.confirmDanger === 'true',
+    }).then(function (ok) {
+      if (ok && e.detail && typeof e.detail.issueRequest === 'function') {
+        e.detail.issueRequest(true);
+      }
+    });
+  });
+
+  // Global form[data-admin-confirm="true"] confirmation interceptor (non-HTMX forms)
   document.addEventListener('submit', async function (e) {
     const form = e.target;
     if (!form || !form.matches || !form.matches('form[data-admin-confirm="true"]')) return;
+    if (
+      form.hasAttribute('hx-post') ||
+      form.hasAttribute('hx-get') ||
+      form.hasAttribute('hx-put') ||
+      form.hasAttribute('hx-patch') ||
+      form.hasAttribute('hx-delete')
+    ) {
+      return;
+    }
     if (form.dataset.adminConfirmed === 'true') {
       delete form.dataset.adminConfirmed;
       return;

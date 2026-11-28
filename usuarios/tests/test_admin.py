@@ -1842,6 +1842,267 @@ class TestUsuariosHtmxPartial:
         assert 'debouncedFilterUsers()' in html
 
 
+class TestAdminHtmxPhase4S1:
+    """S1: Admin Verificaciones, Fichas SENA, Proyectos & Chat Config HTMX."""
+
+    def test_admin_resolver_verificacion_empresa_htmx(self, admin_client, empresa_user):
+        import json as _json
+        from usuarios.models import PerfilEmpresa
+
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+        perfil.estado_verificacion = 'en_revision'
+        perfil.razon_social = 'Empresa HTMX SAS'
+        perfil.tipo_documento = 'NIT'
+        perfil.numero_documento = '900123456'
+        perfil.save()
+
+        # Error case (invalid accion) returns partial + error toast
+        res_err = admin_client.post(
+            reverse('admin_resolver_verificacion_empresa', args=[perfil.id]),
+            {'accion': 'invalida'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_err.status_code == 200
+        assert 'id="verificacionEmpresasSection"' in res_err.content.decode('utf-8')
+        trigger_err = _json.loads(res_err['HX-Trigger'])
+        assert trigger_err['jobdevs:toast']['tipo'] == 'error'
+
+        # Success case (aprobar) returns updated partial + success toast
+        res = admin_client.post(
+            reverse('admin_resolver_verificacion_empresa', args=[perfil.id]),
+            {'accion': 'aprobar'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="verificacionEmpresasSection"' in html
+        assert 'Empresa HTMX SAS' not in html
+        trigger = _json.loads(res['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'verificada correctamente' in trigger['jobdevs:toast']['mensaje']
+        perfil.refresh_from_db()
+        assert perfil.estado_verificacion == 'verificada'
+
+    def test_admin_resolver_verificacion_desarrollador_htmx(self, admin_client, desarrollador_user):
+        import json as _json
+
+        perfil = desarrollador_user.perfil_desarrollador
+        perfil.estado_verificacion = 'en_revision'
+        perfil.ficha = '2999888'
+        perfil.programa_formacion = 'ADSO'
+        perfil.save()
+
+        res = admin_client.post(
+            reverse('admin_resolver_verificacion_desarrollador', args=[perfil.id]),
+            {'accion': 'aprobar'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="verificacionDevsSection"' in html
+        assert '2999888' not in html
+        trigger = _json.loads(res['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        perfil.refresh_from_db()
+        assert perfil.estado_verificacion == 'verificado'
+
+    def test_admin_crear_y_toggle_ficha_sena_htmx(self, admin_client):
+        import json as _json
+        from usuarios.models import FichaSena
+
+        # Crear ficha via HTMX
+        res_create = admin_client.post(
+            reverse('admin_crear_ficha_sena'),
+            {
+                'numero_ficha': '2888777',
+                'programa_formacion': 'ADSO HTMX',
+                'regional': 'Distrito Capital',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_create.status_code == 200
+        html_create = res_create.content.decode('utf-8')
+        assert 'id="fichasSenaSection"' in html_create
+        assert '2888777' in html_create
+        assert 'ADSO HTMX' in html_create
+        trigger_create = _json.loads(res_create['HX-Trigger'])
+        assert trigger_create['jobdevs:toast']['tipo'] == 'success'
+        assert '2888777' in trigger_create['jobdevs:toast']['mensaje']
+
+        ficha = FichaSena.objects.get(numero_ficha='2888777')
+        assert ficha.activa is True
+
+        # Duplicada -> error toast + 200 partial
+        res_dup = admin_client.post(
+            reverse('admin_crear_ficha_sena'),
+            {'numero_ficha': '2888777', 'programa_formacion': 'ADSO HTMX'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_dup.status_code == 200
+        assert _json.loads(res_dup['HX-Trigger'])['jobdevs:toast']['tipo'] == 'error'
+
+        # Toggle ficha via HTMX
+        res_toggle = admin_client.post(
+            reverse('admin_toggle_ficha_sena', args=[ficha.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_toggle.status_code == 200
+        html_toggle = res_toggle.content.decode('utf-8')
+        assert 'id="fichasSenaSection"' in html_toggle
+        assert 'Inactiva' in html_toggle
+        trigger_toggle = _json.loads(res_toggle['HX-Trigger'])
+        assert trigger_toggle['jobdevs:toast']['tipo'] == 'success'
+        ficha.refresh_from_db()
+        assert ficha.activa is False
+
+    def test_admin_crear_y_revocar_excepcion_ficha_sena_htmx(
+        self, admin_client, desarrollador_user
+    ):
+        import json as _json
+        from usuarios.models import ExcepcionFichaSena
+
+        perfil = desarrollador_user.perfil_desarrollador
+        res_create = admin_client.post(
+            reverse('admin_crear_excepcion_ficha_sena'),
+            {
+                'desarrollador_id': perfil.id,
+                'numero_ficha': '3111222',
+                'justificacion': 'Avalada por coordinación académica HTMX.',
+                'dias_vigencia': '15',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_create.status_code == 200
+        html_create = res_create.content.decode('utf-8')
+        assert 'id="fichasSenaSection"' in html_create
+        assert '3111222' in html_create
+        trigger_create = _json.loads(res_create['HX-Trigger'])
+        assert trigger_create['jobdevs:toast']['tipo'] == 'success'
+
+        excepcion = ExcepcionFichaSena.objects.get(numero_ficha='3111222')
+        assert excepcion.activa is True
+
+        res_rev = admin_client.post(
+            reverse('admin_revocar_excepcion_ficha_sena', args=[excepcion.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_rev.status_code == 200
+        html_rev = res_rev.content.decode('utf-8')
+        assert 'id="fichasSenaSection"' in html_rev
+        assert 'Revocada' in html_rev
+        trigger_rev = _json.loads(res_rev['HX-Trigger'])
+        assert trigger_rev['jobdevs:toast']['tipo'] == 'success'
+        excepcion.refresh_from_db()
+        assert excepcion.activa is False
+
+    def test_admin_actualizar_configuracion_negociacion_htmx(self, admin_client):
+        import json as _json
+
+        res = admin_client.post(
+            reverse('admin_actualizar_configuracion_negociacion'),
+            {'plazo_dias': '12'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="configSection"' in html
+        assert 'value="12"' in html
+        trigger = _json.loads(res['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+
+        # Invalid value returns error toast
+        res_err = admin_client.post(
+            reverse('admin_actualizar_configuracion_negociacion'),
+            {'plazo_dias': '99'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_err.status_code == 200
+        assert _json.loads(res_err['HX-Trigger'])['jobdevs:toast']['tipo'] == 'error'
+
+    def test_admin_depurar_notificaciones_htmx(self, admin_client, desarrollador_user):
+        import json as _json
+        from notificaciones.models import Notificacion
+
+        vieja = Notificacion.objects.create(
+            usuario=desarrollador_user, tipo='alerta', mensaje='Vieja HTMX', leida=True
+        )
+        Notificacion.objects.filter(id=vieja.id).update(
+            fecha=timezone.now() - timedelta(days=120)
+        )
+
+        res = admin_client.post(
+            reverse('admin_depurar_notificaciones'),
+            {'dias': '90'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="configSection"' in html
+        trigger = _json.loads(res['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert '1 notificaciones antiguas' in trigger['jobdevs:toast']['mensaje']
+        assert not Notificacion.objects.filter(id=vieja.id).exists()
+
+    def test_admin_regularizar_cierre_proyecto_htmx(self, admin_client, empresa_user):
+        import json as _json
+        from proyectos.models import RegularizacionCierreProyecto
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Cierre HTMX',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Proyecto.objects.filter(pk=proyecto.pk).update(
+            fecha_publicacion=timezone.now() - timedelta(days=10)
+        )
+        fecha_cierre = (timezone.now() - timedelta(days=2)).strftime('%Y-%m-%dT%H:%M')
+
+        # Error case (motivo too short) returns partial + error toast
+        res_err = admin_client.post(
+            reverse('admin_regularizar_cierre_proyecto', args=[proyecto.id]),
+            {
+                'fecha_cierre': fecha_cierre,
+                'motivo': 'corto',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_err.status_code == 200
+        assert 'id="projectsSection"' in res_err.content.decode('utf-8')
+        assert _json.loads(res_err['HX-Trigger'])['jobdevs:toast']['tipo'] == 'error'
+
+        res = admin_client.post(
+            reverse('admin_regularizar_cierre_proyecto', args=[proyecto.id]),
+            {
+                'fecha_cierre': fecha_cierre,
+                'motivo': 'Evidencia documental verificada en acta de entrega firmada.',
+                'referencia_evidencia': 'ACTA-2026-01',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert 'id="projectsSection"' in html
+        trigger = _json.loads(res['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert RegularizacionCierreProyecto.objects.filter(proyecto=proyecto).exists()
+
+    def test_admin_htmx_wiring_en_partials(self, admin_client):
+        res = admin_client.get(reverse('dashboard_admin'))
+        assert res.status_code == 200
+        html = res.content.decode('utf-8')
+        assert f'hx-post="{reverse("admin_crear_ficha_sena")}"' in html
+        assert f'hx-post="{reverse("admin_crear_excepcion_ficha_sena")}"' in html
+        assert f'hx-post="{reverse("admin_actualizar_configuracion_negociacion")}"' in html
+        assert f'hx-post="{reverse("admin_depurar_notificaciones")}"' in html
+        assert 'hx-target="#fichasSenaSection"' in html
+        assert 'hx-target="#configSection"' in html
+        assert 'hx-swap="outerHTML"' in html
+        assert 'hx-disabled-elt="find button[type=\'submit\']"' in html
+
+
+
 
 
 

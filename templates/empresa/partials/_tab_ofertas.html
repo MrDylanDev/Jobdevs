@@ -1,7 +1,7 @@
 {% load i18n %}
 
       <!-- Ofertas -->
-      <section id="ofertas" class="seccion-v">
+      <section id="ofertas" class="seccion-v{% if htmx_ofertas_activa %} activa{% endif %}">
         <div class="page-header">
           <div>
             <h1 class="page-title">{% trans "Gestión de Convocatorias & Ofertas" %}</h1>
@@ -109,7 +109,7 @@
                   </a>
                   {% endif %}
                   {% if not proyecto.num_contratos %}
-                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" style="margin:0;" onsubmit="confirmarRetiroOferta(event, this, '{{ proyecto.titulo|escapejs }}')">
+                  <form method="post" action="{% url 'desactivar_proyecto' proyecto.id %}" hx-post="{% url 'desactivar_proyecto' proyecto.id %}" hx-target="#ofertas" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" hx-confirm="{{ proyecto.titulo }}" data-confirm-retiro="{{ proyecto.titulo }}" style="margin:0;">
                     {% csrf_token %}
                     <button type="submit" class="btn-corp-action danger-subtle" title="{% trans "Retirar publicación" %}" aria-label="{% trans "Retirar publicación" %}">
                       <i data-lucide="ban"></i>
@@ -119,7 +119,7 @@
                 </div>
               </div>
               {% if proyecto.puede_reabrir %}
-              <form method="post" action="{% url 'reabrir_postulaciones' proyecto.id %}" class="offer-reopen-strip" aria-label="{% trans 'Ampliar cierre de postulaciones' %}">
+              <form method="post" action="{% url 'reabrir_postulaciones' proyecto.id %}" hx-post="{% url 'reabrir_postulaciones' proyecto.id %}" hx-target="#ofertas" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" class="offer-reopen-strip" aria-label="{% trans 'Ampliar cierre de postulaciones' %}">
                 {% csrf_token %}
                 <label for="reabrir-{{ proyecto.id }}" class="offer-reopen-label">{% trans "Nuevo cierre:" %}</label>
                 <input id="reabrir-{{ proyecto.id }}" name="fecha_limite" type="date" min="{{ fecha_minima_reapertura }}" required class="offer-reopen-input" aria-label="{% trans 'Nueva fecha de cierre de postulaciones' %}">

@@ -187,6 +187,37 @@ def notificaciones_stream(request):
     response['X-Accel-Buffering'] = 'no'
     return response
 
+def _espera_json(request):
+    return (
+        'application/json' in request.headers.get('Accept', '')
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    )
+
+
+def _es_htmx(request):
+    return (
+        request.headers.get('HX-Request') == 'true'
+        and not _espera_json(request)
+    )
+
+
+def _render_lista_notificaciones_htmx(request, toast_msg, toast_tipo='success'):
+    notificaciones_qs = Notificacion.objects.filter(
+        usuario=request.user
+    ).select_related('proyecto').order_by('-fecha')
+    paginator = Paginator(notificaciones_qs, 20)
+    page_number = request.POST.get('page') or request.GET.get('page')
+    notificaciones = paginator.get_page(page_number)
+    response = render(request, 'notificaciones/partials/_lista_notificaciones.html', {
+        'notificaciones': notificaciones,
+    })
+    if toast_msg:
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': toast_tipo, 'mensaje': toast_msg}
+        })
+    return response
+
+
 @login_required
 def lista_notificaciones(request):
     """Lista todas las notificaciones del usuario actual con select_related y paginación."""
@@ -205,23 +236,23 @@ def lista_notificaciones(request):
 @login_required
 @require_POST
 def marcar_leida(request, notificacion_id):
-    """Marca una notificación específica como leída (soporta AJAX y redirección tradicional)."""
+    """Marca una notificación específica como leída (soporta AJAX, HTMX y redirección tradicional)."""
     notificacion = get_object_or_404(Notificacion, id=notificacion_id, usuario=request.user)
     notificacion.leida = True
     notificacion.save()
+    mensaje = 'Notificación marcada como leída.'
 
-    is_ajax = (
-        request.headers.get('Accept') == 'application/json'
-        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    )
-    if is_ajax:
+    if _espera_json(request):
         unread_count = Notificacion.objects.filter(usuario=request.user, leida=False).count()
         return JsonResponse({
             'status': 'ok',
             'notificacion_id': notificacion_id,
             'unread_count': unread_count,
-            'mensaje': 'Notificación marcada como leída.',
+            'mensaje': mensaje,
         })
+
+    if _es_htmx(request):
+        return _render_lista_notificaciones_htmx(request, mensaje)
 
     return redirect('notificaciones_lista')
 
@@ -232,17 +263,16 @@ def marcar_todas_leidas(request):
     actualizadas = Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
     mensaje = "Todas las notificaciones han sido marcadas como leídas."
 
-    is_ajax = (
-        request.headers.get('Accept') == 'application/json'
-        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    )
-    if is_ajax:
+    if _espera_json(request):
         return JsonResponse({
             'status': 'ok',
             'unread_count': 0,
             'actualizadas': actualizadas,
             'mensaje': mensaje,
         })
+
+    if _es_htmx(request):
+        return _render_lista_notificaciones_htmx(request, mensaje)
 
     messages.success(request, mensaje)
     referer = request.META.get('HTTP_REFERER')

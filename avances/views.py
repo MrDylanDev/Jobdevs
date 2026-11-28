@@ -334,39 +334,116 @@ def registrar_avance(request, proyecto_id):
         'form_data': form_data,
     })
 
+def _responder_revisar_htmx(
+    request, avance, mensaje, tipo='success', error=False, proyecto_recien_finalizado=False
+):
+    hx_target = (request.headers.get('HX-Target') or '').strip().lstrip('#')
+    es_inline = hx_target.startswith('avance-inline-')
+    triggers = {
+        'jobdevs:toast': {'tipo': tipo, 'mensaje': mensaje},
+    }
+
+    if es_inline:
+        if error:
+            response = HttpResponse('', status=200)
+            response['HX-Reswap'] = 'none'
+            response['HX-Trigger'] = json.dumps(triggers)
+            return response
+
+        es_aceptado = avance.estado == 'aceptado'
+        estado_label = 'Aceptado' if es_aceptado else 'Ajustes solicitados'
+        borde_color = '#00c853' if es_aceptado else '#e11d48'
+        badge_bg = '#e6faf0' if es_aceptado else '#ffe4e6'
+        badge_color = '#007c34' if es_aceptado else '#be123c'
+        icono = 'check-circle-2' if es_aceptado else 'x-circle'
+        titulo_hito = escape(avance.entregable.titulo if avance.entregable else 'Avance General')
+        proyecto_titulo = escape(avance.proyecto.titulo)
+        comentario_html = ''
+        if avance.comentario_revision:
+            comentario_html = (
+                f'<p style="font-size:12.5px; color:var(--corp-slate-600); margin:6px 0 0 0; font-style:italic;">'
+                f'&ldquo;{escape(avance.comentario_revision)}&rdquo;</p>'
+            )
+        html = (
+            f'<div id="{escape(hx_target)}" class="deliverable-alert-corp" '
+            f'style="border-left:4px solid {borde_color}; padding:14px 16px;">'
+            f'<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">'
+            f'<div style="font-size:13.5px; font-weight:700; color:var(--corp-slate-900); display:flex; align-items:center; gap:6px;">'
+            f'<i data-lucide="{icono}" style="width:16px; height:16px; color:{borde_color};"></i>'
+            f'<span>{proyecto_titulo} &middot; {titulo_hito}</span>'
+            f'</div>'
+            f'<span class="badge" style="background:{badge_bg}; color:{badge_color}; font-weight:700; font-size:11px; padding:3px 9px; border-radius:10px;">'
+            f'{escape(estado_label)}</span>'
+            f'</div>'
+            f'{comentario_html}'
+            f'</div>'
+        )
+        response = HttpResponse(html, status=200)
+    else:
+        avances = (
+            Avance.objects.filter(proyecto=avance.proyecto)
+            .select_related('desarrollador__perfil_desarrollador', 'entregable')
+            .order_by('-fecha_hora')
+        )
+        response = render(request, 'avances/partials/_lista_avances_revision.html', {
+            'proyecto': avance.proyecto,
+            'avances': avances,
+        })
+
+    response['HX-Trigger'] = json.dumps(triggers)
+    if proyecto_recien_finalizado:
+        response['HX-Redirect'] = (
+            f"{reverse('dashboard_empresa')}?section=historial&calificar_proyecto={avance.proyecto.id}#historial"
+        )
+    return response
+
+
 @login_required
 @require_POST
 def revisar_avance(request, avance_id):
+    es_htmx = _es_htmx(request)
+
     if request.user.rol != 'empresa':
-        messages.error(request, "Solo las empresas pueden revisar avances.")
+        msg = "Solo las empresas pueden revisar avances."
+        if es_htmx:
+            response = _htmx_error(msg, status=403)
+            response['HX-Trigger'] = json.dumps({'jobdevs:toast': {'tipo': 'error', 'mensaje': msg}})
+            return response
+        messages.error(request, msg)
         return redirect('inicio')
-    
+
     avance = get_object_or_404(Avance, id=avance_id, proyecto__empresa=request.user)
 
     # SCRUM-220: bloquear la revisión si el proyecto ya no está activo
     if avance.proyecto.estado not in ESTADOS_PROYECTO_REVISABLES:
-        messages.error(
-            request,
-            f"No se pueden revisar avances en un proyecto con estado '{avance.proyecto.get_estado_display()}'."
-        )
+        msg = f"No se pueden revisar avances en un proyecto con estado '{avance.proyecto.get_estado_display()}'."
+        if es_htmx:
+            return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+        messages.error(request, msg)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
     if avance.estado != 'pendiente':
-        messages.error(
-            request,
-            f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
-        )
+        msg = f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
+        if es_htmx:
+            return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+        messages.error(request, msg)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
-    accion = request.POST.get('accion') 
-    comentario = request.POST.get('comentario', '') 
-    
+    accion = request.POST.get('accion')
+    comentario = request.POST.get('comentario', '')
+
     if accion not in ['aceptar', 'rechazar']:
-        messages.error(request, "Acción de revisión no válida.")
+        msg = "Acción de revisión no válida."
+        if es_htmx:
+            return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+        messages.error(request, msg)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
     if accion == 'rechazar' and not comentario.strip():
-        messages.error(request, "Debes escribir un comentario explicando por qué rechazas el avance.")
+        msg = "Debes escribir un comentario explicando por qué rechazas el avance."
+        if es_htmx:
+            return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+        messages.error(request, msg)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
     proyecto_recien_finalizado = False
@@ -380,24 +457,24 @@ def revisar_avance(request, avance_id):
             # SCRUM-220: bloquear también el proyecto para revalidar su estado dentro de la transacción
             proyecto = Proyecto.objects.select_for_update().get(id=avance.proyecto_id)
             if proyecto.estado not in ESTADOS_PROYECTO_REVISABLES:
-                messages.error(
-                    request,
-                    f"No se pueden revisar avances en un proyecto con estado '{proyecto.get_estado_display()}'."
-                )
+                msg = f"No se pueden revisar avances en un proyecto con estado '{proyecto.get_estado_display()}'."
+                if es_htmx:
+                    return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+                messages.error(request, msg)
                 return redirect('ver_avances', proyecto_id=proyecto.id)
 
             if avance.estado != 'pendiente':
-                messages.error(
-                    request,
-                    f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
-                )
+                msg = f"Este avance ya fue {avance.get_estado_display().lower()} y no puede volver a revisarse."
+                if es_htmx:
+                    return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+                messages.error(request, msg)
                 return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
             if accion == 'aceptar':
                 avance.estado = 'aceptado'
                 avance.comentario_revision = comentario
                 avance.save()
-                
+
                 # Marcar hito como COMPLETADO
                 avance.entregable.estado = 'completado'
                 avance.entregable.save()
@@ -408,7 +485,7 @@ def revisar_avance(request, avance_id):
 
                     finalizar_proyecto(avance.proyecto_id, request.user)
                     proyecto_recien_finalizado = desarrolladores_pendientes(avance.proyecto).exists()
-                
+
                 # Notificar al desarrollador
                 Notificacion.objects.create(
                     usuario=avance.desarrollador,
@@ -416,19 +493,20 @@ def revisar_avance(request, avance_id):
                     tipo='aprobacion',
                     mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido ACEPTADO."
                 )
-                messages.success(request, f"Hito '{avance.entregable.titulo}' aceptado.")
+                msg_toast = f"Hito '{avance.entregable.titulo}' aceptado."
+                tipo_toast = 'success'
+                if not es_htmx:
+                    messages.success(request, msg_toast)
             else:
                 avance.estado = 'rechazado'
                 avance.comentario_revision = comentario
                 avance.save()
 
                 # Devolver hito a PENDIENTE
-                # El método save() de Entregable se encargará de devolver el proyecto 
+                # El método save() de Entregable se encargará de devolver el proyecto
                 # a 'en_desarrollo' si estaba 'en_revision' y registrar la auditoría.
                 avance.entregable.estado = 'pendiente'
                 avance.entregable.save(cambiado_por=request.user)
-
-                messages.warning(request, f"Hito '{avance.entregable.titulo}' rechazado.")
 
                 Notificacion.objects.create(
                     usuario=avance.desarrollador,
@@ -436,7 +514,20 @@ def revisar_avance(request, avance_id):
                     tipo='alerta',
                     mensaje=f"Tu avance en el hito '{avance.entregable.titulo}' ha sido RECHAZADO. Revisa los comentarios."
                 )
-                messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+                msg_toast = f"Avance en '{avance.entregable.titulo}' rechazado. Se ha notificado al desarrollador."
+                tipo_toast = 'warning'
+                if not es_htmx:
+                    messages.warning(request, f"Hito '{avance.entregable.titulo}' rechazado.")
+                    messages.warning(request, "Avance rechazado. Se ha notificado al desarrollador y el proyecto ha vuelto a 'En Desarrollo'.")
+
+        if es_htmx:
+            return _responder_revisar_htmx(
+                request,
+                avance,
+                msg_toast,
+                tipo=tipo_toast,
+                proyecto_recien_finalizado=proyecto_recien_finalizado,
+            )
 
         if proyecto_recien_finalizado:
             return redirect(f"{reverse('dashboard_empresa')}?section=historial&calificar_proyecto={avance.proyecto.id}#historial")
@@ -446,7 +537,10 @@ def revisar_avance(request, avance_id):
             return HttpResponseRedirect(next_url)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
     except Exception as e:
-        messages.error(request, f"Error: {str(e)}")
+        msg = f"Error: {str(e)}"
+        if es_htmx:
+            return _responder_revisar_htmx(request, avance, msg, tipo='error', error=True)
+        messages.error(request, msg)
         return redirect('ver_avances', proyecto_id=avance.proyecto.id)
 
 @login_required

@@ -133,7 +133,12 @@ def _build_postulaciones_empresa_context(proyecto, estado_filtro='', programa=''
 
 def _render_drawer_htmx(request, proyecto, estado_filtro='', toast_msg=None, toast_tipo='success', status=200):
     context = _build_postulaciones_empresa_context(proyecto, estado_filtro=estado_filtro)
-    response = render(request, 'postulaciones/partials/_drawer_candidatos.html', context, status=status)
+    template = (
+        'postulaciones/partials/_lista_recibidas_split.html'
+        if request.headers.get('HX-Target') == 'postulacionesSplitWrap'
+        else 'postulaciones/partials/_drawer_candidatos.html'
+    )
+    response = render(request, template, context, status=status)
     if toast_msg:
         response['HX-Trigger'] = json.dumps({
             'jobdevs:toast': {'tipo': toast_tipo, 'mensaje': toast_msg}
@@ -152,7 +157,12 @@ def ver_postulaciones_empresa(request, proyecto_id):
         habilidad=request.GET.get('habilidad', ''),
     )
     if _es_htmx(request):
-        return render(request, 'postulaciones/partials/_drawer_candidatos.html', context)
+        template = (
+            'postulaciones/partials/_lista_recibidas_split.html'
+            if request.headers.get('HX-Target') == 'postulacionesSplitWrap'
+            else 'postulaciones/partials/_drawer_candidatos.html'
+        )
+        return render(request, template, context)
     return render(request, 'postulaciones/lista_recibidas.html', context)
 
 def _es_peticion_ajax(request):

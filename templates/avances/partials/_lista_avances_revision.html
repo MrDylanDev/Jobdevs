@@ -1,0 +1,103 @@
+<div id="avancesRevisionWrap" style="padding-left:14px; display:flex; flex-direction:column; gap:16px;">
+  {% for avance in avances %}
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:{% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-color:#ffffff; box-shadow:0 0 0 3px {% if avance.estado == 'aceptado' %}rgba(0,200,83,0.25){% elif avance.estado == 'rechazado' %}rgba(225,29,72,0.25){% else %}rgba(245,158,11,0.25){% endif %};"></div>
+
+      <div class="card" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-left:4px solid {% if avance.estado == 'aceptado' %}#00c853{% elif avance.estado == 'rechazado' %}#e11d48{% else %}#f59e0b{% endif %}; border-radius:var(--corp-radius-lg); box-shadow:var(--corp-shadow-sm); padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:15px; font-weight:700; color:var(--corp-slate-900);">
+              {{ avance.entregable.titulo|default:"Avance General" }}
+            </span>
+            <span class="badge" style="background:{% if avance.estado == 'aceptado' %}#e6faf0{% elif avance.estado == 'rechazado' %}#ffe4e6{% else %}#fef9c3{% endif %}; color:{% if avance.estado == 'aceptado' %}#007c34{% elif avance.estado == 'rechazado' %}#be123c{% else %}#a16207{% endif %}; border:1px solid {% if avance.estado == 'aceptado' %}rgba(0,200,83,0.3){% elif avance.estado == 'rechazado' %}#fecdd3{% else %}#fde047{% endif %}; font-weight:700; font-size:11px; padding:3px 9px; border-radius:10px;">
+              <i data-lucide="{% if avance.estado == 'aceptado' %}check-circle-2{% elif avance.estado == 'rechazado' %}x-circle{% else %}clock{% endif %}" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:3px;"></i>
+              {{ avance.get_estado_display|upper }}
+            </span>
+          </div>
+          <span style="font-size:12px; color:var(--corp-slate-500); display:flex; align-items:center; gap:5px;">
+            <i data-lucide="calendar" style="width:13px; height:13px;"></i>
+            {{ avance.fecha_hora|date:"d M Y, H:i" }}
+          </span>
+        </div>
+
+        <p style="font-size:13.5px; color:var(--corp-slate-700); line-height:1.6; margin-bottom:14px;">{{ avance.descripcion }}</p>
+
+        {% if avance.comentario_revision %}
+          <div style="background:#f8fafc; padding:12px 16px; border-radius:var(--corp-radius-md); border-left:3px solid #0284c7; margin-bottom:16px;">
+            <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#0369a1; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+              <i data-lucide="message-square" style="width:12px; height:12px;"></i>
+              Feedback de la Empresa
+            </div>
+            <p style="font-size:13px; color:var(--corp-slate-700); font-style:italic; margin:0;">"{{ avance.comentario_revision }}"</p>
+          </div>
+        {% endif %}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:12px; border-top:1px solid var(--corp-border);">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="user-avatar" style="width:28px; height:28px; font-size:11px; border-radius:50%; background:#e6faf0; color:#007c34; display:flex; align-items:center; justify-content:center; font-weight:700; overflow:hidden;">
+              {% if avance.desarrollador.perfil_desarrollador.foto_perfil %}
+                <img src="{{ avance.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+              {% else %}
+                {{ avance.desarrollador.nombre|default:avance.desarrollador.username|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <small style="color:var(--corp-slate-500); font-size:12.5px;">
+              Por <strong style="color:var(--corp-slate-900);">{{ avance.desarrollador.nombre|default:avance.desarrollador.username }}</strong>
+            </small>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            {% if avance.archivo_adjunto %}
+              <a href="{{ avance.archivo_adjunto.url }}" target="_blank" download class="btn-corp-action secondary btn-sm">
+                <i data-lucide="download"></i>
+                <span>Descargar Archivo</span>
+              </a>
+            {% endif %}
+            {% if avance.archivo_url and avance.archivo_url|lower|slice:":7" == "http://" or avance.archivo_url|lower|slice:":8" == "https://" %}
+              <a href="{{ avance.archivo_url }}" target="_blank" rel="noopener noreferrer" class="btn-corp-action secondary btn-sm">
+                <i data-lucide="external-link"></i>
+                <span>Ver Enlace</span>
+              </a>
+            {% endif %}
+
+            {% if request.user.rol == 'empresa' and avance.estado == 'pendiente' %}
+              <div style="background:#f8fafc; border:1px solid var(--corp-border); border-radius:var(--corp-radius-md); padding:12px; min-width:280px;">
+                <form method="post"
+                      action="{% url 'revisar_avance' avance.id %}"
+                      hx-post="{% url 'revisar_avance' avance.id %}"
+                      hx-target="#avancesRevisionWrap"
+                      hx-swap="outerHTML"
+                      hx-disabled-elt="find button[type='submit']"
+                      style="display:flex; flex-direction:column; gap:10px;">
+                  {% csrf_token %}
+                  {% if avances_next_url %}
+                    <input type="hidden" name="next" value="{{ avances_next_url }}">
+                  {% endif %}
+                  <label for="comentario-avance-{{ avance.id }}" class="sr-only">Retroalimentación para el desarrollador</label>
+                  <div style="font-size:11px; font-weight:700; color:var(--corp-slate-600); text-transform:uppercase;">Revisar Entrega</div>
+                  <textarea id="comentario-avance-{{ avance.id }}" name="comentario" placeholder="Retroalimentación para el desarrollador (obligatorio si rechazas)..." class="form-input-corp" style="font-size:12px; min-height:60px;"></textarea>
+                  <div style="display:flex; gap:8px;">
+                    <button type="submit" name="accion" value="aceptar" class="btn-corp-primary btn-sm" style="flex:1; justify-content:center;">
+                      <i data-lucide="check"></i>
+                      <span>Aceptar</span>
+                    </button>
+                    <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm" style="flex:1; justify-content:center;">
+                      <i data-lucide="x"></i>
+                      <span>Rechazar</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="activity-empty" style="background:var(--corp-surface); border:1px solid var(--corp-border); border-radius:var(--corp-radius-lg); padding:48px 24px;">
+      <i data-lucide="clock" style="color:var(--corp-slate-500); width:36px; height:36px;"></i>
+      <p style="font-weight:700; margin-top:12px; color:var(--corp-slate-900);">Aún no se han registrado avances para este proyecto</p>
+      <p style="font-size:13px; color:var(--corp-slate-500); margin-top:4px;">Cuando los desarrolladores envíen entregables o avances técnicos, aparecerán listados aquí.</p>
+    </div>
+  {% endfor %}
+</div>

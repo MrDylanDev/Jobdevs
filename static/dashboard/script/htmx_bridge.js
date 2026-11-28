@@ -1,9 +1,12 @@
 /**
- * JobDevs — Puente global HTMX v2 (CSRF, Lucide icons, HX-Trigger toasts).
+ * JobDevs — Puente global HTMX v2 (CSRF, Lucide icons, HX-Trigger toasts,
+ * refresco parcial de secciones y recuperación centralizada 403 CSRF).
  */
 (function () {
   if (window.__jobdevsHtmxBridgeInit) return;
   window.__jobdevsHtmxBridgeInit = true;
+
+  var csrfReloadScheduled = false;
 
   function getCsrfToken() {
     var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
@@ -13,6 +16,82 @@
     var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
     return input && input.value ? input.value : '';
   }
+
+  function refreshSections(selectors) {
+    if (!window.htmx || typeof window.htmx.ajax !== 'function') {
+      return Promise.resolve([]);
+    }
+
+    var list = Array.isArray(selectors) ? selectors : (selectors ? [selectors] : []);
+    var seen = Object.create(null);
+    var uniqueSelectors = [];
+    for (var i = 0; i < list.length; i++) {
+      var sel = typeof list[i] === 'string' ? list[i].trim() : '';
+      if (!sel || seen[sel]) continue;
+      seen[sel] = true;
+      if (document.querySelector(sel)) {
+        uniqueSelectors.push(sel);
+      }
+    }
+
+    if (!uniqueSelectors.length) {
+      return Promise.resolve([]);
+    }
+
+    var url = window.location.pathname + window.location.search;
+    var tasks = uniqueSelectors.map(function (selector) {
+      var currentEl = document.querySelector(selector);
+      var preserveTabState = Boolean(
+        currentEl &&
+        (currentEl.classList.contains('seccion-v') || currentEl.classList.contains('section-v'))
+      );
+      var hadActiva = Boolean(currentEl && currentEl.classList.contains('activa'));
+      var hadActive = Boolean(currentEl && currentEl.classList.contains('active'));
+
+      var applyTabState = function () {
+        var swapped = document.querySelector(selector);
+        if (!swapped || !preserveTabState) return;
+        swapped.classList.toggle('activa', hadActiva);
+        swapped.classList.toggle('active', hadActive);
+      };
+
+      var onAfterSettle = function () {
+        applyTabState();
+        document.removeEventListener('htmx:afterSettle', onAfterSettle);
+      };
+      if (preserveTabState) {
+        document.addEventListener('htmx:afterSettle', onAfterSettle);
+      }
+
+      return Promise.resolve(
+        window.htmx.ajax('GET', url, {
+          select: selector,
+          target: selector,
+          swap: 'outerHTML',
+          headers: { 'Cache-Control': 'no-cache' },
+        })
+      ).then(
+        function () {
+          applyTabState();
+          setTimeout(function () {
+            applyTabState();
+            document.removeEventListener('htmx:afterSettle', onAfterSettle);
+          }, 50);
+          return { selector: selector, ok: true };
+        },
+        function () {
+          document.removeEventListener('htmx:afterSettle', onAfterSettle);
+          return { selector: selector, ok: false };
+        }
+      );
+    });
+
+    return Promise.all(tasks);
+  }
+
+  window.JobDevsHTMX = Object.assign({}, window.JobDevsHTMX, {
+    refreshSections: refreshSections,
+  });
 
   document.addEventListener('htmx:configRequest', function (event) {
     var detail = event && event.detail;
@@ -30,6 +109,31 @@
     if (token) {
       detail.headers['X-CSRFToken'] = token;
     }
+  });
+
+  document.addEventListener('htmx:responseError', function (event) {
+    var detail = event && event.detail;
+    var xhr = detail && detail.xhr;
+    if (!xhr || xhr.status !== 403) return;
+
+    var responseText = typeof xhr.responseText === 'string' ? xhr.responseText : '';
+    if (!/csrf/i.test(responseText)) return;
+
+    if (csrfReloadScheduled) return;
+    csrfReloadScheduled = true;
+
+    document.dispatchEvent(
+      new CustomEvent('jobdevs:toast', {
+        detail: {
+          mensaje: 'Tu sesión de seguridad (CSRF) expiró. Actualizando la página…',
+          tipo: 'warning',
+        },
+      })
+    );
+
+    setTimeout(function () {
+      window.location.reload();
+    }, 1200);
   });
 
   document.addEventListener('htmx:afterSwap', function (event) {

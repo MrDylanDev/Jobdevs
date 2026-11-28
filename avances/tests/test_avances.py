@@ -1009,3 +1009,149 @@ class TestAvancesHtmxPartials:
         assert 'hitos_pendientes' in data
 
 
+class TestRevisarAvanceHTMX:
+    """S3: Revisión de avances vía HTMX (lista y tarjeta inline) preservando redirects."""
+
+    @pytest.fixture
+    def escenario_revisar_htmx(self, db, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Revisión HTMX',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='activa',
+        )
+        hito1 = Entregable.objects.create(
+            proyecto=proyecto,
+            titulo='Hito Revisión 1',
+            descripcion='Primero',
+            estado='en_revision',
+        )
+        Entregable.objects.create(
+            proyecto=proyecto,
+            titulo='Hito Revisión 2',
+            descripcion='Segundo',
+            estado='pendiente',
+        )
+        avance = Avance.objects.create(
+            proyecto=proyecto,
+            entregable=hito1,
+            desarrollador=desarrollador_user,
+            descripcion='Entrega lista para revisión HTMX',
+            estado='pendiente',
+        )
+        return proyecto, hito1, avance
+
+    def test_revisar_avance_htmx_aceptar_lista_retorna_partial_y_toast(
+        self, auth_client, escenario_revisar_htmx
+    ):
+        import json
+
+        proyecto, hito1, avance = escenario_revisar_htmx
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Excelente trabajo'},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='avancesRevisionWrap',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="avancesRevisionWrap"' in html
+        assert 'Excelente trabajo' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        avance.refresh_from_db()
+        hito1.refresh_from_db()
+        assert avance.estado == 'aceptado'
+        assert hito1.estado == 'completado'
+
+    def test_revisar_avance_htmx_rechazar_sin_comentario_retorna_toast_error(
+        self, auth_client, escenario_revisar_htmx
+    ):
+        import json
+
+        _, _, avance = escenario_revisar_htmx
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'rechazar', 'comentario': ''},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET='avancesRevisionWrap',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="avancesRevisionWrap"' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        avance.refresh_from_db()
+        assert avance.estado == 'pendiente'
+
+    def test_revisar_avance_htmx_inline_aceptar_retorna_tarjeta_estado_y_toast(
+        self, auth_client, escenario_revisar_htmx
+    ):
+        import json
+
+        _, hito1, avance = escenario_revisar_htmx
+        target_id = f'avance-inline-inicio-{avance.id}'
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'Aprobado inline'},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET=target_id,
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert f'id="{target_id}"' in html
+        assert '<form' not in html
+        assert hito1.titulo in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        avance.refresh_from_db()
+        assert avance.estado == 'aceptado'
+
+    def test_revisar_avance_htmx_inline_rechazar_sin_comentario_no_reemplaza_tarjeta(
+        self, auth_client, escenario_revisar_htmx
+    ):
+        import json
+
+        _, _, avance = escenario_revisar_htmx
+        target_id = f'avance-inline-desarrollo-{avance.id}'
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'rechazar', 'comentario': '   '},
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_TARGET=target_id,
+        )
+        assert response.status_code == 200
+        assert response.get('HX-Reswap') == 'none'
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        avance.refresh_from_db()
+        assert avance.estado == 'pendiente'
+
+    def test_revisar_avance_sin_htmx_preserva_redirect(
+        self, auth_client, escenario_revisar_htmx
+    ):
+        _, _, avance = escenario_revisar_htmx
+        response = auth_client.post(
+            reverse('revisar_avance', args=[avance.id]),
+            {'accion': 'aceptar', 'comentario': 'OK sin HTMX'},
+        )
+        assert response.status_code == 302
+        avance.refresh_from_db()
+        assert avance.estado == 'aceptado'
+
+
+

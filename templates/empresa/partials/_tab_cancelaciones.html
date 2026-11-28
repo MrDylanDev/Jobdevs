@@ -1,5 +1,6 @@
 {% load i18n %}
 {# Pestaña: Cancelaciones de contrato (empresa). Requiere solicitudes_cancelacion, contratos_cancelables y cancelaciones_pendientes_count. #}
+<div id="cancelacionesPanelWrap">
 <div class="page-header">
   <div>
     <h1 class="page-title">{% trans "Solicitudes de cancelación" %}</h1>
@@ -29,7 +30,7 @@
         </div>
       </div>
 
-      <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post">
+      <form action="{% url 'cancelar_contratacion' contrato.id %}" method="post" hx-post="{% url 'cancelar_contratacion' contrato.id %}" hx-target="#cancelacionesPanelWrap" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']">
         {% csrf_token %}
         <label class="form-label-corp" for="causal-{{ contrato.id }}">{% trans "Motivo de terminación" %}</label>
         <select id="causal-{{ contrato.id }}" name="causal" class="form-input-corp" required>
@@ -99,7 +100,7 @@
           <span>{% trans "Este proyecto está bajo mediación; la solicitud queda en pausa hasta su resolución." %}</span>
         </div>
       {% elif solicitud.estado == 'pendiente_acuerdo' and solicitud.solicitante_id != request.user.pk %}
-        <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post">
+        <form action="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" method="post" hx-post="{% url 'resolver_solicitud_cancelacion' solicitud.id %}" hx-target="#cancelacionesPanelWrap" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']">
           {% csrf_token %}
           <button type="submit" name="decision" value="aprobar" class="btn-corp-action danger-subtle">{% trans "Confirmar acuerdo y finalizar contrato" %}</button>
           <button type="submit" name="decision" value="rechazar" class="btn-corp-action">{% trans "No confirmar acuerdo" %}</button>
@@ -122,4 +123,5 @@
   {% endfor %}
     </div>
   </section>
+</div>
 </div>

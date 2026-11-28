@@ -284,7 +284,7 @@
         {% if avances_pendientes_revision %}
           <div class="approval-queue-list">
             {% for avance in avances_pendientes_revision %}
-              <article class="approval-queue-item">
+              <article class="approval-queue-item" id="avance-inline-inicio-{{ avance.id }}">
                 <div class="approval-queue-top">
                   <div class="approval-queue-meta">
                     <div class="approval-queue-project">
@@ -329,7 +329,13 @@
                 {% endif %}
 
                 <div id="form-revision-inicio-{{ avance.id }}" class="deliverable-review-form approval-queue-form" style="display:none;">
-                  <form method="post" action="{% url 'revisar_avance' avance.id %}" onsubmit="return validarRechazoAvance(this, event)">
+                  <form method="post"
+                        action="{% url 'revisar_avance' avance.id %}"
+                        hx-post="{% url 'revisar_avance' avance.id %}"
+                        hx-target="#avance-inline-inicio-{{ avance.id }}"
+                        hx-swap="outerHTML"
+                        hx-disabled-elt="find button[type='submit']"
+                        onsubmit="return validarRechazoAvance(this, event)">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#inicio">
                     <div class="approval-queue-form-label">{% trans "Dictamen de la Empresa" %}</div>

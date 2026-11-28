@@ -422,3 +422,191 @@ def test_desarrollador_no_ve_ni_resuelve_causa_de_otro_contrato(
     ).status_code == 403
     contrato_activo.refresh_from_db()
     assert contrato_activo.estado == 'activa'
+
+
+@pytest.mark.django_db
+def test_cancelar_contratacion_htmx_empresa_retorna_partial_y_toast(
+    auth_client, contrato_activo,
+):
+    import json
+
+    response = auth_client.post(
+        reverse('cancelar_contratacion', args=[contrato_activo.pk]),
+        {
+            'causal': 'acuerdo_mutuo',
+            'motivo_cancelacion': 'Acordamos finalizar el contrato sin contratiempos.',
+        },
+        HTTP_HX_REQUEST='true',
+    )
+    assert response.status_code == 200
+    html = response.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="cancelacionesPanelWrap"' in html
+    assert 'Pendiente de confirmación de la contraparte' in html
+    assert 'HX-Trigger' in response
+    triggers = json.loads(response['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'success'
+    contrato_activo.refresh_from_db()
+    assert contrato_activo.estado == 'activa'
+    assert SolicitudCancelacion.objects.filter(contratacion=contrato_activo).exists()
+
+
+@pytest.mark.django_db
+def test_cancelar_contratacion_htmx_fuerza_mayor_y_resolucion_desarrollador(
+    client, empresa_user, desarrollador_user, contrato_activo,
+):
+    import json
+
+    client.force_login(empresa_user)
+    resp_propuesta = client.post(
+        reverse('cancelar_contratacion', args=[contrato_activo.pk]),
+        {
+            'causal': 'fuerza_mayor',
+            'motivo_cancelacion': 'Una emergencia impide continuar el contrato actual.',
+        },
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp_propuesta.status_code == 200
+    html_emp = resp_propuesta.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html_emp
+    assert 'id="cancelacionesPanelWrap"' in html_emp
+    assert 'Solicitar revisión por fuerza mayor' in html_emp
+    triggers_emp = json.loads(resp_propuesta['HX-Trigger'])
+    assert triggers_emp['jobdevs:toast']['tipo'] == 'success'
+
+    solicitud = SolicitudCancelacion.objects.get(contratacion=contrato_activo)
+    contrato_activo.refresh_from_db()
+    assert contrato_activo.estado == 'activa'
+
+    client.force_login(desarrollador_user)
+    resp_dev = client.post(
+        reverse('resolver_solicitud_cancelacion', args=[solicitud.pk]),
+        {'decision': 'aprobar'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp_dev.status_code == 200
+    html_dev = resp_dev.content.decode('utf-8')
+    assert 'id="solicitudesCancelacionPanelWrap"' in html_dev
+    assert 'Aprobada' in html_dev
+    triggers_dev = json.loads(resp_dev['HX-Trigger'])
+    assert triggers_dev['jobdevs:toast']['tipo'] == 'success'
+    contrato_activo.refresh_from_db()
+    assert contrato_activo.estado == 'cancelada'
+    assert contrato_activo.proyecto.vacantes_disponibles == 1
+
+
+@pytest.mark.django_db
+def test_cancelar_contratacion_htmx_desarrollador_y_rechazo_empresa(
+    client, empresa_user, desarrollador_user, contrato_activo,
+):
+    import json
+
+    client.force_login(desarrollador_user)
+    resp_dev = client.post(
+        reverse('cancelar_contratacion', args=[contrato_activo.pk]),
+        {
+            'causal': 'acuerdo_mutuo',
+            'motivo_cancelacion': 'Propongo terminar el contrato de mutuo acuerdo.',
+        },
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp_dev.status_code == 200
+    html_dev = resp_dev.content.decode('utf-8')
+    assert 'id="solicitudesCancelacionPanelWrap"' in html_dev
+    assert 'Pendiente de confirmación de la contraparte' in html_dev
+    assert json.loads(resp_dev['HX-Trigger'])['jobdevs:toast']['tipo'] == 'success'
+
+    solicitud = SolicitudCancelacion.objects.get(contratacion=contrato_activo)
+    client.force_login(empresa_user)
+    resp_emp = client.post(
+        reverse('resolver_solicitud_cancelacion', args=[solicitud.pk]),
+        {'decision': 'rechazar'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp_emp.status_code == 200
+    html_emp = resp_emp.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html_emp
+    assert 'id="cancelacionesPanelWrap"' in html_emp
+    assert json.loads(resp_emp['HX-Trigger'])['jobdevs:toast']['tipo'] == 'success'
+    solicitud.refresh_from_db()
+    contrato_activo.refresh_from_db()
+    assert solicitud.estado == 'rechazada'
+    assert contrato_activo.estado == 'activa'
+
+
+@pytest.mark.django_db
+def test_resolver_solicitud_cancelacion_htmx_decision_invalida_retorna_toast_error(
+    auth_client, desarrollador_user, contrato_activo,
+):
+    import json
+
+    solicitud = solicitar_cancelacion(
+        contrato_activo.pk,
+        desarrollador_user,
+        causal='acuerdo_mutuo',
+        motivo='Propongo terminar el contrato de mutuo acuerdo.',
+    )
+    response = auth_client.post(
+        reverse('resolver_solicitud_cancelacion', args=[solicitud.pk]),
+        {'decision': 'invalida'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert response.status_code == 200
+    html = response.content.decode('utf-8')
+    assert '<!DOCTYPE html>' not in html
+    assert 'id="cancelacionesPanelWrap"' in html
+    triggers = json.loads(response['HX-Trigger'])
+    assert triggers['jobdevs:toast']['tipo'] == 'error'
+    solicitud.refresh_from_db()
+    assert solicitud.estado == 'pendiente_acuerdo'
+
+
+@pytest.mark.django_db
+def test_resolver_solicitud_cancelacion_htmx_admin_aprueba_pendiente_revision(
+    admin_client, admin_user, empresa_user, contrato_activo,
+):
+    import json
+
+    solicitud = SolicitudCancelacion.objects.create(
+        contratacion=contrato_activo,
+        solicitante=empresa_user,
+        causal='incumplimiento',
+        motivo='Entregable no completado en plazo.',
+        evidencia='Historial de hitos vencidos.',
+        estado='pendiente_revision',
+    )
+    admin_client.force_login(admin_user)
+    response = admin_client.post(
+        reverse('resolver_solicitud_cancelacion', args=[solicitud.pk]),
+        {'decision': 'aprobar', 'dictamen': 'Evidencia verificada correctamente.'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert response.status_code == 200
+    html = response.content.decode('utf-8')
+    assert 'id="solicitudesCancelacionPanelWrap"' in html
+    assert json.loads(response['HX-Trigger'])['jobdevs:toast']['tipo'] == 'success'
+    contrato_activo.refresh_from_db()
+    assert contrato_activo.estado == 'cancelada'
+
+
+@pytest.mark.django_db
+def test_cancelaciones_htmx_preserva_redirect_y_permisos(
+    auth_client, empresa_user, contrato_activo,
+):
+    resp_redirect = auth_client.post(
+        reverse('cancelar_contratacion', args=[contrato_activo.pk]),
+        {
+            'causal': 'acuerdo_mutuo',
+            'motivo_cancelacion': 'Terminación tradicional sin HTMX.',
+        },
+    )
+    assert resp_redirect.status_code == 302
+    solicitud = SolicitudCancelacion.objects.get(contratacion=contrato_activo)
+    # La empresa que propuso no puede auto-aprobar ni con HTMX
+    resp_403 = auth_client.post(
+        reverse('resolver_solicitud_cancelacion', args=[solicitud.pk]),
+        {'decision': 'aprobar'},
+        HTTP_HX_REQUEST='true',
+    )
+    assert resp_403.status_code == 403
+

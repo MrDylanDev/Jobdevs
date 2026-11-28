@@ -1905,3 +1905,405 @@ class TestApiDetalleProyecto:
         assert resp_fmt.status_code == 200
         assert resp_fmt.json()['ok'] is True
 
+
+class TestHitosEquiposHTMX:
+    """S3: Gestión de Hitos y Equipos vía HTMX preservando contratos redirect."""
+
+    @pytest.fixture
+    def proyecto_con_dos_devs(self, empresa_user):
+        from contrataciones.models import Contratacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Hitos Equipos HTMX',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+            vacantes=2,
+        )
+        dev1 = User.objects.create_user(
+            username='dev_htmx_he_1',
+            email='dev_htmx_he_1@test.jobdevs',
+            nombre='Dev Uno HTMX',
+            rol='desarrollador',
+            estado='activo',
+            password='TestPass123!',
+        )
+        dev2 = User.objects.create_user(
+            username='dev_htmx_he_2',
+            email='dev_htmx_he_2@test.jobdevs',
+            nombre='Dev Dos HTMX',
+            rol='desarrollador',
+            estado='activo',
+            password='TestPass123!',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=dev1, empresa=empresa_user, estado='activa'
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto, desarrollador=dev2, empresa=empresa_user, estado='activa'
+        )
+        return proyecto, dev1, dev2
+
+    def test_gestionar_hitos_post_htmx_crea_hito_retorna_partial_y_toast(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Entregable
+
+        proyecto, dev1, _ = proyecto_con_dos_devs
+        response = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {
+                'titulo': 'Hito HTMX Inicial',
+                'descripcion': 'Entrega vía HTMX',
+                'desarrollador_id': str(dev1.id),
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="hitosPanelWrap"' in html
+        assert 'Hito HTMX Inicial' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert Entregable.objects.filter(proyecto=proyecto, titulo='Hito HTMX Inicial').exists()
+
+    def test_gestionar_hitos_post_htmx_error_retorna_partial_y_toast_error(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Entregable
+
+        proyecto, _, _ = proyecto_con_dos_devs
+        proyecto.estado = 'finalizado'
+        proyecto.save(update_fields=['estado'])
+
+        response = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {'titulo': 'Hito Bloqueado'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="hitosPanelWrap"' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        assert not Entregable.objects.filter(proyecto=proyecto, titulo='Hito Bloqueado').exists()
+
+    def test_eliminar_hito_post_htmx_retorna_partial_y_toast(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Entregable
+
+        proyecto, _, _ = proyecto_con_dos_devs
+        hito = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito Borrable HTMX', estado='pendiente'
+        )
+        response = auth_client.post(
+            reverse('eliminar_hito', args=[hito.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="hitosPanelWrap"' in html
+        assert 'Hito Borrable HTMX' not in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert not Entregable.objects.filter(id=hito.id).exists()
+
+    def test_eliminar_hito_completado_htmx_retorna_toast_error_y_preserva_hito(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Entregable
+
+        proyecto, _, _ = proyecto_con_dos_devs
+        hito = Entregable.objects.create(
+            proyecto=proyecto, titulo='Hito Completado HTMX', estado='completado'
+        )
+        response = auth_client.post(
+            reverse('eliminar_hito', args=[hito.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="hitosPanelWrap"' in html
+        assert 'Hito Completado HTMX' in html
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        assert Entregable.objects.filter(id=hito.id).exists()
+
+    def test_gestionar_equipos_post_htmx_crea_equipo_retorna_partial_y_toast(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Equipo
+
+        proyecto, dev1, dev2 = proyecto_con_dos_devs
+        response = auth_client.post(
+            reverse('gestionar_equipos', args=[proyecto.id]),
+            {'nombre': 'Squad HTMX', 'miembros': [dev1.id, dev2.id]},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="equiposPanelWrap"' in html
+        assert 'Squad HTMX' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert Equipo.objects.filter(proyecto=proyecto, nombre='Squad HTMX').exists()
+
+    def test_eliminar_equipo_post_htmx_retorna_partial_y_toast(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        import json
+        from proyectos.models import Equipo
+
+        proyecto, dev1, _ = proyecto_con_dos_devs
+        equipo = Equipo.objects.create(proyecto=proyecto, nombre='Equipo Temporal HTMX')
+        equipo.miembros.set([dev1.id])
+
+        response = auth_client.post(
+            reverse('eliminar_equipo', args=[equipo.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="equiposPanelWrap"' in html
+        assert 'Equipo Temporal HTMX' not in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'info'
+        assert not Equipo.objects.filter(id=equipo.id).exists()
+
+    def test_hitos_y_equipos_preservan_contratos_redirect_sin_htmx(
+        self, auth_client, proyecto_con_dos_devs
+    ):
+        from proyectos.models import Entregable, Equipo
+
+        proyecto, dev1, dev2 = proyecto_con_dos_devs
+
+        resp_hito = auth_client.post(
+            reverse('gestionar_hitos', args=[proyecto.id]),
+            {'titulo': 'Hito Redirect'},
+        )
+        assert resp_hito.status_code == 302
+        hito = Entregable.objects.get(proyecto=proyecto, titulo='Hito Redirect')
+
+        resp_del_hito = auth_client.post(reverse('eliminar_hito', args=[hito.id]))
+        assert resp_del_hito.status_code == 302
+
+        resp_eq = auth_client.post(
+            reverse('gestionar_equipos', args=[proyecto.id]),
+            {'nombre': 'Equipo Redirect', 'miembros': [dev1.id, dev2.id]},
+        )
+        assert resp_eq.status_code == 302
+        equipo = Equipo.objects.get(proyecto=proyecto, nombre='Equipo Redirect')
+
+        resp_del_eq = auth_client.post(reverse('eliminar_equipo', args=[equipo.id]))
+        assert resp_del_eq.status_code == 302
+
+
+@pytest.mark.django_db
+class TestEmpresaOfertasHtmx:
+    """S4: desactivar_proyecto y reabrir_postulaciones devuelven _tab_ofertas.html + HX-Trigger."""
+
+    def test_desactivar_proyecto_htmx_exito_retorna_partial_ofertas_y_toast(
+        self, auth_client, empresa_user
+    ):
+        import json
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Retirable HTMX',
+            descripcion='Proyecto publicado sin contratos',
+            tipo_solucion='web',
+            estado='publicado',
+        )
+        response = auth_client.post(
+            reverse('desactivar_proyecto', args=[proyecto.pk]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'seccion-v activa' in html
+        assert 'Oferta Retirable HTMX' not in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'info'
+        assert 'retirado' in triggers['jobdevs:toast']['mensaje'].lower()
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'inactivo'
+
+    def test_desactivar_proyecto_htmx_con_contrato_retorna_toast_error_y_preserva_estado(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from contrataciones.models import Contratacion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Con Contrato HTMX',
+            descripcion='Proyecto con contrato activo',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=2,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='activa',
+        )
+        response = auth_client.post(
+            reverse('desactivar_proyecto', args=[proyecto.pk]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'Oferta Con Contrato HTMX' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        proyecto.refresh_from_db()
+        assert proyecto.estado == 'publicado'
+
+    def test_reabrir_postulaciones_htmx_exito_retorna_partial_ofertas_y_toast(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Reabrible HTMX',
+            descripcion='Proyecto con cierre vencido y contrato cancelado',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=hoy - timedelta(days=2),
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        nueva_fecha = hoy + timedelta(days=10)
+        response = auth_client.post(
+            reverse('reabrir_postulaciones', args=[proyecto.pk]),
+            {'fecha_limite': nueva_fecha.isoformat()},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'seccion-v activa' in html
+        assert 'Oferta Reabrible HTMX' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == nueva_fecha
+
+    def test_reabrir_postulaciones_htmx_fecha_invalida_retorna_toast_error_y_no_modifica(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        import json
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        fecha_original = hoy - timedelta(days=2)
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Fecha Invalida HTMX',
+            descripcion='Proyecto con cierre vencido',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=fecha_original,
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        response = auth_client.post(
+            reverse('reabrir_postulaciones', args=[proyecto.pk]),
+            {'fecha_limite': hoy.isoformat()},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="ofertas"' in html
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'error'
+        proyecto.refresh_from_db()
+        assert proyecto.fecha_limite == fecha_original
+
+    def test_ofertas_htmx_preserva_redirect_sin_htmx(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        from datetime import timedelta
+        from django.utils import timezone
+        from contrataciones.models import Contratacion
+
+        hoy = timezone.localdate()
+        p_retirar = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Redirect Retiro',
+            descripcion='Sin HTMX',
+            tipo_solucion='web',
+            estado='publicado',
+        )
+        resp_retiro = auth_client.post(reverse('desactivar_proyecto', args=[p_retirar.pk]))
+        assert resp_retiro.status_code == 302
+
+        p_reabrir = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta Redirect Reabrir',
+            descripcion='Sin HTMX',
+            tipo_solucion='web',
+            estado='publicado',
+            vacantes=1,
+            fecha_limite=hoy - timedelta(days=1),
+        )
+        Contratacion.objects.create(
+            proyecto=p_reabrir,
+            empresa=empresa_user,
+            desarrollador=desarrollador_user,
+            estado='cancelada',
+        )
+        resp_reabrir = auth_client.post(
+            reverse('reabrir_postulaciones', args=[p_reabrir.pk]),
+            {'fecha_limite': (hoy + timedelta(days=5)).isoformat()},
+        )
+        assert resp_reabrir.status_code == 302
+
+
+
