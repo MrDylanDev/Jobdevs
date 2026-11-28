@@ -60,6 +60,7 @@ def test_reputacion_desde_catalogo_filtrado_antes_de_postular(
     enlace_empresa.click()
     expect(page).to_have_url(live_server.url + perfil_url)
     expect(page.get_by_text('Desarrollamos tecnología responsable.')).to_be_visible()
+    page.wait_for_function('() => window.__jobdevsActionDelegateBound === true')
     page.get_by_role('button', name='Opiniones & Reputación (1)').click()
     expect(page.get_by_text('Pagos puntuales y comunicación clara.')).to_be_visible()
     expect(page.locator('.rep-score-value')).to_have_text('5.0')

@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_modals.css' %}?v=20261121_v25">
     <link rel="stylesheet" href="{% static 'dashboard/css/modules/modals_content.css' %}?v=20261121_v25">
     {% block extra_css %}{% endblock %}
+    <script type="module" src="{% static 'dashboard/script/action_delegate.js' %}"></script>
 </head>
 <body>
     {% block content %}{% endblock %}
@@ -31,7 +32,6 @@
     <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
     <script src="{% static 'dashboard/script/htmx_bridge.js' %}" defer></script>
     <script type="module" src="{% static 'dashboard/script/dashboard_modals.js' %}?v=20261126_mod1"></script>
-    <script type="module" src="{% static 'dashboard/script/action_delegate.js' %}"></script>
     <script type="module" src="{% static 'dashboard/script/file_validator_async.js' %}"></script>
     {% if request.user.is_authenticated %}
     <script type="module" src="{% static 'dashboard/script/notificaciones_sse.js' %}"></script>
