@@ -38,7 +38,13 @@
         </div>
 
         <div id="recoveryForm" class="hidden">
-          <form id="recoveryFormInner" method="POST" action="{% url 'recuperar' %}">
+          <form id="recoveryFormInner"
+                method="POST"
+                action="{% url 'recuperar' %}"
+                hx-post="{% url 'recuperar' %}"
+                hx-target="#recoveryForm"
+                hx-swap="innerHTML"
+                hx-disabled-elt="find button[type='submit']">
             {% csrf_token %}
             <div class="modal-field">
               <label class="label-tech" for="recoveryEmail">{% trans "Correo electrónico" %}</label>
@@ -47,7 +53,7 @@
             <button type="submit" class="btn-submit-tech">{% trans "Enviar instrucciones" %}</button>
           </form>
           <div class="modal-links">
-            <a href="#" id="backToLoginLink" class="login-link">{% trans "&larr; Volver al inicio de sesión" %}</a>
+            <a href="#" id="backToLoginLink" data-back-to-login class="login-link">{% trans "&larr; Volver al inicio de sesión" %}</a>
           </div>
         </div>
 

@@ -381,6 +381,86 @@ class TestRecoveryView:
         assert len(mail.outbox) == 1
         assert 'Restablecer' in mail.outbox[0].subject
 
+    def test_recuperar_htmx_valid_email_returns_partial_without_doctype(self, client, empresa_user):
+        """S3: POST con HX-Request devuelve el parcial _recuperar_respuesta.html sin DOCTYPE y envia correo."""
+        response = client.post(
+            reverse('recuperar'),
+            {'email': empresa_user.email},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!doctype html>' not in html.lower()
+        assert 'publico/partials/_recuperar_respuesta.html' in [t.name for t in response.templates]
+        assert 'instrucciones para restablecer tu contraseña' in html
+        assert 'data-back-to-login' in html
+        assert len(mail.outbox) == 1
+        empresa_user.refresh_from_db()
+        assert empresa_user.token_recuperacion is not None
+
+    def test_recuperar_htmx_unknown_email_no_leak(self, client):
+        """S3: POST HTMX con correo inexistente devuelve confirmacion generica sin enviar correo."""
+        response = client.post(
+            reverse('recuperar'),
+            {'email': 'no_existe@test.jobdevs'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!doctype html>' not in html.lower()
+        assert 'instrucciones para restablecer tu contraseña' in html
+        assert len(mail.outbox) == 0
+
+    def test_recuperar_htmx_empty_email_returns_error_partial(self, client):
+        """S3: POST HTMX sin correo devuelve estado de error en el parcial sin enviar correo."""
+        response = client.post(
+            reverse('recuperar'),
+            {'email': '   '},
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!doctype html>' not in html.lower()
+        assert 'role="alert"' in html
+        assert 'data-back-to-login' in html
+        assert len(mail.outbox) == 0
+
+    def test_recuperar_htmx_partial_autoescapes_html(self):
+        """S3: El parcial _recuperar_respuesta.html aplica auto-escaping de Django."""
+        from django.template.loader import render_to_string
+
+        rendered = render_to_string(
+            'publico/partials/_recuperar_respuesta.html',
+            {'mensaje': '<script>alert(1)</script>', 'es_error': False},
+        )
+        assert '<script>alert(1)</script>' not in rendered
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in rendered
+
+    def test_recuperar_htmx_with_json_accept_preserves_json_contract(self, client, empresa_user):
+        """S3: Si se solicita JSON explicitamente junto con HX-Request, se preserva el contrato JSON."""
+        response = client.post(
+            reverse('recuperar'),
+            {'email': empresa_user.email},
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get('ok') is True
+        assert len(mail.outbox) == 1
+
+    def test_landing_recuperar_loads_htmx_and_wires_form(self, client):
+        """S3: GET / carga htmx.min.js y htmx_bridge.js y cablea #recoveryFormInner con HTMX."""
+        response = client.get(reverse('inicio'))
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert 'vendor/htmx/htmx.min.js' in html
+        assert 'dashboard/script/htmx_bridge.js' in html
+        assert 'hx-post="' in html
+        assert 'hx-target="#recoveryForm"' in html
+        assert 'hx-swap="innerHTML"' in html
+        assert 'hx-disabled-elt="find button[type=\'submit\']"' in html
+
 
 class TestRestablecerView:
     """Tests for restablecer_view at /restablecer/<token>/"""

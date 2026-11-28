@@ -190,14 +190,23 @@ def listar_proyectos(request):
 
 @login_required
 def crear_proyecto(request):
-    es_ajax = (
+    wants_json = (
         request.headers.get('x-requested-with') == 'XMLHttpRequest'
         or 'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
     )
+    es_htmx = request.headers.get('HX-Request') == 'true' and not wants_json
+    es_ajax = wants_json
 
     def responder_error(msg):
         if es_ajax:
             return JsonResponse({'ok': False, 'mensaje': msg}, status=400)
+        if es_htmx:
+            response = HttpResponse(status=200)
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'error', 'mensaje': msg},
+            })
+            return response
         messages.error(request, msg)
         return redirect(reverse('dashboard_empresa') + '#ofertas')
 
@@ -281,6 +290,16 @@ def crear_proyecto(request):
                     'proyecto_id': proyecto.id,
                     'redirect_url': reverse('dashboard_empresa') + '#ofertas',
                 })
+            if es_htmx:
+                response = HttpResponse(status=204)
+                response['HX-Trigger'] = json.dumps({
+                    'jobdevs:toast': {'tipo': 'success', 'mensaje': msg_exito},
+                    'jobdevs:proyecto-creado': {
+                        'proyecto_id': proyecto.id,
+                        'reload_hash': 'ofertas',
+                    },
+                })
+                return response
 
             messages.success(request, msg_exito)
             return redirect(reverse('dashboard_empresa') + '#ofertas')

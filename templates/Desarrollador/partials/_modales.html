@@ -219,7 +219,13 @@
         <i data-lucide="id-card"></i> Verificar mi ficha SENA
       </button>
 
-      <form data-postulacion-form novalidate>
+      <form data-postulacion-form
+            method="post"
+            hx-post=""
+            hx-target='[data-testid="postulaciones-vigentes"] .post-list'
+            hx-swap="afterbegin"
+            hx-disabled-elt="find button[type='submit']"
+            novalidate>
         {% csrf_token %}
         <input type="hidden" name="origen" value="dashboard">
 

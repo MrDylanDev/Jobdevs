@@ -1,0 +1,20 @@
+{% load i18n %}
+{% if es_error %}
+<div role="alert" style="background: rgba(220, 38, 38, 0.08); border-left: 3px solid #ef4444; color: #fca5a5; padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+  <span>{{ mensaje }}</span>
+</div>
+<div class="modal-links" style="text-align: center; margin-top: 20px;">
+  <a href="#" id="retryRecoveryLink" data-retry-recovery class="login-link" style="color: var(--accent);">{% trans "Intentar de nuevo" %}</a>
+  <span class="login-sep" aria-hidden="true">|</span>
+  <a href="#" id="backToLoginLink2" data-back-to-login class="login-link" style="color: var(--accent);">{% trans "&larr; Volver al inicio de sesión" %}</a>
+</div>
+{% else %}
+<div role="status" style="background: rgba(var(--accent-rgb), 0.08); border-left: 3px solid var(--accent); color: var(--accent-bright); padding: 12px 16px; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check icono-linea" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+  <span>{{ mensaje }}</span>
+</div>
+<div style="text-align: center; margin-top: 20px;">
+  <a href="#" id="backToLoginLink2" data-back-to-login class="login-link" style="color: var(--accent);">{% trans "&larr; Volver al inicio de sesión" %}</a>
+</div>
+{% endif %}

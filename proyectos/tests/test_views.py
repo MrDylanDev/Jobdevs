@@ -520,6 +520,143 @@ class TestCrearProyecto:
         assert 'value="media"' in content
         assert 'value="baja"' in content
 
+    def test_crear_proyecto_htmx_exito_retorna_hx_trigger(self, auth_client, empresa_user):
+        """S1: POST con HX-Request: true crea el proyecto y devuelve 204 + HX-Trigger."""
+        import json
+
+        response = auth_client.post(
+            reverse('crear_proyecto'),
+            {
+                'titulo': 'Proyecto HTMX Exito',
+                'descripcion': 'Descripción de prueba HTMX',
+                'tipo_solucion': 'sitio_web',
+                'prioridad': 'alta',
+                'modalidad': 'remoto',
+                'vacantes': '2',
+                'fecha_cumplimiento': (timezone.localdate() + timedelta(days=30)).isoformat(),
+            },
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code in (200, 204)
+        proyecto = Proyecto.objects.get(titulo='Proyecto HTMX Exito', empresa=empresa_user)
+        assert proyecto.historial_estados.filter(estado_nuevo='publicado').exists()
+
+        trigger = json.loads(response.headers['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'Proyecto HTMX Exito' in trigger['jobdevs:toast']['mensaje']
+        assert trigger['jobdevs:proyecto-creado']['proyecto_id'] == proyecto.id
+
+    def test_crear_proyecto_htmx_error_validacion_no_crea_proyecto(self, auth_client):
+        """S1: POST con HX-Request: true y error de validación devuelve toast de error sin crear."""
+        import json
+
+        antes = Proyecto.objects.count()
+        response = auth_client.post(
+            reverse('crear_proyecto'),
+            {
+                'titulo': 'Proyecto HTMX Invalido',
+                'descripcion': 'Sin fecha de cumplimiento',
+                'tipo_solucion': 'sitio_web',
+                'vacantes': '1',
+                'fecha_cumplimiento': '',
+            },
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code in (200, 422)
+        assert Proyecto.objects.count() == antes
+        assert not Proyecto.objects.filter(titulo='Proyecto HTMX Invalido').exists()
+
+        trigger = json.loads(response.headers['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'error'
+        assert 'fecha de cumplimiento es obligatoria' in trigger['jobdevs:toast']['mensaje'].lower()
+        assert 'jobdevs:proyecto-creado' not in trigger
+
+    def test_crear_proyecto_htmx_dev_no_puede_crear(self, dev_client):
+        """S1: Un desarrollador con HX-Request: true recibe toast de error y no crea proyecto."""
+        import json
+
+        antes = Proyecto.objects.count()
+        response = dev_client.post(
+            reverse('crear_proyecto'),
+            {
+                'titulo': 'Proyecto Dev HTMX',
+                'descripcion': 'No permitido',
+                'tipo_solucion': 'sitio_web',
+                'fecha_cumplimiento': (timezone.localdate() + timedelta(days=15)).isoformat(),
+            },
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code in (200, 403, 422)
+        assert Proyecto.objects.count() == antes
+        trigger = json.loads(response.headers['HX-Trigger'])
+        assert trigger['jobdevs:toast']['tipo'] == 'error'
+        assert 'Solo las empresas pueden publicar proyectos.' in trigger['jobdevs:toast']['mensaje']
+        assert 'jobdevs:proyecto-creado' not in trigger
+
+    def test_crear_proyecto_preserva_contratos_json_y_form_htmx(self, auth_client, empresa_user):
+        """S1: Preserva Accept: application/json, X-Requested-With, ?format=json y cableado HTMX del modal."""
+        url = reverse('crear_proyecto')
+        fecha = (timezone.localdate() + timedelta(days=30)).isoformat()
+
+        # Accept: application/json (incluso con HX-Request: true) -> JSON gana
+        res_json = auth_client.post(
+            url,
+            {
+                'titulo': 'Proyecto JSON Dual',
+                'descripcion': 'Desc JSON',
+                'tipo_solucion': 'sitio_web',
+                'vacantes': '1',
+                'fecha_cumplimiento': fecha,
+            },
+            headers={'HX-Request': 'true', 'Accept': 'application/json'},
+        )
+        assert res_json.status_code == 200
+        assert res_json.headers['Content-Type'] == 'application/json'
+        data_json = res_json.json()
+        assert data_json['ok'] is True
+        assert Proyecto.objects.filter(id=data_json['proyecto_id'], titulo='Proyecto JSON Dual').exists()
+
+        # X-Requested-With: XMLHttpRequest en error -> JSON 400
+        res_xhr_err = auth_client.post(
+            url,
+            {
+                'titulo': 'Proyecto XHR Err',
+                'descripcion': 'Desc',
+                'tipo_solucion': 'sitio_web',
+                'vacantes': '0',
+                'fecha_cumplimiento': fecha,
+            },
+            headers={'HX-Request': 'true', 'X-Requested-With': 'XMLHttpRequest'},
+        )
+        assert res_xhr_err.status_code == 400
+        assert res_xhr_err.headers['Content-Type'] == 'application/json'
+        assert res_xhr_err.json()['ok'] is False
+
+        # ?format=json con HX-Request: true -> JSON gana
+        res_fmt = auth_client.post(
+            url + '?format=json',
+            {
+                'titulo': 'Proyecto Format JSON',
+                'descripcion': 'Desc',
+                'tipo_solucion': 'sitio_web',
+                'vacantes': '1',
+                'fecha_cumplimiento': fecha,
+            },
+            headers={'HX-Request': 'true'},
+        )
+        assert res_fmt.status_code == 200
+        assert res_fmt.headers['Content-Type'] == 'application/json'
+        assert res_fmt.json()['ok'] is True
+
+        # Modal del dashboard empresa cableado con HTMX
+        dash = auth_client.get(reverse('dashboard_empresa'))
+        assert dash.status_code == 200
+        html = dash.content.decode('utf-8')
+        assert 'id="formCrearProyecto"' in html
+        assert f'hx-post="{url}"' in html
+        assert 'hx-swap="none"' in html
+        assert 'hx-disabled-elt="find button[type=\'submit\']"' in html
+
 
 class TestDesactivarProyecto:
     def test_publicado_sin_contratos_puede_retirarse(self, auth_client, empresa_user):

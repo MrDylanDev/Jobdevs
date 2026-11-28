@@ -2,7 +2,9 @@ import json
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.utils.formats import date_format
+from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -161,23 +163,48 @@ def _es_peticion_ajax(request):
     )
 
 
+def _respuesta_error_postulacion_htmx(mensaje, nivel='error', status=400, requiere_verificacion=False):
+    tipo_toast = 'warning' if nivel == 'warning' else 'error'
+    response = HttpResponse(
+        f'<div class="jd-inline-feedback is-error">{escape(mensaje)}</div>',
+        status=status,
+    )
+    response['HX-Trigger'] = json.dumps({
+        'jobdevs:toast': {'tipo': tipo_toast, 'mensaje': mensaje},
+        'jobdevs:postulacion-error': {
+            'mensaje': mensaje,
+            'requiere_verificacion': bool(requiere_verificacion),
+        },
+    })
+    response['HX-Reswap'] = 'none'
+    return response
+
+
 @login_required
 def postularse_a_proyecto(request, proyecto_id):
-    ajax = _es_peticion_ajax(request)
+    htmx = _es_htmx(request)
+    ajax = (not htmx) and _es_peticion_ajax(request)
 
     def fallo(mensaje, nivel='error', status=400, **extra):
-        """Responde JSON para el modal o mantiene el flujo HTML clásico."""
+        """Responde HTMX, JSON para el modal o mantiene el flujo HTML clásico."""
+        if htmx:
+            return _respuesta_error_postulacion_htmx(
+                mensaje,
+                nivel=nivel,
+                status=status,
+                requiere_verificacion=extra.get('requiere_verificacion', False),
+            )
         if ajax:
             return JsonResponse({'ok': False, 'mensaje': mensaje, **extra}, status=status)
         getattr(messages, nivel)(request, mensaje)
         return redirect('dashboard_desarrollador')
 
     if request.user.rol != 'desarrollador':
+        mensaje_rol = 'Solo los desarrolladores pueden postularse a proyectos.'
+        if htmx:
+            return _respuesta_error_postulacion_htmx(mensaje_rol, status=403)
         if ajax:
-            return JsonResponse(
-                {'ok': False, 'mensaje': 'Solo los desarrolladores pueden postularse a proyectos.'},
-                status=403,
-            )
+            return JsonResponse({'ok': False, 'mensaje': mensaje_rol}, status=403)
         return redirect('inicio')
 
     perfil_dev, _ = PerfilDesarrollador.objects.get_or_create(usuario=request.user)
@@ -185,6 +212,10 @@ def postularse_a_proyecto(request, proyecto_id):
         mensaje_verificacion = (
             "Debes verificar tu identidad como aprendiz SENA antes de postularte a proyectos."
         )
+        if htmx:
+            return _respuesta_error_postulacion_htmx(
+                mensaje_verificacion, status=403, requiere_verificacion=True
+            )
         if ajax:
             return JsonResponse(
                 {'ok': False, 'mensaje': mensaje_verificacion, 'requiere_verificacion': True},
@@ -196,11 +227,12 @@ def postularse_a_proyecto(request, proyecto_id):
     proyecto = Proyecto.objects.filter(id=proyecto_id).first()
 
     if not proyecto:
+        mensaje_no_existe = 'El proyecto solicitado no existe.'
+        if htmx:
+            return _respuesta_error_postulacion_htmx(mensaje_no_existe, status=404)
         if ajax:
-            return JsonResponse(
-                {'ok': False, 'mensaje': 'El proyecto solicitado no existe.'}, status=404
-            )
-        messages.error(request, "El proyecto solicitado no existe.")
+            return JsonResponse({'ok': False, 'mensaje': mensaje_no_existe}, status=404)
+        messages.error(request, mensaje_no_existe)
         return redirect('dashboard_desarrollador')
 
     # Hallazgo 17: Evitar auto-postulación
@@ -289,31 +321,67 @@ def postularse_a_proyecto(request, proyecto_id):
                     ),
                 )
 
-            if ajax:
-                from django.utils.formats import date_format
-                from django.urls import reverse
+            if htmx or ajax:
                 perfil_emp = getattr(proyecto.empresa, 'perfil_empresa', None)
                 empresa_logo = perfil_emp.logo.url if (perfil_emp and perfil_emp.logo) else None
-                empresa_nombre = (perfil_emp.nombre_empresa if perfil_emp and perfil_emp.nombre_empresa else '') or proyecto.empresa.nombre or proyecto.empresa.username
+                empresa_nombre = (
+                    (perfil_emp.nombre_empresa if perfil_emp and perfil_emp.nombre_empresa else '')
+                    or proyecto.empresa.nombre
+                    or proyecto.empresa.username
+                )
+                fecha_fmt = date_format(timezone.localtime(postulacion.fecha), 'd/m/Y')
+                estado_display = postulacion.get_estado_display()
+                tipo_solucion = proyecto.get_tipo_solucion_display() or proyecto.tipo_solucion
+                modalidad = proyecto.get_modalidad_display() or proyecto.modalidad
+                detalle_empresa_url = reverse('detalle_empresa', args=[proyecto.empresa_id])
+                detalle_proyecto_url = reverse('api_detalle_proyecto', args=[proyecto.id])
+                mensaje_exito = f"¡Te has postulado al proyecto '{proyecto.titulo}'!"
+
+                if htmx:
+                    response = render(
+                        request,
+                        'postulaciones/partials/_postulacion_activa_card.html',
+                        {
+                            'postulacion': postulacion,
+                            'proyecto': proyecto,
+                            'empresa_nombre': empresa_nombre,
+                            'empresa_logo': empresa_logo,
+                            'fecha': fecha_fmt,
+                            'estado_display': estado_display,
+                            'tipo_solucion': tipo_solucion,
+                            'modalidad': modalidad,
+                            'detalle_empresa_url': detalle_empresa_url,
+                            'detalle_proyecto_url': detalle_proyecto_url,
+                        },
+                    )
+                    response['HX-Trigger'] = json.dumps({
+                        'jobdevs:toast': {'tipo': 'success', 'mensaje': mensaje_exito},
+                        'jobdevs:postulacion-creada': {
+                            'proyecto_id': proyecto.id,
+                            'requiere_verificacion': False,
+                        },
+                    })
+                    return response
+
                 return JsonResponse({
                     'ok': True,
-                    'mensaje': f"¡Te has postulado al proyecto '{proyecto.titulo}'!",
+                    'mensaje': mensaje_exito,
                     'proyecto_id': proyecto.id,
                     'postulacion': {
                         'id': postulacion.id,
-                        'fecha': date_format(timezone.localtime(postulacion.fecha), 'd/m/Y'),
+                        'fecha': fecha_fmt,
                         'estado': postulacion.estado,
-                        'estado_display': postulacion.get_estado_display(),
+                        'estado_display': estado_display,
                         'proyecto': {
                             'id': proyecto.id,
                             'titulo': proyecto.titulo,
-                            'tipo_solucion': proyecto.get_tipo_solucion_display() or proyecto.tipo_solucion,
-                            'modalidad': proyecto.get_modalidad_display() or proyecto.modalidad,
+                            'tipo_solucion': tipo_solucion,
+                            'modalidad': modalidad,
                             'empresa_id': proyecto.empresa_id,
                             'empresa_nombre': empresa_nombre,
                             'empresa_logo': empresa_logo,
-                            'detalle_empresa_url': reverse('detalle_empresa', args=[proyecto.empresa_id]),
-                            'detalle_proyecto_url': reverse('api_detalle_proyecto', args=[proyecto.id]),
+                            'detalle_empresa_url': detalle_empresa_url,
+                            'detalle_proyecto_url': detalle_proyecto_url,
                         }
                     }
                 })
@@ -327,6 +395,8 @@ def postularse_a_proyecto(request, proyecto_id):
                 request.user.id,
             )
             mensaje_error = "Ocurrió un error inesperado al procesar tu postulación. Por favor intenta más tarde."
+            if htmx:
+                return _respuesta_error_postulacion_htmx(mensaje_error, status=500)
             if ajax:
                 return JsonResponse(
                     {'ok': False, 'mensaje': mensaje_error}, status=500
