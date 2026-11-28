@@ -1423,7 +1423,7 @@ class TestAdminChatAvatars:
             assert perfil_emp.logo.url in chat_html
             assert perfil_dev.foto_perfil.url in chat_html
             assert '<img ' in chat_html
-            assert 'onerror=' in chat_html
+            assert 'data-fallback-text=' in chat_html
             # Usuario sin perfil hace fallback a la inicial
             import re
             inicial = sin_perfil_user.username[:1].upper()
