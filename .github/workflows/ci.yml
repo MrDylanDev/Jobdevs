@@ -44,6 +44,9 @@ jobs:
       - name: Run frontend hygiene checks (templates, CSS, JS, case collisions)
         run: uv run python scripts/check_frontend.py --require-node
 
+      - name: Run JS unit tests (node:test)
+        run: node --test tests/js/*.test.mjs
+
       - name: Run tests (SQLite, ignore E2E)
         run: uv run pytest . --ignore=tests/e2e -v
 
