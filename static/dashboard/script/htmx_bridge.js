@@ -48,17 +48,19 @@
       var hadActiva = Boolean(currentEl && currentEl.classList.contains('activa'));
       var hadActive = Boolean(currentEl && currentEl.classList.contains('active'));
 
-      var onAfterSwap = function (ev) {
+      var applyTabState = function () {
         var swapped = document.querySelector(selector);
         if (!swapped || !preserveTabState) return;
         swapped.classList.toggle('activa', hadActiva);
         swapped.classList.toggle('active', hadActive);
-        if (ev && ev.detail && ev.detail.target && ev.detail.target.id === swapped.id) {
-          document.removeEventListener('htmx:afterSwap', onAfterSwap);
-        }
+      };
+
+      var onAfterSettle = function () {
+        applyTabState();
+        document.removeEventListener('htmx:afterSettle', onAfterSettle);
       };
       if (preserveTabState) {
-        document.addEventListener('htmx:afterSwap', onAfterSwap);
+        document.addEventListener('htmx:afterSettle', onAfterSettle);
       }
 
       return Promise.resolve(
@@ -70,16 +72,15 @@
         })
       ).then(
         function () {
-          document.removeEventListener('htmx:afterSwap', onAfterSwap);
-          var updatedEl = document.querySelector(selector);
-          if (updatedEl && preserveTabState) {
-            updatedEl.classList.toggle('activa', hadActiva);
-            updatedEl.classList.toggle('active', hadActive);
-          }
+          applyTabState();
+          setTimeout(function () {
+            applyTabState();
+            document.removeEventListener('htmx:afterSettle', onAfterSettle);
+          }, 50);
           return { selector: selector, ok: true };
         },
         function () {
-          document.removeEventListener('htmx:afterSwap', onAfterSwap);
+          document.removeEventListener('htmx:afterSettle', onAfterSettle);
           return { selector: selector, ok: false };
         }
       );
