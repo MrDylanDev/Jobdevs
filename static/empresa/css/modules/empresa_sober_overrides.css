@@ -184,11 +184,11 @@
 
 #inicio > .kpi-grid-corp .kpi-card-footer .kpi-tag,
 #inicio .kpi-tag {
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   font-size: 12px;
   font-weight: 600;
 }
@@ -199,19 +199,19 @@
 
 #inicio > .kpi-grid-corp .kpi-card-footer .kpi-tag.tag-neutral,
 #inicio .kpi-tag.tag-neutral {
-  background: transparent !important;
+  background: transparent;
   color: var(--corp-slate-500);
 }
 
 #inicio > .kpi-grid-corp .kpi-card-footer .kpi-tag.tag-brand,
 #inicio .kpi-tag.tag-brand {
-  background: transparent !important;
+  background: transparent;
   color: var(--corp-brand);
 }
 
 #inicio > .kpi-grid-corp .kpi-card-footer .kpi-tag.tag-warning,
 #inicio .kpi-tag.tag-warning {
-  background: transparent !important;
+  background: transparent;
   color: var(--corp-slate-700);
 }
 
@@ -328,7 +328,7 @@
   border-radius: 0;
   box-shadow: none;
   padding: 22px 24px;
-  margin: 0 !important;
+  margin: 0;
 }
 
 #inicio .command-section-header {
@@ -386,19 +386,19 @@
 #inicio .command-opening-item .kpi-tag,
 #inicio .command-opening-item .kpi-tag.tag-warning,
 #inicio .command-opening-item .kpi-tag.tag-neutral {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  color: var(--corp-slate-600) !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--corp-slate-600);
   font-weight: 600;
 }
 
 [data-theme="dark"] #inicio .command-opening-item .kpi-tag,
 [data-theme="dark"] #inicio .command-opening-item .kpi-tag.tag-warning,
 [data-theme="dark"] #inicio .command-opening-item .kpi-tag.tag-neutral {
-  color: #cbd5e1 !important;
+  color: var(--text-secondary);
 }
 
 #inicio .approval-queue-empty,
@@ -421,9 +421,9 @@
 #inicio .activity-empty .lucide,
 #inicio .activity-empty [data-lucide],
 #inicio .activity-empty svg {
-  width: 16px !important;
-  height: 16px !important;
-  margin: 0 !important;
+  width: 16px;
+  height: 16px;
+  margin: 0;
   flex-shrink: 0;
   opacity: 0.55;
 }
@@ -633,12 +633,12 @@
    heredados de dashboard.css.
    ============================================================ */
 body .app-layout .main-content.is-chat-active {
-  padding: 0 !important;
-  overflow: hidden !important;
+  padding: 0;
+  overflow: hidden;
 }
 
 #centro-chat .jd-chat-list-head {
-  border-bottom: 0 !important;
+  border-bottom: 0;
 }
 
 #centro-chat .jd-chat-count,
@@ -664,13 +664,13 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #centro-chat .jd-chat-send {
-  background: #00713f;
+  background: var(--accent);
   color: #ffffff;
   border-radius: 6px;
 }
 
 #centro-chat .jd-chat-send:hover:not(:disabled) {
-  background: #005c33;
+  background: var(--accent-hover);
 }
 
 @media (max-width: 1024px) {
@@ -786,10 +786,10 @@ body .app-layout .main-content.is-chat-active {
 
 #ofertas .offers-filter-pill.is-active,
 [data-theme="dark"] #ofertas .offers-filter-pill.is-active {
-  background: transparent !important;
-  color: var(--corp-brand) !important;
-  border: none !important;
-  border-bottom: 2px solid var(--corp-brand) !important;
+  background: transparent;
+  color: var(--corp-brand);
+  border: none;
+  border-bottom: 2px solid var(--corp-brand);
   font-weight: 700;
 }
 
@@ -1006,10 +1006,10 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #drawerCandidatos .drawer-funnel-tabs {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 0 !important;
-  margin-bottom: 18px !important;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: 18px;
   background: var(--corp-surface);
   border: 1px solid var(--corp-border);
   border-radius: 4px;
@@ -1047,18 +1047,18 @@ body .app-layout .main-content.is-chat-active {
 #drawerCandidatos .funnel-tab-label {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--corp-slate-700) !important;
+  color: var(--corp-slate-700);
   line-height: 1.25;
 }
 
 #drawerCandidatos .funnel-tab-card.is-active .funnel-tab-label {
-  color: var(--corp-slate-900) !important;
+  color: var(--corp-slate-900);
   font-weight: 700;
 }
 
 #drawerCandidatos .funnel-tab-sub {
   font-size: 10.5px;
-  color: var(--corp-slate-400) !important;
+  color: var(--corp-slate-400);
   margin-top: 2px;
   line-height: 1.2;
 }
@@ -1067,7 +1067,7 @@ body .app-layout .main-content.is-chat-active {
   font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--corp-slate-900) !important;
+  color: var(--corp-slate-900);
   flex-shrink: 0;
 }
 
@@ -1085,7 +1085,7 @@ body .app-layout .main-content.is-chat-active {
 
 @media (max-width: 640px) {
   #drawerCandidatos .drawer-funnel-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   #drawerCandidatos .funnel-tab-card {
     border-bottom: 1px solid var(--corp-border);
@@ -1107,7 +1107,7 @@ body .app-layout .main-content.is-chat-active {
 }
 
 [data-theme="dark"] #desarrollo .dev-card-corp:hover {
-  border-color: #3f3f46;
+  border-color: var(--border-hover);
   box-shadow: none;
 }
 
@@ -1126,7 +1126,7 @@ body .app-layout .main-content.is-chat-active {
 }
 
 [data-theme="dark"] #contratos .contract-card-corp:hover {
-  border-color: #3f3f46;
+  border-color: var(--border-hover);
   box-shadow: none;
 }
 
@@ -1138,10 +1138,10 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #contratos .contract-sig-chip {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
   font-size: 12.5px;
   font-weight: 600;
   display: inline-flex;
@@ -1150,20 +1150,20 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #contratos .contract-sig-chip.is-pending {
-  color: var(--corp-slate-500) !important;
+  color: var(--corp-slate-500);
 }
 
 #contratos .contract-sig-chip.is-signed {
-  color: var(--corp-brand) !important;
+  color: var(--corp-brand);
 }
 
 #contratos .hash-pill,
 #contratos .contract-estado-badge {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #contratos .hash-pill {
@@ -1216,11 +1216,11 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #modalContratoDigital .contract-estado-badge {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  color: var(--corp-slate-600) !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  color: var(--corp-slate-600);
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -1239,7 +1239,7 @@ body .app-layout .main-content.is-chat-active {
 
 #modalContratoDigital .contract-doc-parties,
 #modalContratoDigital .contract-terms-grid {
-  gap: 16px !important;
+  gap: 16px;
   padding: 16px 0;
   margin: 0;
   border-bottom: 1px solid var(--corp-border-subtle);
@@ -1252,38 +1252,38 @@ body .app-layout .main-content.is-chat-active {
 #modalContratoDigital .contract-signature-block,
 #modalContratoDigital .contract-sign-panel,
 #modalContratoDigital .contract-sign-done {
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 #modalContratoDigital .signature-badge-corp {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   font-size: 12.5px;
   font-weight: 600;
 }
 
 #modalContratoDigital .signature-badge-corp.is-pending {
-  color: var(--corp-slate-500) !important;
+  color: var(--corp-slate-500);
 }
 
 #modalContratoDigital .signature-badge-corp.is-signed {
-  color: var(--corp-brand) !important;
+  color: var(--corp-brand);
 }
 
 #modalContratoDigital .contract-term-value {
-  color: var(--corp-slate-900) !important;
+  color: var(--corp-slate-900);
 }
 
 #modalContratoDigital .contract-clause-box {
-  padding: 16px 0 !important;
-  border-bottom: 1px solid var(--corp-border-subtle) !important;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--corp-border-subtle);
 }
 
 #modalContratoDigital .contract-signatures-row {
@@ -1293,11 +1293,11 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #modalContratoDigital .contract-doc-disclaimer {
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  padding: 12px 0 0 !important;
-  color: var(--corp-slate-500) !important;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 0 0;
+  color: var(--corp-slate-500);
   font-size: 12px;
 }
 
@@ -1351,18 +1351,18 @@ body .app-layout .main-content.is-chat-active {
 }
 
 [data-theme="dark"] #cancelaciones .contract-card-corp:hover {
-  border-color: #3f3f46;
+  border-color: var(--border-hover);
   box-shadow: none;
 }
 
 #cancelaciones .hash-pill,
 #cancelaciones .contract-estado-badge,
 #cancelaciones .cancel-estado-badge {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #cancelaciones .hash-pill {
@@ -1400,9 +1400,9 @@ body .app-layout .main-content.is-chat-active {
 
 [data-theme="dark"] #panelHitos .card:hover,
 [data-theme="dark"] #panelAvances .card:hover {
-  border-top-color: #3f3f46;
-  border-right-color: #3f3f46;
-  border-bottom-color: #3f3f46;
+  border-top-color: var(--border-hover);
+  border-right-color: var(--border-hover);
+  border-bottom-color: var(--border-hover);
   box-shadow: none;
 }
 
@@ -1464,7 +1464,7 @@ body .app-layout .main-content.is-chat-active {
 
 [data-theme="dark"] #historial .ledger-filter-pill:hover,
 [data-theme="dark"] #historial .time-tab-corp:hover {
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 
@@ -1495,7 +1495,7 @@ body .app-layout .main-content.is-chat-active {
 [data-theme="dark"] #perfil .linkedin-content-card:hover,
 [data-theme="dark"] #perfil .linkedin-job-card:hover,
 [data-theme="dark"] #perfil .review-card-corp:hover {
-  border-color: #3f3f46;
+  border-color: var(--border-hover);
   box-shadow: none;
 }
 
@@ -1561,11 +1561,11 @@ body .app-layout .main-content.is-chat-active {
 }
 
 #perfil .tech-chip {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #historial .ledger-metric-card:hover,
@@ -1577,7 +1577,7 @@ body .app-layout .main-content.is-chat-active {
 
 [data-theme="dark"] #historial .ledger-metric-card:hover,
 [data-theme="dark"] #historial .history-card-corp:hover {
-  border-color: #3f3f46;
+  border-color: var(--border-hover);
   box-shadow: none;
 }
 
@@ -1586,11 +1586,11 @@ body .app-layout .main-content.is-chat-active {
 #historial .offer-badge-category,
 #historial .dev-chip-team,
 #historial .segmented-pill .pill-counter {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #historial .kpi-tag {
@@ -1654,7 +1654,7 @@ body .app-layout .main-content.is-chat-active {
 }
 
 [data-theme="dark"] #historial .history-section-heading {
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 /* ============================================================
@@ -1924,7 +1924,7 @@ body .app-layout .main-content.is-chat-active {
 .corp-star-rating label:hover,
 .corp-star-rating label:hover ~ label,
 .corp-star-rating input:checked ~ label {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .corp-star-rating label:hover {

@@ -2,7 +2,7 @@
    Tema Claro: Contraste y Legibilidad en Modales (SCRUM-455 / SCRUM-457)
    ========================================================================== */
 [data-theme="light"] .jdm-modal {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-backdrop {
@@ -10,21 +10,21 @@
 }
 
 [data-theme="light"] .jdm-card {
-  background: #ffffff;
-  border-color: #cbd5e1;
+  background: var(--surface-elevated);
+  border-color: var(--border-hover);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
 }
 
 [data-theme="light"] .jdm-header,
 [data-theme="light"] .jdm-footer {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--surface-subtle);
+  border-color: var(--border-dim);
 }
 
 [data-theme="light"] .jdm-title,
 [data-theme="light"] .jdm-party-name,
 [data-theme="light"] .jdm-meta-value {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-kicker,
@@ -32,7 +32,7 @@
 [data-theme="light"] .jdm-meta-label,
 [data-theme="light"] .jdm-party-role,
 [data-theme="light"] .jdm-form-label {
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-meta-box,
@@ -40,147 +40,147 @@
 [data-theme="light"] .jdm-clauses-container,
 [data-theme="light"] .jdm-disputa-chat,
 [data-theme="light"] .jdm-admin-resolution-box {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #0f172a;
+  background: var(--surface-subtle);
+  border-color: var(--border-dim);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-input,
 [data-theme="light"] .jdm-select,
 [data-theme="light"] .jdm-textarea {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: var(--surface-input);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-bubble-other {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--border-dim);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-btn-secondary {
-  background: #f1f5f9;
-  color: #0f172a;
-  border-color: #cbd5e1;
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
 }
 
 [data-theme="light"] .jdm-btn-secondary:hover {
-  background: #e2e8f0;
-  color: #15803d;
-  border-color: #16a34a;
+  background: var(--border-dim);
+  color: var(--accent-hover);
+  border-color: var(--accent);
 }
 
 [data-theme="light"] .jdm-meta-value.accent {
-  color: #00713f !important;
+  color: var(--accent);
 }
 
 [data-theme="light"] .jdm-card::before,
 [data-theme="light"] .jdm-card::after {
-  border-color: #00713f !important;
+  border-color: var(--accent);
 }
 
 [data-theme="light"] .jdm-clause-item {
-  border-bottom-color: #e2e8f0 !important;
-  color: #334155 !important;
+  border-bottom-color: var(--border-dim);
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-clause-item strong {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-party-role {
-  color: #00713f !important;
+  color: var(--accent);
 }
 
 [data-theme="light"] .jdm-party-card {
-  border-left-color: #00713f !important;
+  border-left-color: var(--accent);
 }
 
 [data-theme="light"] .jdm-sign-callout {
-  background: #e6faf0 !important;
-  border-color: rgba(0, 113, 63, 0.3) !important;
+  background: var(--accent-light);
+  border-color: rgba(0, 113, 63, 0.3);
 }
 
 [data-theme="light"] .jdm-sign-callout strong {
-  color: #00713f !important;
+  color: var(--accent);
 }
 
 [data-theme="light"] .jdm-sign-callout span {
-  color: #475569 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-close {
-  border-color: #cbd5e1 !important;
-  color: #64748b !important;
-  background: #ffffff !important;
+  border-color: var(--border-hover);
+  color: var(--text-muted);
+  background: var(--surface-elevated);
 }
 
 [data-theme="light"] .jdm-close:hover {
-  border-color: #00713f !important;
-  color: #00713f !important;
-  background: #e6faf0 !important;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
 }
 
 [data-theme="light"] .jdm-progress-header {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-dim);
 }
 
 [data-theme="light"] .jdm-progress-bar-bg {
-  background: #e2e8f0 !important;
+  background: var(--border-dim);
 }
 
 [data-theme="light"] .jdm-hito-pill {
-  background: transparent !important;
-  border: none !important;
-  border-right: 1px solid #e2e8f0 !important;
-  color: #0f172a !important;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-dim);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-hito-pill:last-child {
-  border-right: none !important;
+  border-right: none;
 }
 
 [data-theme="light"] .jdm-advance-card {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-dim);
 }
 
 [data-theme="light"] .jdm-advance-card:last-child {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 [data-theme="light"] .jdm-advance-title {
-  color: #0f172a !important;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-advance-desc {
-  color: #334155 !important;
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .jdm-advance-feedback {
-  background: transparent !important;
-  border: none !important;
-  border-left: 2px solid #f59e0b !important;
-  color: #b45309 !important;
+  background: transparent;
+  border: none;
+  border-left: 2px solid var(--warning);
+  color: #b45309;
 }
 
 [data-theme="light"] .jdm-advance-attachment {
-  background: transparent !important;
-  border-color: #cbd5e1 !important;
-  color: #00713f !important;
+  background: transparent;
+  border-color: var(--border-hover);
+  color: var(--accent);
 }
 
 [data-theme="light"] .jdm-stat-pill {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
+  background: var(--surface-subtle);
+  border-color: var(--border-dim);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .jdm-empresa-header {
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: var(--border-dim);
 }
 
 .jdm-modal[hidden] {
@@ -196,7 +196,7 @@
   justify-content: center;
   padding: 20px;
   font-family: 'Space Grotesk', 'Inter Tight', system-ui, -apple-system, sans-serif;
-  color: #e6f4ec;
+  color: var(--fg);
 }
 
 .jdm-backdrop {
@@ -233,11 +233,11 @@
   max-width: 760px;
   max-height: 88vh;
   overflow: hidden;
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-base);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 230, 118, 0.15);
-  color: #ededed;
+  color: var(--fg);
   animation: jdmSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -252,7 +252,7 @@
 /* Tech frame corner accents eliminados para diseño corporativo limpio */
 .jdm-card::before,
 .jdm-card::after {
-  display: none !important;
+  display: none;
 }
 
 /* Modal Header */
@@ -262,9 +262,9 @@
   justify-content: space-between;
   gap: 16px;
   padding: 22px 26px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-dim);
   flex: 0 0 auto;
-  background: #0f0f0f;
+  background: var(--surface-elevated);
 }
 
 .jdm-kicker {
@@ -273,7 +273,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent, #00e676);
+  color: var(--accent);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -287,14 +287,14 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   text-transform: none;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1.3;
 }
 
 .jdm-sub {
   margin-top: 6px;
   font-size: 13px;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -305,9 +305,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.03);
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -317,7 +317,7 @@
 
 .jdm-close:hover {
   border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  color: var(--text-strong);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -345,8 +345,8 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 26px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #0d0d0d;
+  border-top: 1px solid var(--border-dim);
+  background: var(--surface-elevated);
   flex: 0 0 auto;
 }
 
@@ -358,7 +358,7 @@
   justify-content: center;
   padding: 48px 20px;
   gap: 14px;
-  color: #a0a0a0;
+  color: var(--text-soft);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.06em;
@@ -366,7 +366,7 @@
 
 .jdm-loading i {
   font-size: 24px;
-  color: var(--accent, #00713f);
+  color: var(--accent);
   animation: jdmSpin 1s linear infinite;
 }
 
@@ -390,7 +390,7 @@
 .jdm-empty {
   text-align: center;
   padding: 40px 20px;
-  color: #666666;
+  color: var(--text-muted);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
 }
@@ -442,7 +442,7 @@
 
 .jdm-badge-gray {
   background: rgba(255, 255, 255, 0.06);
-  color: #a0a0a0;
+  color: var(--text-soft);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -463,7 +463,7 @@
 }
 
 .jdm-btn-primary {
-  background: var(--accent-dim, #15803d);
+  background: var(--accent-hover);
   color: #ffffff;
   border: none;
   font-weight: 600;
@@ -480,14 +480,14 @@
 
 .jdm-btn-secondary {
   background: rgba(255, 255, 255, 0.04);
-  color: #e2e8f0;
+  color: var(--fg);
   border-color: rgba(255, 255, 255, 0.14);
 }
 
 .jdm-btn-secondary:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .jdm-btn-danger {
@@ -497,7 +497,7 @@
 }
 
 .jdm-btn-danger:hover {
-  background: #ef4444;
+  background: var(--danger);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
@@ -522,12 +522,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-bottom: 6px;
 }
 
 .jdm-form-label span.req {
-  color: #f87171;
+  color: var(--danger);
   margin-left: 2px;
 }
 
@@ -537,8 +537,8 @@
   width: 100%;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
+  border: 1px solid var(--border);
+  color: var(--fg);
   padding: 10px 14px;
   border-radius: 8px;
   font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
@@ -556,8 +556,8 @@
 }
 
 .jdm-select option {
-  background: #0f0f0f;
-  color: #f1f5f9;
+  background: var(--surface-input);
+  color: var(--fg);
 }
 
 .jdm-textarea {
