@@ -5,7 +5,7 @@
   <h1 class="sr-only">{% trans "Panel de Control" %}</h1>
   <div class="page-header" style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:14px;">
     <div>
-      <button type="button" class="btn-corp-primary" onclick="abrirModal()">
+      <button type="button" class="btn-corp-primary" data-action="abrir-modal">
         <i data-lucide="plus-circle"></i>
         <span>{% trans "Publicar Convocatoria" %}</span>
       </button>
@@ -28,24 +28,24 @@
           {% endif %}
         </div>
       </div>
-      <button type="button" class="action-alert-close" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();}" aria-label="{% trans 'Cerrar aviso' %}">
+      <button type="button" class="action-alert-close" data-action="remove-el" data-target="inicioActionPopup" aria-label="{% trans 'Cerrar aviso' %}">
         <i data-lucide="x"></i>
       </button>
     </div>
     <div class="alert-actions">
       {% if total_avances_pendientes > 0 %}
-        <a href="#bandeja-entregables-pendientes" class="btn-corp-primary btn-sm" onclick="event.preventDefault(); if (typeof switchTab === 'function') { switchTab('inicio'); } var el = document.getElementById('bandeja-entregables-pendientes'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } var p = document.getElementById('inicioActionPopup'); if (p) { p.remove(); }">
+        <a href="#bandeja-entregables-pendientes" class="btn-corp-primary btn-sm" data-action="switch-tab" data-target="inicio" data-scroll-to="bandeja-entregables-pendientes" data-remove="inicioActionPopup">
           <i data-lucide="clipboard-check"></i>
           <span>{% trans "Revisar Entregables" %}</span>
         </a>
       {% endif %}
       {% if total_postulaciones > 0 %}
-        <button type="button" class="{% if total_avances_pendientes > 0 %}btn-corp-action secondary{% else %}btn-corp-primary{% endif %} btn-sm" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();} switchTab('ofertas')">
+        <button type="button" class="{% if total_avances_pendientes > 0 %}btn-corp-action secondary{% else %}btn-corp-primary{% endif %} btn-sm" data-action="switch-tab" data-target="ofertas" data-remove="inicioActionPopup">
           <i data-lucide="user-check"></i>
           <span>{% trans "Revisar Candidatos" %}</span>
         </button>
       {% elif disputas_activas_count > 0 and total_avances_pendientes == 0 %}
-        <button type="button" class="btn-corp-action secondary btn-sm" onclick="var p=document.getElementById('inicioActionPopup'); if(p){p.remove();} switchTab('disputas')">
+        <button type="button" class="btn-corp-action secondary btn-sm" data-action="switch-tab" data-target="disputas" data-remove="inicioActionPopup">
           <i data-lucide="shield-alert"></i>
           <span>{% trans "Ir a Disputas" %}</span>
         </button>
@@ -65,7 +65,7 @@
 
   <!-- 4 KPIs Operativos -->
   <div class="kpi-grid-corp kpi-grid-4">
-    <div class="kpi-card-corp kpi-projects clickable-card" role="button" tabindex="0" onclick="switchTab('ofertas')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Ver convocatorias" %}">
+    <div class="kpi-card-corp kpi-projects clickable-card" role="button" tabindex="0" data-action="switch-tab" data-target="ofertas" title="{% trans "Ver convocatorias" %}">
       <div class="kpi-card-header">
         <span class="kpi-card-label">{% trans "Convocatorias" %}</span>
         <div class="kpi-card-icon"><i data-lucide="folder-archive"></i></div>
@@ -82,7 +82,7 @@
       </div>
     </div>
 
-    <div class="kpi-card-corp kpi-candidates clickable-card" role="button" tabindex="0" onclick="switchTab('ofertas')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Evaluar postulaciones" %}">
+    <div class="kpi-card-corp kpi-candidates clickable-card" role="button" tabindex="0" data-action="switch-tab" data-target="ofertas" title="{% trans "Evaluar postulaciones" %}">
       <div class="kpi-card-header">
         <span class="kpi-card-label">{% trans "Candidatos" %}</span>
         <div class="kpi-card-icon"><i data-lucide="user-check"></i></div>
@@ -99,7 +99,7 @@
       </div>
     </div>
 
-    <div class="kpi-card-corp kpi-active clickable-card" role="button" tabindex="0" onclick="switchTab('desarrollo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Ver proyectos en desarrollo" %}">
+    <div class="kpi-card-corp kpi-active clickable-card" role="button" tabindex="0" data-action="switch-tab" data-target="desarrollo" title="{% trans "Ver proyectos en desarrollo" %}">
       <div class="kpi-card-header">
         <span class="kpi-card-label">{% trans "En Desarrollo" %}</span>
         <div class="kpi-card-icon"><i data-lucide="laptop"></i></div>
@@ -111,7 +111,7 @@
       </div>
     </div>
 
-    <div class="kpi-card-corp clickable-card" role="button" tabindex="0" onclick="switchTab('contratos')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="{% trans "Gestionar contratos" %}">
+    <div class="kpi-card-corp clickable-card" role="button" tabindex="0" data-action="switch-tab" data-target="contratos" title="{% trans "Gestionar contratos" %}">
       <div class="kpi-card-header">
         <span class="kpi-card-label">{% trans "Contratos / Firmas" %}</span>
         <div class="kpi-card-icon"><i data-lucide="file-signature"></i></div>
@@ -142,21 +142,21 @@
 
       <div class="ledger-chart-controls" style="margin-bottom:14px;">
         <div class="ledger-filter-pills" role="tablist" aria-label="{% trans "Métricas operativas" %}">
-          <button type="button" class="ledger-filter-pill active" data-metric="avances" onclick="seleccionarMetricaInicio('avances', this)">
+          <button type="button" class="ledger-filter-pill active" data-metric="avances" data-action="seleccionar-metrica-inicio">
             {% trans "Entregables" %}
           </button>
-          <button type="button" class="ledger-filter-pill" data-metric="postulaciones" onclick="seleccionarMetricaInicio('postulaciones', this)">
+          <button type="button" class="ledger-filter-pill" data-metric="postulaciones" data-action="seleccionar-metrica-inicio">
             {% trans "Postulaciones" %}
           </button>
-          <button type="button" class="ledger-filter-pill" data-metric="hitos" onclick="seleccionarMetricaInicio('hitos', this)">
+          <button type="button" class="ledger-filter-pill" data-metric="hitos" data-action="seleccionar-metrica-inicio">
             {% trans "Hitos aprobados" %}
           </button>
         </div>
         <div class="time-selector-corp" role="group" aria-label="{% trans "Ventana de tiempo" %}">
-          <button type="button" class="time-tab-corp active" data-period="14d" onclick="seleccionarPeriodoInicio('14d', this)">
+          <button type="button" class="time-tab-corp active" data-period="14d" data-action="seleccionar-periodo-inicio">
             {% trans "14 Días" %}
           </button>
-          <button type="button" class="time-tab-corp" data-period="30d" onclick="seleccionarPeriodoInicio('30d', this)">
+          <button type="button" class="time-tab-corp" data-period="30d" data-action="seleccionar-periodo-inicio">
             {% trans "30 Días" %}
           </button>
         </div>
@@ -275,7 +275,7 @@
             </span>
           </div>
           {% if total_avances_pendientes > 0 %}
-            <button type="button" class="command-link-action" onclick="switchTab('desarrollo')">
+            <button type="button" class="command-link-action" data-action="switch-tab" data-target="desarrollo">
               <span>{% trans "Ver proyectos" %} &rarr;</span>
             </button>
           {% endif %}
@@ -301,7 +301,7 @@
                     </div>
                   </div>
                   <button type="button" class="btn-corp-action primary btn-sm"
-                          onclick="var el = document.getElementById('form-revision-inicio-{{ avance.id }}'); if (el) { el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none'; }">
+                          data-action="toggle-display" data-target="form-revision-inicio-{{ avance.id }}">
                     <i data-lucide="clipboard-check"></i>
                     <span>{% trans "Calificar" %}</span>
                   </button>
@@ -335,14 +335,14 @@
                         hx-target="#avance-inline-inicio-{{ avance.id }}"
                         hx-swap="outerHTML"
                         hx-disabled-elt="find button[type='submit']"
-                        onsubmit="return validarRechazoAvance(this, event)">
+                        data-submit-action="validar-rechazo-avance">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{% url 'dashboard_empresa' %}#inicio">
                     <div class="approval-queue-form-label">{% trans "Dictamen de la Empresa" %}</div>
                     <textarea name="comentario" class="form-input-corp" rows="2" aria-label="{% trans "Comentario o feedback para el desarrollador" %}" placeholder="{% trans "Comentario o feedback para el desarrollador (obligatorio si solicitas ajustes)..." %}"></textarea>
                     <div class="approval-queue-actions">
                       <button type="button" class="btn-corp-action secondary btn-sm"
-                              onclick="var el = document.getElementById('form-revision-inicio-{{ avance.id }}'); if (el) el.style.display = 'none';">
+                              data-action="hide-el" data-target="form-revision-inicio-{{ avance.id }}">
                         {% trans "Cancelar" %}
                       </button>
                       <button type="submit" name="accion" value="rechazar" class="btn-corp-action danger-subtle btn-sm">
@@ -375,7 +375,7 @@
             <i data-lucide="kanban" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
             {% trans "Proyectos en Desarrollo Activo" %}
           </div>
-          <button type="button" class="command-link-action" onclick="switchTab('desarrollo')">
+          <button type="button" class="command-link-action" data-action="switch-tab" data-target="desarrollo">
             <span>{% trans "Ver todos los proyectos" %} &rarr;</span>
           </button>
         </div>
@@ -469,7 +469,7 @@
               {% endif %}
             </div>
           </div>
-          <button type="button" class="command-link-action" onclick="switchTab('desarrollo')" style="margin-top:12px;">
+          <button type="button" class="command-link-action" data-action="switch-tab" data-target="desarrollo" style="margin-top:12px;">
             <span>{% trans "Ir a seguimiento de hitos" %} &rarr;</span>
           </button>
         {% else %}
@@ -502,7 +502,7 @@
                 </div>
                 <a href="{% url 'sala_chat' colab.desarrollador_id colab.proyecto_id %}"
                    class="btn-corp-action secondary btn-sm"
-                   onclick="abrirChatEnCentro(event, '{{ colab.desarrollador_id }}', '{{ colab.proyecto_id }}'); return false;">
+                   data-action="abrir-chat-centro" data-dev-id="{{ colab.desarrollador_id }}" data-proyecto-id="{{ colab.proyecto_id }}">
                   <i data-lucide="message-square"></i>
                   <span>{% trans "Chat" %}</span>
                 </a>
@@ -529,7 +529,7 @@
           <i data-lucide="briefcase" style="width:16px; height:16px; vertical-align:middle; margin-right:6px; color:var(--corp-brand);"></i>
           {% trans "Búsquedas y Convocatorias Abiertas" %}
         </div>
-        <button type="button" class="command-link-action" onclick="switchTab('ofertas')">
+        <button type="button" class="command-link-action" data-action="switch-tab" data-target="ofertas">
           <span>{% trans "Administrar convocatorias" %} &rarr;</span>
         </button>
       </div>
@@ -553,7 +553,7 @@
             <span class="kpi-tag {% if oferta.num_candidatos > 0 %}tag-warning{% else %}tag-neutral{% endif %}">
               {% blocktrans with total=oferta.num_candidatos count counter=oferta.num_candidatos %}{{ total }} candidato{% plural %}{{ total }} candidatos{% endblocktrans %}
             </span>
-            <button type="button" class="btn-corp-action secondary btn-sm" onclick="switchTab('ofertas')" style="font-size:12px; padding:4px 10px;">
+            <button type="button" class="btn-corp-action secondary btn-sm" data-action="switch-tab" data-target="ofertas" style="font-size:12px; padding:4px 10px;">
               {% trans "Evaluar" %}
             </button>
           </div>
@@ -562,7 +562,7 @@
         <div class="activity-empty" style="padding:28px 16px;">
           <i data-lucide="search"></i>
           <p>{% trans "No tienes convocatorias publicadas en este momento." %}</p>
-          <button type="button" class="btn-corp-primary btn-sm" onclick="abrirModal()" style="margin-top:12px;">
+          <button type="button" class="btn-corp-primary btn-sm" data-action="abrir-modal" style="margin-top:12px;">
             <i data-lucide="plus"></i>
             <span>{% trans "Publicar tu primera convocatoria" %}</span>
           </button>

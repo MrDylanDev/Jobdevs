@@ -1,8 +1,8 @@
 {% load static %}
       <!-- Modal Doble Confirmación Suspender/Reactivar Usuario (SCRUM-407) -->
-      <div id="toggleUserConfirmModal" class="modal-overlay" onclick="if(event.target===this)closeModal('toggleUserConfirmModal')">
+      <div id="toggleUserConfirmModal" class="modal-overlay" data-action="close-modal" data-target="toggleUserConfirmModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('toggleUserConfirmModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="toggleUserConfirmModal">&times;</button>
           <h3 id="toggleConfirmTitle" style="margin-bottom:10px; font-size:18px;">Confirmar acción</h3>
           <p id="toggleConfirmMessage" style="font-size:13.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:14px;"></p>
           <div style="background:var(--page-bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:13px;">
@@ -10,17 +10,17 @@
             <div style="margin-top:4px;"><strong>Rol:</strong> <span id="toggleConfirmUserRole"></span></div>
           </div>
           <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('toggleUserConfirmModal')">Cancelar</button>
-            <button type="button" id="toggleConfirmSubmitBtn" class="btn btn-danger" onclick="confirmToggleUserAction()">Confirmar</button>
+            <button type="button" class="btn btn-secondary" data-action="close-modal" data-target="toggleUserConfirmModal">Cancelar</button>
+            <button type="button" id="toggleConfirmSubmitBtn" class="btn btn-danger" data-action="confirm-toggle-user">Confirmar</button>
           </div>
         </div>
       </div>
 
       <!-- Modales Crud Usuarios -->
       <!-- Modal Editar Usuario -->
-      <div id="editUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('editUserModal')">
+      <div id="editUserModal" class="modal-overlay" data-action="close-modal" data-target="editUserModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('editUserModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="editUserModal">&times;</button>
           <h3 style="margin-bottom:16px; font-size:18px;">Editar Usuario</h3>
           <form id="editUserForm">
             <input type="hidden" id="edit-id">
@@ -45,7 +45,7 @@
               </select>
             </div>
             <div style="display:flex; gap:12px; margin-top:24px;">
-              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('editUserModal')">Cancelar</button>
+              <button type="button" class="btn btn-secondary btn-full" data-action="close-modal" data-target="editUserModal">Cancelar</button>
               <button type="submit" class="btn btn-primary btn-full">Guardar</button>
             </div>
           </form>
@@ -53,9 +53,9 @@
       </div>
 
       <!-- Modal Crear Usuario -->
-      <div id="createUserModal" class="modal-overlay" onclick="if(event.target===this)closeModal('createUserModal')">
+      <div id="createUserModal" class="modal-overlay" data-action="close-modal" data-target="createUserModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('createUserModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="createUserModal">&times;</button>
           <h3 style="margin-bottom:16px; font-size:18px;">Nuevo Usuario</h3>
           <form id="createUserForm">
             <div class="form-group">
@@ -72,7 +72,7 @@
             </div>
             <div class="form-group" id="create-tipo-doc-group">
               <label class="form-label">Tipo de documento</label>
-              <select id="create-tipo-doc" class="form-input" onchange="syncCreateUserDocField()">
+              <select id="create-tipo-doc" class="form-input" data-change-action="sync-create-user-doc">
                 <option value="nit">NIT (Empresa)</option>
                 <option value="cedula">Cédula</option>
               </select>
@@ -87,14 +87,14 @@
             </div>
             <div class="form-group">
               <label class="form-label">Rol</label>
-              <select id="create-rol" class="form-input" required onchange="syncCreateUserDocField()">
+              <select id="create-rol" class="form-input" required data-change-action="sync-create-user-doc">
                 <option value="empresa">Empresa</option>
                 <option value="desarrollador">Desarrollador</option>
                 <option value="administrador">Administrador</option>
               </select>
             </div>
             <div style="display:flex; gap:12px; margin-top:24px;">
-              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('createUserModal')">Cancelar</button>
+              <button type="button" class="btn btn-secondary btn-full" data-action="close-modal" data-target="createUserModal">Cancelar</button>
               <button type="submit" class="btn btn-primary btn-full">Crear</button>
             </div>
           </form>
@@ -102,9 +102,9 @@
       </div>
 
       <!-- Modal Crear/Editar Categoría -->
-      <div id="categoryModal" class="modal-overlay" onclick="if(event.target===this)closeModal('categoryModal')">
+      <div id="categoryModal" class="modal-overlay" data-action="close-modal" data-target="categoryModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('categoryModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="categoryModal">&times;</button>
           <h3 id="categoryModalTitle" style="margin-bottom:16px; font-size:18px;">Nueva Categoría</h3>
           <form id="categoryForm"
                 data-url-crear="{% url 'api_categoria_crear' %}"
@@ -130,7 +130,7 @@
               </label>
             </div>
             <div style="display:flex; gap:12px; margin-top:24px;">
-              <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('categoryModal')">Cancelar</button>
+              <button type="button" class="btn btn-secondary btn-full" data-action="close-modal" data-target="categoryModal">Cancelar</button>
               <button type="submit" class="btn btn-primary btn-full">Guardar</button>
             </div>
           </form>
@@ -138,9 +138,9 @@
       </div>
 
       <!-- Modal Detalle Log de Auditoría -->
-      <div id="auditLogDetailModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditLogDetailModal')">
+      <div id="auditLogDetailModal" class="modal-overlay" data-action="close-modal" data-target="auditLogDetailModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditLogDetailModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="auditLogDetailModal">&times;</button>
           <h3 id="auditLogModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
           <div id="auditLogModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
           <div style="margin-bottom:12px;">
@@ -158,15 +158,15 @@
             </div>
           </div>
           <div style="margin-top:12px;">
-            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditLogDetailModal')">Cerrar</button>
+            <button type="button" class="btn btn-secondary btn-full" data-action="close-modal" data-target="auditLogDetailModal">Cerrar</button>
           </div>
         </div>
       </div>
 
       <!-- Modal Aviso Privacidad Auditoría de Chats -->
-      <div id="auditChatsNoticeModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatsNoticeModal')">
+      <div id="auditChatsNoticeModal" class="modal-overlay" data-action="close-modal" data-target="auditChatsNoticeModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatsNoticeModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="auditChatsNoticeModal">&times;</button>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--warning, #f59e0b);padding-right:32px;">
             <i data-lucide="alert-triangle"></i>
             <h3 style="margin:0;font-size:17px;color:var(--text-primary);">Aviso de Auditoría y Privacidad</h3>
@@ -174,19 +174,19 @@
           <p style="margin:0 0 20px;line-height:1.5;color:var(--text-secondary);">
             Toda consulta e inspección de conversaciones en este módulo queda registrada permanentemente en el Log de Auditoría para garantizar la privacidad y trazabilidad institucional.
           </p>
-          <button type="button" class="btn btn-primary btn-full" onclick="closeModal('auditChatsNoticeModal')">Entendido</button>
+          <button type="button" class="btn btn-primary btn-full" data-action="close-modal" data-target="auditChatsNoticeModal">Entendido</button>
         </div>
       </div>
 
       <!-- Modal Mensaje Auditado -->
-      <div id="auditChatModal" class="modal-overlay" onclick="if(event.target===this)closeModal('auditChatModal')">
+      <div id="auditChatModal" class="modal-overlay" data-action="close-modal" data-target="auditChatModal" data-self-only="true">
         <div class="modal-box">
-          <button type="button" class="modal-close-btn" aria-label="Cerrar" onclick="closeModal('auditChatModal')">&times;</button>
+          <button type="button" class="modal-close-btn" aria-label="Cerrar" data-action="close-modal" data-target="auditChatModal">&times;</button>
           <h3 id="auditChatModalTitle" style="margin-bottom:8px;font-size:18px;"></h3>
           <div id="auditChatModalMeta" style="font-size:12.5px;color:var(--text-muted);margin-bottom:12px;"></div>
           <div id="auditChatModalBody" style="white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;"></div>
           <div style="margin-top:20px;">
-            <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('auditChatModal')">Cerrar</button>
+            <button type="button" class="btn btn-secondary btn-full" data-action="close-modal" data-target="auditChatModal">Cerrar</button>
           </div>
         </div>
       </div>
