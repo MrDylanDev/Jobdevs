@@ -1,0 +1,73 @@
+<div class="jdm-avances-partial"
+     data-modal-kicker="HISTORIAL DE ENTREGAS"
+     data-modal-title="{{ proyecto.titulo }}"
+     data-modal-subtitle="Empresa: {{ empresa_nombre }} · Estado: {{ estado_label }}"
+     data-puede-registrar="{% if puede_registrar %}true{% else %}false{% endif %}"
+     data-registrar-url="{{ registrar_url }}">
+  <div class="jdm-progress-header">
+    <div class="jdm-progress-top-row">
+      <span class="jdm-progress-lbl">PROGRESO GENERAL</span>
+      <span class="jdm-progress-pct">{{ progreso_pct }}% ({{ hitos_completados }} / {{ hitos_totales }} hitos completados)</span>
+    </div>
+    <div class="jdm-progress-bar-bg">
+      <div class="jdm-progress-bar-fill" style="width:{{ progreso_pct }}%;"></div>
+    </div>
+  </div>
+
+  {% if hitos %}
+    <div class="jdm-clean-label"><i data-lucide="list-check"></i> Hitos del Proyecto</div>
+    <div class="jdm-hitos-scroll">
+      {% for h in hitos %}
+        <div class="jdm-hito-pill {% if h.estado == 'completado' %}is-done{% elif h.estado == 'en_revision' %}is-rev{% else %}is-wait{% endif %}">
+          {% if h.estado == 'completado' %}
+            <i data-lucide="check-circle-2"></i>
+          {% elif h.estado == 'en_revision' %}
+            <i data-lucide="clock"></i>
+          {% else %}
+            <i data-lucide="circle"></i>
+          {% endif %}
+          <div>
+            <strong class="jdm-hito-pill-title">{{ h.titulo }}</strong>
+            <div class="jdm-hito-pill-state">{{ h.get_estado_display }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="jdm-clean-label"><i data-lucide="git-branch"></i> Registro de Entregas y Evidencias ({{ avances_items|length }})</div>
+
+  {% if avances_items %}
+    <div class="jdm-advances-feed">
+      {% for item in avances_items %}
+        <div class="jdm-advance-card">
+          <div class="jdm-advance-head">
+            <div>
+              <div class="jdm-advance-title">{{ item.entregable_titulo }}</div>
+              <div class="jdm-advance-meta">Por {{ item.desarrollador }} · {{ item.fecha }}</div>
+            </div>
+            <span class="jdm-badge {% if item.estado == 'aceptado' or item.estado == 'aprobado' %}jdm-badge-success{% elif item.estado == 'rechazado' %}jdm-badge-danger{% else %}jdm-badge-warning{% endif %}">{{ item.estado_label }}</span>
+          </div>
+          <div class="jdm-advance-desc">{{ item.descripcion }}</div>
+
+          {% if item.archivo_adjunto_url or item.archivo_url %}
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+              {% if item.archivo_adjunto_url %}
+                <a href="{{ item.archivo_adjunto_url }}" target="_blank" rel="noopener" class="jdm-advance-attachment"><i data-lucide="paperclip"></i> {{ item.archivo_adjunto_nombre|default:"Descargar archivo" }}</a>
+              {% endif %}
+              {% if item.archivo_url %}
+                <a href="{{ item.archivo_url }}" target="_blank" rel="noopener" class="jdm-advance-attachment"><i data-lucide="arrow-up-right"></i> Ver enlace externo</a>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          {% if item.observaciones %}
+            <div class="jdm-advance-feedback"><i data-lucide="message-circle"></i> Observaciones: {{ item.observaciones }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="jdm-empty"><i data-lucide="package-open"></i>No se han registrado entregas para este proyecto aún.</div>
+  {% endif %}
+</div>

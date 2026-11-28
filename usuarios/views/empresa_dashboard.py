@@ -823,7 +823,18 @@ def detalle_empresa(request, empresa_id):
     proyectos_finalizados_count = Proyecto.objects.filter(empresa=empresa, estado='finalizado').count()
     proyectos_activos_count = Proyecto.objects.filter(empresa=empresa, estado='en_desarrollo').count()
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+    es_htmx = (
+        request.headers.get('HX-Request') == 'true'
+        and request.GET.get('format') != 'json'
+        and 'application/json' not in request.headers.get('Accept', '')
+    )
+    quiere_json = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in request.headers.get('Accept', '')
+        or request.GET.get('format') == 'json'
+    )
+
+    if es_htmx or quiere_json:
         resenas_data = [
             {
                 'desarrollador': r.desarrollador.nombre or r.desarrollador.username,
@@ -841,18 +852,41 @@ def detalle_empresa(request, empresa_id):
             except Exception:
                 logo_url = None
 
+        nombre_empresa = perfil.nombre_empresa or empresa.nombre or empresa.username
+        sector = perfil.sector or 'No especificado'
+        ciudad = perfil.ciudad or 'No especificada'
+        descripcion = perfil.descripcion or 'Sin descripción registrada.'
+        promedio_redondeado = round(float(promedio), 1)
+
+        if es_htmx:
+            return render(request, 'empresa/partials/_modal_perfil_publico.html', {
+                'empresa': empresa,
+                'perfil': perfil,
+                'nombre_empresa': nombre_empresa,
+                'sector': sector,
+                'ciudad': ciudad,
+                'descripcion': descripcion,
+                'badge_label': perfil.badge_info['label'] if perfil.badge_info else 'Sin verificar',
+                'logo_url': logo_url,
+                'promedio_reputacion': promedio_redondeado,
+                'total_resenas': total_resenas,
+                'proyectos_activos_count': proyectos_activos_count,
+                'proyectos_finalizados_count': proyectos_finalizados_count,
+                'resenas_modal': resenas_data,
+            })
+
         return JsonResponse({
             'ok': True,
             'empresa': {
                 'id': empresa.id,
-                'nombre': perfil.nombre_empresa or empresa.nombre or empresa.username,
+                'nombre': nombre_empresa,
                 'username': empresa.username,
-                'sector': perfil.sector or 'No especificado',
-                'ciudad': perfil.ciudad or 'No especificada',
-                'descripcion': perfil.descripcion or 'Sin descripción registrada.',
+                'sector': sector,
+                'ciudad': ciudad,
+                'descripcion': descripcion,
                 'es_verificada': perfil.es_verificada,
                 'badge_label': perfil.badge_info['label'] if perfil.badge_info else 'Sin Verificar',
-                'reputacion': round(float(promedio), 1),
+                'reputacion': promedio_redondeado,
                 'total_resenas': total_resenas,
                 'proyectos_activos': proyectos_activos_count,
                 'proyectos_finalizados': proyectos_finalizados_count,

@@ -1,3 +1,4 @@
+import json
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -27,13 +28,21 @@ def _espera_json(request):
     return (
         'application/json' in request.headers.get('Accept', '')
         or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.GET.get('format') == 'json'
     )
 
-@login_required
-def ver_postulaciones_empresa(request, proyecto_id):
-    proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
 
-    estado_filtro = request.GET.get('estado', '').strip()
+def _es_htmx(request):
+    """Detecta peticiones HTMX que esperan HTML parcial (sin pedir JSON explícito)."""
+    return (
+        request.headers.get('HX-Request') == 'true'
+        and not _espera_json(request)
+    )
+
+
+def _build_postulaciones_empresa_context(proyecto, estado_filtro='', programa='', ficha='', habilidad=''):
+    proyecto_id = proyecto.id
+    estado_filtro = (estado_filtro or '').strip()
     if estado_filtro in ['pendiente', 'en_negociacion', 'aceptada', 'rechazada']:
         estados_consulta = [estado_filtro]
     else:
@@ -47,7 +56,7 @@ def ver_postulaciones_empresa(request, proyecto_id):
         'aceptadas': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='aceptada').count(),
         'rechazadas': Postulacion.objects.filter(proyecto_id=proyecto_id, estado='rechazada').count(),
     }
-    
+
     postulaciones_orm = Postulacion.objects.filter(
         proyecto_id=proyecto_id,
         estado__in=estados_consulta
@@ -55,9 +64,9 @@ def ver_postulaciones_empresa(request, proyecto_id):
         'desarrollador__perfil_desarrollador', 'contrato_digital'
     ).order_by('-fecha')
 
-    programa = request.GET.get('programa', '').strip()
-    ficha = request.GET.get('ficha', '').strip()
-    habilidad = request.GET.get('habilidad', '').strip()
+    programa = (programa or '').strip()
+    ficha = (ficha or '').strip()
+    habilidad = (habilidad or '').strip()
 
     if programa:
         postulaciones_orm = postulaciones_orm.filter(
@@ -110,14 +119,39 @@ def ver_postulaciones_empresa(request, proyecto_id):
             'mensaje': p.mensaje,
             'fecha': p.fecha,
         })
-            
-    return render(request, 'postulaciones/lista_recibidas.html', {
+
+    return {
         'proyecto': proyecto,
         'postulaciones': postulaciones,
         'programas_disponibles': list(programas_disponibles),
         'filtros': {'programa': programa, 'ficha': ficha, 'habilidad': habilidad, 'estado': estado_filtro},
         'conteos_funnel': conteos_funnel,
-    })
+    }
+
+
+def _render_drawer_htmx(request, proyecto, estado_filtro='', toast_msg=None, toast_tipo='success', status=200):
+    context = _build_postulaciones_empresa_context(proyecto, estado_filtro=estado_filtro)
+    response = render(request, 'postulaciones/partials/_drawer_candidatos.html', context, status=status)
+    if toast_msg:
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': toast_tipo, 'mensaje': toast_msg}
+        })
+    return response
+
+
+@login_required
+def ver_postulaciones_empresa(request, proyecto_id):
+    proyecto = get_object_or_404(Proyecto, id=proyecto_id, empresa=request.user)
+    context = _build_postulaciones_empresa_context(
+        proyecto,
+        estado_filtro=request.GET.get('estado', ''),
+        programa=request.GET.get('programa', ''),
+        ficha=request.GET.get('ficha', ''),
+        habilidad=request.GET.get('habilidad', ''),
+    )
+    if _es_htmx(request):
+        return render(request, 'postulaciones/partials/_drawer_candidatos.html', context)
+    return render(request, 'postulaciones/lista_recibidas.html', context)
 
 def _es_peticion_ajax(request):
     """El modal del dashboard envía X-Requested-With y origen=dashboard."""
@@ -312,6 +346,7 @@ def iniciar_negociacion(request, postulacion_id):
 
     postulacion = get_object_or_404(Postulacion, id=postulacion_id, proyecto__empresa=request.user)
     proyecto_id = postulacion.proyecto_id
+    estado_actual = request.POST.get('estado_filtro', '').strip()
 
     try:
         with transaction.atomic():
@@ -321,14 +356,17 @@ def iniciar_negociacion(request, postulacion_id):
                 id=postulacion_id, proyecto=proyecto)
 
             if postulacion.estado != 'pendiente':
-                messages.error(request, "Solo se puede iniciar negociación con postulaciones pendientes.")
+                err_msg = "Solo se puede iniciar negociación con postulaciones pendientes."
+                if _es_htmx(request):
+                    return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=err_msg, toast_tipo='error')
+                messages.error(request, err_msg)
                 return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
             if proyecto.estado not in ('publicado', 'en_desarrollo'):
-                messages.error(
-                    request,
-                    f"No se puede negociar en un proyecto con estado '{proyecto.get_estado_display()}'."
-                )
+                err_msg = f"No se puede negociar en un proyecto con estado '{proyecto.get_estado_display()}'."
+                if _es_htmx(request):
+                    return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=err_msg, toast_tipo='error')
+                messages.error(request, err_msg)
                 return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
             contrataciones_activas = Contratacion.objects.filter(
@@ -336,7 +374,10 @@ def iniciar_negociacion(request, postulacion_id):
             postulaciones_en_negociacion = Postulacion.objects.filter(
                 proyecto=proyecto, estado='en_negociacion').count()
             if contrataciones_activas + postulaciones_en_negociacion >= proyecto.vacantes:
-                messages.error(request, "El proyecto ya ha alcanzado el límite de vacantes disponibles.")
+                err_msg = "El proyecto ya ha alcanzado el límite de vacantes disponibles."
+                if _es_htmx(request):
+                    return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=err_msg, toast_tipo='error')
+                messages.error(request, err_msg)
                 return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
             postulacion.estado = 'en_negociacion'
@@ -383,9 +424,12 @@ def iniciar_negociacion(request, postulacion_id):
         return redirect('ver_postulaciones_empresa', proyecto_id=proyecto_id)
 
     msg = "Negociación iniciada. Define los términos del contrato digital."
-    messages.success(request, msg)
     if _espera_json(request):
+        messages.success(request, msg)
         return JsonResponse({'status': 'ok', 'message': msg})
+    if _es_htmx(request):
+        return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=msg, toast_tipo='success')
+    messages.success(request, msg)
     next_url = request.POST.get('next')
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         return HttpResponseRedirect(next_url)
@@ -401,30 +445,44 @@ def rechazar_postulacion(request, postulacion_id):
         return redirect('inicio')
 
     postulacion = get_object_or_404(Postulacion, id=postulacion_id, proyecto__empresa=request.user)
+    proyecto = postulacion.proyecto
     proyecto_id = postulacion.proyecto_id
     motivo = request.POST.get('motivo', '')
+    estado_actual = request.POST.get('estado_filtro', '').strip()
 
     try:
         services.rechazar_postulacion(postulacion_id, request.user, motivo=motivo)
         msg = f"La postulación de {postulacion.desarrollador.nombre or postulacion.desarrollador.username} ha sido rechazada."
-        messages.success(request, msg)
         if _espera_json(request):
+            messages.success(request, msg)
             return JsonResponse({'status': 'ok', 'message': msg})
+        if _es_htmx(request):
+            return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=msg, toast_tipo='success')
+        messages.success(request, msg)
     except PermissionDenied as exc:
-        messages.error(request, str(exc))
         if _espera_json(request):
+            messages.error(request, str(exc))
             return JsonResponse({'status': 'error', 'message': str(exc)}, status=403)
+        if _es_htmx(request):
+            return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=str(exc), toast_tipo='error')
+        messages.error(request, str(exc))
     except ValidationError as exc:
         msg = ' '.join(exc.messages) if hasattr(exc, 'messages') else str(exc)
-        messages.error(request, msg)
         if _espera_json(request):
+            messages.error(request, msg)
             return JsonResponse({'status': 'error', 'message': msg}, status=400)
+        if _es_htmx(request):
+            return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=msg, toast_tipo='error')
+        messages.error(request, msg)
     except Exception:
         logger.exception("Error inesperado al rechazar postulación %s por usuario %s", postulacion_id, request.user.id)
         mensaje_error = "Error inesperado al procesar la solicitud."
-        messages.error(request, mensaje_error)
         if _espera_json(request):
+            messages.error(request, mensaje_error)
             return JsonResponse({'status': 'error', 'message': mensaje_error}, status=500)
+        if _es_htmx(request):
+            return _render_drawer_htmx(request, proyecto, estado_filtro=estado_actual, toast_msg=mensaje_error, toast_tipo='error')
+        messages.error(request, mensaje_error)
 
     next_url = request.POST.get('next')
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):

@@ -1,0 +1,72 @@
+<div class="jdm-perfil-partial"
+     data-modal-kicker="EMPRESA // FICHA INSTITUCIONAL"
+     data-modal-title="{{ nombre_empresa }}"
+     data-modal-subtitle="{{ sector }} · {{ ciudad }}">
+  <div class="jdm-empresa-header">
+    <div class="jdm-empresa-avatar">
+      {% if logo_url %}
+        <img src="{{ logo_url }}" alt="{{ nombre_empresa }}" class="jdm-empresa-logo-img">
+      {% else %}
+        {{ nombre_empresa|slice:":1"|upper }}
+      {% endif %}
+    </div>
+    <div>
+      <div class="jdm-empresa-name">
+        {{ nombre_empresa }}
+        {% if perfil.es_verificada %}
+          <span class="jdm-badge jdm-badge-success"><i data-lucide="check-circle"></i> {{ badge_label }}</span>
+        {% else %}
+          <span class="jdm-badge jdm-badge-gray"><i data-lucide="shield"></i> {{ badge_label }}</span>
+        {% endif %}
+      </div>
+      <div class="jdm-empresa-meta">@{{ empresa.username }} · {{ sector }} ({{ ciudad }})</div>
+    </div>
+  </div>
+
+  <div class="jdm-empresa-stats-flat">
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">⭐ {{ promedio_reputacion|stringformat:".1f" }}</span>
+      <span class="jdm-stat-lbl">Reputación</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ total_resenas }}</span>
+      <span class="jdm-stat-lbl">Reseñas</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ proyectos_activos_count }}</span>
+      <span class="jdm-stat-lbl">Activos</span>
+    </div>
+    <div class="jdm-stat-flat-divider"></div>
+    <div class="jdm-stat-flat">
+      <span class="jdm-stat-val">{{ proyectos_finalizados_count }}</span>
+      <span class="jdm-stat-lbl">Finalizados</span>
+    </div>
+  </div>
+
+  <div class="jdm-section-clean">
+    <div class="jdm-clean-label"><i data-lucide="building"></i> Acerca de la empresa</div>
+    <p class="jdm-clean-desc">{{ descripcion }}</p>
+  </div>
+
+  <div class="jdm-section-clean">
+    <div class="jdm-clean-label"><i data-lucide="message-circle"></i> Reseñas de desarrolladores ({{ total_resenas }})</div>
+    {% if resenas_modal %}
+      <div class="jdm-resenas-flat-list">
+        {% for r in resenas_modal %}
+          <div class="jdm-resena-flat-item">
+            <div class="jdm-resena-header">
+              <strong class="jdm-resena-author">{{ r.desarrollador }} <span class="jdm-resena-project">en {{ r.proyecto_titulo }}</span></strong>
+              <span class="jdm-resena-rating">⭐ {{ r.puntuacion }}/5</span>
+            </div>
+            <p class="jdm-resena-comment">"{{ r.comentario }}"</p>
+            <div class="jdm-resena-date">{{ r.fecha }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="jdm-empty" style="padding:16px 0;"><i data-lucide="message-square-off"></i>Aún no registra reseñas de proyectos finalizados.</div>
+    {% endif %}
+  </div>
+</div>

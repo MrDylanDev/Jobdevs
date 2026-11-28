@@ -1,0 +1,161 @@
+<div class="jdm-contrato-partial"
+     data-contrato-id="{{ contrato.id }}"
+     data-modal-kicker="ACUERDO LEGAL DE CONTRATACIÓN"
+     data-modal-title="Contrato Digital #{{ codigo }}"
+     data-modal-subtitle="Proyecto: {{ proyecto.titulo }}">
+  <div class="jdm-contract-meta-bar">
+    <div class="jdm-meta-item">
+      <span class="jdm-meta-label">Monto</span>
+      <span class="jdm-meta-val">{{ contrato.monto_formateado }}</span>
+    </div>
+    <span class="meta-dot">·</span>
+    <div class="jdm-meta-item">
+      <span class="jdm-meta-label">Emisión</span>
+      <span class="jdm-meta-val">{{ fecha_creacion_fmt }}</span>
+    </div>
+    <span class="meta-dot">·</span>
+    <div class="jdm-meta-item">
+      <span class="jdm-meta-label">Estado</span>
+      <span class="jdm-badge {% if contrato.estado == 'firmado' %}jdm-badge-success{% else %}jdm-badge-gray{% endif %}">{{ contrato.get_estado_display }}</span>
+    </div>
+  </div>
+
+  <div class="jdm-contract-parties">
+    <div class="jdm-party-item">
+      <span class="jdm-party-label"><i data-lucide="building"></i> Empresa Contratante</span>
+      <span class="jdm-party-name">{{ empresa.nombre|default:empresa.username }}</span>
+      <span class="jdm-party-status">
+        {% if contrato.firmado_empresa %}
+          <span class="jdm-sign-ok"><i data-lucide="check-check"></i> Firmado ({{ fecha_firma_empresa_fmt|default:'' }})</span>
+        {% else %}
+          <span class="jdm-sign-wait"><i data-lucide="clock"></i> Pendiente de firma</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="jdm-party-divider"></div>
+    <div class="jdm-party-item">
+      <span class="jdm-party-label"><i data-lucide="code-2"></i> Desarrollador / Contratista</span>
+      <span class="jdm-party-name">{{ desarrollador.nombre|default:desarrollador.username }}</span>
+      <span class="jdm-party-status" id="jdmDevSignStatus">
+        {% if contrato.firmado_desarrollador %}
+          <span class="jdm-sign-ok"><i data-lucide="check-check"></i> Firmado ({{ fecha_firma_desarrollador_fmt|default:'' }})</span>
+        {% else %}
+          <span class="jdm-sign-urgent"><i data-lucide="file-signature"></i> Pendiente de tu firma</span>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="jdm-clauses-doc">
+    <div class="jdm-doc-title"><i data-lucide="file-text"></i> Términos y Cláusulas del Acuerdo</div>
+    {% if clausulas_items %}
+      {% for item in clausulas_items %}
+        <div class="jdm-clause-item">
+          <span class="jdm-clause-num">Cláusula {{ forloop.counter }}.</span>
+          <span class="jdm-clause-text">{{ item.limpia }}</span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:#71717a; font-size:12.5px;">Sin cláusulas adicionales registradas.</p>
+    {% endif %}
+  </div>
+
+  {% if perfil_profesional %}
+    <details class="jdm-contract-profile-details">
+      <summary class="jdm-contract-profile-summary">
+        <span><i data-lucide="user-check"></i> Datos de postulación vinculados</span>
+        <i data-lucide="chevron-down" style="width:13px; height:13px;"></i>
+      </summary>
+      <div class="jdm-contract-profile-body">
+        <p style="margin:0 0 6px; font-size:11.5px; color:#71717a;">
+          {% if contrato.hash_documento %}Evidencia técnica conservada en la formalización.{% else %}Vista previa de la ficha que se conservará en la firma.{% endif %}
+        </p>
+        <div><strong>Nombre:</strong> {{ perfil_profesional.nombre }}</div>
+        <div><strong>Condición SENA:</strong> {{ perfil_profesional.estado_verificacion }} · {{ perfil_profesional.condicion_sena }}</div>
+        {% if perfil_profesional.programa_formacion %}
+          <div><strong>Programa:</strong> {{ perfil_profesional.programa_formacion }}</div>
+        {% endif %}
+        {% if perfil_profesional.ficha %}
+          <div><strong>Ficha:</strong> {{ perfil_profesional.ficha }}</div>
+        {% endif %}
+        {% if perfil_profesional.habilidades %}
+          <div><strong>Habilidades:</strong> {{ perfil_profesional.habilidades }}</div>
+        {% endif %}
+        {% if perfil_profesional.portafolio_url %}
+          <div>
+            <strong>Portafolio:</strong>
+            {% if portafolio_url_segura %}
+              <a href="{{ perfil_profesional.portafolio_url }}" target="_blank" rel="noopener" style="color:#ffffff; text-decoration:underline;">{{ perfil_profesional.portafolio_url }}</a>
+            {% else %}
+              {{ perfil_profesional.portafolio_url }}
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if perfil_profesional.mensaje_postulacion %}
+          <div style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.08); white-space:pre-wrap;"><strong>Mensaje:</strong>
+{{ perfil_profesional.mensaje_postulacion }}</div>
+        {% endif %}
+      </div>
+    </details>
+  {% endif %}
+
+  {% if error_firma %}
+    <div id="jdmContratoError" class="jdm-error" role="alert" style="margin-top:14px;">
+      <i data-lucide="alert-circle"></i>
+      <span>{{ error_firma }}</span>
+    </div>
+  {% elif aviso_firma %}
+    <div id="jdmContratoAviso" class="jdm-error" role="status" style="margin-top:14px;">
+      <i data-lucide="info"></i>
+      <span>{{ aviso_firma }}</span>
+    </div>
+  {% endif %}
+
+  {% if puede_firmar %}
+    <form id="jdmFormFirmarContrato"
+          method="post"
+          action="{{ url_firmar }}?jdm=1"
+          hx-post="{{ url_firmar }}?jdm=1"
+          hx-target="#jdmBody"
+          hx-swap="innerHTML"
+          hx-disabled-elt="find #jdmBtnFirmar">
+      {% csrf_token %}
+      <input type="hidden" name="jdm" value="1">
+      <input type="hidden" name="hash_documento" value="{{ contrato.hash_documento|default:'' }}">
+      <div class="jdm-contract-accept-box" style="margin-top:14px;padding:12px 14px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.12));background:rgba(255,255,255,0.02);">
+        <label for="jdmAceptaTerminos" style="display:flex;align-items:flex-start;gap:10px;font-size:12.5px;line-height:1.5;cursor:pointer;">
+          <input type="checkbox" id="jdmAceptaTerminos" name="acepta_terminos" value="on" required style="margin-top:3px;flex-shrink:0;">
+          <span>He leído y acepto íntegramente los términos y cláusulas de este contrato digital.</span>
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:14px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px solid var(--border,rgba(255,255,255,0.08));">
+        <div class="jdm-footer-note">
+          <i data-lucide="shield-check" style="width:15px; height:15px; color:var(--accent, #00713f); flex-shrink:0;"></i>
+          <span>Al firmar formalizas legalmente este acuerdo vinculante.</span>
+        </div>
+        <div style="display:inline-flex; gap:10px; margin-left:auto;">
+          <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>
+          <button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnFirmar" data-url-firmar="{{ url_firmar }}">
+            <i data-lucide="file-signature"></i> Firmar Contrato Digitalmente
+          </button>
+        </div>
+      </div>
+    </form>
+  {% else %}
+    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:14px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px solid var(--border,rgba(255,255,255,0.08));">
+      {% if ya_firmo %}
+        <span class="jdm-sign-ok" style="font-size:12px;">
+          <i data-lucide="check-check" style="width:15px; height:15px;"></i> Has firmado este contrato con éxito.
+        </span>
+      {% else %}
+        <div class="jdm-footer-note">
+          <i data-lucide="shield-check" style="width:14px; height:14px; color:var(--accent, #00713f); flex-shrink:0;"></i>
+          <span>Documento digital registrado y protegido por JobDevs.</span>
+        </div>
+      {% endif %}
+      <div style="display:inline-flex; gap:10px; margin-left:auto;">
+        <button type="button" class="jdm-btn jdm-btn-secondary" data-jdm-close>Cerrar</button>
+      </div>
+    </div>
+  {% endif %}
+</div>

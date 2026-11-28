@@ -1,9 +1,11 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -22,6 +24,21 @@ from .services import (
 )
 
 ESTADOS_MENSAJERIA = ('abierta', 'en_mediacion')
+
+
+def _quiere_json(request, allow_origen_dashboard=False):
+    return (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in (request.headers.get('Accept') or '')
+        or request.GET.get('format') == 'json'
+        or (allow_origen_dashboard and request.POST.get('origen') == 'dashboard')
+    )
+
+
+def _es_htmx(request, allow_origen_dashboard=False):
+    return request.headers.get('HX-Request') == 'true' and not _quiere_json(
+        request, allow_origen_dashboard=allow_origen_dashboard
+    )
 
 
 @login_required
@@ -64,10 +81,21 @@ def abrir_disputa_view(request, proyecto_id):
     if categoria_solicitada in dict(categorias):
         categoria_default = categoria_solicitada
 
-    es_ajax = (
-        request.headers.get('x-requested-with') == 'XMLHttpRequest'
-        or request.POST.get('origen') == 'dashboard'
+    es_ajax = _quiere_json(request, allow_origen_dashboard=True)
+    es_htmx = _es_htmx(request, allow_origen_dashboard=True)
+    is_jdm = (
+        request.GET.get('jdm') == '1'
+        or request.POST.get('jdm') == '1'
+        or request.headers.get('HX-Target') in ('jdmBody', '#jdmBody')
     )
+    modal_target = '#jdmBody' if is_jdm else '#modalDisputaBody'
+    url_base = reverse('disputas:abrir_disputa', args=[proyecto.id])
+    query_parts = []
+    if contratacion:
+        query_parts.append(f'contratacion_id={contratacion.pk}')
+    if is_jdm:
+        query_parts.append('jdm=1')
+    url_abrir = f"{url_base}?{'&'.join(query_parts)}" if query_parts else url_base
 
     if request.method == 'GET' and es_ajax:
         return JsonResponse({
@@ -79,14 +107,12 @@ def abrir_disputa_view(request, proyecto_id):
             },
             'categorias': [{'codigo': c[0], 'label': str(c[1])} for c in categorias],
             'categoria': categoria_default,
-            'url_abrir': (
-                f"{reverse('disputas:abrir_disputa', args=[proyecto.id])}?contratacion_id={contratacion.pk}"
-                if contratacion else reverse('disputas:abrir_disputa', args=[proyecto.id])
-            ),
+            'url_abrir': url_abrir,
         })
 
     context = {
         'proyecto': proyecto,
+        'empresa_nombre': proyecto.empresa.nombre or proyecto.empresa.username,
         'contratacion': contratacion,
         'motivo': '',
         'categoria': categoria_default,
@@ -96,6 +122,10 @@ def abrir_disputa_view(request, proyecto_id):
         'confirma_intento_previo': False,
         'confirma_gravedad': False,
         'acepta_sanciones': False,
+        'url_abrir': url_abrir,
+        'is_jdm': is_jdm,
+        'modal_target': modal_target,
+        'error': None,
     }
 
     if request.method == 'POST':
@@ -121,15 +151,23 @@ def abrir_disputa_view(request, proyecto_id):
         })
 
         if not motivo:
+            error_msg = 'Debes indicar el motivo de la disputa.'
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': 'Debes indicar el motivo de la disputa.'}, status=400)
-            messages.error(request, 'Debes indicar el motivo de la disputa.')
+                return JsonResponse({'ok': False, 'mensaje': error_msg}, status=400)
+            if es_htmx:
+                context['error'] = error_msg
+                return render(request, 'disputas/partials/_modal_abrir_disputa.html', context, status=200)
+            messages.error(request, error_msg)
             return render(request, 'disputas/abrir_disputa.html', context, status=200)
 
         if categoria not in dict(categorias):
+            error_msg = 'Debes seleccionar una causal válida para tu rol.'
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': 'Debes seleccionar una causal válida para tu rol.'}, status=400)
-            messages.error(request, 'Debes seleccionar una causal válida para tu rol.')
+                return JsonResponse({'ok': False, 'mensaje': error_msg}, status=400)
+            if es_htmx:
+                context['error'] = error_msg
+                return render(request, 'disputas/partials/_modal_abrir_disputa.html', context, status=200)
+            messages.error(request, error_msg)
             return render(request, 'disputas/abrir_disputa.html', context, status=400)
 
         try:
@@ -147,22 +185,34 @@ def abrir_disputa_view(request, proyecto_id):
                 acepta_sanciones=acepta_sanciones,
             )
         except ValidationError as exc:
+            error_msg = ' '.join(exc.messages)
             if es_ajax:
-                return JsonResponse({'ok': False, 'mensaje': ' '.join(exc.messages)}, status=400)
-            messages.error(request, ' '.join(exc.messages))
+                return JsonResponse({'ok': False, 'mensaje': error_msg}, status=400)
+            if es_htmx:
+                context['error'] = error_msg
+                return render(request, 'disputas/partials/_modal_abrir_disputa.html', context, status=200)
+            messages.error(request, error_msg)
             return render(request, 'disputas/abrir_disputa.html', context, status=400)
 
+        msg_exito = 'Disputa abierta. El proyecto fue congelado hasta su resolución.'
         if es_ajax:
             return JsonResponse({
                 'ok': True,
-                'mensaje': 'Disputa abierta. El proyecto fue congelado hasta su resolución.',
+                'mensaje': msg_exito,
                 'disputa_id': disputa.id,
             })
-        messages.success(
-            request, 'Disputa abierta. El proyecto fue congelado hasta su resolución.'
-        )
+        if es_htmx:
+            response = HttpResponse('')
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'success', 'mensaje': msg_exito},
+                'jobdevs:disputa-creada': {'disputa_id': disputa.id, 'reload_hash': 'desarrollo'},
+            })
+            return response
+        messages.success(request, msg_exito)
         return redirect('disputas:detalle_disputa', disputa_id=disputa.id)
 
+    if es_htmx:
+        return render(request, 'disputas/partials/_modal_abrir_disputa.html', context)
     return render(request, 'disputas/abrir_disputa.html', context)
 
 
@@ -241,13 +291,27 @@ def _destinatarios_mensaje(disputa, emisor):
     return ids
 
 
+def _contexto_sala_modal(disputa, user, error=None):
+    ctx = _contexto_sala(disputa, error=error)
+    for m in ctx['mensajes']:
+        m.es_propio = (m.emisor_id == user.id)
+    es_admin = user.rol == 'administrador'
+    ctx.update({
+        'es_admin': es_admin,
+        'resoluciones': Disputa.RESOLUCION if es_admin else [],
+        'enviar_url': reverse('disputas:enviar_mensaje_disputa', args=[disputa.id]),
+        'resolver_url': reverse('disputas:resolver_disputa', args=[disputa.id]) if es_admin else None,
+    })
+    return ctx
+
+
 @login_required
 def detalle_disputa_view(request, disputa_id):
     disputa = _get_disputa(disputa_id)
     if not _es_participante(request.user, disputa):
         raise PermissionDenied
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+    if _quiere_json(request):
         ctx = _contexto_sala(disputa)
         mensajes_data = [
             {
@@ -288,6 +352,13 @@ def detalle_disputa_view(request, disputa_id):
             },
             'mensajes': mensajes_data,
         })
+
+    if _es_htmx(request):
+        return render(
+            request,
+            'disputas/partials/_modal_sala_disputa.html',
+            _contexto_sala_modal(disputa, request.user),
+        )
 
     return render(request, 'disputas/sala_mediacion.html', _contexto_sala(disputa))
 
@@ -333,14 +404,39 @@ def enviar_mensaje_disputa_view(request, disputa_id):
                 for uid in _destinatarios_mensaje(disputa, user)
             ])
 
+    es_json = _quiere_json(request)
+    es_htmx = _es_htmx(request)
+
     if error:
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if es_json:
             return JsonResponse({'ok': False, 'error': error}, status=400)
+        if es_htmx:
+            response = render(
+                request,
+                'disputas/partials/_modal_sala_disputa.html',
+                _contexto_sala_modal(disputa, user, error=error),
+                status=200,
+            )
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'error', 'mensaje': error},
+            })
+            return response
         return render(
             request, 'disputas/sala_mediacion.html', _contexto_sala(disputa, error), status=400,
         )
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    if es_json:
         return JsonResponse({'ok': True})
+    if es_htmx:
+        response = render(
+            request,
+            'disputas/partials/_modal_sala_disputa.html',
+            _contexto_sala_modal(disputa, user),
+            status=200,
+        )
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': 'success', 'mensaje': 'Mensaje enviado.'},
+        })
+        return response
     return redirect('disputas:detalle_disputa', disputa_id=disputa.id)
 
 
@@ -354,22 +450,40 @@ def resolver_disputa_view(request, disputa_id):
     resolucion = request.POST.get('resolucion', '').strip()
     dictamen = request.POST.get('dictamen', '').strip()
 
-    is_ajax = (
-        request.headers.get('x-requested-with') == 'XMLHttpRequest'
-        or request.POST.get('origen') == 'dashboard'
-    )
+    is_ajax = _quiere_json(request, allow_origen_dashboard=True)
+    is_htmx = _es_htmx(request, allow_origen_dashboard=True)
 
     try:
         resolver_disputa(disputa, request.user, resolucion, dictamen)
     except ValidationError as exc:
         disputa.refresh_from_db()
+        error_msg = ' '.join(exc.messages)
         if is_ajax:
-            return JsonResponse({'ok': False, 'mensaje': ' '.join(exc.messages)}, status=400)
+            return JsonResponse({'ok': False, 'mensaje': error_msg}, status=400)
+        if is_htmx:
+            response = render(
+                request,
+                'disputas/partials/_modal_sala_disputa.html',
+                _contexto_sala_modal(disputa, request.user, error=error_msg),
+                status=200,
+            )
+            response['HX-Trigger'] = json.dumps({
+                'jobdevs:toast': {'tipo': 'error', 'mensaje': error_msg},
+            })
+            return response
         return render(
             request, 'disputas/sala_mediacion.html',
-            _contexto_sala(disputa, ' '.join(exc.messages)), status=400,
+            _contexto_sala(disputa, error_msg), status=400,
         )
+    msg_exito = 'Resolución emitida y acciones ejecutadas correctamente.'
     if is_ajax:
-        return JsonResponse({'ok': True, 'mensaje': 'Resolución emitida y acciones ejecutadas correctamente.'})
-    messages.success(request, 'Resolución emitida y acciones ejecutadas correctamente.')
+        return JsonResponse({'ok': True, 'mensaje': msg_exito})
+    if is_htmx:
+        response = HttpResponse('')
+        response['HX-Trigger'] = json.dumps({
+            'jobdevs:toast': {'tipo': 'success', 'mensaje': msg_exito},
+            'jobdevs:disputa-resuelta': {'disputa_id': disputa.id},
+        })
+        return response
+    messages.success(request, msg_exito)
     return redirect('disputas:detalle_disputa', disputa_id=disputa_id)

@@ -1,0 +1,100 @@
+<div class="jdm-sala-disputa-partial"
+     data-modal-kicker="SALA DE MEDIACIÓN #{{ disputa.id }}"
+     data-modal-title="{{ proyecto.titulo }}"
+     data-modal-subtitle="Causal: {{ disputa.get_categoria_display }} · Estado: {{ disputa.get_estado_display }}">
+  <div class="jdm-disputa-summary">
+    <div class="jdm-disputa-summary-top">
+      <div>
+        <span class="jdm-badge {% if disputa.estado == 'resuelta' %}jdm-badge-success{% elif disputa.estado == 'cancelada' %}jdm-badge-gray{% else %}jdm-badge-danger{% endif %}">{{ disputa.get_estado_display }}</span>
+        <span class="jdm-badge jdm-badge-gray">{{ disputa.get_categoria_display }}</span>
+      </div>
+      <div class="jdm-disputa-iniciado">Iniciada por: <strong>{{ disputa.iniciado_por.nombre|default:disputa.iniciado_por.username }}</strong></div>
+    </div>
+    <div class="jdm-disputa-parties-grid">
+      <div>Empresa: <strong>{{ empresa.nombre|default:empresa.username }}</strong></div>
+      <div>Desarrollador: <strong>{% if desarrollador %}{{ desarrollador.nombre|default:desarrollador.username }}{% else %}N/A{% endif %}</strong></div>
+      <div>Mediador JobDevs: <strong>{% if mediador %}{{ mediador.nombre|default:mediador.username }}{% else %}Pendiente de asignación{% endif %}</strong></div>
+    </div>
+    <div class="jdm-disputa-motivo-box">
+      <strong>Motivo de apertura:</strong> {{ disputa.motivo }}
+      {% if disputa.evidencia_url %}
+        <div style="margin-top:4px;"><a href="{{ disputa.evidencia_url }}" target="_blank" rel="noopener" class="jdm-disputa-evidencia-link"><i data-lucide="link"></i> Ver enlace de evidencia</a></div>
+      {% endif %}
+    </div>
+
+    {% if disputa.resolucion %}
+      <div class="jdm-disputa-resolucion-box">
+        <div class="jdm-resolucion-header"><i data-lucide="gavel"></i> RESOLUCIÓN ARBITRAL EMITIDA: {{ disputa.get_resolucion_display }}</div>
+        {% if disputa.notas_resolucion %}
+          <div class="jdm-resolucion-dictamen">Dictamen: {{ disputa.notas_resolucion }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if error %}
+    <div class="jdm-error" role="alert" style="margin-bottom:12px;"><i data-lucide="alert-circle"></i><span>{{ error }}</span></div>
+  {% endif %}
+
+  <div class="jdm-form-label"><i data-lucide="message-circle"></i> Mensajes y Argumentos de Mediación</div>
+  <div class="jdm-disputa-chat" id="jdmDisputaChat">
+    {% if mensajes %}
+      {% for m in mensajes %}
+        <div class="jdm-chat-bubble {% if m.rol_emisor == 'admin' %}jdm-bubble-admin{% elif m.es_propio %}jdm-bubble-own{% else %}jdm-bubble-other{% endif %}">
+          <div class="jdm-bubble-header">
+            <span>{{ m.emisor.nombre|default:m.emisor.username }} ({{ m.rol_emisor }})</span>
+            <span>{{ m.fecha_envio|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div>{{ m.contenido }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="jdm-empty" style="padding:20px;"><i data-lucide="message-circle"></i>Aún no hay mensajes en esta sala.</div>
+    {% endif %}
+  </div>
+
+  {% if puede_escribir %}
+    <form id="jdmFormDisputaMsg"
+          class="jdm-disputa-composer"
+          method="post"
+          action="{{ enviar_url }}"
+          hx-post="{{ enviar_url }}"
+          hx-target="#jdmBody"
+          hx-swap="innerHTML"
+          novalidate>
+      {% csrf_token %}
+      <input type="text" id="jdmMsgContenido" name="contenido" class="jdm-input" placeholder="Escribe un mensaje para los participantes y el mediador…" autocomplete="off" required>
+      <button type="submit" class="jdm-btn jdm-btn-primary" id="jdmBtnEnviarMsg"><i data-lucide="send"></i></button>
+    </form>
+  {% endif %}
+
+  {% if es_admin and resolver_url and disputa.estado != 'resuelta' and disputa.estado != 'cancelada' %}
+    <div class="jdm-admin-resolution-box">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#f87171;margin-bottom:8px;"><i data-lucide="gavel"></i> PANEL DE RESOLUCIÓN ARBITRAL (ADMIN)</div>
+      <form id="jdmFormResolverDisputa"
+            method="post"
+            action="{{ resolver_url }}"
+            hx-post="{{ resolver_url }}"
+            hx-target="#jdmBody"
+            hx-swap="innerHTML"
+            hx-confirm="¿Confirmas la emisión definitiva de esta resolución arbitral? Esta acción es irreversible y aplicará efectos inmediatos sobre el contrato."
+            novalidate>
+        {% csrf_token %}
+        <div class="jdm-form-group">
+          <label class="jdm-form-label">Dictamen de Fallo <span class="req">*</span></label>
+          <select name="resolucion" class="jdm-select" required>
+            <option value="">-- Selecciona el sentido de la resolución --</option>
+            {% for codigo, label in resoluciones %}
+              <option value="{{ codigo }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="jdm-form-group">
+          <label class="jdm-form-label">Fundamentos / Notas de la resolución <span class="req">*</span></label>
+          <textarea name="dictamen" class="jdm-textarea" placeholder="Indica detalladamente los argumentos técnicos y evidencias consideradas para este dictamen…" required></textarea>
+        </div>
+        <button type="submit" class="jdm-btn jdm-btn-danger" id="jdmBtnResolver"><i data-lucide="gavel"></i> Emitir Resolución Final</button>
+      </form>
+    </div>
+  {% endif %}
+</div>

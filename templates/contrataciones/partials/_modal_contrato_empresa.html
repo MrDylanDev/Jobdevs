@@ -1,0 +1,315 @@
+{% load i18n %}
+<article class="contract-doc-paper"
+         data-contrato-id="{{ contrato.id }}"
+         data-contrato-codigo="{{ codigo }}"
+         data-modal-title="{% trans 'Contrato Digital' %} · {{ codigo }}">
+  <header class="contract-doc-header">
+    <div>
+      <div class="contract-doc-eyebrow">{% trans "Expediente digital CD-" %}{{ contrato.id }}</div>
+      <h3 class="contract-doc-title">{% trans "Acuerdo Digital de Servicios Profesionales" %}</h3>
+      <div class="contract-doc-project">{{ proyecto.titulo }}</div>
+    </div>
+    <span class="contract-estado-badge estado-{{ contrato.estado }}">{{ contrato.get_estado_display }}</span>
+  </header>
+
+  {% if contrato.hash_documento or contrato.hash_contrato %}
+    <div class="contract-doc-hashes">
+      {% if contrato.hash_documento %}<span>Doc: {{ contrato.hash_documento }}</span>{% endif %}
+      {% if contrato.hash_contrato %}<span>Firma: {{ contrato.hash_contrato }}</span>{% endif %}
+    </div>
+  {% endif %}
+
+  <div class="contract-doc-parties">
+    <div class="contract-party-card">
+      <span class="contract-party-label">{% trans "Empresa contratante" %}</span>
+      <strong>{{ empresa.nombre|default:empresa.username }}</strong>
+    </div>
+    <div class="contract-party-card">
+      <span class="contract-party-label">{% trans "Desarrollador contratado" %}</span>
+      <strong>{{ desarrollador.nombre|default:desarrollador.username }}</strong>
+    </div>
+    <div class="contract-party-card">
+      <span class="contract-party-label">{% trans "Proyecto" %}</span>
+      <strong>{{ proyecto.titulo }}</strong>
+    </div>
+  </div>
+
+  {% if puede_editar %}
+    <div class="contract-edit-terms-box" style="background:var(--corp-surface); border:1px solid var(--corp-brand); border-radius:var(--corp-radius); padding:20px; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--corp-brand);">
+          <i data-lucide="sliders-horizontal"></i>
+          <span>{% trans "Definición de Términos Contractuales (Editable por la Empresa)" %}</span>
+        </div>
+        <span class="badge" style="background:var(--corp-brand-light); color:var(--corp-brand); font-size:12px; padding:3px 8px; border-radius:10px;">{% trans "Fase de Negociación" %}</span>
+      </div>
+      {% if error_terminos %}
+        <div class="contract-sign-error" role="alert" style="display:block; margin-bottom:12px;">{{ error_terminos }}</div>
+      {% endif %}
+      <form id="formEditarTerminosContrato"
+            method="post"
+            action="{{ url_editar }}"
+            hx-post="{{ url_editar }}"
+            hx-target="#contratoModalBody"
+            hx-swap="innerHTML"
+            hx-disabled-elt="find button[type='submit']">
+        {% csrf_token %}
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="contrato_monto">{% trans "Monto del Contrato" %}</label>
+            <input type="number" id="contrato_monto" step="0.01" min="0" name="monto" class="form-input-corp" value="{{ form_values.monto }}" required placeholder="{% trans 'Ej: 2500000' %}">
+          </div>
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="contrato_moneda">{% trans "Moneda" %}</label>
+            <select id="contrato_moneda" name="moneda" class="form-input-corp">
+              {% for valor, label in monedas %}
+                <option value="{{ valor }}" {% if form_values.moneda == valor %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="contrato_forma_pago">{% trans "Forma de Pago (Cronograma)" %}</label>
+            <select id="contrato_forma_pago" name="forma_pago" class="form-input-corp">
+              {% for valor, label in formas_pago %}
+                <option value="{{ valor }}" {% if form_values.forma_pago == valor %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-corp" style="margin-bottom:0;">
+            <label class="form-label-corp" for="contrato_medio_pago">{% trans "Medio de Pago" %}</label>
+            <select id="contrato_medio_pago" name="medio_pago" class="form-input-corp">
+              {% for valor, label in medios_pago %}
+                <option value="{{ valor }}" {% if form_values.medio_pago == valor %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group-corp" style="margin-bottom:14px;">
+          <label class="form-label-corp" for="contrato_comentarios">{% trans "Comentarios adicionales o condiciones de entrega (Opcional)" %}</label>
+          <textarea id="contrato_comentarios" name="comentarios_adicionales" class="form-input-corp" rows="2" placeholder="{% trans 'Notas sobre desembolsos, cuentas o entregas intermedias...' %}">{{ form_values.comentarios_adicionales }}</textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="submit" class="btn-corp-primary btn-sm">
+            <i data-lucide="save"></i>
+            <span>{% trans "Guardar Términos Contractuales" %}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  {% else %}
+    {% if error_terminos %}
+      <div class="contract-sign-error" role="alert" style="display:block; margin-bottom:12px;">{{ error_terminos }}</div>
+    {% endif %}
+    <div class="contract-sealed-notice">
+      <i data-lucide="lock" style="width:14px; height:14px; flex-shrink:0; color:var(--corp-slate-400);"></i>
+      <span>{% trans "Términos sellados: Este contrato ya cuenta con firmas electrónicas o la negociación concluyó; los términos económicos no pueden alterarse." %}</span>
+    </div>
+    <div class="contract-terms-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="contract-term-box">
+        <span class="contract-term-label">{% trans "Monto acordado" %}</span>
+        <div class="contract-term-value">{{ contrato.monto_formateado }}</div>
+        <span class="contract-term-sub">{% trans "Moneda:" %} {{ contrato.moneda }}</span>
+      </div>
+      <div class="contract-term-box">
+        <span class="contract-term-label">{% trans "Forma de pago" %}</span>
+        <div class="contract-term-value">{{ contrato.get_forma_pago_display }}</div>
+        <span class="contract-term-sub">{% trans "Cronograma de liquidación" %}</span>
+      </div>
+      <div class="contract-term-box">
+        <span class="contract-term-label">{% trans "Medio de pago" %}</span>
+        <div class="contract-term-value" style="font-size:14px; font-weight:700; color:var(--corp-slate-900);">{{ medio_pago_display }}</div>
+        <span class="contract-term-sub">{% trans "Canal acordado" %}</span>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if perfil_profesional %}
+    <div class="contract-clause-box contract-profile-box">
+      <div class="contract-section-heading">{% trans "Perfil profesional de la postulación #" %}{{ perfil_profesional.postulacion_id }}</div>
+      <p class="contract-profile-note">
+        {% if contrato.hash_documento %}
+          {% trans "Datos conservados en la primera firma." %}
+        {% else %}
+          {% trans "Vista previa: se conservará en la primera firma." %}
+        {% endif %}
+      </p>
+      <div class="contract-profile-grid">
+        <div class="contract-profile-field">
+          <span class="contract-profile-label">{% trans "Nombre" %}</span>
+          <span class="contract-profile-value">{{ perfil_profesional.nombre }}</span>
+        </div>
+        <div class="contract-profile-field">
+          <span class="contract-profile-label">{% trans "SENA" %}</span>
+          <span class="contract-profile-value">{{ perfil_profesional.estado_verificacion }} · {{ perfil_profesional.condicion_sena }}</span>
+        </div>
+        <div class="contract-profile-field">
+          <span class="contract-profile-label">{% trans "Programa" %}</span>
+          <span class="contract-profile-value">{{ perfil_profesional.programa_formacion|default:"No registrado" }}</span>
+        </div>
+        <div class="contract-profile-field">
+          <span class="contract-profile-label">{% trans "Ficha" %}</span>
+          <span class="contract-profile-value">{{ perfil_profesional.ficha|default:"No registrada" }}</span>
+        </div>
+      </div>
+      <div class="contract-profile-row">
+        <span class="contract-profile-label">{% trans "Habilidades" %}</span>
+        {% if habilidades_lista %}
+          <div class="contract-skill-list">
+            {% for skill in habilidades_lista %}
+              <span class="contract-skill-chip">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <span class="contract-profile-empty">{% trans "No registradas" %}</span>
+        {% endif %}
+      </div>
+      {% if perfil_profesional.portafolio_url %}
+        <div class="contract-profile-row">
+          <span class="contract-profile-label">{% trans "Portafolio" %}</span>
+          <div class="contract-profile-value">
+            {% if portafolio_url_segura %}
+              <a href="{{ perfil_profesional.portafolio_url }}" target="_blank" rel="noopener noreferrer" class="contract-profile-link">{{ perfil_profesional.portafolio_url }}</a>
+            {% else %}
+              {{ perfil_profesional.portafolio_url }}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      <div class="contract-profile-row">
+        <span class="contract-profile-label">{% trans "Mensaje de presentación" %}</span>
+        {% if mensaje_postulacion_bloques %}
+          <div class="contract-message-blocks">
+            {% for bloque in mensaje_postulacion_bloques %}
+              <div class="contract-message-block">
+                <span class="contract-message-label">{{ bloque.titulo }}</span>
+                <div class="contract-message-body">
+                  {% if bloque.es_enlace %}
+                    <a href="{{ bloque.contenido }}" target="_blank" rel="noopener noreferrer" class="contract-profile-link">{{ bloque.contenido }}</a>
+                  {% else %}
+                    {{ bloque.contenido }}
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif perfil_profesional.mensaje_postulacion %}
+          <div class="contract-message-plain">{{ perfil_profesional.mensaje_postulacion }}</div>
+        {% else %}
+          <div class="contract-message-plain">{% trans "Sin mensaje" %}</div>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="contract-clause-box">{% trans "Contrato anterior sin evidencia de perfil conservada." %}</div>
+  {% endif %}
+
+  <div class="contract-clause-box">
+    <div class="contract-section-heading">{% trans "Cláusulas contractuales" %}</div>
+    {% if clausulas_items %}
+      <ul class="contract-clauses-list">
+        {% for item in clausulas_items %}
+          <li class="contract-clause-item">
+            {% if item.titulo %}
+              <span class="contract-clause-title">{{ item.titulo }}</span>
+              <span class="contract-clause-body">{{ item.cuerpo }}</span>
+            {% else %}
+              <span class="contract-clause-body">{{ item.texto }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="contract-clause-text">{% trans "Sin cláusulas registradas." %}</p>
+    {% endif %}
+  </div>
+
+  {% if contrato.comentarios_adicionales %}
+    <div class="contract-clause-box">
+      <div class="contract-section-heading">{% trans "Comentarios adicionales" %}</div>
+      <p class="contract-clause-text">{{ contrato.comentarios_adicionales }}</p>
+    </div>
+  {% endif %}
+
+  <div class="contract-signatures-row">
+    <div class="contract-signature-block">
+      <div class="contract-signature-block-label">{% trans "Firma de la empresa" %}</div>
+      <div class="contract-signature-block-name">{{ empresa.nombre|default:empresa.username }}</div>
+      <div class="contract-signature-block-stamp">
+        <span class="contract-signature-script">{% if contrato.firmado_empresa %}{% trans "Firmado digitalmente" %}{% else %}—{% endif %}</span>
+      </div>
+      {% if contrato.firmado_empresa %}
+        <span class="signature-badge-corp is-signed"><i data-lucide="check-circle-2"></i><span>{% trans "Firmado" %}</span></span>
+      {% else %}
+        <span class="signature-badge-corp is-pending"><i data-lucide="clock"></i><span>{% trans "Pendiente de firma" %}</span></span>
+      {% endif %}
+      <div class="contract-signature-block-date">{{ fecha_firma_empresa_fmt|default:"Pendiente" }}</div>
+    </div>
+
+    <div class="contract-signature-block">
+      <div class="contract-signature-block-label">{% trans "Firma del desarrollador" %}</div>
+      <div class="contract-signature-block-name">{{ desarrollador.nombre|default:desarrollador.username }}</div>
+      <div class="contract-signature-block-stamp">
+        <span class="contract-signature-script">{% if contrato.firmado_desarrollador %}{% trans "Firmado digitalmente" %}{% else %}—{% endif %}</span>
+      </div>
+      {% if contrato.firmado_desarrollador %}
+        <span class="signature-badge-corp is-signed"><i data-lucide="check-circle-2"></i><span>{% trans "Firmado" %}</span></span>
+      {% else %}
+        <span class="signature-badge-corp is-pending"><i data-lucide="clock"></i><span>{% trans "Pendiente de firma" %}</span></span>
+      {% endif %}
+      <div class="contract-signature-block-date">{{ fecha_firma_desarrollador_fmt|default:"Pendiente" }}</div>
+    </div>
+  </div>
+
+  <div class="contract-doc-disclaimer">
+    <i data-lucide="info"></i>
+    <span>{{ contrato.disclaimer }}</span>
+  </div>
+
+  {% if contrato.esta_firmado %}
+    <div class="contract-sign-done">
+      <i data-lucide="shield-check"></i>
+      <p>{% trans "Contrato firmado por ambas partes. La contratación quedó formalizada." %}</p>
+    </div>
+  {% elif ya_firmo %}
+    <div class="contract-sign-done">
+      <i data-lucide="check-circle-2"></i>
+      <p>{{ aviso_firma|default:"Ya firmaste este contrato. Queda pendiente la firma de la otra parte." }}</p>
+    </div>
+  {% elif not puede_firmar %}
+    {% if error_firma %}
+      <div id="contratoFirmaError" class="contract-sign-error" role="alert" style="display:block; margin-bottom:10px;">{{ error_firma }}</div>
+    {% endif %}
+    <div class="contract-sign-done is-muted">
+      <i data-lucide="lock"></i>
+      <p>{% trans "Este contrato ya no está disponible para firma electrónica." %}</p>
+    </div>
+  {% else %}
+    <form id="formFirmarContrato"
+          class="contract-sign-form"
+          method="post"
+          action="{{ url_firmar }}"
+          hx-post="{{ url_firmar }}"
+          hx-target="#contratoModalBody"
+          hx-swap="innerHTML"
+          hx-disabled-elt="find button[type='submit']"
+          data-contrato-id="{{ contrato.id }}">
+      {% csrf_token %}
+      <input type="hidden" name="hash_documento" value="{{ contrato.hash_documento|default:'' }}">
+      <label class="contract-sign-check">
+        <input type="checkbox" name="acepta_terminos" value="1" required>
+        <span>{% trans "Acepto los términos, las condiciones y el perfil profesional mostrado, y firmo electrónicamente este contrato." %}</span>
+      </label>
+      {% if error_firma %}
+        <div id="contratoFirmaError" class="contract-sign-error" role="alert" style="display:block;">{{ error_firma }}</div>
+      {% else %}
+        <div id="contratoFirmaError" class="contract-sign-error" role="alert" style="display:none;"></div>
+      {% endif %}
+      <button type="submit" class="btn-corp-primary contract-sign-submit">
+        <i data-lucide="pen-tool"></i>
+        <span>{% trans "Firmar Electrónicamente" %}</span>
+      </button>
+    </form>
+  {% endif %}
+</article>

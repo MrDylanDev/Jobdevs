@@ -194,3 +194,122 @@ class TestDetalleDesarrolladorView:
         assert response.status_code == 200
         content = response.content.decode('utf-8')
         assert reverse('detalle_desarrollador', args=[dev_user.id]) in content
+
+
+@pytest.mark.django_db
+class TestDetalleDesarrolladorHTMX:
+    """Pruebas HTMX (S3) para el modal de perfil público de desarrollador."""
+
+    def test_htmx_retorna_partial_modal_desarrollador_con_datos_y_resenas(
+        self, client, empresa_viewer, empresa_user, dev_user, proyecto_finalizado
+    ):
+        Valoracion.objects.create(
+            proyecto=proyecto_finalizado,
+            empresa=empresa_user,
+            desarrollador=dev_user,
+            rol_evaluador='empresa',
+            puntuacion=5,
+            comentario='Entrega impecable y gran dominio técnico.',
+        )
+
+        client.force_login(empresa_viewer)
+        url = reverse('detalle_desarrollador', args=[dev_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'Desarrollador/partials/_modal_perfil_publico.html' in template_names
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE' not in content
+        assert '<html' not in content
+        assert 'jdm-perfil-partial' in content
+        assert 'data-modal-title="Andrés Felipe Gómez"' in content
+        assert 'jdm-empresa-header' in content
+        assert 'jdm-empresa-stats-flat' in content
+        assert 'Análisis y Desarrollo de Software' in content
+        assert 'Python' in content
+        assert 'https://portafolio.andres.dev' in content
+        assert '5.0' in content
+        assert 'Entrega impecable y gran dominio técnico.' in content
+        assert 'Soluciones Cloud Colombia S.A.S.' in content
+
+    def test_htmx_desarrollador_sin_resenas_muestra_estado_vacio(
+        self, client, empresa_viewer, dev_user
+    ):
+        client.force_login(empresa_viewer)
+        url = reverse('detalle_desarrollador', args=[dev_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        assert 'Desarrollador/partials/_modal_perfil_publico.html' in [
+            t.name for t in response.templates
+        ]
+        content = response.content.decode('utf-8')
+        assert 'Aún no registra valoraciones de empresas contratantes.' in content
+
+    def test_htmx_escapa_xss_en_perfil_habilidades_y_resenas(
+        self, client, empresa_viewer, empresa_user, dev_user, proyecto_finalizado
+    ):
+        payload = '<script>alert("xss-dev")</script>'
+        dev_user.nombre = f'Dev {payload}'
+        dev_user.save()
+        perfil = dev_user.perfil_desarrollador
+        perfil.habilidades = f'Python, {payload}'
+        perfil.save()
+
+        Valoracion.objects.create(
+            proyecto=proyecto_finalizado,
+            empresa=empresa_user,
+            desarrollador=dev_user,
+            rol_evaluador='empresa',
+            puntuacion=5,
+            comentario=f'Comentario {payload}',
+        )
+
+        client.force_login(empresa_viewer)
+        url = reverse('detalle_desarrollador', args=[dev_user.id])
+        response = client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert payload not in content
+        assert '&lt;script&gt;alert(&quot;xss-dev&quot;)&lt;/script&gt;' in content
+
+    def test_htmx_404_y_anonimo_auth(self, client, empresa_viewer, empresa_user, dev_user):
+        url_ok = reverse('detalle_desarrollador', args=[dev_user.id])
+        resp_anon = client.get(url_ok, HTTP_HX_REQUEST='true')
+        assert resp_anon.status_code == 302
+        assert '/login/' in resp_anon.url
+
+        client.force_login(empresa_viewer)
+        resp_missing = client.get(
+            reverse('detalle_desarrollador', args=[999999]), HTTP_HX_REQUEST='true'
+        )
+        assert resp_missing.status_code == 404
+
+        resp_wrong_role = client.get(
+            reverse('detalle_desarrollador', args=[empresa_user.id]), HTTP_HX_REQUEST='true'
+        )
+        assert resp_wrong_role.status_code == 404
+
+    def test_preserva_contrato_json_xhr_y_accept_json(self, client, empresa_viewer, dev_user):
+        client.force_login(empresa_viewer)
+        url = reverse('detalle_desarrollador', args=[dev_user.id])
+
+        resp_xhr = client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        assert resp_xhr.status_code == 200
+        assert 'application/json' in resp_xhr['Content-Type']
+        data_xhr = resp_xhr.json()
+        assert data_xhr['ok'] is True
+        assert data_xhr['desarrollador']['nombre'] == 'Andrés Felipe Gómez'
+
+        resp_accept = client.get(url, HTTP_HX_REQUEST='true', HTTP_ACCEPT='application/json')
+        assert resp_accept.status_code == 200
+        assert 'application/json' in resp_accept['Content-Type']
+        assert resp_accept.json()['ok'] is True
+
+        resp_format = client.get(f'{url}?format=json', HTTP_HX_REQUEST='true')
+        assert resp_format.status_code == 200
+        assert 'application/json' in resp_format['Content-Type']
+        assert resp_format.json()['ok'] is True
+

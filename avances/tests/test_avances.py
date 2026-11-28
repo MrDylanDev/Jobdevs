@@ -844,3 +844,168 @@ class TestAvancesAjaxJsonErrors:
         assert data['ok'] is False
         assert data.get('error')
 
+
+class TestAvancesHtmxPartials:
+    """S6: Partials HTMX para ver_avances y registrar_avance en #jdmModal."""
+
+    @pytest.fixture
+    def escenario_htmx(self, empresa_user, desarrollador_user):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto <script>alert("xss")</script>',
+            descripcion='Desc',
+            tipo_solucion='sitio_web',
+            estado='en_desarrollo',
+        )
+        hito = Entregable.objects.create(
+            proyecto=proyecto,
+            titulo='Hito <b>Uno</b>',
+            descripcion='Desc hito',
+            estado='pendiente',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='activa',
+        )
+        avance = Avance.objects.create(
+            proyecto=proyecto,
+            entregable=hito,
+            desarrollador=desarrollador_user,
+            descripcion='Avance <img src=x onerror=alert(1)>',
+            archivo_url='https://github.com/org/repo',
+            estado='pendiente',
+        )
+        return proyecto, hito, avance
+
+    def test_ver_avances_htmx_retorna_partial_con_progreso_y_xss_escapado(
+        self, dev_client, escenario_htmx
+    ):
+        proyecto, _, _ = escenario_htmx
+        response = dev_client.get(
+            reverse('ver_avances', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'jdm-progress-header' in html
+        assert 'jdm-advance-card' in html
+        assert 'data-modal-title=' in html
+        assert 'data-puede-registrar="true"' in html
+        assert '<script>alert("xss")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_ver_avances_htmx_sin_permiso_retorna_403_html(
+        self, db, empresa_user, dev_client
+    ):
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto Privado HTMX',
+            descripcion='Desc',
+            estado='en_desarrollo',
+        )
+        response = dev_client.get(
+            reverse('ver_avances', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 403
+        html = response.content.decode('utf-8')
+        assert 'jdm-error' in html
+        assert 'No tienes permisos' in html
+
+    def test_ver_avances_htmx_con_accept_json_preserva_json(
+        self, dev_client, escenario_htmx
+    ):
+        proyecto, _, _ = escenario_htmx
+        response = dev_client.get(
+            reverse('ver_avances', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert response.status_code == 200
+        assert response['Content-Type'].startswith('application/json')
+        data = response.json()
+        assert data['ok'] is True
+        assert data['proyecto']['id'] == proyecto.id
+
+    def test_registrar_avance_htmx_get_retorna_partial_formulario(
+        self, dev_client, escenario_htmx
+    ):
+        proyecto, hito, _ = escenario_htmx
+        response = dev_client.get(
+            reverse('registrar_avance', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="jdmFormAvance"' in html
+        assert 'hx-post=' in html
+        assert 'hx-target="#jdmBody"' in html
+        assert f'value="{hito.id}"' in html
+        assert '&lt;b&gt;Uno&lt;/b&gt;' in html
+
+    def test_registrar_avance_htmx_post_error_rerenderiza_partial(
+        self, dev_client, escenario_htmx
+    ):
+        proyecto, hito, _ = escenario_htmx
+        avances_antes = Avance.objects.filter(proyecto=proyecto).count()
+        response = dev_client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': str(hito.id),
+                'descripcion': '',
+                'archivo_url': '',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="jdmFormAvance"' in html
+        assert 'Debes ingresar una descripción detallada' in html
+        assert Avance.objects.filter(proyecto=proyecto).count() == avances_antes
+
+    def test_registrar_avance_htmx_post_exito_emite_hx_trigger(
+        self, dev_client, escenario_htmx
+    ):
+        import json
+        proyecto, hito, _ = escenario_htmx
+        response = dev_client.post(
+            reverse('registrar_avance', args=[proyecto.id]),
+            {
+                'entregable_id': str(hito.id),
+                'descripcion': 'Implementación completa vía HTMX',
+                'archivo_url': 'https://github.com/org/repo/pull/42',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        assert 'HX-Trigger' in response
+        triggers = json.loads(response['HX-Trigger'])
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:avance-registrado' in triggers
+        assert Avance.objects.filter(
+            proyecto=proyecto, descripcion='Implementación completa vía HTMX'
+        ).exists()
+
+    def test_registrar_avance_htmx_con_accept_json_preserva_json(
+        self, dev_client, escenario_htmx
+    ):
+        proyecto, _, _ = escenario_htmx
+        response = dev_client.get(
+            reverse('registrar_avance', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert response.status_code == 200
+        assert response['Content-Type'].startswith('application/json')
+        data = response.json()
+        assert data['ok'] is True
+        assert 'hitos_pendientes' in data
+
+

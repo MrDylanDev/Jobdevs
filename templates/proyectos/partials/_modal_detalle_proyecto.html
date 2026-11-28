@@ -1,0 +1,152 @@
+{% if error_mensaje %}
+<div class="jdp-error" data-jdp-partial="error">
+  <i data-lucide="alert-triangle"></i>
+  <p>{{ error_mensaje }}</p>
+  <button type="button" class="jdp-btn" data-jdp-close>Cerrar</button>
+</div>
+{% else %}
+<div data-jdp-partial="ok" data-jdp-titulo="{{ proyecto.titulo|default:'Proyecto' }}">
+  <template data-jdp-slot="sub">
+    <div class="jdp-company-row">
+      <span class="jdp-company-name"><i data-lucide="building"></i> {{ proyecto.empresa.nombre }}</span>
+      {% if proyecto.empresa.verificada %}
+        <span class="jdp-verified"><i data-lucide="badge-check"></i> {{ proyecto.empresa.badge|default:"Verificada" }}</span>
+      {% endif %}
+      {% if proyecto.empresa.calificacion > 0 %}
+        <span class="jdp-rating"><i data-lucide="star"></i> {{ proyecto.empresa.calificacion|stringformat:".1f" }}</span>
+      {% endif %}
+      {% if proyecto.modalidad %}
+        <span class="jdp-modality">
+          {% if proyecto.modalidad == 'remoto' %}
+            <i data-lucide="wifi"></i>
+          {% elif proyecto.modalidad == 'hibrido' %}
+            <i data-lucide="split"></i>
+          {% else %}
+            <i data-lucide="map-pin"></i>
+          {% endif %}
+          {% if proyecto.ubicacion_display %}
+            {{ proyecto.ubicacion_display }}
+          {% else %}
+            {{ proyecto.modalidad_label|default:proyecto.modalidad }}{% if proyecto.ciudad and proyecto.modalidad != 'remoto' %} · {{ proyecto.ciudad }}{% endif %}
+          {% endif %}
+        </span>
+      {% endif %}
+    </div>
+  </template>
+
+  <div data-jdp-slot="body">
+    <div class="jdp-status-row">
+      <span class="jdp-badge is-{{ proyecto.estado }}"><i data-lucide="check-circle-2"></i> {{ proyecto.estado_label }}</span>
+      {% if proyecto.tipo %}
+        <span class="jdp-badge"><i data-lucide="layers"></i> {{ proyecto.tipo }}</span>
+      {% endif %}
+      {% if proyecto.prioridad %}
+        <span class="jdp-badge {% if proyecto.prioridad == 'alta' %}is-alta{% elif proyecto.prioridad == 'media' %}is-media{% else %}is-baja{% endif %}">
+          <i data-lucide="alert-circle"></i> Prioridad {{ proyecto.prioridad_label|default:proyecto.prioridad }}
+        </span>
+      {% endif %}
+      {% if proyecto.acepta_postulaciones and proyecto.vacantes_disponibles > 0 %}
+        <span class="jdp-badge is-open"><i data-lucide="door-open"></i> Convocatoria abierta</span>
+      {% endif %}
+    </div>
+
+    <div class="jdp-meta-grid">
+      <div class="jdp-meta-card">
+        <span class="jdp-meta-label"><i data-lucide="users"></i> Vacantes</span>
+        <span class="jdp-meta-value">{{ proyecto.vacantes_disponibles|default:0 }} de {{ proyecto.vacantes|default:0 }} libres</span>
+      </div>
+      <div class="jdp-meta-card">
+        <span class="jdp-meta-label"><i data-lucide="calendar"></i> Cierre</span>
+        <span class="jdp-meta-value">{{ proyecto.fecha_limite|default:"Sin límite" }}</span>
+      </div>
+      <div class="jdp-meta-card">
+        <span class="jdp-meta-label"><i data-lucide="clock"></i> Publicado</span>
+        <span class="jdp-meta-value">{{ proyecto.fecha_publicacion|default:"—" }}</span>
+      </div>
+      <div class="jdp-meta-card">
+        <span class="jdp-meta-label"><i data-lucide="map-pin"></i> Modalidad</span>
+        <span class="jdp-meta-value">{{ proyecto.ubicacion_display|default:proyecto.modalidad_label|default:"Remoto" }}</span>
+      </div>
+    </div>
+
+    <div class="jdp-desc-card">
+      <h4 class="jdp-section-header"><i data-lucide="file-text"></i> Descripción de la Convocatoria</h4>
+      <div class="jdp-desc-text">{{ proyecto.descripcion|default:"Sin descripción detallada registrada." }}</div>
+    </div>
+
+    {% if proyecto.hitos_totales > 0 and proyecto.hitos %}
+      <section class="jdp-section">
+        <div class="jdp-section-title">
+          <span><i data-lucide="list-checks"></i> Plan de Hitos del Proyecto</span>
+          <span class="jdp-section-count">{{ proyecto.hitos_completados }}/{{ proyecto.hitos_totales }} completados ({{ proyecto.progreso }}%)</span>
+        </div>
+        <div class="jdp-progress-bar">
+          <div class="jdp-progress-fill" style="width:{{ proyecto.progreso }}%"></div>
+        </div>
+        <ul class="jdp-list">
+          {% for h in proyecto.hitos %}
+            <li class="jdp-list-item is-{{ h.estado }}">
+              {% if h.estado == 'completado' %}
+                <i data-lucide="check-circle-2" class="jdp-list-icon"></i>
+              {% elif h.estado == 'en_revision' %}
+                <i data-lucide="clock" class="jdp-list-icon"></i>
+              {% else %}
+                <i data-lucide="circle" class="jdp-list-icon"></i>
+              {% endif %}
+              <div class="jdp-list-main">
+                <span class="jdp-list-title">{{ forloop.counter }}. {{ h.titulo }}</span>
+                {% if h.descripcion %}
+                  <span class="jdp-list-sub">{{ h.descripcion }}</span>
+                {% endif %}
+              </div>
+              <span class="jdp-list-state">{{ h.estado_label }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if proyecto.contrataciones %}
+      <section class="jdp-section">
+        <div class="jdp-section-title">
+          <span><i data-lucide="users"></i> Desarrolladores Asignados</span>
+          <span class="jdp-section-count">{{ proyecto.contrataciones|length }}</span>
+        </div>
+        <div class="jdp-team">
+          {% for c in proyecto.contrataciones %}
+            <span class="jdp-chip">
+              <i data-lucide="code-2"></i> {{ c.desarrollador|default:c.username }}
+              <span class="jdp-list-state">{{ c.estado_label }}</span>
+            </span>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+
+  <template data-jdp-slot="footer">
+    {% for a in acciones %}
+      {% if a.label == 'Postularme' %}
+        <a class="jdp-btn {% if a.estilo == 'primary' %}is-primary{% endif %}"
+           href="{{ a.url|default:'#' }}"
+           data-jdp-postular-inline
+           data-postulacion-url="{{ a.url|default:'#' }}"
+           data-titulo="{{ proyecto.titulo }}"
+           data-empresa="{{ proyecto.empresa.nombre }}"
+           data-tipo="{{ proyecto.tipo }}"
+           data-prioridad="{{ proyecto.prioridad|upper }}"
+           data-vacantes="{{ proyecto.vacantes_disponibles }}"
+           data-cierre="{{ proyecto.fecha_limite }}"
+           data-descripcion="{{ proyecto.descripcion }}">
+          <i data-lucide="rocket"></i> {{ a.label }}
+        </a>
+      {% else %}
+        <a class="jdp-btn {% if a.estilo == 'primary' %}is-primary{% endif %}" href="{{ a.url|default:'#' }}">
+          <i data-lucide="{{ a.icono|default:'arrow-right' }}"></i> {{ a.label|default:"Abrir" }}
+        </a>
+      {% endif %}
+    {% endfor %}
+    <button type="button" class="jdp-btn" data-jdp-close><i data-lucide="x"></i> Cerrar</button>
+  </template>
+</div>
+{% endif %}

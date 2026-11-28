@@ -57,7 +57,8 @@ def test_conflicto_se_media_y_libera_cupo_solo_tras_fallo(
         and response.request.method == 'POST'
     ) as enviada:
         page.get_by_role('button', name='Iniciar Mediación Formal').click()
-    assert enviada.value.json()['ok'] is True
+    assert enviada.value.status == 200
+    assert 'jobdevs:disputa-creada' in (enviada.value.headers.get('hx-trigger') or '')
     disputa = Disputa.objects.get(contratacion=contrato)
     contrato.refresh_from_db()
     proyecto.refresh_from_db()
@@ -127,7 +128,8 @@ def test_fuerza_mayor_sin_respuesta_se_revisa_desde_modal(
     page.locator('#jdmAceptaSanciones').check()
     with page.expect_response(lambda r: '/disputas/abrir/' in r.url and r.request.method == 'POST') as enviada:
         page.locator('#jdmBtnConfirmarDisputa').click()
-    assert enviada.value.json()['ok'] is True
+    assert enviada.value.status == 200
+    assert 'jobdevs:disputa-creada' in (enviada.value.headers.get('hx-trigger') or '')
     disputa = Disputa.objects.get(contratacion=contrato)
     solicitud.refresh_from_db()
     contrato.refresh_from_db()

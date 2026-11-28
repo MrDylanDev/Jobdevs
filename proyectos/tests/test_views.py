@@ -219,6 +219,169 @@ class TestListarProyectos:
         assert 'name="q"' in content
         assert 'catalogo_async.js' in content
 
+    def test_listar_proyectos_htmx_retorna_partial_filtrado(self, dev_client, empresa_user):
+        """S1: HX-Request: true devuelve solo el parcial HTML filtrado sin layout completo."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Portal Django HTMX',
+            descripcion='Arquitectura moderna con HTMX', tipo_solucion='sitio_web', estado='publicado',
+        )
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='App Movil Flutter',
+            descripcion='App nativa', tipo_solucion='aplicacion_movil', estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=Django&tipo=sitio_web',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        assert 'text/html' in response.headers['Content-Type']
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert '<html' not in content
+        assert 'class="cards-grid"' in content
+        assert 'Portal Django HTMX' in content
+        assert 'App Movil Flutter' not in content
+
+    def test_listar_proyectos_htmx_empty_state(self, dev_client):
+        """S1: HX-Request: true sin resultados renderiza el empty state parcial."""
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=termino-inexistente-xyz',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert 'empty-state' in content
+        assert 'No se encontraron proyectos con los filtros seleccionados.' in content
+
+    def test_listar_proyectos_htmx_paginacion_links(self, dev_client, empresa_user):
+        """S1: La paginación en el parcial HTMX conserva filtros e incluye hx-get/hx-target."""
+        Proyecto.objects.bulk_create([
+            Proyecto(
+                empresa=empresa_user,
+                titulo=f'Proyecto HTMX Pag {i:02d}',
+                descripcion='Descripcion paginada',
+                tipo_solucion='sitio_web',
+                estado='publicado',
+            )
+            for i in range(15)
+        ])
+
+        res_p1 = dev_client.get(
+            reverse('listar_proyectos') + '?tipo=sitio_web&page=1',
+            headers={'HX-Request': 'true'},
+        )
+        assert res_p1.status_code == 200
+        content_p1 = res_p1.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content_p1
+        assert 'aria-label="Paginación de proyectos"' in content_p1
+        assert 'hx-get=' in content_p1
+        assert 'page=2' in content_p1
+        assert 'tipo=sitio_web' in content_p1
+        assert 'hx-target="#catalogoResultados"' in content_p1
+        assert 'hx-swap="innerHTML"' in content_p1
+        assert 'hx-push-url="true"' in content_p1
+
+        res_p2 = dev_client.get(
+            reverse('listar_proyectos') + '?tipo=sitio_web&page=2',
+            headers={'HX-Request': 'true'},
+        )
+        assert res_p2.status_code == 200
+        content_p2 = res_p2.content.decode('utf-8')
+        assert 'page=1' in content_p2
+        assert 'hx-target="#catalogoResultados"' in content_p2
+
+    def test_listar_proyectos_htmx_escapa_xss(self, dev_client, empresa_user):
+        """S1: El parcial HTMX auto-escapa HTML/JS malicioso en título y descripción."""
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='<script>alert("xss")</script>',
+            descripcion='<img src=x onerror=alert(1)>',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos'),
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in content
+        assert '<script>alert("xss")</script>' not in content
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in content
+        assert '<img src=x onerror=alert(1)>' not in content
+
+    def test_listar_proyectos_preserva_json_y_full_page(self, dev_client, empresa_user):
+        """S1: Preserva contrato JSON (Accept/XHR/?format=json) y HTML completo con attrs HTMX."""
+        Proyecto.objects.create(
+            empresa=empresa_user, titulo='Proyecto Contrato Dual',
+            descripcion='Desc', tipo_solucion='sitio_web', estado='publicado',
+        )
+        url = reverse('listar_proyectos')
+
+        # HX-Request + Accept: application/json -> JSON gana
+        res_accept = dev_client.get(
+            url, headers={'HX-Request': 'true', 'Accept': 'application/json'}
+        )
+        assert res_accept.status_code == 200
+        assert res_accept.headers['Content-Type'] == 'application/json'
+        assert res_accept.json()['status'] == 'ok'
+
+        # HX-Request + ?format=json -> JSON gana
+        res_fmt = dev_client.get(
+            url + '?format=json', headers={'HX-Request': 'true'}
+        )
+        assert res_fmt.status_code == 200
+        assert res_fmt.headers['Content-Type'] == 'application/json'
+        assert res_fmt.json()['status'] == 'ok'
+
+        # X-Requested-With: XMLHttpRequest (legacy) -> JSON preservado
+        res_xhr = dev_client.get(
+            url, headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        assert res_xhr.status_code == 200
+        assert res_xhr.headers['Content-Type'] == 'application/json'
+        assert res_xhr.json()['status'] == 'ok'
+
+        # Regular GET -> full page HTML con contenedor HTMX y scripts vendored
+        res_full = dev_client.get(url)
+        assert res_full.status_code == 200
+        full_html = res_full.content.decode('utf-8')
+        assert '<!DOCTYPE html>' in full_html
+        assert 'id="catalogoResultados"' in full_html
+        assert 'vendor/htmx/htmx.min.js' in full_html
+        assert 'dashboard/script/htmx_bridge.js' in full_html
+        assert 'hx-target="#catalogoResultados"' in full_html
+        assert 'hx-sync="this:replace"' in full_html
+
+    def test_listar_proyectos_htmx_replace_url_limpia(self, dev_client, empresa_user):
+        """T4: HTMX catalog filter emits clean HX-Replace-Url omitting empty params and encoding spaces as '+'."""
+        Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Oferta de reputación',
+            descripcion='Oferta de prueba',
+            tipo_solucion='sitio_web',
+            estado='publicado',
+        )
+
+        response = dev_client.get(
+            reverse('listar_proyectos') + '?q=Oferta+de+reputaci%C3%B3n&tipo=&prioridad=&modalidad=',
+            headers={'HX-Request': 'true'},
+        )
+        assert response.status_code == 200
+        assert response['HX-Replace-Url'] == f"{reverse('listar_proyectos')}?q=Oferta+de+reputaci%C3%B3n"
+
+        # Empty filters produce bare catalog URL without trailing '?'
+        response_empty = dev_client.get(
+            reverse('listar_proyectos') + '?q=&tipo=&prioridad=&modalidad=',
+            headers={'HX-Request': 'true'},
+        )
+        assert response_empty.status_code == 200
+        assert response_empty['HX-Replace-Url'] == reverse('listar_proyectos')
+
+
 
 
 class TestCrearProyecto:
@@ -924,6 +1087,137 @@ class TestFinalizarProyecto:
             puntuacion=5,
         ).exists()
 
+    def test_finalizar_proyecto_htmx_get_retorna_partial_modal(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: GET con HX-Request devuelve _modal_finalizar_proyecto.html con controles de estrellas."""
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto
+
+        desarrollador_user.nombre = 'Dev <script>alert(1)</script>'
+        desarrollador_user.save(update_fields=['nombre'])
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.get(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        html = resp.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formCalificarModal"' in html
+        assert 'hx-post=' in html
+        assert 'hx-target="#modalCalificarBody"' in html
+        assert 'class="corp-star-rating"' in html
+        assert '<script>alert(1)</script>' not in html
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+
+    def test_finalizar_proyecto_htmx_post_error_rerenderiza_partial(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: POST HTMX con error de validación re-renderiza el partial con .msg-error."""
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Error Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.post(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            {'puntuacion': '5', 'comentario': 'Corto'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        html = resp.content.decode('utf-8')
+        assert '<!DOCTYPE html>' not in html
+        assert 'id="formCalificarModal"' in html
+        assert 'class="msg-error"' in html
+        assert not Valoracion.objects.filter(proyecto=proyecto).exists()
+
+    def test_finalizar_proyecto_htmx_post_exito_retorna_hx_trigger(
+        self, auth_client, empresa_user, desarrollador_user
+    ):
+        """S5: POST HTMX exitoso guarda valoración y devuelve 200 con HX-Trigger."""
+        import json
+        from contrataciones.models import Contratacion
+        from proyectos.models import HistorialEstadoProyecto, Valoracion
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='Proyecto S5 Exito Calificar',
+            descripcion='P',
+            tipo_solucion='sitio_web',
+            estado='finalizado',
+        )
+        Contratacion.objects.create(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            empresa=empresa_user,
+            estado='finalizada',
+        )
+        HistorialEstadoProyecto.objects.create(
+            proyecto=proyecto,
+            estado_anterior='en_revision',
+            estado_nuevo='finalizado',
+            cambiado_por=empresa_user,
+        )
+
+        resp = auth_client.post(
+            reverse('finalizar_proyecto', args=[proyecto.id]),
+            {
+                'puntuacion': '5',
+                'comentario': 'Excelente trabajo técnico, comunicación clara y entregas a tiempo.',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp.status_code == 200
+        assert Valoracion.objects.filter(
+            proyecto=proyecto,
+            desarrollador=desarrollador_user,
+            rol_evaluador='empresa',
+            puntuacion=5,
+        ).exists()
+        assert 'HX-Trigger' in resp
+        triggers = json.loads(resp['HX-Trigger'])
+        assert 'jobdevs:toast' in triggers
+        assert triggers['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:calificacion-guardada' in triggers
+
 
 class TestCalificarEmpresa:
     """RF 5.2.2: el desarrollador califica a la empresa con comentario obligatorio."""
@@ -1043,6 +1337,154 @@ class TestCalificarEmpresa:
         post_data = post_res.json()
         assert post_data['ok'] is False
         assert '30 días' in post_data['mensaje']
+
+    def test_htmx_get_retorna_partial_y_escapa_xss(
+        self, dev_client, proyecto_finalizado, empresa_user
+    ):
+        empresa_user.nombre = 'Empresa <script>alert("xss")</script>'
+        empresa_user.save(update_fields=['nombre'])
+        proyecto_finalizado.titulo = 'Proyecto <img src=x onerror=alert(1)>'
+        proyecto_finalizado.save(update_fields=['titulo'])
+
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        response = dev_client.get(url, HTTP_HX_REQUEST='true')
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' in html
+        assert 'id="jdmStars"' in html
+        assert 'jdm-stars' in html
+        assert 'id="jdmComentario"' in html
+        assert 'id="jdmBtnEnviarCalificacion"' in html
+        assert 'csrfmiddlewaretoken' in html
+        assert '<script>alert("xss")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+        ob_res = dev_client.get(f'{url}?obligatorio=1', HTTP_HX_REQUEST='true')
+        assert ob_res.status_code == 200
+        ob_html = ob_res.content.decode('utf-8')
+        assert 'Evaluación requerida' in ob_html
+        assert 'Enviar Calificación Obligatoria' in ob_html
+
+    def test_htmx_post_error_validacion_rerenderiza_partial(
+        self, dev_client, proyecto_finalizado, desarrollador_user
+    ):
+        from proyectos.models import Valoracion
+
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+        response = dev_client.post(
+            url,
+            {'puntuacion': '5', 'comentario': 'Muy corto'},
+            HTTP_HX_REQUEST='true',
+        )
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' in html
+        assert 'al menos 20 caracteres' in html
+        assert 'HX-Trigger' not in response
+        assert not Valoracion.objects.filter(
+            proyecto=proyecto_finalizado, desarrollador=desarrollador_user
+        ).exists()
+
+        res_sin_punt = dev_client.post(
+            url,
+            {'puntuacion': '', 'comentario': 'Comentario suficientemente largo para validar.'},
+            HTTP_HX_REQUEST='true',
+        )
+        assert res_sin_punt.status_code == 200
+        assert 'Debes seleccionar una puntuación.' in res_sin_punt.content.decode('utf-8')
+
+    def test_htmx_post_exito_retorna_confirmacion_y_hx_trigger(
+        self, dev_client, proyecto_finalizado, desarrollador_user, empresa_user
+    ):
+        import json as _json
+        from proyectos.models import Valoracion
+        from usuarios.models import PerfilEmpresa
+
+        perfil, _ = PerfilEmpresa.objects.get_or_create(usuario=empresa_user)
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+
+        response = dev_client.post(
+            url,
+            {
+                'puntuacion': '5',
+                'comentario': 'Excelente comunicación, requisitos claros y pagos puntuales.',
+            },
+            HTTP_HX_REQUEST='true',
+        )
+
+        assert response.status_code == 200
+        template_names = [t.name for t in response.templates]
+        assert 'proyectos/partials/_modal_calificar_empresa.html' in template_names
+        html = response.content.decode('utf-8')
+        assert 'id="jdmFormCalificar"' not in html
+        assert 'calificación ha sido registrada' in html.lower() or 'ya has calificado' in html.lower()
+
+        assert 'HX-Trigger' in response
+        trigger = _json.loads(response['HX-Trigger'])
+        assert 'jobdevs:toast' in trigger
+        assert trigger['jobdevs:toast']['tipo'] == 'success'
+        assert 'jobdevs:calificacion-empresa-guardada' in trigger
+        assert trigger['jobdevs:calificacion-empresa-guardada']['proyecto_id'] == proyecto_finalizado.id
+        assert trigger['jobdevs:calificacion-empresa-guardada']['puntuacion'] == 5
+
+        assert Valoracion.objects.filter(
+            proyecto=proyecto_finalizado,
+            desarrollador=desarrollador_user,
+            rol_evaluador='desarrollador',
+            puntuacion=5,
+        ).exists()
+        perfil.refresh_from_db()
+        assert perfil.calificacion_promedio == 5
+
+        get_after = dev_client.get(url, HTTP_HX_REQUEST='true')
+        assert get_after.status_code == 200
+        assert 'id="jdmFormCalificar"' not in get_after.content.decode('utf-8')
+
+    def test_preserva_contrato_json_y_html_completo(
+        self, dev_client, proyecto_finalizado
+    ):
+        url = reverse('calificar_empresa', args=[proyecto_finalizado.id])
+
+        # Full-page HTML contract
+        html_res = dev_client.get(url)
+        assert html_res.status_code == 200
+        assert 'proyectos/calificar_empresa.html' in [t.name for t in html_res.templates]
+
+        # JSON contract via XHR + Accept (even if HX-Request is also sent)
+        json_headers = {
+            'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest',
+            'HTTP_ACCEPT': 'application/json',
+            'HTTP_HX_REQUEST': 'true',
+        }
+        get_json = dev_client.get(url, **json_headers)
+        assert get_json.status_code == 200
+        data = get_json.json()
+        assert data['ok'] is True
+        assert data['ya_califico'] is False
+        assert data['proyecto']['id'] == proyecto_finalizado.id
+
+        post_json = dev_client.post(
+            url,
+            {
+                'puntuacion': '4',
+                'comentario': 'Experiencia positiva colaborando con la empresa.',
+                'origen': 'dashboard',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+        assert post_json.status_code == 200
+        post_data = post_json.json()
+        assert post_data['ok'] is True
+        assert post_data['puntuacion'] == 4
 
 
 class TestGestionarHitosAsignacionIndividual:
@@ -1218,4 +1660,111 @@ class TestApiDetalleProyecto:
         data = response.json()
         assert data['ok'] is False
         assert "No tienes permisos" in data['mensaje']
+
+    def test_htmx_retorna_partial_html_ficha_proyecto(self, dev_client, empresa_user):
+        from proyectos.models import Entregable, Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto HTMX Modal",
+            descripcion="Descripción renderizada desde Django",
+            estado="publicado",
+            vacantes=3,
+        )
+        Entregable.objects.create(
+            proyecto=proyecto,
+            titulo="Hito Inicial",
+            descripcion="Setup arquitectura",
+            estado="completado",
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        assert 'text/html' in response['Content-Type']
+        html = response.content.decode('utf-8')
+        assert 'data-jdp-partial' in html
+        assert 'Proyecto HTMX Modal' in html
+        assert 'Descripción renderizada desde Django' in html
+        assert 'jdp-status-row' in html
+        assert 'jdp-meta-grid' in html
+        assert 'Hito Inicial' in html
+        assert '1/1 completados (100%)' in html
+        assert 'Postularme' in html
+
+    def test_htmx_403_retorna_error_html_con_status_403(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Privado HTMX",
+            descripcion="No visible",
+            estado="inactivo",
+            vacantes=1,
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 403
+        assert 'text/html' in response['Content-Type']
+        html = response.content.decode('utf-8')
+        assert 'jdp-error' in html
+        assert 'No tienes permisos para ver este proyecto.' in html
+
+    def test_htmx_escapa_xss_en_titulo_y_descripcion(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo='<script>alert("xss-title")</script>',
+            descripcion='<img src=x onerror=alert(1)>',
+            estado="publicado",
+            vacantes=1,
+        )
+
+        response = dev_client.get(
+            reverse('api_detalle_proyecto', args=[proyecto.id]),
+            HTTP_HX_REQUEST='true',
+        )
+        assert response.status_code == 200
+        html = response.content.decode('utf-8')
+        assert '<script>alert("xss-title")</script>' not in html
+        assert '&lt;script&gt;alert(&quot;xss-title&quot;)&lt;/script&gt;' in html
+        assert '<img src=x onerror=alert(1)>' not in html
+        assert '&lt;img src=x onerror=alert(1)&gt;' in html
+
+    def test_htmx_con_accept_json_o_format_json_preserva_json(self, dev_client, empresa_user):
+        from proyectos.models import Proyecto
+        from django.urls import reverse
+
+        proyecto = Proyecto.objects.create(
+            empresa=empresa_user,
+            titulo="Proyecto Dual JSON",
+            descripcion="D",
+            estado="publicado",
+            vacantes=1,
+        )
+        url = reverse('api_detalle_proyecto', args=[proyecto.id])
+
+        resp_accept = dev_client.get(
+            url,
+            HTTP_HX_REQUEST='true',
+            HTTP_ACCEPT='application/json',
+        )
+        assert resp_accept.status_code == 200
+        assert resp_accept.json()['ok'] is True
+
+        resp_fmt = dev_client.get(
+            f"{url}?format=json",
+            HTTP_HX_REQUEST='true',
+        )
+        assert resp_fmt.status_code == 200
+        assert resp_fmt.json()['ok'] is True
 
