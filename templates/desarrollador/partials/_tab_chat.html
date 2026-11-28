@@ -38,7 +38,7 @@
                       data-receptor="{{ conv.empresa_id }}" data-proyecto="{{ conv.proyecto_id }}">
                 <span class="jd-chat-avatar">
                   {% if conv.empresa_logo %}
-                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" onerror="this.parentElement.textContent='{{ conv.empresa_nombre|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ conv.empresa_logo }}" alt="{{ conv.empresa_nombre }}" data-fallback-text="{{ conv.empresa_nombre|slice:":1"|upper }}">
                   {% else %}
                     {{ conv.empresa_nombre|slice:":1"|upper }}
                   {% endif %}

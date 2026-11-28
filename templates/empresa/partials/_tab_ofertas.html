@@ -17,7 +17,7 @@
           <div class="offers-toolbar-controls">
             <div class="offers-search-wrap">
               <i data-lucide="search"></i>
-              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" onkeyup="filtrarOfertasEnTiempoReal(this)">
+              <input type="text" class="form-input-corp" aria-label="{% trans "Buscar convocatoria por título" %}" placeholder="{% trans "Buscar convocatoria por título..." %}" data-input-call="filtrarOfertasEnTiempoReal" data-input-arg-0="$el">
             </div>
             <div class="offers-filter-bar" role="group" aria-label="{% trans "Filtrar por modalidad" %}">
               <button type="button" class="offers-filter-pill is-active" data-call="filtrarOfertasPorModalidad" data-arg-0="todas" data-arg-1="$el">{% trans "Todas" %}</button>

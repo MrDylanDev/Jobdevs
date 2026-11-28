@@ -26,7 +26,10 @@ CSS_COMMENT_OR_STRING_RE = re.compile(
     re.DOTALL,
 )
 CSS_IMPORT_RE = re.compile(r"@import\b", re.IGNORECASE)
-INLINE_HANDLER_RE = re.compile(r'\bon(?:click|input|change|keydown|submit)\s*=', re.IGNORECASE)
+INLINE_HANDLER_RE = re.compile(
+    r'\bon(?:click|dblclick|mousedown|mouseup|mouseover|mouseout|keydown|keyup|keypress|input|change|submit|focus|blur|error|load|scroll|reset)\s*=',
+    re.IGNORECASE,
+)
 
 
 def check_inline_event_handlers(templates_dir: Path) -> list[str]:

@@ -129,8 +129,8 @@ class TestPestanaDisputasEnDashboard:
         assert escenario['resuelta'].pk not in _ids(resp.context['disputas_resueltas'])
 
     @pytest.mark.parametrize('clave,destino,funcion', [
-        ('empresa1', 'dashboard_empresa', "switchTab('disputas'"),
-        ('dev1', 'dashboard_desarrollador', "verSeccion('disputas'"),
+        ('empresa1', 'dashboard_empresa', 'data-call="switchTab" data-arg-0="disputas"'),
+        ('dev1', 'dashboard_desarrollador', 'data-call="verSeccion" data-arg-0="disputas"'),
     ])
     def test_sidebar_abre_la_pestana_sin_salir_del_dashboard(
         self, client, escenario, clave, destino, funcion,

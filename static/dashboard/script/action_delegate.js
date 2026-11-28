@@ -96,6 +96,8 @@ const ALLOWED_CALLS = new Set([
   'filtrarHistorialEnTiempoReal',
   'abrirModal',
   'filtrarOfertasPorModalidad',
+  'filtrarOfertasEnTiempoReal',
+  'filtrarResenasModal',
   'abrirModalEditarProyecto',
   'abrirModalPerfil',
   'switchPerfilSubTab',
@@ -322,4 +324,15 @@ if (!window.__jobdevsActionDelegateBound) {
       }
     }
   });
+
+  document.addEventListener(
+    'error',
+    (event) => {
+      const target = event.target;
+      if (target?.tagName === 'IMG' && target.dataset?.fallbackText && target.parentElement) {
+        target.parentElement.textContent = target.dataset.fallbackText;
+      }
+    },
+    true
+  );
 }

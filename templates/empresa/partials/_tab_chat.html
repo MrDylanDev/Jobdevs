@@ -33,7 +33,7 @@
                       data-receptor="{{ colaboracion.desarrollador.id }}" data-proyecto="{{ colaboracion.proyecto.id }}">
                 <span class="jd-chat-avatar">
                   {% if colaboracion.desarrollador.perfil_desarrollador.foto_perfil %}
-                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" onerror="this.parentElement.textContent='{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ colaboracion.desarrollador.perfil_desarrollador.foto_perfil.url }}" alt="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username }}" data-fallback-text="{{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}">
                   {% else %}
                     {{ colaboracion.desarrollador.nombre|default:colaboracion.desarrollador.username|slice:":1"|upper }}
                   {% endif %}

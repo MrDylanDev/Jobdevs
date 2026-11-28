@@ -233,7 +233,7 @@
                       data-receptor="{{ conv.usuario.id }}" data-proyecto="0">
                 <span class="jd-chat-avatar">
                   {% if conv.foto_url %}
-                    <img src="{{ conv.foto_url }}" alt="{{ conv.usuario.username }}" onerror="this.parentElement.textContent='{{ conv.usuario.username|slice:":1"|upper|escapejs }}'">
+                    <img src="{{ conv.foto_url }}" alt="{{ conv.usuario.username }}" data-fallback-text="{{ conv.usuario.username|slice:":1"|upper }}">
                   {% else %}
                     {{ conv.usuario.username|slice:":1"|upper }}
                   {% endif %}

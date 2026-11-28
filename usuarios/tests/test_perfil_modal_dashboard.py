@@ -35,14 +35,14 @@ class TestPerfilIntegradoEnDashboard:
     def test_perfil_es_seccion_del_dashboard(self, dev_client):
         html = _dashboard(dev_client).content.decode()
         assert 'id="modalEditarPerfilDev"' in html
-        assert "abrirModalPerfilDev()" in html
+        assert 'data-then="abrirModalPerfilDev"' in html
         # El acceso ya no debe ser un enlace a la página independiente.
         assert f'href="{reverse("editar_perfil")}"' not in html
 
     def test_modal_de_verificacion_presente_en_dashboard(self, dev_client):
         html = _dashboard(dev_client).content.decode()
         assert 'id="modalVerificacion"' in html
-        assert 'abrirVerificacion()' in html
+        assert 'data-then="abrirVerificacion"' in html
         assert html.count('data-verificacion-form') == 3
         assert html.count('value="dashboard"') >= 3
 

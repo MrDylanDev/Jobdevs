@@ -143,7 +143,7 @@
                class="form-input-corp"
                aria-label="{% trans "Buscar reseñas por desarrollador o proyecto" %}"
                placeholder="{% trans "Buscar por desarrollador o proyecto..." %}"
-               onkeyup="filtrarResenasModal(this)"
+               data-input-call="filtrarResenasModal" data-input-arg-0="$el"
                style="padding-left: 32px;">
         <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--corp-slate-400);"></i>
       </div>

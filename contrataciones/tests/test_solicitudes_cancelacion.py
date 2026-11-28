@@ -285,7 +285,7 @@ def test_empresa_gestiona_cancelaciones_dentro_del_panel(auth_client, contrato_a
     contenido = pagina.content.decode()
     assert pagina.status_code == 200
     assert 'id="cancelaciones"' in contenido
-    assert "switchTab('cancelaciones'" in contenido
+    assert 'data-call="switchTab" data-arg-0="cancelaciones"' in contenido
     assert reverse('cancelar_contratacion', args=[contrato_activo.pk]) in contenido
     assert 'Abrir una disputa formal para este contrato' in contenido
 
@@ -366,7 +366,7 @@ def test_los_tres_paneles_enlazan_el_flujo_de_cancelacion(
 ):
     destino = reverse('solicitudes_cancelacion')
     # La empresa lo gestiona dentro de su panel; dev y admin mantienen la página.
-    assert "switchTab('cancelaciones'" in auth_client.get(
+    assert 'data-call="switchTab" data-arg-0="cancelaciones"' in auth_client.get(
         reverse('dashboard_empresa')
     ).content.decode()
     auth_client.force_login(desarrollador_user)
